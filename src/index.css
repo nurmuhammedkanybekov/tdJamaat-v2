@@ -1,0 +1,44 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+/* Tailwind v4 dark mode: driven by a .dark class on <html> (set in main.tsx
+   from localStorage / OS preference), not purely prefers-color-scheme, so the
+   in-app toggle can override the OS setting. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+    color-scheme: light;
+    --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+    /* Validated palette (see dataviz skill references/palette.md) */
+    --surface: #ffffff;
+    --page-plane: #f9f9f7;
+    --text-primary: #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted: #898781;
+    --border: rgba(11, 11, 11, 0.10);
+    --gridline: #e1e0d9;
+
+    --accent: #2a78d6;
+    --accent-strong: #1c5cab;
+}
+
+.dark {
+    color-scheme: dark;
+    --surface: #1a1a19;
+    --page-plane: #0d0d0d;
+    --text-primary: #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted: #898781;
+    --border: rgba(255, 255, 255, 0.10);
+    --gridline: #2c2c2a;
+
+    --accent: #3987e5;
+    --accent-strong: #86b6ef;
+}
+
+body {
+    font-family: var(--font-sans);
+    background-color: var(--page-plane);
+    color: var(--text-primary);
+}
