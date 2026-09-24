@@ -17,6 +17,7 @@ import { FourWeekPeriodSelector } from './components/FourWeekPeriodSelector';
 import { LoginModal } from './components/LoginModal';
 import { DataEntryForm } from './components/DataEntryForm';
 import { OverviewView, TeamsView, ProgressView, FourWeekReportView, TotalRatingsView } from './components/views';
+import { OrnamentDivider, SunMark } from './components/Ornament';
 
 type ActiveView = 'overview' | 'teams' | 'progress' | 'fourweekreport' | 'totalratings';
 
@@ -73,7 +74,7 @@ const TeamPerformanceTracker: React.FC = () => {
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--page-plane)' }}>
-                <div className="text-2xl font-bold" style={{ color: 'var(--accent)' }}>Жүктөлүүдө...</div>
+                <div className="font-serif text-xl" style={{ color: 'var(--text-muted)' }}>Жүктөлүүдө&hellip;</div>
             </div>
         );
     }
@@ -81,8 +82,8 @@ const TeamPerformanceTracker: React.FC = () => {
     if (error || !data || data.weeks.length === 0) {
         return (
             <div className="min-h-screen flex items-center justify-center p-6" style={{ backgroundColor: 'var(--page-plane)' }}>
-                <div className="rounded-2xl shadow-sm border p-8 max-w-md" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
-                    <h2 className="text-2xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>{error ? 'Ката' : 'Маалымат жок'}</h2>
+                <div className="p-8 max-w-md" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '3px' }}>
+                    <h2 className="font-serif text-2xl font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>{error ? 'Ката' : 'Маалымат жок'}</h2>
                     <p style={{ color: 'var(--text-secondary)' }}>{error || 'Учурда маалымат базасы бош. Жаңы маалыматтарды киргизиңиз.'}</p>
                 </div>
             </div>
@@ -94,8 +95,8 @@ const TeamPerformanceTracker: React.FC = () => {
     const nextWeekNumber = Math.max(...data.weeks.map(w => w.weekNumber)) + 1;
 
     return (
-        <div className="min-h-screen p-6 transition-colors" style={{ backgroundColor: 'var(--page-plane)' }}>
-            <div className="max-w-7xl mx-auto">
+        <div className="min-h-screen px-5 py-8 md:px-10 md:py-10 transition-colors" style={{ backgroundColor: 'var(--page-plane)' }}>
+            <div className="max-w-6xl mx-auto">
                 <Header
                     showFormula={showFormula}
                     setShowFormula={setShowFormula}
@@ -130,6 +131,16 @@ const TeamPerformanceTracker: React.FC = () => {
                 {activeView === 'progress' && <ProgressView data={data} currentTeams={currentWeekData.teams} isDark={isDark} />}
                 {activeView === 'fourweekreport' && <FourWeekReportView data={data} selectedPeriod={selectedPeriod} isDark={isDark} />}
                 {activeView === 'totalratings' && <TotalRatingsView data={data} />}
+
+                <footer className="mt-12">
+                    <OrnamentDivider className="mb-5" />
+                    <div className="flex items-center justify-center gap-2 pb-2">
+                        <SunMark size={15} />
+                        <p className="text-[11.5px] italic" style={{ color: 'var(--text-muted)' }}>
+                            tdJamaat
+                        </p>
+                    </div>
+                </footer>
             </div>
 
             {showLogin && (

@@ -1,28 +1,29 @@
 # Setting up tdJamaat v2
 
-This is the fresh rebuild — same core idea as the original tdJamaat, new
-data model (real houses/members instead of a JSON blob per week), and
-proper per-house login instead of one shared password. This doc gets a
-brand new Supabase project wired up from scratch.
+Same core idea as the original tdJamaat, on a new foundation: real
+houses/members tables instead of a JSON blob re-typed every week, and
+proper per-house logins instead of one shared password. This doc wires up
+a brand new Supabase project from scratch and gets the app running.
 
 ## 1. Create the Supabase project
 
-Go to [supabase.com](https://supabase.com), create a new project (pick
-whichever account should actually own this long-term — worth deciding now
-rather than after the community depends on it). Note the **Project URL**
-and, under **Project Settings → API**, the **anon public** key and the
-**service_role** key (the second one is secret — never put it in the app
-or commit it anywhere).
+Go to [supabase.com](https://supabase.com) and create a new project (pick
+whichever account should actually own this long-term). Note the
+**Project URL** and, under **Project Settings → API**, the **anon
+public** key and the **service_role** key — the second one is secret,
+never put it in the app or commit it anywhere.
 
 ## 2. Create the schema and seed the roster
 
 In the Supabase dashboard, open **SQL Editor** and run, in order:
 
-1. `supabase/schema.sql` — creates the houses/members/weeks/metrics tables
-   and the row-level security policies.
-2. `supabase/seed.sql` — inserts the 5 current houses (Mester, Danjanich,
-   Pannonia, Baksai, Dobozy New) and their members/roles from the roster
-   you shared. Photos aren't set yet (see step 5).
+1. `supabase/schema.sql` — creates the houses/members/weeks/metrics
+   tables and the row-level security policies.
+2. `supabase/seed.sql` — inserts the current houses (Mester, Damjanich,
+   Pannonia, Baksai, Dobozy) and their members/roles.
+3. `supabase/photo-upload-setup.sql` — creates the `member-photos`
+   storage bucket and the policies that let a house leader upload/replace
+   photos for members in their own house.
 
 ## 3. Configure the app's environment
 
@@ -33,15 +34,18 @@ VITE_SUPABASE_URL=<Project URL from step 1>
 VITE_SUPABASE_ANON_KEY=<anon public key from step 1>
 ```
 
-There's no `VITE_ADMIN_PASSWORD` anymore — auth now happens through real
-Supabase accounts (step 4), not a password baked into the client bundle.
+There's no admin password baked into the client bundle — auth happens
+through real Supabase accounts (step 4).
 
-## 4. Create the login accounts (5 house leaders + 1 admin)
+## 4. Create the login accounts (house leaders + admin)
 
-1. Copy `scripts/auth-passwords.example.json` to
-   `scripts/auth-passwords.json` and fill in a real password for `admin`
-   and for each house slug (`mester`, `damjanich`, `pannonia`, `baksai`,
-   `dobozy`). **Do not commit this file** — it's already gitignored.
+1. Copy `scripts/syr_sozdor.example.json` to `scripts/syr_sozdor.json`
+   and fill in a real password for `admin` and for each house slug
+   (`mester`, `damjanich`, `pannonia`, `baksai`, `dobozy`). **Do not
+   commit this file** — it's already gitignored. (The name is
+   deliberately opaque rather than something like `auth-passwords.json`,
+   so it doesn't read as "credentials file" to anyone browsing the public
+   repo — *syr sozdor* is Kyrgyz for "secret words".)
 2. Copy `.env.admin.example` to `.env.admin` and fill in the Project URL
    and the **service_role** key from step 1.
 3. Run:
@@ -50,39 +54,36 @@ Supabase accounts (step 4), not a password baked into the client bundle.
    ```
    This creates one Supabase Auth account per house plus the admin
    account. It's safe to re-run any time — e.g. to rotate a house's
-   password later, just change it in `auth-passwords.json` and run it
-   again.
+   password later, just change it in `syr_sozdor.json` and run it again.
 
-Each house's leaders share that one house password — when they log in,
-they'll just pick their house and type it, the app handles the rest
-internally. The admin password is separate and gives full access
-(managing houses/members/weeks), which the per-house logins deliberately
-can't do.
+Each house's leaders share that one house password — when they log in
+they just pick their house and type it, the app builds the internal
+`<slug>@tdjamaat.internal` login email itself. The admin password is
+separate and gives full access (managing houses/members/weeks), which
+the per-house logins deliberately can't do.
 
-## 5. Add member photos
-
-Not wired up yet in this first pass — once you send over the actual image
-files, I'll add photo upload support and update the `members.photo_url`
-rows. In the meantime the app works fine without photos (falls back to
-initials).
-
-## 6. Run it locally
+## 5. Run it locally
 
 ```
 npm install
 npm run dev
 ```
 
-## 7. Deploy
+## 6. Deploy
 
-Same as before — push to a GitHub repo, import into Vercel, and set the
-two `VITE_*` environment variables from step 3 in the Vercel project
-settings. (`SUPABASE_SERVICE_ROLE_KEY` and `.env.admin` are never needed
-on Vercel — that key only runs locally, once, via the setup script.)
+```
+npm install -g vercel   # if you don't have it already
+vercel login
+vercel --prod
+```
 
----
+On first run, `vercel` will ask to link a new or existing project — pick
+one and it'll ask for the two `VITE_*` variables from step 3 (or set them
+afterwards in the project's **Settings → Environment Variables**, then
+redeploy). `SUPABASE_SERVICE_ROLE_KEY` / `.env.admin` are never needed on
+Vercel — that key only ever runs locally, once, via the setup script.
 
-**What's still coming** (see the task list): the redesigned UI, house-scoped
-data entry forms wired to the new schema, and the admin roster-management
-screens. This doc covers getting the backend foundation live; the app code
-itself is still catching up to this schema.
+If Vercel's **Deployment Protection** is on for the project, the live
+URL will sit behind a Vercel login wall — turn it off under
+**Settings → Deployment Protection** for a dashboard the whole jamaat
+should be able to open without a Vercel account.

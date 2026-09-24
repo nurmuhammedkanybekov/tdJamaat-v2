@@ -1,14 +1,17 @@
 import type { Team, TeamRanking, MemberRanking, MetricValues, DataFile } from '../types';
-import { calculateMemberScore, calculateTeamScore, weights } from './scoring';
+import { calculateMemberScore, calculatePerformancePercentage, calculateTeamScore, weights } from './scoring';
 
 export const getTeamMemberRankings = (team: Team): MemberRanking[] => {
     const membersWithScores = team.members.map((member, idx) => ({
         ...member,
         index: idx,
         score: calculateMemberScore(member),
+        // Same rule calculateMemberScore uses: an unset/cleared target (0)
+        // shows as 0%, never "Infinity%"/"NaN%" and never an inflated
+        // number — this column has to agree with the score it explains.
         performancePercentages: Object.keys(weights).reduce((acc, metric) => {
             const m = metric as keyof MetricValues;
-            acc[m] = (member.actual[m] / member.target[m]) * 100;
+            acc[m] = calculatePerformancePercentage(member.actual[m] || 0, member.target[m] || 0);
             return acc;
         }, {} as MetricValues)
     }));
@@ -22,7 +25,11 @@ export const getTeamMemberRankings = (team: Team): MemberRanking[] => {
 export const getOverallTeamRankings = (teams: Team[]): TeamRanking[] => {
     return teams.map((team, idx) => {
         const totalScore = calculateTeamScore(team);
-        const avgMemberScore = Math.round(team.members.reduce((sum, m) => sum + calculateMemberScore(m), 0) / team.members.length * 10) / 10;
+        // A house with no members registered yet would otherwise divide by
+        // zero and show "NaN" in the rankings table.
+        const avgMemberScore = team.members.length === 0
+            ? 0
+            : Math.round(team.members.reduce((sum, m) => sum + calculateMemberScore(m), 0) / team.members.length * 10) / 10;
         return {
             name: team.name,
             index: idx,

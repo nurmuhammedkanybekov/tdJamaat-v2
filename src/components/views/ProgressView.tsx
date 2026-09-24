@@ -23,34 +23,36 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ data, currentTeams, 
         return point;
     });
 
-    const gridStroke = isDark ? '#2c2c2a' : '#e1e0d9';
-    const axisColor = isDark ? '#c3c2b7' : '#52514e';
-    const tooltipStyle = {
-        backgroundColor: isDark ? '#1a1a19' : '#ffffff',
-        border: `1px solid ${isDark ? '#2c2c2a' : '#e1e0d9'}`,
-        borderRadius: 8,
-        color: isDark ? '#ffffff' : '#0b0b0b'
+    const gridStroke = 'var(--gridline)';
+    const axisColor = 'var(--text-muted)';
+    const tooltipStyle: React.CSSProperties = {
+        backgroundColor: isDark ? '#201f1b' : '#ffffff',
+        border: `1px solid ${isDark ? '#33322c' : '#e7e4da'}`,
+        borderRadius: 3,
+        color: isDark ? '#f2f0e8' : '#1c1c1a',
+        fontSize: 13
     };
 
     return (
         <>
-            <div className="rounded-2xl shadow-sm border p-6 mb-6" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
-                <h2 className="text-2xl font-bold mb-1" style={{ color: 'var(--text-primary)' }}>Үйлөрдүн апталык прогресси</h2>
-                <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>График орточо упайга негизделген (адилеттүү салыштыруу үчүн)</p>
-                <ResponsiveContainer width="100%" height={500}>
+            <div className="mb-12">
+                <h2 className="font-serif text-lg font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>Үйлөрдүн апталык прогресси</h2>
+                <p className="text-sm mb-5" style={{ color: 'var(--text-muted)' }}>График орточо упайга негизделген (адилеттүү салыштыруу үчүн)</p>
+                <ResponsiveContainer width="100%" height={460}>
                     <LineChart data={lineChartData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
-                        <XAxis dataKey="week" tick={{ fill: axisColor, fontSize: 12 }} />
-                        <YAxis label={{ value: 'Орточо упай', angle: -90, position: 'insideLeft', fill: axisColor }} tick={{ fill: axisColor, fontSize: 12 }} />
+                        <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} vertical={false} />
+                        <XAxis dataKey="week" tick={{ fill: axisColor, fontSize: 11 }} axisLine={{ stroke: gridStroke }} tickLine={false} />
+                        <YAxis label={{ value: 'Орточо упай', angle: -90, position: 'insideLeft', fill: axisColor, fontSize: 12 }} tick={{ fill: axisColor, fontSize: 11 }} axisLine={false} tickLine={false} />
                         <Tooltip contentStyle={tooltipStyle} labelStyle={{ color: tooltipStyle.color }} />
-                        <Legend wrapperStyle={{ color: axisColor }} />
+                        <Legend wrapperStyle={{ color: axisColor, fontSize: 12 }} />
                         {currentTeams.map((team, idx) => (
                             <Line
                                 key={team.id}
                                 type="monotone"
                                 dataKey={team.name}
                                 stroke={TEAM_COLORS[idx % TEAM_COLORS.length]}
-                                strokeWidth={3}
+                                strokeWidth={2}
+                                dot={{ r: 3 }}
                                 name={team.name}
                                 connectNulls
                             />
@@ -59,9 +61,9 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ data, currentTeams, 
                 </ResponsiveContainer>
             </div>
 
-            <div className="rounded-2xl shadow-sm border p-6" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
-                <h2 className="text-2xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>Апталар боюнча статистика</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div>
+                <h2 className="font-serif text-lg font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>Апталар боюнча статистика</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
                     {currentTeams.map((team, idx) => {
                         const teamProgress = progressData[team.name] || [];
                         const currentScore = teamProgress[teamProgress.length - 1]?.score || 0;
@@ -70,22 +72,22 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ data, currentTeams, 
                         const teamColor = TEAM_COLORS[idx % TEAM_COLORS.length];
 
                         return (
-                            <div key={team.id} className="p-4 rounded-xl border-2" style={{ backgroundColor: 'var(--page-plane)', borderColor: teamColor }}>
-                                <h3 className="font-bold text-lg mb-2" style={{ color: teamColor }}>{team.name}</h3>
-                                <div className="space-y-2 text-sm">
+                            <div key={team.id} className="pl-3" style={{ borderLeft: `2px solid ${teamColor}` }}>
+                                <h3 className="font-serif font-semibold mb-2" style={{ fontSize: '15px', color: 'var(--text-primary)' }}>{team.name}</h3>
+                                <div className="space-y-1.5 text-sm">
                                     <div className="flex justify-between">
-                                        <span style={{ color: 'var(--text-secondary)' }}>Азыркы орточо:</span>
-                                        <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>{currentScore.toFixed(1)}</span>
+                                        <span style={{ color: 'var(--text-muted)' }}>Азыркы орточо</span>
+                                        <span className="font-semibold font-variant-tabular" style={{ color: 'var(--text-primary)' }}>{currentScore.toFixed(1)}</span>
                                     </div>
                                     <div className="flex justify-between">
-                                        <span style={{ color: 'var(--text-secondary)' }}>Өзгөрүү:</span>
-                                        <span className="font-semibold" style={{ color: change >= 0 ? '#1baf7a' : '#e34948' }}>
+                                        <span style={{ color: 'var(--text-muted)' }}>Өзгөрүү</span>
+                                        <span className="font-semibold font-variant-tabular" style={{ color: change >= 0 ? (isDark ? '#199e70' : '#1baf7a') : (isDark ? '#e66767' : '#e34948') }}>
                                             {change >= 0 ? '+' : ''}{change.toFixed(1)}
                                         </span>
                                     </div>
                                     <div className="flex justify-between">
-                                        <span style={{ color: 'var(--text-secondary)' }}>Апталар:</span>
-                                        <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>{teamProgress.length}</span>
+                                        <span style={{ color: 'var(--text-muted)' }}>Апталар</span>
+                                        <span className="font-semibold font-variant-tabular" style={{ color: 'var(--text-primary)' }}>{teamProgress.length}</span>
                                     </div>
                                 </div>
                             </div>

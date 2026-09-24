@@ -1,6 +1,5 @@
 import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { Award, TrendingUp, Users, Info } from 'lucide-react';
 import type { DataFile } from '../../types';
 import { calculateMemberScore, TEAM_COLORS } from '../../utils/scoring';
 
@@ -22,10 +21,21 @@ interface FourWeekRow {
     periodEnd: number;
 }
 
-const RANK_BG = ['#f5c518', '#c9ccd1', '#e0913f'];
+const th: React.CSSProperties = {
+    textAlign: 'left', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em',
+    color: 'var(--text-muted)', fontWeight: 600, padding: '0 12px 10px', borderBottom: '1px solid var(--text-primary)'
+};
+const td: React.CSSProperties = { padding: '11px 12px', fontSize: '14px', borderBottom: '1px solid var(--border)' };
+const rankCell: React.CSSProperties = { fontFamily: 'var(--font-serif)', fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: 'var(--text-secondary)' };
+const pad2 = (n: number) => String(n).padStart(2, '0');
+
+const TREND_LABEL: Record<FourWeekRow['trends'], string> = { up: '↑ Өсүш', down: '↓ Төмөндөш', stable: '→ Туруктуулук' };
 
 export const FourWeekReportView: React.FC<FourWeekReportViewProps> = ({ data, selectedPeriod, isDark }) => {
     if (data.weeks.length === 0) return null;
+
+    const good = isDark ? '#199e70' : '#1baf7a';
+    const bad = isDark ? '#e66767' : '#e34948';
 
     const totalWeeks = data.weeks.length;
     const startWeekIndex = selectedPeriod * 4;
@@ -65,105 +75,74 @@ export const FourWeekReportView: React.FC<FourWeekReportViewProps> = ({ data, se
     const fastestRising = rows.filter(t => t.trends === 'up')
         .sort((a, b) => (b.weeklyScores.at(-1)! - b.weeklyScores[0]) - (a.weeklyScores.at(-1)! - a.weeklyScores[0]))[0];
 
-    const gridStroke = isDark ? '#2c2c2a' : '#e1e0d9';
-    const axisColor = isDark ? '#c3c2b7' : '#52514e';
-    const tooltipStyle = {
-        backgroundColor: isDark ? '#1a1a19' : '#ffffff',
-        border: `1px solid ${isDark ? '#2c2c2a' : '#e1e0d9'}`,
-        borderRadius: 8,
-        color: isDark ? '#ffffff' : '#0b0b0b'
+    const gridStroke = 'var(--gridline)';
+    const axisColor = 'var(--text-muted)';
+    const tooltipStyle: React.CSSProperties = {
+        backgroundColor: isDark ? '#201f1b' : '#ffffff',
+        border: `1px solid ${isDark ? '#33322c' : '#e7e4da'}`,
+        borderRadius: 3,
+        color: isDark ? '#f2f0e8' : '#1c1c1a',
+        fontSize: 13
     };
 
-    const rankBadgeStyle = (ranking: number): React.CSSProperties =>
-        ranking <= 3
-            ? { backgroundColor: RANK_BG[ranking - 1], color: '#171412' }
-            : { backgroundColor: 'color-mix(in oklab, var(--accent) 14%, transparent)', color: 'var(--accent)' };
-
     return (
-        <div className="rounded-2xl shadow-sm border p-6 mb-6" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
-            <div className="flex items-center gap-3 mb-6">
-                <Award className="w-8 h-8" style={{ color: 'var(--accent)' }} />
-                <div>
-                    <h2 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>4-Апталык отчет (Рейтинг)</h2>
-                    <p style={{ color: 'var(--text-secondary)' }}>Үйлөрдүн 4 апта боюнча ортосундагы рейтинги</p>
-                </div>
+        <div>
+            <div className="mb-1">
+                <h2 className="font-serif text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>4-Апталык отчет (Рейтинг)</h2>
+                <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                    Апта {actualStartWeek}&ndash;{actualEndWeek} — үйлөрдүн ортосундагы рейтинги
+                </p>
             </div>
 
             {rows.length > 0 && (
-                <div className="rounded-2xl p-4 mb-6 border" style={{ backgroundColor: 'color-mix(in oklab, var(--accent) 10%, var(--surface))', borderColor: 'var(--accent)' }}>
-                    <div className="flex items-start gap-2">
-                        <Info className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: 'var(--accent)' }} />
-                        <div className="text-sm" style={{ color: 'var(--text-primary)' }}>
-                            <p className="font-semibold mb-1">Көрсөтүлгөн мезгил: Апта {actualStartWeek} - Апта {actualEndWeek}</p>
-                            <p style={{ color: 'var(--text-secondary)' }}>Бул отчет тандалган 4 апта боюнча маалыматты көрсөтөт.</p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 my-8">
+                    {[
+                        { label: 'Эң мыкты үй', value: rows[0]?.teamName ?? '—', sub: `Орточо упай: ${rows[0]?.averageScore ?? '—'}` },
+                        { label: 'Эң тез өсүү', value: fastestRising?.teamName ?? 'Жок', sub: 'Ийгиликтүү тенденция' },
+                        { label: 'Жалпы статистика', value: `${rows.length} үй`, sub: `${actualStartWeek}–${actualEndWeek} апталар үчүн` }
+                    ].map((stat, i) => (
+                        <div key={stat.label} className="px-0 sm:px-6" style={i > 0 ? { borderLeft: '1px solid var(--border)' } : undefined}>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>{stat.label}</div>
+                            <div className="font-serif" style={{ fontSize: '22px', fontWeight: 500, marginTop: '6px' }}>{stat.value}</div>
+                            <div className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{stat.sub}</div>
                         </div>
-                    </div>
+                    ))}
                 </div>
             )}
 
-            {rows.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                    <div className="p-6 rounded-2xl border" style={{ backgroundColor: 'color-mix(in oklab, #1baf7a 12%, var(--surface))', borderColor: '#1baf7a' }}>
-                        <div className="flex items-center gap-3 mb-2">
-                            <Award className="w-8 h-8" style={{ color: '#1baf7a' }} />
-                            <h3 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>Эң мыкты үй</h3>
-                        </div>
-                        <p className="text-2xl font-bold" style={{ color: '#1baf7a' }}>{rows[0]?.teamName}</p>
-                        <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>Орточо упай: {rows[0]?.averageScore}</p>
-                    </div>
-                    <div className="p-6 rounded-2xl border" style={{ backgroundColor: 'color-mix(in oklab, var(--accent) 12%, var(--surface))', borderColor: 'var(--accent)' }}>
-                        <div className="flex items-center gap-3 mb-2">
-                            <TrendingUp className="w-8 h-8" style={{ color: 'var(--accent)' }} />
-                            <h3 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>Эң тез өсүү</h3>
-                        </div>
-                        <p className="text-2xl font-bold" style={{ color: 'var(--accent)' }}>{fastestRising?.teamName ?? 'Жок'}</p>
-                        <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>Ийгиликтуу тенденция</p>
-                    </div>
-                    <div className="p-6 rounded-2xl border" style={{ backgroundColor: 'color-mix(in oklab, #4a3aa7 12%, var(--surface))', borderColor: '#4a3aa7' }}>
-                        <div className="flex items-center gap-3 mb-2">
-                            <Users className="w-8 h-8" style={{ color: '#4a3aa7' }} />
-                            <h3 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>Жалпы статистика</h3>
-                        </div>
-                        <p className="text-2xl font-bold" style={{ color: '#4a3aa7' }}>{rows.length} үй</p>
-                        <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>{actualStartWeek}-{actualEndWeek} апталар үчүн</p>
-                    </div>
-                </div>
-            )}
-
-            <div className="overflow-x-auto mb-6">
-                <table className="w-full">
-                    <thead style={{ backgroundColor: 'color-mix(in oklab, var(--accent) 8%, transparent)' }}>
+            <div className="overflow-x-auto mb-10">
+                <table className="w-full" style={{ borderCollapse: 'collapse' }}>
+                    <thead>
                         <tr>
-                            <th className="px-6 py-3 text-left text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>Рейтинг</th>
-                            <th className="px-6 py-3 text-left text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>Үй</th>
+                            <th style={th}>#</th>
+                            <th style={th}>Үй</th>
                             {rows[0]?.weeklyScores.map((_, idx) => (
-                                <th key={idx} className="px-6 py-3 text-center text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>Апта {actualStartWeek + idx}</th>
+                                <th key={idx} style={{ ...th, textAlign: 'center' }}>Апта {actualStartWeek + idx}</th>
                             ))}
-                            <th className="px-6 py-3 text-center text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>Орточо упай</th>
-                            <th className="px-6 py-3 text-center text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>Эң жакшы</th>
-                            <th className="px-6 py-3 text-center text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>Эң начар</th>
-                            <th className="px-6 py-3 text-center text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>Тенденция</th>
+                            <th style={{ ...th, textAlign: 'center' }}>Орточо</th>
+                            <th style={{ ...th, textAlign: 'center' }}>Эң жакшы</th>
+                            <th style={{ ...th, textAlign: 'center' }}>Эң начар</th>
+                            <th style={{ ...th, textAlign: 'center' }}>Тенденция</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y" style={{ borderColor: 'var(--border)' }}>
+                    <tbody>
                         {rows.map(row => (
-                            <tr key={row.teamName} className="transition-colors hover:brightness-95">
-                                <td className="px-6 py-4">
-                                    <span className="inline-flex items-center justify-center w-10 h-10 rounded-full font-bold text-lg" style={rankBadgeStyle(row.ranking)}>
-                                        {row.ranking}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4 font-medium" style={{ color: 'var(--text-primary)' }}>{row.teamName}</td>
+                            <tr key={row.teamName}>
+                                <td style={{ ...td, ...rankCell }}>{pad2(row.ranking)}</td>
+                                <td style={{ ...td, fontWeight: 600, color: 'var(--text-primary)' }}>{row.teamName}</td>
                                 {row.weeklyScores.map((score, i) => (
-                                    <td key={i} className="px-6 py-4 text-center" style={{ color: 'var(--text-secondary)' }}>{score.toFixed(1)}</td>
+                                    <td key={i} style={{ ...td, textAlign: 'center', color: 'var(--text-secondary)', fontVariantNumeric: 'tabular-nums' }}>{score.toFixed(1)}</td>
                                 ))}
-                                <td className="px-6 py-4 text-center font-bold text-lg" style={{ color: 'var(--accent)' }}>{row.averageScore}</td>
-                                <td className="px-6 py-4 text-center font-semibold" style={{ color: '#1baf7a' }}>{row.bestWeek}</td>
-                                <td className="px-6 py-4 text-center font-semibold" style={{ color: '#e34948' }}>{row.worstWeek}</td>
-                                <td className="px-6 py-4 text-center">
-                                    {row.trends === 'up' && <span className="font-bold" style={{ color: '#1baf7a' }}>📈 Өсүш</span>}
-                                    {row.trends === 'down' && <span className="font-bold" style={{ color: '#e34948' }}>📉 Төмөндөш</span>}
-                                    {row.trends === 'stable' && <span className="font-bold" style={{ color: 'var(--accent)' }}>➡️ Туруктуулук</span>}
+                                <td style={{ ...td, textAlign: 'center', fontFamily: 'var(--font-serif)', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{row.averageScore}</td>
+                                <td style={{ ...td, textAlign: 'center', fontWeight: 600, color: good, fontVariantNumeric: 'tabular-nums' }}>{row.bestWeek}</td>
+                                <td style={{ ...td, textAlign: 'center', fontWeight: 600, color: bad, fontVariantNumeric: 'tabular-nums' }}>{row.worstWeek}</td>
+                                <td style={{ ...td, textAlign: 'center' }}>
+                                    <span
+                                        className="font-semibold text-sm"
+                                        style={{ color: row.trends === 'up' ? good : row.trends === 'down' ? bad : 'var(--accent)' }}
+                                    >
+                                        {TREND_LABEL[row.trends]}
+                                    </span>
                                 </td>
                             </tr>
                         ))}
@@ -172,9 +151,9 @@ export const FourWeekReportView: React.FC<FourWeekReportViewProps> = ({ data, se
             </div>
 
             {weeksForPeriod.length > 0 && (
-                <div className="rounded-2xl border p-6" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
-                    <h3 className="text-xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>{actualStartWeek}-{actualEndWeek} апталар боюнча графика</h3>
-                    <ResponsiveContainer width="100%" height={400}>
+                <div>
+                    <h3 className="font-serif text-lg font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>{actualStartWeek}&ndash;{actualEndWeek} апталар боюнча графика</h3>
+                    <ResponsiveContainer width="100%" height={360}>
                         <LineChart data={weeksForPeriod.map(week => {
                             const point: Record<string, number | string> = { week: `Апта ${week.weekNumber}` };
                             week.teams.forEach(team => {
@@ -184,13 +163,13 @@ export const FourWeekReportView: React.FC<FourWeekReportViewProps> = ({ data, se
                             });
                             return point;
                         })}>
-                            <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
-                            <XAxis dataKey="week" tick={{ fill: axisColor, fontSize: 12 }} />
-                            <YAxis label={{ value: 'Орточо упай', angle: -90, position: 'insideLeft', fill: axisColor }} tick={{ fill: axisColor, fontSize: 12 }} />
+                            <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} vertical={false} />
+                            <XAxis dataKey="week" tick={{ fill: axisColor, fontSize: 11 }} axisLine={{ stroke: gridStroke }} tickLine={false} />
+                            <YAxis label={{ value: 'Орточо упай', angle: -90, position: 'insideLeft', fill: axisColor, fontSize: 12 }} tick={{ fill: axisColor, fontSize: 11 }} axisLine={false} tickLine={false} />
                             <Tooltip contentStyle={tooltipStyle} labelStyle={{ color: tooltipStyle.color }} />
-                            <Legend wrapperStyle={{ color: axisColor }} />
+                            <Legend wrapperStyle={{ color: axisColor, fontSize: 12 }} />
                             {rows.map((row, idx) => (
-                                <Line key={row.teamName} type="monotone" dataKey={row.teamName} stroke={TEAM_COLORS[idx % TEAM_COLORS.length]} strokeWidth={3} name={row.teamName} />
+                                <Line key={row.teamName} type="monotone" dataKey={row.teamName} stroke={TEAM_COLORS[idx % TEAM_COLORS.length]} strokeWidth={2} dot={{ r: 3 }} name={row.teamName} />
                             ))}
                         </LineChart>
                     </ResponsiveContainer>

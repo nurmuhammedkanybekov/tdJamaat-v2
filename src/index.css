@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&family=Source+Sans+3:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 /* Tailwind v4 dark mode: driven by a .dark class on <html> (set in main.tsx
@@ -6,39 +6,109 @@
    in-app toggle can override the OS setting. */
 @custom-variant dark (&:where(.dark, .dark *));
 
+@theme {
+    --font-serif: 'Source Serif 4', Georgia, serif;
+    --font-sans: 'Source Sans 3', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+/* -----------------------------------------------------------------------
+   Direction C — "Refined / Editorial"
+   Quiet navy/bronze chrome on a warm off-white ground. The one ornamental
+   flourish is structural, not decorative: a woven diamond-chain frieze
+   with a ram's-horn "seal" at its center marks section breaks. See
+   src/components/Ornament.tsx (OrnamentDivider / HornMark) for the
+   component this drives.
+   ------------------------------------------------------------------------ */
 :root {
     color-scheme: light;
-    --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
-    /* Validated palette (see dataviz skill references/palette.md) */
     --surface: #ffffff;
-    --page-plane: #f9f9f7;
-    --text-primary: #0b0b0b;
-    --text-secondary: #52514e;
-    --text-muted: #898781;
-    --border: rgba(11, 11, 11, 0.10);
-    --gridline: #e1e0d9;
+    --page-plane: #fafaf7;
+    --text-primary: #1c1c1a;
+    --text-secondary: #5b584e;
+    --text-muted: #8b8778;
+    --border: #e7e4da;
+    --gridline: #e7e4da;
 
-    --accent: #2a78d6;
-    --accent-strong: #1c5cab;
+    --accent: #223a4d;
+    --accent-strong: #16303f;
+    --gold: #a9793f;
+    --gold-ink: #f4ecdf;
+
+    /* Role colors — validated categorical triplet (dataviz skill), light. */
+    --role-imam: #8b3a3a;
+    --role-zam: #b8823a;
+    --role-member: #1f5e99;
+
+    /* Team/house chart palette — validated default 8-slot set
+       (dataviz skill references/palette.md), fixed order, not cycled. */
+    --team-color-1: #2a78d6;
+    --team-color-2: #eb6834;
+    --team-color-3: #1baf7a;
+    --team-color-4: #eda100;
+    --team-color-5: #e87ba4;
+    --team-color-6: #008300;
+    --team-color-7: #4a3aa7;
+    --team-color-8: #e34948;
 }
 
 .dark {
     color-scheme: dark;
-    --surface: #1a1a19;
-    --page-plane: #0d0d0d;
-    --text-primary: #ffffff;
-    --text-secondary: #c3c2b7;
-    --text-muted: #898781;
-    --border: rgba(255, 255, 255, 0.10);
-    --gridline: #2c2c2a;
 
-    --accent: #3987e5;
-    --accent-strong: #86b6ef;
+    --surface: #201f1b;
+    --page-plane: #171613;
+    --text-primary: #f2f0e8;
+    --text-secondary: #c4c0b0;
+    --text-muted: #8f8b7a;
+    --border: #33322c;
+    --gridline: #33322c;
+
+    --accent: #6fa0d6;
+    --accent-strong: #9cc2e8;
+    --gold: #d1a857;
+    --gold-ink: #2a2216;
+
+    /* Role colors — validated categorical triplet, dark. */
+    --role-imam: #a84d5f;
+    --role-zam: #a57710;
+    --role-member: #196ea9;
+
+    /* Team/house chart palette — validated default 8-slot set, dark column. */
+    --team-color-1: #3987e5;
+    --team-color-2: #d95926;
+    --team-color-3: #199e70;
+    --team-color-4: #c98500;
+    --team-color-5: #d55181;
+    --team-color-6: #008300;
+    --team-color-7: #9085e9;
+    --team-color-8: #e66767;
 }
 
 body {
     font-family: var(--font-sans);
     background-color: var(--page-plane);
     color: var(--text-primary);
+}
+
+.font-variant-tabular {
+    font-variant-numeric: tabular-nums;
+}
+
+/* ---------------------------------------------------------------------
+   Ornament frieze — the woven diamond-chain band used as a section
+   divider (see OrnamentDivider, Ornament.tsx). Pure CSS (a luminance
+   mask), so it stays crisp at any width and repaints instantly on theme
+   toggle, no SVG re-render needed.
+   ------------------------------------------------------------------------ */
+.ornament-frieze {
+    height: 15px;
+    background-color: var(--gold);
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='16'%3E%3Crect x='0' y='1' width='28' height='1.8' fill='white'/%3E%3Crect x='0' y='13.2' width='28' height='1.8' fill='white'/%3E%3Cpolygon points='14,3.5 20,8 14,12.5 8,8' fill='white'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='16'%3E%3Crect x='0' y='1' width='28' height='1.8' fill='white'/%3E%3Crect x='0' y='13.2' width='28' height='1.8' fill='white'/%3E%3Cpolygon points='14,3.5 20,8 14,12.5 8,8' fill='white'/%3E%3C/svg%3E");
+    -webkit-mask-repeat: repeat-x;
+    mask-repeat: repeat-x;
+    -webkit-mask-size: 28px 16px;
+    mask-size: 28px 16px;
+    -webkit-mask-position: left center;
+    mask-position: left center;
 }

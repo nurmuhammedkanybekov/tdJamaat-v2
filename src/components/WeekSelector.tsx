@@ -12,34 +12,39 @@ export const WeekSelector: React.FC<WeekSelectorProps> = ({ data, selectedWeek, 
     const currentWeekData = data.weeks[selectedWeek];
 
     return (
-        <div className="rounded-2xl shadow-sm border p-4 mb-6" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                    <Calendar className="w-5 h-5" style={{ color: 'var(--accent)' }} />
-                    <span className="font-semibold" style={{ color: 'var(--text-secondary)' }}>Апта тандоо:</span>
+        <div className="mb-7">
+            <div
+                className="flex items-center justify-between flex-wrap gap-3 px-5 py-4"
+                style={{ border: '1px solid var(--border)', borderRadius: '3px', backgroundColor: 'var(--surface)' }}
+            >
+            <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
+                <span style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                    Апта тандоо
+                </span>
+            </div>
+            <div className="flex items-center gap-3">
+                <button
+                    onClick={() => setSelectedWeek(Math.max(0, selectedWeek - 1))}
+                    disabled={selectedWeek === 0}
+                    className="p-1.5 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    style={{ border: '1px solid var(--border)', borderRadius: '3px' }}
+                >
+                    <ChevronLeft className="w-4 h-4" style={{ color: 'var(--text-primary)' }} />
+                </button>
+                <div className="font-serif font-variant-tabular text-center" style={{ minWidth: '150px' }}>
+                    <span className="font-semibold" style={{ color: 'var(--text-primary)', fontSize: '15px' }}>Апта {currentWeekData.weekNumber}</span>
+                    <span className="text-sm ml-2" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-sans)' }}>({currentWeekData.date})</span>
                 </div>
-                <div className="flex items-center gap-2">
-                    <button
-                        onClick={() => setSelectedWeek(Math.max(0, selectedWeek - 1))}
-                        disabled={selectedWeek === 0}
-                        className="p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        style={{ backgroundColor: 'color-mix(in oklab, var(--text-secondary) 10%, transparent)' }}
-                    >
-                        <ChevronLeft className="w-5 h-5" style={{ color: 'var(--text-primary)' }} />
-                    </button>
-                    <div className="px-6 py-2 rounded-lg" style={{ backgroundColor: 'color-mix(in oklab, var(--accent) 12%, transparent)' }}>
-                        <span className="font-bold" style={{ color: 'var(--accent)' }}>Апта {currentWeekData.weekNumber}</span>
-                        <span className="text-sm ml-2" style={{ color: 'var(--text-secondary)' }}>({currentWeekData.date})</span>
-                    </div>
-                    <button
-                        onClick={() => setSelectedWeek(Math.min(data.weeks.length - 1, selectedWeek + 1))}
-                        disabled={selectedWeek === data.weeks.length - 1}
-                        className="p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        style={{ backgroundColor: 'color-mix(in oklab, var(--text-secondary) 10%, transparent)' }}
-                    >
-                        <ChevronRight className="w-5 h-5" style={{ color: 'var(--text-primary)' }} />
-                    </button>
-                </div>
+                <button
+                    onClick={() => setSelectedWeek(Math.min(data.weeks.length - 1, selectedWeek + 1))}
+                    disabled={selectedWeek === data.weeks.length - 1}
+                    className="p-1.5 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    style={{ border: '1px solid var(--border)', borderRadius: '3px' }}
+                >
+                    <ChevronRight className="w-4 h-4" style={{ color: 'var(--text-primary)' }} />
+                </button>
+            </div>
             </div>
         </div>
     );

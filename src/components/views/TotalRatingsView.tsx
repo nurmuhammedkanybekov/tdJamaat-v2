@@ -1,5 +1,4 @@
 import React from 'react';
-import { Star } from 'lucide-react';
 import type { DataFile } from '../../types';
 import { calculateMemberScore } from '../../utils/scoring';
 
@@ -8,7 +7,13 @@ interface TotalRatingsViewProps {
     fromWeek?: number;
 }
 
-const RANK_BG = ['#f5c518', '#c9ccd1', '#e0913f'];
+const th: React.CSSProperties = {
+    textAlign: 'left', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em',
+    color: 'var(--text-muted)', fontWeight: 600, padding: '0 12px 10px', borderBottom: '1px solid var(--text-primary)'
+};
+const td: React.CSSProperties = { padding: '11px 12px', fontSize: '14px', borderBottom: '1px solid var(--border)' };
+const rankCell: React.CSSProperties = { fontFamily: 'var(--font-serif)', fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: 'var(--text-secondary)' };
+const pad2 = (n: number) => String(n).padStart(2, '0');
 
 export const TotalRatingsView: React.FC<TotalRatingsViewProps> = ({ data, fromWeek = 5 }) => {
     const relevantWeeks = data.weeks.filter(w => w.weekNumber >= fromWeek);
@@ -33,47 +38,35 @@ export const TotalRatingsView: React.FC<TotalRatingsViewProps> = ({ data, fromWe
         };
     }).sort((a, b) => b.totalScore - a.totalScore);
 
-    const rankBadgeStyle = (idx: number): React.CSSProperties =>
-        idx < 3
-            ? { backgroundColor: RANK_BG[idx], color: '#171412' }
-            : { backgroundColor: 'color-mix(in oklab, var(--accent) 14%, transparent)', color: 'var(--accent)' };
-
     return (
-        <div className="rounded-2xl shadow-sm border p-6 mb-6" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
-            <div className="flex items-center gap-3 mb-6">
-                <Star className="w-8 h-8" style={{ color: 'var(--accent)' }} />
-                <div>
-                    <h2 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Жалпы рейтинг ({fromWeek}-аптадан)</h2>
-                    <p style={{ color: 'var(--text-secondary)' }}>{fromWeek}-аптадан баштап акыркы аптага чейинки үйлөрдүн жалпы рейтингдери (орточо упайлардын суммасы)</p>
-                </div>
+        <div>
+            <div className="mb-8">
+                <h2 className="font-serif text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>Жалпы рейтинг ({fromWeek}-аптадан)</h2>
+                <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{fromWeek}-аптадан баштап акыркы аптага чейинки үйлөрдүн жалпы рейтингдери (орточо упайлардын суммасы)</p>
             </div>
 
             {relevantWeeks.length === 0 ? (
-                <div className="text-center p-8 font-semibold" style={{ color: 'var(--text-muted)' }}>{fromWeek}-аптадан баштап маалымат табылган жок.</div>
+                <div className="text-center py-12 font-serif text-lg" style={{ color: 'var(--text-muted)' }}>{fromWeek}-аптадан баштап маалымат табылган жок.</div>
             ) : (
                 <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                        <thead style={{ backgroundColor: 'color-mix(in oklab, var(--accent) 8%, transparent)' }}>
+                    <table className="w-full" style={{ borderCollapse: 'collapse' }}>
+                        <thead>
                             <tr>
-                                <th className="px-6 py-3 text-left font-semibold" style={{ color: 'var(--text-secondary)' }}>№</th>
-                                <th className="px-6 py-3 text-left font-semibold" style={{ color: 'var(--text-secondary)' }}>Үй</th>
-                                <th className="px-6 py-3 text-center font-semibold" style={{ color: 'var(--text-secondary)' }}>Катышкан апталар</th>
-                                <th className="px-6 py-3 text-right font-semibold" style={{ color: 'var(--text-secondary)' }}>Жалпы упай (Сумма)</th>
-                                <th className="px-6 py-3 text-right font-semibold" style={{ color: 'var(--text-secondary)' }}>Орточо упай</th>
+                                <th style={th}>#</th>
+                                <th style={th}>Үй</th>
+                                <th style={{ ...th, textAlign: 'center' }}>Катышкан апталар</th>
+                                <th style={{ ...th, textAlign: 'right' }}>Жалпы упай</th>
+                                <th style={{ ...th, textAlign: 'right' }}>Орточо упай</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y" style={{ borderColor: 'var(--border)' }}>
+                        <tbody>
                             {totalRatings.map((team, idx) => (
-                                <tr key={team.teamName} className="transition-colors hover:brightness-95">
-                                    <td className="px-6 py-4">
-                                        <span className="inline-flex items-center justify-center w-8 h-8 rounded-full font-bold" style={rankBadgeStyle(idx)}>
-                                            {idx + 1}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 font-medium" style={{ color: 'var(--text-primary)' }}>{team.teamName}</td>
-                                    <td className="px-6 py-4 text-center" style={{ color: 'var(--text-secondary)' }}>{team.weeklyScores.length}</td>
-                                    <td className="px-6 py-4 text-right font-bold text-lg" style={{ color: 'var(--accent)' }}>{team.totalScore}</td>
-                                    <td className="px-6 py-4 text-right" style={{ color: 'var(--text-muted)' }}>{team.averageScore}</td>
+                                <tr key={team.teamName}>
+                                    <td style={{ ...td, ...rankCell }}>{pad2(idx + 1)}</td>
+                                    <td style={{ ...td, fontWeight: 600, color: 'var(--text-primary)' }}>{team.teamName}</td>
+                                    <td style={{ ...td, textAlign: 'center', color: 'var(--text-secondary)' }}>{team.weeklyScores.length}</td>
+                                    <td style={{ ...td, textAlign: 'right', fontFamily: 'var(--font-serif)', fontWeight: 600, fontVariantNumeric: 'tabular-nums', fontSize: '15px' }}>{team.totalScore}</td>
+                                    <td style={{ ...td, textAlign: 'right', color: 'var(--text-muted)', fontVariantNumeric: 'tabular-nums' }}>{team.averageScore}</td>
                                 </tr>
                             ))}
                         </tbody>

@@ -5,17 +5,25 @@ const ZERO_METRICS: MetricValues = {
     'К-К': 0, 'СВТ': 0, 'КТП': 0, 'ТХЖ': 0, 'ДТА': 0, 'ИСТГ': 0, 'НФ': 0, 'ТСП': 0
 };
 
-export const DEFAULT_TARGETS: MetricValues = {
-    'К-К': 20, 'СВТ': 2100, 'КТП': 70, 'ТХЖ': 2, 'ДТА': 1, 'ИСТГ': 700, 'НФ': 7, 'ТСП': 5
+// Targets scale by role — an imam is expected to do more than a zam, who is
+// expected to do more than a regular member. Only used as a fallback for a
+// member's very first week (or when no prior week set a target); once a
+// leader has entered an actual target for someone, that value is what
+// carries forward (see DataEntryForm's lastKnownTarget), so this never
+// rewrites history — it only shapes new entries going forward.
+export const DEFAULT_TARGETS: Record<Role, MetricValues> = {
+    imam: { 'К-К': 20, 'СВТ': 2100, 'КТП': 70, 'ТХЖ': 2, 'ДТА': 1, 'ИСТГ': 700, 'НФ': 7, 'ТСП': 10 },
+    zam: { 'К-К': 10, 'СВТ': 1400, 'КТП': 40, 'ТХЖ': 1, 'ДТА': 1, 'ИСТГ': 350, 'НФ': 7, 'ТСП': 7 },
+    member: { 'К-К': 7, 'СВТ': 700, 'КТП': 30, 'ТХЖ': 1, 'ДТА': 1, 'ИСТГ': 200, 'НФ': 7, 'ТСП': 7 }
 };
 
 export const DEFAULT_MINICARD: MiniCard = {
     'БГМДТ': { actual: 0, target: 7 },
     'КПТ': { actual: 0, target: 7 },
     'И-Н.2': { actual: 0, target: 7 },
-    'КИТЕП': { actual: 0, target: 5 },
+    'КИТЕП': { actual: 0, target: 7 },
     'СПОРТ': { actual: 0, target: 1 },
-    'ТСПХ': { actual: 0, target: 5 }
+    'ТСПХ': { actual: 0, target: 7 }
 };
 
 // ---------------------------------------------------------------------------
@@ -79,7 +87,7 @@ export const fetchDataFile = async (): Promise<DataFile> => {
                     role: member.role as Role,
                     photoUrl: member.photo_url,
                     actual: (metricRow?.actual as MetricValues) ?? ZERO_METRICS,
-                    target: (metricRow?.target as MetricValues) ?? DEFAULT_TARGETS
+                    target: (metricRow?.target as MetricValues) ?? DEFAULT_TARGETS[member.role as Role]
                 };
             });
 

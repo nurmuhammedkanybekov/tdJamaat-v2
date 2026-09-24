@@ -18,20 +18,25 @@ const TABS: { key: ActiveView; label: string; icon: React.ComponentType<{ classN
 
 export const ViewNavigator: React.FC<ViewNavigatorProps> = ({ activeView, setActiveView }) => {
     return (
-        <div className="rounded-2xl shadow-sm border p-2 mb-6" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
-            <div className="flex gap-1 overflow-x-auto">
+        <div className="mb-7" style={{ borderBottom: '1px solid var(--border)' }}>
+            <div className="flex gap-6 overflow-x-auto">
                 {TABS.map(({ key, label, icon: Icon }) => {
                     const active = activeView === key;
                     return (
                         <button
                             key={key}
                             onClick={() => setActiveView(key)}
-                            className="flex-1 py-3 px-4 rounded-xl font-semibold whitespace-nowrap transition-colors"
-                            style={active
-                                ? { backgroundColor: 'var(--accent)', color: '#ffffff' }
-                                : { color: 'var(--text-secondary)' }}
+                            className="flex items-center gap-2 whitespace-nowrap pb-3 pt-1"
+                            style={{
+                                fontSize: '12.5px',
+                                fontWeight: 600,
+                                letterSpacing: '0.02em',
+                                color: active ? 'var(--text-primary)' : 'var(--text-muted)',
+                                borderBottom: active ? '1.5px solid var(--accent)' : '1.5px solid transparent',
+                                marginBottom: '-1px'
+                            }}
                         >
-                            <Icon className="w-5 h-5 inline mr-2" />
+                            <Icon className="w-4 h-4" />
                             {label}
                         </button>
                     );

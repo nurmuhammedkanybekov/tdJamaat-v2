@@ -11,7 +11,9 @@
 // rotate a house's password later.
 //
 // Usage:
-//   1. Fill in scripts/auth-passwords.json (copy from .example, don't commit it)
+//   1. Fill in scripts/syr_sozdor.json (copy from .example, don't commit it —
+//      the name is deliberately opaque so it doesn't read as "credentials
+//      file" to anyone browsing the public repo; syr sozdor = "secret words")
 //   2. node --env-file=.env.admin scripts/create-auth-users.js
 //      where .env.admin has:
 //        SUPABASE_URL=https://xxxx.supabase.co
@@ -34,10 +36,10 @@ if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
     process.exit(1);
 }
 
-const passwordsPath = path.join(__dirname, 'auth-passwords.json');
+const passwordsPath = path.join(__dirname, 'syr_sozdor.json');
 if (!fs.existsSync(passwordsPath)) {
     console.error(`Missing ${passwordsPath}`);
-    console.error('Copy scripts/auth-passwords.example.json to scripts/auth-passwords.json and fill in real passwords first.');
+    console.error('Copy scripts/syr_sozdor.example.json to scripts/syr_sozdor.json and fill in real passwords first.');
     process.exit(1);
 }
 
@@ -79,7 +81,7 @@ async function upsertAuthUser(email, password, userMetadata, label) {
 async function main() {
     // Admin account
     if (!passwords.admin) {
-        console.error('scripts/auth-passwords.json is missing an "admin" password.');
+        console.error('scripts/syr_sozdor.json is missing an "admin" password.');
         process.exit(1);
     }
     await upsertAuthUser(`admin@${EMAIL_DOMAIN}`, passwords.admin, { role: 'admin' }, 'admin');
@@ -96,7 +98,7 @@ async function main() {
     for (const house of houses) {
         const pw = passwords[house.slug];
         if (!pw) {
-            console.warn(`Skipping ${house.name} (${house.slug}) — no password set for it in auth-passwords.json`);
+            console.warn(`Skipping ${house.name} (${house.slug}) — no password set for it in syr_sozdor.json`);
             continue;
         }
         await upsertAuthUser(

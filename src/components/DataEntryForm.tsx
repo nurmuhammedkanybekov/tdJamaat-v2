@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Save, AlertCircle, CheckCircle, X, Camera, Loader2 } from 'lucide-react';
-import type { DataFile, House, Member, MetricValues, MiniCard } from '../types';
+import type { DataFile, House, Member, MetricValues, MiniCard, Role } from '../types';
 import {
     fetchHouses,
     fetchMembers,
@@ -30,8 +30,9 @@ const ZERO_METRICS: MetricValues = {
 
 type MemberDraft = { actual: MetricValues; target: MetricValues };
 
-const inputStyle: React.CSSProperties = { backgroundColor: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--text-primary)' };
-const inputMutedStyle: React.CSSProperties = { backgroundColor: 'var(--page-plane)', borderColor: 'var(--border)', color: 'var(--text-secondary)' };
+const inputStyle: React.CSSProperties = { backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '3px', color: 'var(--text-primary)' };
+const inputMutedStyle: React.CSSProperties = { backgroundColor: 'var(--page-plane)', border: '1px solid var(--border)', borderRadius: '3px', color: 'var(--text-secondary)' };
+const fieldLabel: React.CSSProperties = { fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)' };
 
 // Roster (who's in the house, and their usual targets) is now persistent —
 // entering a new week just means filling in this week's "actual" numbers,
@@ -72,13 +73,13 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
 
     // Find this house's most recent recorded target for a member, so a new
     // week starts from what they were last aiming for rather than zero.
-    const lastKnownTarget = (memberId: string): MetricValues => {
-        if (!dataFile) return DEFAULT_TARGETS;
+    const lastKnownTarget = (memberId: string, role: Role): MetricValues => {
+        if (!dataFile) return DEFAULT_TARGETS[role];
         for (let i = dataFile.weeks.length - 1; i >= 0; i--) {
             const m = dataFile.weeks[i].teams.find(t => t.id === selectedHouseId)?.members.find(mm => mm.id === memberId);
             if (m) return m.target;
         }
-        return DEFAULT_TARGETS;
+        return DEFAULT_TARGETS[role];
     };
 
     const lastKnownMiniCard = (): MiniCard => {
@@ -104,7 +105,7 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
             const existingMember = existingTeam?.members.find(m => m.id === member.id);
             nextDrafts[member.id] = {
                 actual: existingMember?.actual ?? ZERO_METRICS,
-                target: existingMember?.target ?? lastKnownTarget(member.id)
+                target: existingMember?.target ?? lastKnownTarget(member.id, member.role)
             };
         });
         setDrafts(nextDrafts);
@@ -172,9 +173,9 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
     if (success) {
         return (
             <div className="fixed inset-0 flex items-center justify-center z-50 p-6" style={{ backgroundColor: 'color-mix(in oklab, var(--text-primary) 50%, transparent)' }}>
-                <div className="rounded-2xl shadow-xl p-8 max-w-sm w-full text-center" style={{ backgroundColor: 'var(--surface)' }}>
-                    <CheckCircle className="w-16 h-16 mx-auto mb-4" style={{ color: '#1baf7a' }} />
-                    <h2 className="text-2xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>Ийгиликтүү сакталды!</h2>
+                <div className="p-8 max-w-sm w-full text-center" style={{ backgroundColor: 'var(--surface)', borderRadius: '4px' }}>
+                    <CheckCircle className="w-12 h-12 mx-auto mb-4" style={{ color: '#1baf7a' }} />
+                    <h2 className="font-serif text-2xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>Ийгиликтүү сакталды!</h2>
                     <p style={{ color: 'var(--text-secondary)' }}>{weekNumber}-апта үчүн маалымат жаңырды.</p>
                 </div>
             </div>
@@ -183,39 +184,41 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
 
     return (
         <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto" style={{ backgroundColor: 'color-mix(in oklab, var(--text-primary) 45%, transparent)' }}>
-            <div className="rounded-3xl shadow-2xl w-full max-w-4xl flex flex-col max-h-[90vh] border" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
-                <div className="p-6 border-b flex justify-between items-center sticky top-0 z-10 rounded-t-3xl" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
-                    <h2 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
+            <div className="w-full max-w-4xl flex flex-col max-h-[90vh]">
+            <div className="flex flex-col flex-1 min-h-0 overflow-hidden" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '4px' }}>
+                <div className="px-6 py-5 flex justify-between items-center sticky top-0 z-10" style={{ backgroundColor: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
+                    <h2 className="font-serif text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
                         {selectedHouseName ? `${selectedHouseName} — маалымат` : 'Маалымат кошуу'}
                     </h2>
-                    <button onClick={onClose} className="p-2 rounded-full transition-colors" style={{ color: 'var(--text-muted)' }}>
-                        <X className="w-6 h-6" />
+                    <button onClick={onClose} className="p-1.5 transition-colors" style={{ color: 'var(--text-muted)' }}>
+                        <X className="w-5 h-5" />
                     </button>
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-6">
                     {loading ? (
-                        <div className="text-center py-12 font-medium" style={{ color: 'var(--text-muted)' }}>Жүктөлүүдө...</div>
+                        <div className="text-center py-12 font-serif" style={{ color: 'var(--text-muted)' }}>Жүктөлүүдө…</div>
                     ) : (
                         <>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                                 <div>
-                                    <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Апта (Week Number)</label>
+                                    <label className="block mb-1.5" style={fieldLabel}>Апта (Week Number)</label>
                                     <input
                                         type="number"
+                                        min={1}
                                         value={weekNumber}
                                         onChange={e => setWeekNumber(Math.max(1, parseInt(e.target.value) || 1))}
-                                        className="w-full px-4 py-2.5 border rounded-xl outline-none"
+                                        className="w-full px-4 py-2.5 outline-none"
                                         style={inputStyle}
                                     />
                                 </div>
                                 {authUser.role === 'admin' && (
                                     <div>
-                                        <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Үй</label>
+                                        <label className="block mb-1.5" style={fieldLabel}>Үй</label>
                                         <select
                                             value={selectedHouseId}
                                             onChange={e => setSelectedHouseId(e.target.value)}
-                                            className="w-full px-4 py-2.5 border rounded-xl outline-none"
+                                            className="w-full px-4 py-2.5 outline-none"
                                             style={inputStyle}
                                         >
                                             {houses.map(h => <option key={h.id} value={h.id}>{h.name}</option>)}
@@ -224,20 +227,21 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                                 )}
                             </div>
 
-                            <div className="p-6 rounded-2xl mb-8 border" style={{ backgroundColor: 'var(--page-plane)', borderColor: 'var(--border)' }}>
-                                <h3 className="text-lg font-bold mb-4 border-b pb-2" style={{ color: 'var(--text-primary)', borderColor: 'var(--border)' }}>Мини Карта (Командалык)</h3>
-                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+                            <div className="mb-8">
+                                <h3 className="font-serif text-base font-semibold mb-4 pb-2" style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border)' }}>Мини Карта (Командалык)</h3>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                                     {(Object.keys(DEFAULT_MINICARD) as Array<keyof MiniCard>).map(key => (
-                                        <div key={key} className="p-3 rounded-xl shadow-sm border" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
-                                            <div className="text-center font-bold mb-2" style={{ color: 'var(--text-secondary)' }}>{key}</div>
+                                        <div key={key} className="p-3" style={{ border: '1px solid var(--border)', borderRadius: '3px' }}>
+                                            <div className="text-center text-xs font-semibold mb-2" style={{ color: 'var(--text-muted)' }}>{key}</div>
                                             <div className="flex flex-col gap-2">
                                                 <div>
                                                     <label className="text-xs block" style={{ color: 'var(--text-muted)' }}>Факт</label>
                                                     <input
                                                         type="number"
+                                                        min={0}
                                                         value={miniCard[key].actual}
-                                                        onChange={e => handleMiniCardChange(key, 'actual', parseInt(e.target.value) || 0)}
-                                                        className="w-full text-center border rounded-lg p-1"
+                                                        onChange={e => handleMiniCardChange(key, 'actual', Math.max(0, parseInt(e.target.value) || 0))}
+                                                        className="w-full text-center p-1"
                                                         style={inputStyle}
                                                     />
                                                 </div>
@@ -245,9 +249,10 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                                                     <label className="text-xs block" style={{ color: 'var(--text-muted)' }}>План</label>
                                                     <input
                                                         type="number"
+                                                        min={0}
                                                         value={miniCard[key].target}
-                                                        onChange={e => handleMiniCardChange(key, 'target', parseInt(e.target.value) || 0)}
-                                                        className="w-full text-center border rounded-lg p-1"
+                                                        onChange={e => handleMiniCardChange(key, 'target', Math.max(0, parseInt(e.target.value) || 0))}
+                                                        className="w-full text-center p-1"
                                                         style={inputMutedStyle}
                                                     />
                                                 </div>
@@ -259,27 +264,27 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
 
                             <div className="mb-8">
                                 <div className="flex items-baseline justify-between mb-4 flex-wrap gap-2">
-                                    <h3 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>Мүчөлөр</h3>
+                                    <h3 className="font-serif text-base font-semibold" style={{ color: 'var(--text-primary)' }}>Мүчөлөр</h3>
                                     <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Сүрөттү өзгөртүү үчүн адамдын сүрөтүнө/тегерегине басыңыз</p>
                                 </div>
                                 {photoError && (
-                                    <div className="border px-4 py-2.5 rounded-xl mb-4 flex items-center gap-2 text-sm" style={{ backgroundColor: 'color-mix(in oklab, #e34948 12%, var(--surface))', borderColor: '#e34948', color: '#e34948' }}>
+                                    <div className="px-4 py-2.5 mb-4 flex items-center gap-2 text-sm" style={{ borderLeft: '2px solid #e34948', color: '#e34948' }}>
                                         <AlertCircle className="w-4 h-4 flex-shrink-0" />
                                         <p>{photoError}</p>
                                     </div>
                                 )}
                                 {members.length === 0 ? (
-                                    <p className="text-sm rounded-xl p-4 border" style={{ color: 'var(--text-muted)', backgroundColor: 'var(--page-plane)', borderColor: 'var(--border)' }}>
+                                    <p className="text-sm p-4" style={{ color: 'var(--text-muted)', border: '1px solid var(--border)', borderRadius: '3px' }}>
                                         Бул үйдө азырынча мүчө катталган эмес. Мүчө кошуу үчүн админ панелин колдонуңуз.
                                     </p>
                                 ) : (
-                                    <div className="space-y-4">
-                                        {members.map(member => {
+                                    <div>
+                                        {members.map((member, i) => {
                                             const draft = drafts[member.id];
                                             if (!draft) return null;
                                             return (
-                                                <div key={member.id} className="border rounded-2xl p-4 shadow-sm" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
-                                                    <div className="flex items-center gap-3 mb-4">
+                                                <div key={member.id} className="py-4" style={i > 0 ? { borderTop: '1px solid var(--border)' } : undefined}>
+                                                    <div className="flex items-center gap-3 mb-3">
                                                         <label
                                                             className="relative flex-shrink-0 cursor-pointer group"
                                                             title="Сүрөт жүктөө / өзгөртүү"
@@ -307,13 +312,13 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                                                         </label>
                                                         <div className="flex-1">
                                                             <div className="font-semibold" style={{ color: 'var(--text-primary)' }}>{member.name}</div>
-                                                            <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                                                            <div className="text-xs italic" style={{ color: 'var(--text-muted)' }}>
                                                                 {member.role === 'imam' ? 'Имам' : member.role === 'zam' ? 'Орун басар' : 'Мүчө'}
                                                             </div>
                                                         </div>
                                                         <div className="text-right">
                                                             <div className="text-xs" style={{ color: 'var(--text-muted)' }}>Упай</div>
-                                                            <div className="font-bold text-lg" style={{ color: 'var(--accent)' }}>
+                                                            <div className="font-serif font-semibold text-lg font-variant-tabular" style={{ color: 'var(--text-primary)' }}>
                                                                 {calculateMemberScore({ ...member, actual: draft.actual, target: draft.target }).toFixed(1)}
                                                             </div>
                                                         </div>
@@ -321,20 +326,22 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                                                     <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-2">
                                                         {(Object.keys(ZERO_METRICS) as Array<keyof MetricValues>).map(metric => (
                                                             <div key={metric} className="text-center">
-                                                                <div className="text-xs font-bold mb-1" style={{ color: 'var(--text-secondary)' }}>{metric}</div>
+                                                                <div className="text-xs font-semibold mb-1" style={{ color: 'var(--text-secondary)' }}>{metric}</div>
                                                                 <input
                                                                     type="number"
+                                                                    min={0}
                                                                     value={draft.actual[metric]}
-                                                                    onChange={e => handleMemberChange(member.id, 'actual', metric, parseInt(e.target.value) || 0)}
-                                                                    className="w-full text-center border rounded-lg p-1 mb-1 text-sm font-semibold"
+                                                                    onChange={e => handleMemberChange(member.id, 'actual', metric, Math.max(0, parseInt(e.target.value) || 0))}
+                                                                    className="w-full text-center p-1 mb-1 text-sm font-semibold"
                                                                     style={inputStyle}
                                                                     title="Факт"
                                                                 />
                                                                 <input
                                                                     type="number"
+                                                                    min={0}
                                                                     value={draft.target[metric]}
-                                                                    onChange={e => handleMemberChange(member.id, 'target', metric, parseInt(e.target.value) || 0)}
-                                                                    className="w-full text-center border rounded-lg p-1 text-xs"
+                                                                    onChange={e => handleMemberChange(member.id, 'target', metric, Math.max(0, parseInt(e.target.value) || 0))}
+                                                                    className="w-full text-center p-1 text-xs"
                                                                     style={inputMutedStyle}
                                                                     title="План"
                                                                 />
@@ -349,33 +356,34 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                             </div>
 
                             {error && (
-                                <div className="border px-4 py-3 rounded-xl mb-4 flex items-center gap-2" style={{ backgroundColor: 'color-mix(in oklab, #e34948 12%, var(--surface))', borderColor: '#e34948', color: '#e34948' }}>
+                                <div className="px-4 py-3 mb-4 flex items-center gap-2" style={{ borderLeft: '2px solid #e34948', color: '#e34948' }}>
                                     <AlertCircle className="w-5 h-5 flex-shrink-0" />
                                     <p>{error}</p>
                                 </div>
                             )}
 
-                            <div className="flex justify-end gap-3 pt-4 border-t sticky bottom-0 p-4 -mx-6 -mb-6 rounded-b-3xl" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+                            <div className="flex justify-end gap-3 pt-4 sticky bottom-0 p-4 -mx-6 -mb-6" style={{ backgroundColor: 'var(--surface)', borderTop: '1px solid var(--border)' }}>
                                 <button
                                     type="button"
                                     onClick={onClose}
-                                    className="px-6 py-2.5 border rounded-xl font-medium transition-colors"
-                                    style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
+                                    className="px-5 py-2.5 font-semibold transition-colors text-sm"
+                                    style={{ border: '1px solid var(--border)', borderRadius: '3px', color: 'var(--text-secondary)' }}
                                 >
                                     Жабуу
                                 </button>
                                 <button
                                     onClick={handleSubmit}
                                     disabled={saving}
-                                    className="px-6 py-2.5 text-white rounded-xl font-medium hover:shadow-lg transition-all flex items-center gap-2 disabled:opacity-60"
-                                    style={{ background: `linear-gradient(135deg, var(--accent), var(--accent-strong))` }}
+                                    className="px-5 py-2.5 font-semibold transition-all flex items-center gap-2 disabled:opacity-60 text-sm"
+                                    style={{ backgroundColor: 'var(--accent)', color: '#ffffff', borderRadius: '3px' }}
                                 >
-                                    {saving ? 'Сакталууда...' : (<><Save className="w-5 h-5" /> Сактоо</>)}
+                                    {saving ? 'Сакталууда…' : (<><Save className="w-4 h-4" /> Сактоо</>)}
                                 </button>
                             </div>
                         </>
                     )}
                 </div>
+            </div>
             </div>
         </div>
     );

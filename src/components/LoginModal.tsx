@@ -52,63 +52,69 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onSuccess, onClose }) =>
     };
 
     const inputStyle: React.CSSProperties = {
-        backgroundColor: 'var(--page-plane)',
-        borderColor: 'var(--border)',
+        backgroundColor: 'var(--surface)',
+        border: '1px solid var(--border)',
+        borderRadius: '3px',
         color: 'var(--text-primary)'
     };
 
     return (
         <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4" style={{ backgroundColor: 'color-mix(in oklab, var(--text-primary) 45%, transparent)' }}>
-            <div className="rounded-3xl shadow-2xl p-8 max-w-md w-full relative border" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+            <div className="max-w-md w-full relative">
+            <div className="p-8 relative" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '4px' }}>
                 <button
                     onClick={onClose}
-                    className="absolute top-4 right-4 p-1.5 rounded-full transition-colors"
+                    className="absolute top-5 right-5 p-1 transition-colors"
                     style={{ color: 'var(--text-muted)' }}
                 >
-                    <X className="w-5 h-5" />
+                    <X className="w-4 h-4" />
                 </button>
 
-                <div className="flex flex-col items-center mb-6">
-                    <div className="p-4 rounded-2xl mb-4 shadow-lg" style={{ background: `linear-gradient(135deg, var(--accent), var(--accent-strong))` }}>
-                        <Lock className="w-7 h-7 text-white" />
-                    </div>
-                    <h2 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Кирүү</h2>
-                    <p className="text-center mt-1 text-sm" style={{ color: 'var(--text-muted)' }}>
+                <div className="flex flex-col items-center mb-7">
+                    <Lock className="w-6 h-6 mb-3" style={{ color: 'var(--accent)' }} />
+                    <h2 className="font-serif text-2xl font-semibold" style={{ color: 'var(--text-primary)' }}>Кирүү</h2>
+                    <p className="text-center mt-1.5 text-sm" style={{ color: 'var(--text-muted)' }}>
                         Маалымат киргизүү үчүн сыр сөзүңүздү жазыңыз
                     </p>
                 </div>
 
-                <div className="flex rounded-xl p-1 mb-6" style={{ backgroundColor: 'var(--page-plane)' }}>
+                <div className="flex gap-6 mb-7" style={{ borderBottom: '1px solid var(--border)' }}>
                     <button
                         type="button"
                         onClick={() => setMode('leader')}
-                        className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-semibold transition-all"
-                        style={mode === 'leader'
-                            ? { backgroundColor: 'var(--surface)', color: 'var(--accent)', boxShadow: '0 1px 2px rgba(0,0,0,0.08)' }
-                            : { color: 'var(--text-muted)' }}
+                        className="flex items-center gap-1.5 pb-3"
+                        style={{
+                            fontSize: '13px', fontWeight: 600,
+                            color: mode === 'leader' ? 'var(--text-primary)' : 'var(--text-muted)',
+                            borderBottom: mode === 'leader' ? '1.5px solid var(--accent)' : '1.5px solid transparent',
+                            marginBottom: '-1px'
+                        }}
                     >
-                        <Home className="w-4 h-4" /> Үй жетекчиси
+                        <Home className="w-3.5 h-3.5" /> Үй жетекчиси
                     </button>
                     <button
                         type="button"
                         onClick={() => setMode('admin')}
-                        className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-semibold transition-all"
-                        style={mode === 'admin'
-                            ? { backgroundColor: 'var(--surface)', color: 'var(--accent)', boxShadow: '0 1px 2px rgba(0,0,0,0.08)' }
-                            : { color: 'var(--text-muted)' }}
+                        className="flex items-center gap-1.5 pb-3"
+                        style={{
+                            fontSize: '13px', fontWeight: 600,
+                            color: mode === 'admin' ? 'var(--text-primary)' : 'var(--text-muted)',
+                            borderBottom: mode === 'admin' ? '1.5px solid var(--accent)' : '1.5px solid transparent',
+                            marginBottom: '-1px'
+                        }}
                     >
-                        <ShieldCheck className="w-4 h-4" /> Админ
+                        <ShieldCheck className="w-3.5 h-3.5" /> Админ
                     </button>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {mode === 'leader' && (
                         <div>
-                            <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>Үй</label>
+                            <label className="block text-xs font-semibold uppercase tracking-wide mb-1.5" style={{ color: 'var(--text-muted)' }}>Үй</label>
                             <select
                                 value={selectedHouseSlug}
                                 onChange={e => setSelectedHouseSlug(e.target.value)}
-                                className="w-full px-4 py-3 border rounded-xl outline-none transition-all"
+                                className="w-full px-4 py-2.5 outline-none transition-all"
                                 style={inputStyle}
                             >
                                 {houses.map(house => (
@@ -119,12 +125,12 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onSuccess, onClose }) =>
                     )}
 
                     <div>
-                        <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>Сыр сөз</label>
+                        <label className="block text-xs font-semibold uppercase tracking-wide mb-1.5" style={{ color: 'var(--text-muted)' }}>Сыр сөз</label>
                         <input
                             type="password"
                             value={password}
                             onChange={e => setPassword(e.target.value)}
-                            className="w-full px-4 py-3 border rounded-xl outline-none transition-all"
+                            className="w-full px-4 py-2.5 outline-none transition-all"
                             style={inputStyle}
                             placeholder="Сыр сөз"
                             autoFocus
@@ -140,13 +146,14 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onSuccess, onClose }) =>
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full text-white py-3 rounded-xl font-bold hover:shadow-lg transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2 disabled:opacity-60 disabled:translate-y-0"
-                        style={{ background: `linear-gradient(135deg, var(--accent), var(--accent-strong))` }}
+                        className="w-full py-3 font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-60"
+                        style={{ backgroundColor: 'var(--accent)', color: '#ffffff', borderRadius: '3px', letterSpacing: '0.02em', fontSize: '13px' }}
                     >
-                        <LogIn className="w-5 h-5" />
-                        {loading ? 'Кирүүдө...' : 'Кирүү'}
+                        <LogIn className="w-4 h-4" />
+                        {loading ? 'Кирүүдө…' : 'Кирүү'}
                     </button>
                 </form>
+            </div>
             </div>
         </div>
     );
