@@ -88,6 +88,78 @@ body {
     font-family: var(--font-sans);
     background-color: var(--page-plane);
     color: var(--text-primary);
+    /* No grey flash when tapping buttons on iOS/Android. */
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Page gutter that grows with the screen, and never lets content sit under
+   an iPhone's notch / rounded corners (landscape) or home indicator. */
+.page-gutter {
+    padding: max(1.5rem, env(safe-area-inset-top, 0px)) max(1rem, env(safe-area-inset-right, 0px)) max(1.5rem, env(safe-area-inset-bottom, 0px)) max(1rem, env(safe-area-inset-left, 0px));
+}
+@media (min-width: 640px) {
+    .page-gutter {
+        padding: 2rem max(1.5rem, env(safe-area-inset-right, 0px)) 2rem max(1.5rem, env(safe-area-inset-left, 0px));
+    }
+}
+@media (min-width: 768px) {
+    .page-gutter {
+        padding: 2.5rem 2.5rem;
+    }
+}
+
+/* Horizontally scrolling rows (tab bars, wide tables) on touch screens:
+   momentum scrolling, no visible scrollbar, and a soft fade at the edges
+   so it's obvious there's more to swipe to. */
+.scroll-row {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+}
+.scroll-row::-webkit-scrollbar {
+    display: none;
+}
+.scroll-fade {
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 16px, #000 calc(100% - 28px), transparent 100%);
+    mask-image: linear-gradient(90deg, transparent 0, #000 16px, #000 calc(100% - 28px), transparent 100%);
+}
+@media (min-width: 640px) {
+    .scroll-fade {
+        -webkit-mask-image: none;
+        mask-image: none;
+    }
+}
+
+/* Data tables: tighter cell padding on phones so the columns that matter
+   (rank, name, score) fit without a sideways swipe. The cells set their
+   padding inline, hence !important. */
+@media (max-width: 639px) {
+    table.data-table th,
+    table.data-table td {
+        padding-left: 6px !important;
+        padding-right: 6px !important;
+    }
+    table.data-table th:first-child,
+    table.data-table td:first-child {
+        padding-left: 2px !important;
+    }
+    table.data-table th:last-child,
+    table.data-table td:last-child {
+        padding-right: 2px !important;
+    }
+}
+
+/* Number inputs: hide the tiny spinner arrows (useless on touch, cramped on
+   desktop in 8-column grids). The numeric keypad / typing still works. */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
 }
 
 .font-variant-tabular {

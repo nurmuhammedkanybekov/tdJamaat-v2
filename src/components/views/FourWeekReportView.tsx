@@ -1,3 +1,4 @@
+import { useIsPhone } from '../../hooks/useMediaQuery';
 import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import type { DataFile } from '../../types';
@@ -32,6 +33,7 @@ const pad2 = (n: number) => String(n).padStart(2, '0');
 const TREND_LABEL: Record<FourWeekRow['trends'], string> = { up: '↑ Өсүш', down: '↓ Төмөндөш', stable: '→ Туруктуулук' };
 
 export const FourWeekReportView: React.FC<FourWeekReportViewProps> = ({ data, selectedPeriod, isDark }) => {
+    const isPhone = useIsPhone();
     if (data.weeks.length === 0) return null;
 
     const good = isDark ? '#199e70' : '#1baf7a';
@@ -95,13 +97,13 @@ export const FourWeekReportView: React.FC<FourWeekReportViewProps> = ({ data, se
             </div>
 
             {rows.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-3 my-8">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-y-5 sm:gap-y-0 my-8">
                     {[
                         { label: 'Эң мыкты үй', value: rows[0]?.teamName ?? '—', sub: `Орточо упай: ${rows[0]?.averageScore ?? '—'}` },
                         { label: 'Эң тез өсүү', value: fastestRising?.teamName ?? 'Жок', sub: 'Ийгиликтүү тенденция' },
                         { label: 'Жалпы статистика', value: `${rows.length} үй`, sub: `${actualStartWeek}–${actualEndWeek} апталар үчүн` }
                     ].map((stat, i) => (
-                        <div key={stat.label} className="px-0 sm:px-6" style={i > 0 ? { borderLeft: '1px solid var(--border)' } : undefined}>
+                        <div key={stat.label} className={i > 0 ? 'sm:px-6 sm:border-l pt-5 sm:pt-0 border-t sm:border-t-0' : 'sm:pr-6'} style={{ borderColor: 'var(--border)' }}>
                             <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>{stat.label}</div>
                             <div className="font-serif" style={{ fontSize: '22px', fontWeight: 500, marginTop: '6px' }}>{stat.value}</div>
                             <div className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{stat.sub}</div>
@@ -111,18 +113,18 @@ export const FourWeekReportView: React.FC<FourWeekReportViewProps> = ({ data, se
             )}
 
             <div className="overflow-x-auto mb-10">
-                <table className="w-full" style={{ borderCollapse: 'collapse' }}>
+                <table className="data-table w-full" style={{ borderCollapse: 'collapse' }}>
                     <thead>
                         <tr>
                             <th style={th}>#</th>
                             <th style={th}>Үй</th>
                             {rows[0]?.weeklyScores.map((_, idx) => (
-                                <th key={idx} style={{ ...th, textAlign: 'center' }}>Апта {actualStartWeek + idx}</th>
+                                <th key={idx} className="hidden sm:table-cell" style={{ ...th, textAlign: 'center' }}>Апта {actualStartWeek + idx}</th>
                             ))}
                             <th style={{ ...th, textAlign: 'center' }}>Орточо</th>
-                            <th style={{ ...th, textAlign: 'center' }}>Эң жакшы</th>
-                            <th style={{ ...th, textAlign: 'center' }}>Эң начар</th>
-                            <th style={{ ...th, textAlign: 'center' }}>Тенденция</th>
+                            <th className="hidden sm:table-cell" style={{ ...th, textAlign: 'center' }}>Эң жакшы</th>
+                            <th className="hidden sm:table-cell" style={{ ...th, textAlign: 'center' }}>Эң начар</th>
+                            <th style={{ ...th, textAlign: 'center' }}><span className="hidden sm:inline">Тенденция</span><span className="sm:hidden" aria-label="Тенденция">↕</span></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -131,17 +133,18 @@ export const FourWeekReportView: React.FC<FourWeekReportViewProps> = ({ data, se
                                 <td style={{ ...td, ...rankCell }}>{pad2(row.ranking)}</td>
                                 <td style={{ ...td, fontWeight: 600, color: 'var(--text-primary)' }}>{row.teamName}</td>
                                 {row.weeklyScores.map((score, i) => (
-                                    <td key={i} style={{ ...td, textAlign: 'center', color: 'var(--text-secondary)', fontVariantNumeric: 'tabular-nums' }}>{score.toFixed(1)}</td>
+                                    <td key={i} className="hidden sm:table-cell" style={{ ...td, textAlign: 'center', color: 'var(--text-secondary)', fontVariantNumeric: 'tabular-nums' }}>{score.toFixed(1)}</td>
                                 ))}
                                 <td style={{ ...td, textAlign: 'center', fontFamily: 'var(--font-serif)', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{row.averageScore}</td>
-                                <td style={{ ...td, textAlign: 'center', fontWeight: 600, color: good, fontVariantNumeric: 'tabular-nums' }}>{row.bestWeek}</td>
-                                <td style={{ ...td, textAlign: 'center', fontWeight: 600, color: bad, fontVariantNumeric: 'tabular-nums' }}>{row.worstWeek}</td>
+                                <td className="hidden sm:table-cell" style={{ ...td, textAlign: 'center', fontWeight: 600, color: good, fontVariantNumeric: 'tabular-nums' }}>{row.bestWeek}</td>
+                                <td className="hidden sm:table-cell" style={{ ...td, textAlign: 'center', fontWeight: 600, color: bad, fontVariantNumeric: 'tabular-nums' }}>{row.worstWeek}</td>
                                 <td style={{ ...td, textAlign: 'center' }}>
                                     <span
-                                        className="font-semibold text-sm"
+                                        className="font-semibold text-sm whitespace-nowrap"
                                         style={{ color: row.trends === 'up' ? good : row.trends === 'down' ? bad : 'var(--accent)' }}
                                     >
-                                        {TREND_LABEL[row.trends]}
+                                        <span className="sm:hidden" aria-label={TREND_LABEL[row.trends]} title={TREND_LABEL[row.trends]}>{TREND_LABEL[row.trends].split(' ')[0]}</span>
+                                        <span className="hidden sm:inline">{TREND_LABEL[row.trends]}</span>
                                     </span>
                                 </td>
                             </tr>
@@ -153,7 +156,7 @@ export const FourWeekReportView: React.FC<FourWeekReportViewProps> = ({ data, se
             {weeksForPeriod.length > 0 && (
                 <div>
                     <h3 className="font-serif text-lg font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>{actualStartWeek}&ndash;{actualEndWeek} апталар боюнча графика</h3>
-                    <ResponsiveContainer width="100%" height={360}>
+                    <ResponsiveContainer width="100%" height={isPhone ? 260 : 360}>
                         <LineChart data={weeksForPeriod.map(week => {
                             const point: Record<string, number | string> = { week: `Апта ${week.weekNumber}` };
                             week.teams.forEach(team => {

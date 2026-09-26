@@ -49,14 +49,14 @@ export const TotalRatingsView: React.FC<TotalRatingsViewProps> = ({ data, fromWe
                 <div className="text-center py-12 font-serif text-lg" style={{ color: 'var(--text-muted)' }}>{fromWeek}-аптадан баштап маалымат табылган жок.</div>
             ) : (
                 <div className="overflow-x-auto">
-                    <table className="w-full" style={{ borderCollapse: 'collapse' }}>
+                    <table className="data-table w-full" style={{ borderCollapse: 'collapse' }}>
                         <thead>
                             <tr>
                                 <th style={th}>#</th>
                                 <th style={th}>Үй</th>
-                                <th style={{ ...th, textAlign: 'center' }}>Катышкан апталар</th>
-                                <th style={{ ...th, textAlign: 'right' }}>Жалпы упай</th>
-                                <th style={{ ...th, textAlign: 'right' }}>Орточо упай</th>
+                                <th className="hidden sm:table-cell" style={{ ...th, textAlign: 'center' }}>Катышкан апталар</th>
+                                <th style={{ ...th, textAlign: 'right' }}>Жалпы<span className="hidden sm:inline"> упай</span></th>
+                                <th style={{ ...th, textAlign: 'right' }}>Орточо<span className="hidden sm:inline"> упай</span></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -64,7 +64,7 @@ export const TotalRatingsView: React.FC<TotalRatingsViewProps> = ({ data, fromWe
                                 <tr key={team.teamName}>
                                     <td style={{ ...td, ...rankCell }}>{pad2(idx + 1)}</td>
                                     <td style={{ ...td, fontWeight: 600, color: 'var(--text-primary)' }}>{team.teamName}</td>
-                                    <td style={{ ...td, textAlign: 'center', color: 'var(--text-secondary)' }}>{team.weeklyScores.length}</td>
+                                    <td className="hidden sm:table-cell" style={{ ...td, textAlign: 'center', color: 'var(--text-secondary)' }}>{team.weeklyScores.length}</td>
                                     <td style={{ ...td, textAlign: 'right', fontFamily: 'var(--font-serif)', fontWeight: 600, fontVariantNumeric: 'tabular-nums', fontSize: '15px' }}>{team.totalScore}</td>
                                     <td style={{ ...td, textAlign: 'right', color: 'var(--text-muted)', fontVariantNumeric: 'tabular-nums' }}>{team.averageScore}</td>
                                 </tr>

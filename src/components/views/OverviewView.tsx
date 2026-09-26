@@ -1,3 +1,4 @@
+import { useIsPhone } from '../../hooks/useMediaQuery';
 import React, { useMemo, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import type { WeekData, Role } from '../../types';
@@ -23,6 +24,7 @@ const rankCell: React.CSSProperties = { fontFamily: 'var(--font-serif)', fontWei
 const pad2 = (n: number) => String(n).padStart(2, '0');
 
 export const OverviewView: React.FC<OverviewViewProps> = ({ currentWeekData, isDark }) => {
+    const isPhone = useIsPhone();
     const [roleFilter, setRoleFilter] = useState<'all' | Role>('all');
 
     const teamRankings = getOverallTeamRankings(currentWeekData.teams);
@@ -62,15 +64,17 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ currentWeekData, isD
                 </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 mb-9">
+            {/* Three short figures — they stay side by side even on a phone
+                (stacking them made each look like its own section). */}
+            <div className="grid grid-cols-3 mb-9">
                 {[
                     { label: 'Мыкты үй', value: teamRankings[0]?.name ?? '—' },
                     { label: 'Катышуучулар', value: String(allIndividuals.length) },
                     { label: 'Орточо упай', value: String(avgScore) }
                 ].map((stat, i) => (
-                    <div key={stat.label} className="px-0 sm:px-6" style={i > 0 ? { borderLeft: '1px solid var(--border)' } : undefined}>
-                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>{stat.label}</div>
-                        <div className="font-serif" style={{ fontSize: '26px', fontWeight: 500, marginTop: '6px', fontVariantNumeric: 'tabular-nums' }}>{stat.value}</div>
+                    <div key={stat.label} className={`min-w-0 ${i === 0 ? 'pr-3 sm:pr-6' : 'px-3 sm:px-6'}`} style={i > 0 ? { borderLeft: '1px solid var(--border)' } : undefined}>
+                        <div className="text-[10px] sm:text-[11px] leading-snug tracking-[0.03em] sm:tracking-[0.08em] [overflow-wrap:anywhere]" style={{ color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>{stat.label}</div>
+                        <div className="font-serif text-[19px] sm:text-[26px] truncate" style={{ fontWeight: 500, marginTop: '6px', fontVariantNumeric: 'tabular-nums', color: 'var(--text-primary)' }}>{stat.value}</div>
                     </div>
                 ))}
             </div>
@@ -95,13 +99,13 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ currentWeekData, isD
                 </div>
 
                 <div className="overflow-x-auto mb-7">
-                    <table className="w-full" style={{ borderCollapse: 'collapse' }}>
+                    <table className="data-table w-full" style={{ borderCollapse: 'collapse' }}>
                         <thead>
                             <tr>
                                 <th style={th}>#</th>
                                 <th style={th}>Аты</th>
-                                <th style={th}>Үй</th>
-                                <th style={th}>Ролу</th>
+                                <th style={th} className="hidden sm:table-cell">Үй</th>
+                                <th style={th} className="hidden sm:table-cell">Ролу</th>
                                 <th style={{ ...th, textAlign: 'right' }}>Упай</th>
                             </tr>
                         </thead>
@@ -109,14 +113,20 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ currentWeekData, isD
                             {filteredIndividuals.map((member, idx) => (
                                 <tr key={member.id}>
                                     <td style={{ ...td, ...rankCell }}>{pad2(idx + 1)}</td>
-                                    <td style={td}>
-                                        <div className="flex items-center gap-2.5">
+                                    <td className="w-full max-w-0 sm:w-auto sm:max-w-none" style={td}>
+                                        <div className="flex items-center gap-2.5 min-w-0">
                                             <Avatar name={member.name} role={member.role} photoUrl={member.photoUrl} size="sm" />
-                                            <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>{member.name}</span>
+                                            <div className="min-w-0">
+                                                <div className="font-semibold truncate" style={{ color: 'var(--text-primary)' }}>{member.name}</div>
+                                                {/* On a phone, house + role live here instead of in their own columns. */}
+                                                <div className="sm:hidden text-[12px] truncate" style={{ color: 'var(--text-muted)' }}>
+                                                    {member.team} · <span className="italic">{ROLE_LABEL[member.role]}</span>
+                                                </div>
+                                            </div>
                                         </div>
                                     </td>
-                                    <td style={{ ...td, color: 'var(--text-secondary)' }}>{member.team}</td>
-                                    <td style={{ ...td, fontSize: '12.5px', fontStyle: 'italic', color: 'var(--text-muted)' }}>{ROLE_LABEL[member.role]}</td>
+                                    <td className="hidden sm:table-cell" style={{ ...td, color: 'var(--text-secondary)' }}>{member.team}</td>
+                                    <td className="hidden sm:table-cell" style={{ ...td, fontSize: '12.5px', fontStyle: 'italic', color: 'var(--text-muted)' }}>{ROLE_LABEL[member.role]}</td>
                                     <td style={{ ...td, ...scoreCell, textAlign: 'right' }}>{member.score}</td>
                                 </tr>
                             ))}
@@ -124,7 +134,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ currentWeekData, isD
                     </table>
                 </div>
 
-                <ResponsiveContainer width="100%" height={360}>
+                <ResponsiveContainer width="100%" height={isPhone ? 260 : 360}>
                     <BarChart data={filteredIndividuals.slice(0, 15)}>
                         <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} vertical={false} />
                         <XAxis dataKey="name" tick={{ fill: axisColor, fontSize: 11 }} axisLine={{ stroke: gridStroke }} tickLine={false} />
@@ -142,14 +152,14 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ currentWeekData, isD
             <div className="mb-12">
                 <h2 className="font-serif text-lg font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>Үйлөрдүн жалпы рейтинги</h2>
                 <div className="overflow-x-auto">
-                    <table className="w-full" style={{ borderCollapse: 'collapse' }}>
+                    <table className="data-table w-full" style={{ borderCollapse: 'collapse' }}>
                         <thead>
                             <tr>
                                 <th style={th}>#</th>
                                 <th style={th}>Үй</th>
-                                <th style={{ ...th, textAlign: 'center' }}>Мүчөлөр</th>
-                                <th style={{ ...th, textAlign: 'right' }}>Орточо упай</th>
-                                <th style={{ ...th, textAlign: 'right' }}>Жалпы упай</th>
+                                <th style={{ ...th, textAlign: 'center' }}><span className="hidden sm:inline">Мүчөлөр</span><span className="sm:hidden">Адам</span></th>
+                                <th style={{ ...th, textAlign: 'right' }}>Орточо<span className="hidden sm:inline"> упай</span></th>
+                                <th style={{ ...th, textAlign: 'right' }} className="hidden sm:table-cell">Жалпы упай</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -159,7 +169,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ currentWeekData, isD
                                     <td style={{ ...td, fontWeight: 600, color: 'var(--text-primary)' }}>{team.name}</td>
                                     <td style={{ ...td, textAlign: 'center', color: 'var(--text-secondary)' }}>{team.memberCount}</td>
                                     <td style={{ ...td, ...scoreCell, textAlign: 'right', fontSize: '15px' }}>{team.avgMemberScore}</td>
-                                    <td style={{ ...td, textAlign: 'right', color: 'var(--text-muted)' }}>{team.totalScore}</td>
+                                    <td className="hidden sm:table-cell" style={{ ...td, textAlign: 'right', color: 'var(--text-muted)' }}>{team.totalScore}</td>
                                 </tr>
                             ))}
                         </tbody>
@@ -169,7 +179,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ currentWeekData, isD
 
             <div>
                 <h2 className="font-serif text-lg font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>Үйлөрдүн көрсөткүчтөрү</h2>
-                <ResponsiveContainer width="100%" height={360}>
+                <ResponsiveContainer width="100%" height={isPhone ? 260 : 360}>
                     <BarChart data={teamChartData}>
                         <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} vertical={false} />
                         <XAxis dataKey="name" tick={{ fill: axisColor, fontSize: 11 }} axisLine={{ stroke: gridStroke }} tickLine={false} />

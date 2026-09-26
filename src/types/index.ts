@@ -1,6 +1,6 @@
 // Types for tdJamaat v2
 //
-// The 8 individual metrics and 6 team activities keep the same keys as the
+// The 8 individual metrics and 7 team activities keep the same keys as the
 // original app (they're the community's existing formula) — only the
 // storage model underneath changed, from a JSON blob per team per week to
 // real houses/members tables. Team/TeamMember below are a *reconstructed*
@@ -32,6 +32,7 @@ export interface MiniCard {
     'КИТЕП': MiniCardActivity;
     'СПОРТ': MiniCardActivity;
     'ТСПХ': MiniCardActivity;
+    'БАБХ': MiniCardActivity;
 }
 
 // ---------------------------------------------------------------------------

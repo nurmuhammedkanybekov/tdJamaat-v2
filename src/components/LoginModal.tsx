@@ -1,3 +1,4 @@
+import { useModal } from '../hooks/useModal';
 import React, { useEffect, useState } from 'react';
 import { Lock, LogIn, X, Home, ShieldCheck } from 'lucide-react';
 import { fetchHouses } from '../services/dataService';
@@ -12,6 +13,7 @@ interface LoginModalProps {
 type Mode = 'leader' | 'admin';
 
 export const LoginModal: React.FC<LoginModalProps> = ({ onSuccess, onClose }) => {
+    useModal(onClose);
     const [mode, setMode] = useState<Mode>('leader');
     const [houses, setHouses] = useState<House[]>([]);
     const [selectedHouseSlug, setSelectedHouseSlug] = useState('');
@@ -44,8 +46,14 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onSuccess, onClose }) =>
                 await signInAsHouse(selectedHouseSlug, password);
             }
             onSuccess();
-        } catch {
-            setError('Туура эмес сыр сөз');
+        } catch (err) {
+            // Only a credentials rejection means "wrong password" — a network
+            // failure or server error used to show the same message, which
+            // sent people retyping a password that was actually correct.
+            const message = err instanceof Error ? err.message : '';
+            setError(/invalid login credentials/i.test(message)
+                ? 'Туура эмес сыр сөз'
+                : `Кирүү мүмкүн болгон жок: ${message || 'интернетти текшериңиз'}`);
         } finally {
             setLoading(false);
         }
@@ -59,12 +67,13 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onSuccess, onClose }) =>
     };
 
     return (
-        <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4" style={{ backgroundColor: 'color-mix(in oklab, var(--text-primary) 45%, transparent)' }}>
+        <div className="fixed inset-0 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4 pt-[max(1rem,env(safe-area-inset-top))] overflow-y-auto overscroll-contain" style={{ backgroundColor: 'color-mix(in oklab, var(--text-primary) 45%, transparent)' }}>
             <div className="max-w-md w-full relative">
-            <div className="p-8 relative" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '4px' }}>
+            <div className="p-6 sm:p-8 relative" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '4px' }}>
                 <button
                     onClick={onClose}
-                    className="absolute top-5 right-5 p-1 transition-colors"
+                    aria-label="Жабуу"
+                    className="absolute top-3 right-3 sm:top-5 sm:right-5 p-2 transition-colors"
                     style={{ color: 'var(--text-muted)' }}
                 >
                     <X className="w-4 h-4" />
@@ -114,7 +123,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onSuccess, onClose }) =>
                             <select
                                 value={selectedHouseSlug}
                                 onChange={e => setSelectedHouseSlug(e.target.value)}
-                                className="w-full px-4 py-2.5 outline-none transition-all"
+                                className="w-full px-4 py-2.5 outline-none transition-all text-base"
                                 style={inputStyle}
                             >
                                 {houses.map(house => (
@@ -128,12 +137,14 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onSuccess, onClose }) =>
                         <label className="block text-xs font-semibold uppercase tracking-wide mb-1.5" style={{ color: 'var(--text-muted)' }}>Сыр сөз</label>
                         <input
                             type="password"
+                            autoComplete="current-password"
                             value={password}
                             onChange={e => setPassword(e.target.value)}
-                            className="w-full px-4 py-2.5 outline-none transition-all"
+                            className="w-full px-4 py-2.5 outline-none transition-all text-base"
                             style={inputStyle}
                             placeholder="Сыр сөз"
-                            autoFocus
+                            // Don't pop the phone keyboard over the house picker on open.
+                            autoFocus={!window.matchMedia('(pointer: coarse)').matches}
                         />
                         {error && (
                             <p className="text-sm mt-2 ml-1 flex items-center gap-1.5" style={{ color: '#e34948' }}>

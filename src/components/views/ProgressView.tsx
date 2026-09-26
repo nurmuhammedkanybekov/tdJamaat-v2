@@ -1,3 +1,4 @@
+import { useIsPhone } from '../../hooks/useMediaQuery';
 import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import type { DataFile, Team } from '../../types';
@@ -11,6 +12,7 @@ interface ProgressViewProps {
 }
 
 export const ProgressView: React.FC<ProgressViewProps> = ({ data, currentTeams, isDark }) => {
+    const isPhone = useIsPhone();
     const progressData = getProgressData(data);
     const allWeeks = [...data.weeks.map(w => w.weekNumber)].sort((a, b) => a - b);
 
@@ -38,7 +40,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ data, currentTeams, 
             <div className="mb-12">
                 <h2 className="font-serif text-lg font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>Үйлөрдүн апталык прогресси</h2>
                 <p className="text-sm mb-5" style={{ color: 'var(--text-muted)' }}>График орточо упайга негизделген (адилеттүү салыштыруу үчүн)</p>
-                <ResponsiveContainer width="100%" height={460}>
+                <ResponsiveContainer width="100%" height={isPhone ? 300 : 460}>
                     <LineChart data={lineChartData}>
                         <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} vertical={false} />
                         <XAxis dataKey="week" tick={{ fill: axisColor, fontSize: 11 }} axisLine={{ stroke: gridStroke }} tickLine={false} />

@@ -32,6 +32,18 @@ export const signInAsAdmin = async (password: string) => {
     return data;
 };
 
+// Call right before any write. getSession() refreshes an expired access
+// token when it can; if the session is gone entirely (logged out in
+// another tab, refresh token revoked), fail with a clear message instead of
+// letting the write bounce off RLS with a cryptic error.
+export const requireActiveSession = async () => {
+    const { data, error } = await supabase.auth.getSession();
+    if (error || !data.session) {
+        throw new Error('Кирүү мөөнөтү бүттү — чыгып, кайра кириңиз.');
+    }
+    return data.session;
+};
+
 export const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;

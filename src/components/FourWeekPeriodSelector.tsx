@@ -28,7 +28,7 @@ export const FourWeekPeriodSelector: React.FC<FourWeekPeriodSelectorProps> = ({
     return (
         <div className="mb-7">
             <div
-                className="flex items-center justify-between flex-wrap gap-3 px-5 py-4"
+                className="flex items-center justify-between flex-wrap gap-3 px-4 sm:px-5 py-3 sm:py-4"
                 style={{ border: '1px solid var(--border)', borderRadius: '3px', backgroundColor: 'var(--surface)' }}
             >
             <div className="flex items-center gap-2">
@@ -37,20 +37,21 @@ export const FourWeekPeriodSelector: React.FC<FourWeekPeriodSelectorProps> = ({
                     4-Апталык мезгил
                 </span>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto">
                 <div className="text-sm" style={{ color: 'var(--text-muted)' }}>
                     {selectedPeriod + 1} / {totalPeriods}
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center justify-between sm:justify-start gap-3 flex-1 sm:flex-none">
                     <button
+                    aria-label="Мурунку мезгил"
                         onClick={() => setSelectedPeriod(Math.max(0, selectedPeriod - 1))}
                         disabled={selectedPeriod === 0}
-                        className="p-1.5 disabled:opacity-30 disabled:cursor-not-allowed"
+                        className="inline-flex items-center justify-center w-10 h-10 sm:w-auto sm:h-auto sm:p-1.5 disabled:opacity-30 disabled:cursor-not-allowed"
                         style={{ border: '1px solid var(--border)', borderRadius: '3px' }}
                     >
-                        <ChevronLeft className="w-4 h-4" style={{ color: 'var(--text-primary)' }} />
+                        <ChevronLeft aria-hidden="true" className="w-4 h-4" style={{ color: 'var(--text-primary)' }} />
                     </button>
-                    <div className="font-serif font-variant-tabular text-center" style={{ minWidth: '160px' }}>
+                    <div className="font-serif font-variant-tabular text-center flex-1 sm:flex-none min-w-0 sm:min-w-[160px]">
                         <span className="font-semibold" style={{ color: 'var(--text-primary)', fontSize: '15px' }}>
                             Апта {actualStartWeek}&ndash;{actualEndWeek}
                         </span>
@@ -61,12 +62,13 @@ export const FourWeekPeriodSelector: React.FC<FourWeekPeriodSelectorProps> = ({
                         )}
                     </div>
                     <button
+                    aria-label="Кийинки мезгил"
                         onClick={() => setSelectedPeriod(Math.min(totalPeriods - 1, selectedPeriod + 1))}
                         disabled={selectedPeriod === totalPeriods - 1}
-                        className="p-1.5 disabled:opacity-30 disabled:cursor-not-allowed"
+                        className="inline-flex items-center justify-center w-10 h-10 sm:w-auto sm:h-auto sm:p-1.5 disabled:opacity-30 disabled:cursor-not-allowed"
                         style={{ border: '1px solid var(--border)', borderRadius: '3px' }}
                     >
-                        <ChevronRight className="w-4 h-4" style={{ color: 'var(--text-primary)' }} />
+                        <ChevronRight aria-hidden="true" className="w-4 h-4" style={{ color: 'var(--text-primary)' }} />
                     </button>
                 </div>
             </div>

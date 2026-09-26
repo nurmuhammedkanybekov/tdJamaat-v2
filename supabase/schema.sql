@@ -70,7 +70,7 @@ create index idx_weekly_metrics_week on weekly_metrics(week_number);
 create index idx_weekly_metrics_member on weekly_metrics(member_id);
 
 -- ---------------------------------------------------------------------------
--- Per-house weekly "mini card" team activity (the 6 team-level activities)
+-- Per-house weekly "mini card" team activity (the team-level activities — 7 as of Sept 2026, incl. БАБХ)
 -- ---------------------------------------------------------------------------
 create table house_activity (
   id uuid primary key default gen_random_uuid(),
@@ -131,6 +131,10 @@ create policy "admin manage members" on members
 
 create policy "admin manage weeks" on weeks
   for all to authenticated using (is_admin()) with check (is_admin());
+
+-- Only the admin opens weeks; leaders fill in weeks that exist.
+-- Season rules (admin-only targets, stored minimums) live in
+-- supabase/season-2026-09.sql — run it after this file.
 
 -- Weekly data tables: admin can touch anything, a leader only their own house
 create policy "leader/admin write weekly_metrics" on weekly_metrics

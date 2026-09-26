@@ -45,19 +45,22 @@ const TeamPerformanceTracker: React.FC = () => {
     const [showDataEntry, setShowDataEntry] = useState(false);
     const [dataEntryHouseId, setDataEntryHouseId] = useState<string | null>(null);
 
-    const loadData = useCallback(async () => {
+    // `silent`: refresh in the background (e.g. after the admin opens a week)
+    // without swapping the whole page for the loading screen — which would
+    // also unmount an open data-entry form.
+    const loadData = useCallback(async (silent = false) => {
         try {
-            setLoading(true);
+            if (!silent) setLoading(true);
             const [df, houseList] = await Promise.all([fetchDataFile(), fetchHouses()]);
             setData(df);
             setHouses(houseList);
-            if (df.weeks.length > 0) {
+            if (df.weeks.length > 0 && !silent) {
                 setSelectedWeek(df.weeks.length - 1);
                 setSelectedPeriod(Math.max(0, Math.ceil(df.weeks.length / 4) - 1));
             }
             setError(null);
         } catch (err) {
-            setError('Маалыматтарды жүктөөдө ката кетти. Сураныч, интернет байланышын текшериңиз же кийинчерээк кайра аракет кылыңыз.');
+            if (!silent) setError('Маалыматтарды жүктөөдө ката кетти. Сураныч, интернет байланышын текшериңиз же кийинчерээк кайра аракет кылыңыз.');
             console.error('Error loading data:', err);
         } finally {
             setLoading(false);
@@ -92,10 +95,10 @@ const TeamPerformanceTracker: React.FC = () => {
 
     const currentWeekData = data.weeks[selectedWeek];
     const authHouseName = authUser?.houseId ? houses.find(h => h.id === authUser.houseId)?.name ?? null : null;
-    const nextWeekNumber = Math.max(...data.weeks.map(w => w.weekNumber)) + 1;
+    const latestWeekNumber = Math.max(...data.weeks.map(w => w.weekNumber));
 
     return (
-        <div className="min-h-screen px-5 py-8 md:px-10 md:py-10 transition-colors" style={{ backgroundColor: 'var(--page-plane)' }}>
+        <div className="page-gutter min-h-screen transition-colors" style={{ backgroundColor: 'var(--page-plane)' }}>
             <div className="max-w-6xl mx-auto">
                 <Header
                     showFormula={showFormula}
@@ -123,7 +126,7 @@ const TeamPerformanceTracker: React.FC = () => {
                 {activeView === 'teams' && (
                     <TeamsView
                         currentWeekData={currentWeekData}
-                        canEdit={!!authUser}
+                        canEditHouse={houseId => authUser?.role === 'admin' || (!!authUser && authUser.houseId === houseId)}
                         onEditHouse={(houseId) => { setDataEntryHouseId(houseId); setShowDataEntry(true); }}
                         isDark={isDark}
                     />
@@ -153,14 +156,15 @@ const TeamPerformanceTracker: React.FC = () => {
             {showDataEntry && authUser && (
                 <DataEntryForm
                     authUser={authUser}
-                    defaultWeekNumber={nextWeekNumber}
+                    defaultWeekNumber={latestWeekNumber}
                     initialHouseId={dataEntryHouseId}
                     onClose={() => { setShowDataEntry(false); setDataEntryHouseId(null); }}
                     onSuccess={() => {
                         setShowDataEntry(false);
                         setDataEntryHouseId(null);
-                        loadData();
+                        loadData(true);
                     }}
+                    onWeeksChanged={() => loadData(true)}
                 />
             )}
         </div>

@@ -24,6 +24,10 @@ In the Supabase dashboard, open **SQL Editor** and run, in order:
 3. `supabase/photo-upload-setup.sql` — creates the `member-photos`
    storage bucket and the policies that let a house leader upload/replace
    photos for members in their own house.
+4. `supabase/season-2026-09.sql` — the season rules: stores the role
+   minimums and mini-card targets, makes targets admin-only (enforced by
+   the database, not just the UI), and makes opening a week admin-only.
+   Safe to re-run.
 
 ## 3. Configure the app's environment
 
@@ -87,3 +91,31 @@ If Vercel's **Deployment Protection** is on for the project, the live
 URL will sit behind a Vercel login wall — turn it off under
 **Settings → Deployment Protection** for a dashboard the whole jamaat
 should be able to open without a Vercel account.
+
+The app also has a daily keep-alive (`api/keepalive.js`, scheduled in
+`vercel.json`): Supabase's free plan pauses a project after 7 days without
+activity, so Vercel pings the database once a day. It reads the same two
+`VITE_*` variables from the project's environment variables. Check it
+after deploying by opening `https://<your-site>/api/keepalive` — it should
+say `"ok": true`.
+
+## 7. Running the season (weekly routine)
+
+- **Admin, at the start of each week:** log in → **Маалымат кошуу** →
+  **Жаңы апта** (tap twice to confirm). Leaders can only fill in weeks the
+  admin has opened.
+- **House leaders:** log in → **Маалымат кошуу** → the form opens on the
+  latest week → enter results (**Факт**) → **Сактоо**. Targets (**План**)
+  are locked for leaders.
+- **Custom target for one person** (e.g. illness): admin opens that house
+  and week, changes the **План** box, saves. It carries forward to later
+  weeks that house enters.
+- **Changing a role minimum for everyone:** edit the `season_settings`
+  row in Supabase (Table Editor). Applies to targets from then on; saved
+  weeks keep the target they were saved with.
+- **Backup:** admin → **Маалымат кошуу** → **Камдык көчүрмө** downloads
+  the whole database as a JSON file. Worth doing once a week.
+- **Roster changes mid-season:** add a member (or set `active = false`)
+  in the `members` table. Past weeks keep the roster they actually had, so
+  a new member never counts as a zero in weeks before they joined.
+

@@ -1,3 +1,4 @@
+import { useIsPhone } from '../../hooks/useMediaQuery';
 import React, { useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 import { Settings } from 'lucide-react';
@@ -10,7 +11,7 @@ const ROLE_LABEL = { imam: 'Имам', zam: 'Орун басар', member: 'Мү
 
 interface TeamsViewProps {
     currentWeekData: WeekData;
-    canEdit: boolean;
+    canEditHouse: (houseId: string) => boolean;
     onEditHouse: (houseId: string) => void;
     isDark: boolean;
 }
@@ -30,7 +31,8 @@ const perfColor = (perf: number, isDark: boolean) =>
         : perf >= 50 ? (isDark ? '#c98500' : '#eda100')
         : (isDark ? '#e66767' : '#e34948');
 
-export const TeamsView: React.FC<TeamsViewProps> = ({ currentWeekData, canEdit, onEditHouse, isDark }) => {
+export const TeamsView: React.FC<TeamsViewProps> = ({ currentWeekData, canEditHouse, onEditHouse, isDark }) => {
+    const isPhone = useIsPhone();
     const [activeTeamIdx, setActiveTeamIdx] = useState(0);
     const team = currentWeekData.teams[Math.min(activeTeamIdx, currentWeekData.teams.length - 1)];
     if (!team) return null;
@@ -50,15 +52,15 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ currentWeekData, canEdit, 
 
     return (
         <>
-            <div className="mb-7" style={{ borderBottom: '1px solid var(--border)' }}>
-                <div className="flex gap-5 overflow-x-auto">
+            <div className="mb-7 -mx-4 sm:mx-0" style={{ borderBottom: '1px solid var(--border)' }}>
+                <div className="scroll-row scroll-fade flex gap-5 px-4 sm:px-0">
                     {currentWeekData.teams.map((t, idx) => {
                         const active = activeTeamIdx === idx;
                         return (
                             <button
                                 key={t.id}
                                 onClick={() => setActiveTeamIdx(idx)}
-                                className="whitespace-nowrap pb-3 pt-1"
+                                className="whitespace-nowrap flex-shrink-0 pb-3 pt-2 sm:pt-1"
                                 style={{
                                     fontSize: '13px', fontWeight: 600, letterSpacing: '0.01em',
                                     color: active ? 'var(--text-primary)' : 'var(--text-muted)',
@@ -73,25 +75,31 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ currentWeekData, canEdit, 
                 </div>
             </div>
 
-            <div className="mb-10 relative">
-                {canEdit && (
-                    <button
-                        onClick={() => onEditHouse(team.id)}
-                        className="absolute top-0 right-0 flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-colors"
-                        style={{ border: '1px solid var(--border)', borderRadius: '3px', color: 'var(--text-secondary)' }}
-                    >
-                        <Settings className="w-3.5 h-3.5" /> Өзгөртүү
-                    </button>
-                )}
-                <h3 className="font-serif text-lg font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>Үйдүн активдүүлүк көрсөткүчтөрү</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
-                    {Object.entries(team.miniCard).map(([key, value], i) => {
+            <div className="mb-10">
+                <div className="flex items-start justify-between gap-3 mb-4">
+                    <h3 className="font-serif text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>Үйдүн активдүүлүк көрсөткүчтөрү</h3>
+                    {canEditHouse(team.id) && (
+                        <button
+                            onClick={() => onEditHouse(team.id)}
+                            className="flex-shrink-0 flex items-center gap-1.5 px-3 min-h-9 sm:min-h-0 sm:py-1.5 text-xs font-semibold transition-colors"
+                            style={{ border: '1px solid var(--border)', borderRadius: '3px', color: 'var(--text-secondary)' }}
+                        >
+                            <Settings className="w-3.5 h-3.5" /> Өзгөртүү
+                        </button>
+                    )}
+                </div>
+                {/* Ruled grid: top/left rule on the container, right/bottom on each
+                    cell — so dividers stay correct for any number of activities
+                    (7 since БАБХ) and any column count, with no filled-in gap
+                    where the last row is short. */}
+                <div className="grid grid-cols-4 md:grid-cols-7" style={{ borderTop: '1px solid var(--border)', borderLeft: '1px solid var(--border)' }}>
+                    {Object.entries(team.miniCard).map(([key, value]) => {
                         const percent = value.target > 0 ? (value.actual / value.target) * 100 : 0;
                         return (
                             <div
                                 key={key}
-                                className="flex flex-col items-center justify-center text-center py-3 px-2"
-                                style={i > 0 ? { borderLeft: '1px solid var(--border)' } : undefined}
+                                className="flex flex-col items-center justify-center text-center py-3 px-1.5 min-w-0"
+                                style={{ borderRight: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}
                             >
                                 <span className="text-xs font-semibold mb-1" style={{ color: 'var(--text-muted)' }}>{key}</span>
                                 <p className="font-serif" style={{ fontSize: '17px', fontWeight: 500, color: 'var(--text-primary)' }}>{value.actual}/{value.target}</p>
@@ -117,8 +125,40 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ currentWeekData, canEdit, 
                     </div>
                 </div>
 
-                <div className="overflow-x-auto">
-                    <table className="w-full" style={{ borderCollapse: 'collapse' }}>
+                {/* Phone & tablet: one card per member — score and all 8 metrics visible
+                    without swiping a 10-column table sideways. */}
+                <ol className="lg:hidden" style={{ borderTop: '1px solid var(--text-primary)' }}>
+                    {rankings.map(member => (
+                        <li key={member.id} className="py-3" style={{ borderBottom: '1px solid var(--border)' }}>
+                            <div className="flex items-center gap-2.5">
+                                <span className="w-6 flex-shrink-0 font-serif font-semibold text-[13px]" style={{ color: 'var(--text-secondary)', fontVariantNumeric: 'tabular-nums' }}>{String(member.rank).padStart(2, '0')}</span>
+                                <Avatar name={member.name} role={member.role} photoUrl={member.photoUrl} size="sm" />
+                                <div className="flex-1 min-w-0">
+                                    <div className="font-semibold truncate" style={{ color: 'var(--text-primary)' }}>{member.name}</div>
+                                    <div className="text-[12px] italic" style={{ color: 'var(--text-muted)' }}>{ROLE_LABEL[member.role]}</div>
+                                </div>
+                                <div className="text-right flex-shrink-0">
+                                    <div className="text-[10px] uppercase tracking-wider font-semibold" style={{ color: 'var(--text-muted)' }}>Упай</div>
+                                    <div className="font-serif font-semibold text-lg" style={{ color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums' }}>{member.score}</div>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 min-[360px]:grid-cols-4 md:grid-cols-8 gap-x-3 gap-y-1.5 mt-2.5 md:pl-[34px]">
+                                {(Object.keys(weights) as Array<keyof MetricValues>).map(metric => {
+                                    const perf = member.performancePercentages[metric];
+                                    return (
+                                        <div key={metric} className="flex items-baseline justify-between gap-1 min-w-0 text-[12px]">
+                                            <span className="whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>{metric}</span>
+                                            <span className="font-semibold" style={{ color: perfColor(perf, isDark), fontVariantNumeric: 'tabular-nums' }}>{perf.toFixed(0)}%</span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </li>
+                    ))}
+                </ol>
+
+                <div className="hidden lg:block overflow-x-auto">
+                    <table className="data-table w-full" style={{ borderCollapse: 'collapse' }}>
                         <thead>
                             <tr>
                                 <th style={th}>#</th>
@@ -161,7 +201,7 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ currentWeekData, canEdit, 
 
             <div>
                 <h2 className="font-serif text-lg font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>Мүчөлөрдүн көрсөткүчтөрү</h2>
-                <ResponsiveContainer width="100%" height={360}>
+                <ResponsiveContainer width="100%" height={isPhone ? 260 : 360}>
                     <BarChart data={memberChartData}>
                         <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} vertical={false} />
                         <XAxis dataKey="name" tick={{ fill: axisColor, fontSize: 11 }} axisLine={{ stroke: gridStroke }} tickLine={false} />

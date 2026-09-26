@@ -1,0 +1,5 @@
+# Files that must never leave this computer. The Vercel CLI uploads the
+# project folder on `vercel --prod`; these secrets are only used locally
+# (scripts/create-auth-users.js) and the website never needs them.
+.env.admin
+scripts/syr_sozdor.json

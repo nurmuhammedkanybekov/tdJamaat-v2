@@ -166,7 +166,7 @@ erDiagram
         uuid id PK
         uuid house_id FK
         int week_number FK
-        jsonb activity "6 team activities (мини карта)"
+        jsonb activity "7 team activities (мини карта)"
     }
 ```
 
