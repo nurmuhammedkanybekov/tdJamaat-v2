@@ -6,7 +6,7 @@
 ![Supabase](https://img.shields.io/badge/Supabase-Postgres%20%2B%20Auth-3ECF8E?logo=supabase&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
-A weekly performance dashboard for a jamaat organized into houses. Each
+A weekly performance dashboard for a Jamaat organized into houses. Each
 house's leaders log individual member metrics and team activity once a
 week; the app turns that into rankings, per-member scores, and trend
 charts everyone in the community can see.
