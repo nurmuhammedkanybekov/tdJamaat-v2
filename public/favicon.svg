@@ -1,47 +1,28 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- tdJamaat mark: an eight-pointed star (Islamic geometry, rub el hizb)
-       holding a crescent that cradles a tunduk — the crown of the yurt from
-       the Kyrgyz flag — in a framed tile with diamond corner studs
-       (shyrdak trim). -->
+  <!-- tdJamaat mark: a crescent above a ram's horn (кочкор мүйүз, the Kyrgyz
+       ornament of strength and plenty), in a gold ring on night black. -->
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#1b1b1e"/>
       <stop offset="1" stop-color="#09090a"/>
     </linearGradient>
     <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#ecd08f"/>
-      <stop offset="1" stop-color="#b47f3a"/>
+      <stop offset="0" stop-color="#e4c88a"/>
+      <stop offset="1" stop-color="#b8924a"/>
     </linearGradient>
-    <mask id="crescent">
-      <circle cx="32" cy="32" r="9.6" fill="#fff"/>
-      <circle cx="35.6" cy="30.6" r="8" fill="#000"/>
+    <mask id="cr" maskUnits="userSpaceOnUse" x="0" y="0" width="120" height="120">
+      <rect width="120" height="120" fill="#fff"/>
+      <circle cx="64.5" cy="26.5" r="10.2" fill="#000"/>
     </mask>
-    <clipPath id="tunduk"><circle cx="36.2" cy="30.4" r="3.9"/></clipPath>
   </defs>
-
   <rect width="64" height="64" rx="14" fill="url(#bg)"/>
-  <rect x="5" y="5" width="54" height="54" rx="9.5" fill="none" stroke="url(#gold)" stroke-width="0.9" opacity="0.6"/>
-  <g fill="url(#gold)" opacity="0.85">
-    <path d="M9.5 7.5 L11.5 9.5 L9.5 11.5 L7.5 9.5 Z"/>
-    <path d="M54.5 7.5 L56.5 9.5 L54.5 11.5 L52.5 9.5 Z"/>
-    <path d="M9.5 52.5 L11.5 54.5 L9.5 56.5 L7.5 54.5 Z"/>
-    <path d="M54.5 52.5 L56.5 54.5 L54.5 56.5 L52.5 54.5 Z"/>
-  </g>
-
-  <g fill="url(#gold)">
-    <rect x="17.5" y="17.5" width="29" height="29" rx="1.2"/>
-    <rect x="17.5" y="17.5" width="29" height="29" rx="1.2" transform="rotate(45 32 32)"/>
-  </g>
-  <circle cx="32" cy="32" r="12.4" fill="url(#bg)"/>
-  <circle cx="32" cy="32" r="11.2" fill="none" stroke="url(#gold)" stroke-width="0.6" opacity="0.7"/>
-
-  <rect x="20" y="20" width="24" height="24" fill="url(#gold)" mask="url(#crescent)"/>
-
-  <circle cx="36.2" cy="30.4" r="3.9" fill="none" stroke="url(#gold)" stroke-width="1.1"/>
-  <g clip-path="url(#tunduk)" stroke="url(#gold)" stroke-width="0.85" fill="none" stroke-linecap="round">
-    <path d="M34.9 26.2 Q34.3 30.4 34.9 34.6"/>
-    <path d="M37.5 26.2 Q38.1 30.4 37.5 34.6"/>
-    <path d="M32 29.1 Q36.2 28.5 40.4 29.1"/>
-    <path d="M32 31.7 Q36.2 32.3 40.4 31.7"/>
+  <g transform="translate(3.2 3.2) scale(0.48)">
+    <circle cx="60" cy="60" r="53" fill="none" stroke="url(#gold)" stroke-width="3.6"/>
+    <g transform="translate(17 25) scale(0.86)" fill="none" stroke="url(#gold)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M50 64 C50 42 58 28 71 25 C85 22 92 35 87 45 C82 54 70 53 70 45 C70 39 76 37 79 41"/>
+      <path d="M50 64 C50 42 42 28 29 25 C15 22 8 35 13 45 C18 54 30 53 30 45 C30 39 24 37 21 41"/>
+      <path d="M50 64 L50 88"/>
+    </g>
+    <circle cx="59" cy="30" r="12.5" fill="url(#gold)" mask="url(#cr)"/>
   </g>
 </svg>

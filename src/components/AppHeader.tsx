@@ -6,7 +6,7 @@ import {
 import type { AuthUser } from '../services/authService';
 import type { Theme } from '../theme';
 import type { InstallMode } from '../pwa';
-import { Crown, Horn } from './Ornament';
+import { Crown, Mark } from './Ornament';
 
 interface AppHeaderProps {
     authUser: AuthUser | null;
@@ -119,7 +119,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                 {/* Wordmark bar */}
                 <div className="flex items-center gap-3 h-16">
                     <div className="flex items-center gap-2.5 flex-1 min-w-0" style={{ color: 'var(--gold)' }}>
-                        <Horn size={26} strokeWidth={3} />
+                        <Mark size={40} solid />
                         <span className="font-display text-[1.45rem] leading-none tracking-[0.02em]">tdJamaat</span>
                     </div>
                     <div className="flex items-center">

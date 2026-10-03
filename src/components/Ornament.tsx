@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 import { HORN_PATHS } from '../utils/ornament';
 
 // Kyrgyz ornament, drawn as a single gold hairline.
@@ -41,6 +41,37 @@ export const Tumar: React.FC<{ size?: number; strokeWidth?: number; className?: 
         ))}
     </svg>
 );
+
+/**
+ * The tdJamaat mark: a ram's horn (кочкор мүйүз) holding a crescent between
+ * its spirals, inside a reeded ring like the medals. `solid` draws heavier
+ * strokes for small sizes (tab icon, phone icon).
+ */
+export const Mark: React.FC<{ size?: number; className?: string; style?: React.CSSProperties; solid?: boolean }> = ({ size = 30, className, style, solid }) => {
+    const maskId = `mk${useId().replace(/:/g, '')}`;
+    // Crescent (outer disc minus offset disc) and horn placement, in the 120 box.
+    const c = solid ? { x: 59, y: 30, r: 12.5, cx: 64.5, cy: 26.5, cr: 10.2 } : { x: 60, y: 32.4, r: 9.7, cx: 64.1, cy: 29.6, cr: 7.9 };
+    const horns = solid ? 'translate(17 25) scale(0.86)' : 'translate(14 14) scale(0.92)';
+    return (
+        <svg width={size} height={size} viewBox="0 0 120 120" className={className} style={style} aria-hidden="true">
+            <defs>
+                <mask id={maskId} maskUnits="userSpaceOnUse" x="0" y="0" width="120" height="120">
+                    <rect width="120" height="120" fill="#fff" />
+                    <circle cx={c.cx} cy={c.cy} r={c.cr} fill="#000" />
+                </mask>
+            </defs>
+            {!solid && Array.from({ length: 72 }).map((_, i) => {
+                const a = (i / 72) * Math.PI * 2;
+                return <line key={i} x1={60 + Math.cos(a) * 55.5} y1={60 + Math.sin(a) * 55.5} x2={60 + Math.cos(a) * 58.5} y2={60 + Math.sin(a) * 58.5} stroke="currentColor" strokeWidth={0.9} opacity={0.8} />;
+            })}
+            <circle cx="60" cy="60" r="53" fill="none" stroke="currentColor" strokeWidth={solid ? 3.4 : 2} />
+            <g transform={horns}>
+                {[HORN_PATHS[0], HORN_PATHS[1], 'M50 64 L50 88'].map((d, i) => <path key={i} d={d} {...P} strokeWidth={solid ? 6 : 3.6} />)}
+            </g>
+            <circle cx={c.x} cy={c.y} r={c.r} fill="currentColor" mask={`url(#${maskId})`} />
+        </svg>
+    );
+};
 
 /** The crown over the hero: a ram's horn between two running ит куйрук scrolls. */
 export const Crown: React.FC<{ className?: string; style?: React.CSSProperties }> = ({ className, style }) => {

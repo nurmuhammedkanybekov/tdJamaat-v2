@@ -23,6 +23,7 @@ import { DataEntryForm } from './components/DataEntryForm';
 import { FormulaSheet } from './components/FormulaDisplay';
 import { ProfileSheet } from './components/ProfileSheet';
 import { ShareSheet } from './components/ShareSheet';
+import type { ShareTarget } from './components/ShareSheet';
 import { AdminPanel } from './components/AdminPanel';
 import { HistorySheet } from './components/HistorySheet';
 import { InstallSheet } from './components/InstallSheet';
@@ -57,6 +58,7 @@ const TeamPerformanceTracker: React.FC = () => {
     const [selectedPeriod, setSelectedPeriod] = useState<number | null>(null);
     const [modal, setModal] = useState<Modal>(null);
     const [dataEntryHouseId, setDataEntryHouseId] = useState<string | null>(null);
+    const [shareTarget, setShareTarget] = useState<ShareTarget>({ type: 'week' });
     const pushedProfile = useRef(false);
 
     const [theme, setThemeState] = useState<Theme>(() => getStoredTheme() ?? (document.documentElement.classList.contains('dark') ? 'dark' : 'light'));
@@ -225,7 +227,7 @@ const TeamPerformanceTracker: React.FC = () => {
                 onFormula={() => setModal('formula')}
                 onAdmin={() => setModal('admin')}
                 onHistory={() => setModal('history')}
-                onShare={() => setModal('share')}
+                onShare={() => { setShareTarget({ type: 'week' }); setModal('share'); }}
                 installMode={installMode}
                 onInstall={async () => { if (installMode === 'prompt') await install(); else setModal('install'); }}
                 week={isWeekly ? {
@@ -283,12 +285,17 @@ const TeamPerformanceTracker: React.FC = () => {
                     insights={insights}
                     awards={awards.filter(a => a.holderId === profileSeries.id)}
                     weekIndex={weekIndex}
+                    seasonName={season.name}
+                    seasonFinished={seasonClosed}
+                    onShare={(card: 'week' | 'season') => { setShareTarget({ type: 'person', memberId: profileSeries.id, card }); setModal('share'); }}
                     onClose={closeProfile}
                 />
             )}
             {modal === 'login' && <LoginModal onSuccess={() => setModal(null)} onClose={() => setModal(null)} />}
             {modal === 'formula' && <FormulaSheet onClose={() => setModal(null)} />}
-            {modal === 'share' && <ShareSheet data={data} weekIndex={weekIndex} insights={insights} onClose={() => setModal(null)} />}
+            {modal === 'share' && (
+                <ShareSheet data={data} weekIndex={weekIndex} insights={insights} awards={awards} target={shareTarget} siteTheme={theme} seasonName={season.name} seasonFinished={seasonClosed} onClose={() => setModal(null)} />
+            )}
             {modal === 'install' && <InstallSheet onClose={() => setModal(null)} />}
             {modal === 'history' && authUser && <HistorySheet authUser={authUser} data={allData} onClose={() => setModal(null)} />}
             {modal === 'admin' && authUser?.role === 'admin' && (

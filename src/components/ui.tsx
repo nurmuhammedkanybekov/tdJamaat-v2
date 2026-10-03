@@ -3,7 +3,7 @@ import React from 'react';
 import { ArrowDown, ArrowUp, Minus, X } from 'lucide-react';
 import { useModal } from '../hooks/useModal';
 import { perfColor } from '../utils/style';
-import { Crown, Horn } from './Ornament';
+import { Crown, Mark } from './Ornament';
 
 /** ▲2 / ▼1 / — : places gained since last week. */
 export const Movement: React.FC<{ delta: number | null; size?: 'sm' | 'md'; onDark?: boolean }> = ({ delta, size = 'sm', onDark }) => {
@@ -147,7 +147,8 @@ export const Sheet: React.FC<{
 /** Loading: the crown draws itself while data arrives. */
 export const LoadingScreen: React.FC = () => (
     <div className="min-h-screen flex flex-col items-center justify-center gap-6" style={{ backgroundColor: 'var(--page-plane)' }} aria-busy="true" aria-label="Жүктөлүүдө">
-        <Crown className="draw-in w-[min(18rem,70%)] h-auto" style={{ color: 'var(--gold)' }} />
+        <Mark size={72} className="animate-fade-in" style={{ color: 'var(--gold)' }} />
+        <Crown className="draw-in w-[min(16rem,64%)] h-auto -mt-2" style={{ color: 'var(--gold-dim)' }} />
         <div className="font-display text-[1.6rem]" style={{ color: 'var(--text-primary)' }}>tdJamaat</div>
         <div className="eyebrow">Жүктөлүүдө</div>
     </div>
@@ -157,7 +158,7 @@ export const LoadingScreen: React.FC = () => (
 export const StateCard: React.FC<{ title: string; text: string; action?: React.ReactNode }> = ({ title, text, action }) => (
     <div className="min-h-screen flex items-center justify-center p-6" style={{ backgroundColor: 'var(--page-plane)' }}>
         <div className="max-w-md text-center flex flex-col items-center">
-            <Horn size={46} strokeWidth={2.4} style={{ color: 'var(--gold)' }} />
+            <Mark size={64} style={{ color: 'var(--gold)' }} />
             <h2 className="font-display text-[2.2rem] mt-4 mb-2" style={{ color: 'var(--text-primary)' }}>{title}</h2>
             <p style={{ color: 'var(--text-secondary)' }}>{text}</p>
             {action && <div className="mt-5">{action}</div>}

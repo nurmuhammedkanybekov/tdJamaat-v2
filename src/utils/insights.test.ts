@@ -73,3 +73,26 @@ describe('insights', () => {
         expect(ins.members.get('new')!.weeks.map(w => w.weekIndex)).toEqual([1]);
     });
 });
+
+describe('season summary (Wrapped)', () => {
+    it('totals, average, best week, rank and growth', async () => {
+        const { seasonSummary } = await import('./insights');
+        const weeks = [0.5, 0.6, 0.9, 1.0].map((f, i) => week(i + 1, [house('A', [person('me', 'member', f), person('other', 'member', 0.7)])]));
+        const ins = buildInsights(dataFile(...weeks));
+        const s = seasonSummary(ins.members.get('me')!, ins, 4);
+        expect(s.weeksTotal).toBe(4);
+        expect(s.weeksActive).toBe(4);
+        expect(s.best!.weekNumber).toBe(4);
+        expect(s.perfectWeeks).toBe(1);
+        expect(s.rank).toBe(1);
+        expect(s.of).toBe(2);
+        expect(s.growth).toBeGreaterThan(0);
+        expect(s.total).toBeCloseTo(s.average * 4, 0);
+    });
+
+    it('growth is null with fewer than 4 counted weeks', async () => {
+        const { seasonSummary } = await import('./insights');
+        const ins = buildInsights(dataFile(week(1, [house('A', [person('me')])])));
+        expect(seasonSummary(ins.members.get('me')!, ins, 1).growth).toBeNull();
+    });
+});

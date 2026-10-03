@@ -1,9 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import { Area, AreaChart, CartesianGrid, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { X } from 'lucide-react';
+import { Share2, X } from 'lucide-react';
 import type { DataFile } from '../types';
 import type { Insights, MemberSeries } from '../utils/insights';
-import { METRICS, PLAN_SCORE, ROLE_LABEL, movement, streakUntil, weekOf } from '../utils/insights';
+import { METRICS, PLAN_SCORE, ROLE_LABEL, movement, seasonSummary, streakUntil, weekOf } from '../utils/insights';
 import type { Award } from '../utils/badges';
 import { TIER_LABEL, bestPerfectStreak, groupAwards } from '../utils/badges';
 import { useModal } from '../hooks/useModal';
@@ -21,6 +21,9 @@ interface ProfileSheetProps {
     insights: Insights;
     awards: Award[];
     weekIndex: number;
+    seasonName: string;
+    seasonFinished: boolean;
+    onShare: (card: 'week' | 'season') => void;
     onClose: () => void;
 }
 
@@ -31,7 +34,7 @@ const H3: React.FC<{ children: React.ReactNode; aside?: React.ReactNode }> = ({ 
     </div>
 );
 
-export const ProfileSheet: React.FC<ProfileSheetProps> = ({ series, data, awards, weekIndex, onClose }) => {
+export const ProfileSheet: React.FC<ProfileSheetProps> = ({ series, data, insights, awards, weekIndex, seasonName, seasonFinished, onShare, onClose }) => {
     useModal(onClose);
     const [openBadge, setOpenBadge] = useState<string | null>(null);
 
@@ -45,6 +48,7 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({ series, data, awards
     const grouped = useMemo(() => groupAwards(awards), [awards]);
     const chartData = counted.map(w => ({ week: `${w.weekNumber}`, score: Math.round(w.score * 10) / 10 }));
     const latestWeekIndex = data.weeks.length - 1;
+    const summary = useMemo(() => seasonSummary(series, insights, data.weeks.length), [series, insights, data.weeks.length]);
 
     const stats = [
         { label: `${current.weekNumber}-апта`, value: current.submitted ? fmt(current.score) : '—', sub: current.rank ? `${current.rank}-орун` : 'маалымат жок', extra: <Movement delta={movement(series.weeks, current.weekIndex)} /> },
@@ -88,6 +92,10 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({ series, data, awards
                                 </div>
                             ))}
                         </dl>
+                        <div className="flex flex-wrap justify-center gap-2 mt-7">
+                            <button className="btn btn-ghost" onClick={() => onShare('week')}><Share2 className="w-3.5 h-3.5" /> Аптаны бөлүшүү</button>
+                            <button className="btn btn-ghost" onClick={() => onShare('season')}><Share2 className="w-3.5 h-3.5" /> Сезонду бөлүшүү</button>
+                        </div>
                     </div>
 
                     <div className="px-6 sm:px-12 pb-12 space-y-14">
@@ -116,6 +124,27 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({ series, data, awards
                             ) : (
                                 <p className="italic" style={{ color: 'var(--text-muted)' }}>Динамика эки аптадан кийин көрүнөт.</p>
                             )}
+                        </section>
+
+                        {/* Season so far — "Wrapped" */}
+                        <section>
+                            <H3 aside={<span className="text-[0.78rem] italic" style={{ color: 'var(--text-muted)' }}>{seasonFinished ? 'сезон аяктады' : 'азырынча'}</span>}>Сезон {seasonName}</H3>
+                            <div className="grid grid-cols-2 sm:grid-cols-3">
+                                {[
+                                    ['Орун', summary.rank ? `${summary.rank} / ${summary.of}` : '—'],
+                                    ['Орточо упай', fmt(summary.average)],
+                                    ['Эң мыкты апта', summary.best ? `${fmt(summary.best.score)}` : '—'],
+                                    ['Активдүү апта', `${summary.weeksActive} / ${summary.weeksTotal}`],
+                                    ['Толук план', String(summary.perfectWeeks)],
+                                    ['Өсүш', summary.growth === null ? '—' : `${summary.growth > 0 ? '+' : ''}${fmt(summary.growth)}`]
+                                ].map(([label, value], i) => (
+                                    <div key={label} className="py-4 px-3 text-center" style={{ borderTop: i >= 2 ? '1px solid var(--border)' : undefined, borderLeft: i % 2 === 1 ? '1px solid var(--border)' : undefined }}>
+                                        <div className="eyebrow">{label}</div>
+                                        <div className="font-display text-[1.8rem] leading-none mt-2 tabular" style={{ color: i === 0 ? 'var(--gold)' : 'var(--text-primary)' }}>{value}</div>
+                                    </div>
+                                ))}
+                            </div>
+                            {summary.best && <p className="text-[0.82rem] italic text-center mt-3" style={{ color: 'var(--text-muted)' }}>Эң мыкты апта — {summary.best.weekNumber}-апта. Орун сезондогу орточо упай боюнча.</p>}
                         </section>
 
                         {/* Targets */}

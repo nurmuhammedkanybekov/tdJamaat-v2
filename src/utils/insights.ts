@@ -183,3 +183,58 @@ export const longestStreak = <T extends { weekIndex: number }>(weeks: T[], test:
     });
     return best;
 };
+
+export interface SeasonSummary {
+    weeksTotal: number;
+    weeksActive: number;
+    /** Sum of weekly scores over the season. */
+    total: number;
+    /** Average weekly score over the weeks the person's house submitted. */
+    average: number;
+    best: MemberWeek | null;
+    perfectWeeks: number;
+    longestPerfect: number;
+    /** Place by season average among everyone with at least one counted week. */
+    rank: number | null;
+    of: number;
+    /** Average of the second half of their weeks minus the first half (null under 4 weeks). */
+    growth: number | null;
+}
+
+/** A person's season so far ("Wrapped"). Works on a season view of the data. */
+export const seasonSummary = (series: MemberSeries, insights: Insights, weeksTotal: number): SeasonSummary => {
+    const counted = series.weeks.filter(w => w.submitted);
+    const avgOf = (ws: MemberWeek[]) => (ws.length ? ws.reduce((s, w) => s + w.score, 0) / ws.length : 0);
+    const average = round1(avgOf(counted));
+    const best = counted.reduce<MemberWeek | null>((b, w) => (!b || w.score > b.score ? w : b), null);
+
+    const averages = [...insights.members.values()]
+        .map(s => ({ id: s.id, avg: avgOf(s.weeks.filter(w => w.submitted)), n: s.weeks.filter(w => w.submitted).length }))
+        .filter(x => x.n > 0)
+        .sort((a, b) => b.avg - a.avg);
+    const idx = averages.findIndex(x => x.id === series.id);
+    let rank: number | null = null;
+    if (idx >= 0) {
+        const mine = averages[idx].avg;
+        rank = averages.findIndex(x => x.avg === mine) + 1; // ties share a place
+    }
+
+    let growth: number | null = null;
+    if (counted.length >= 4) {
+        const half = Math.floor(counted.length / 2);
+        growth = round1(avgOf(counted.slice(counted.length - half)) - avgOf(counted.slice(0, half)));
+    }
+
+    return {
+        weeksTotal,
+        weeksActive: counted.filter(w => w.score > 0).length,
+        total: round1(counted.reduce((s, w) => s + w.score, 0)),
+        average,
+        best,
+        perfectWeeks: counted.filter(w => w.perfect).length,
+        longestPerfect: longestStreak(series.weeks, w => w.perfect),
+        rank,
+        of: averages.length,
+        growth
+    };
+};
