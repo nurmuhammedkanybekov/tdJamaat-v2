@@ -32,7 +32,10 @@ const isStandalone = () =>
     typeof window !== 'undefined' &&
     (window.matchMedia?.('(display-mode: standalone)').matches || (navigator as Navigator & { standalone?: boolean }).standalone === true);
 
-const isIos = () => typeof navigator !== 'undefined' && /iphone|ipad|ipod/i.test(navigator.userAgent);
+// iPadOS reports itself as a Mac; a touch screen gives it away.
+export const isIos = () =>
+    typeof navigator !== 'undefined' &&
+    (/iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
 
 // 'prompt'  → Chrome/Edge/Android: we can show the native install dialog.
 // 'ios'     → Safari on iPhone/iPad: no API, show "Share → Add to Home Screen".
