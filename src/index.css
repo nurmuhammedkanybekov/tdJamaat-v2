@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&family=Source+Sans+3:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 /* Tailwind v4 dark mode: driven by a .dark class on <html> (set in main.tsx
@@ -6,34 +5,58 @@
    in-app toggle can override the OS setting. */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Typefaces (self-hosted, imported in main.tsx so they also work offline):
+   - Cormorant Garamond — display: page titles, section headings, names in
+     the hero. A high-contrast Garamond, the "engraved" voice of the site.
+   - PT Serif — text and numbers. A Times-style serif drawn for Cyrillic, so
+     ң ө ү are native glyphs, not fallbacks, and it stays crisp on phones.
+   Both cover Cyrillic Extended (every Kyrgyz letter). */
 @theme {
-    --font-serif: 'Source Serif 4', Georgia, serif;
-    --font-sans: 'Source Sans 3', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-display: 'Cormorant Garamond', 'PT Serif', Georgia, serif;
+    --font-serif: 'PT Serif', 'Times New Roman', Georgia, serif;
+    --font-sans: 'PT Serif', 'Times New Roman', Georgia, serif;
 }
 
 /* -----------------------------------------------------------------------
-   Direction C — "Refined / Editorial"
-   Quiet navy/bronze chrome on a warm off-white ground. The one ornamental
-   flourish is structural, not decorative: a woven diamond-chain frieze
-   with a ram's-horn "seal" at its center marks section breaks. See
-   src/components/Ornament.tsx (OrnamentDivider / HornMark) for the
-   component this drives.
+   Direction C, evolved — "Refined / Editorial"
+   Navy and bronze on a warm paper ground. Cards sit on the page with a
+   hairline and a soft shadow; ornament (frieze, horn seal, shyrdak lattice
+   in the hero) is structural trim, never decoration for its own sake.
    ------------------------------------------------------------------------ */
 :root {
     color-scheme: light;
 
     --surface: #ffffff;
-    --page-plane: #fafaf7;
-    --text-primary: #1c1c1a;
-    --text-secondary: #5b584e;
-    --text-muted: #8b8778;
-    --border: #e7e4da;
-    --gridline: #e7e4da;
+    --surface-2: #f6f3ec;
+    --page-plane: #f8f6f0;
+    --text-primary: #1b1a17;
+    --text-secondary: #55524a;
+    --text-muted: #85816f;
+    --border: #e6e1d4;
+    --border-strong: #d4ccb8;
+    --gridline: #ebe6da;
 
     --accent: #223a4d;
     --accent-strong: #16303f;
+    --accent-soft: #e8edf1;
     --gold: #a9793f;
+    --gold-bright: #c99a52;
+    --gold-soft: #f4ecdf;
     --gold-ink: #f4ecdf;
+
+    --hero-from: #1d3446;
+    --hero-to: #10222e;
+    --hero-ink: #f6efe2;
+    --hero-muted: #b9c2c8;
+
+    --success: #1a8a5f;
+    --danger: #c0402f;
+    --warning: #b07418;
+
+    --shadow-card: 0 1px 2px rgba(40, 32, 16, 0.04), 0 4px 16px -6px rgba(40, 32, 16, 0.10);
+    --shadow-lift: 0 2px 4px rgba(40, 32, 16, 0.06), 0 16px 40px -12px rgba(40, 32, 16, 0.22);
+    --radius: 10px;
+    --radius-sm: 6px;
 
     /* Role colors — validated categorical triplet (dataviz skill), light. */
     --role-imam: #8b3a3a;
@@ -50,23 +73,50 @@
     --team-color-6: #008300;
     --team-color-7: #4a3aa7;
     --team-color-8: #e34948;
+
+    /* Badge tiers */
+    --tier-bronze-1: #d9a273;
+    --tier-bronze-2: #8f5427;
+    --tier-silver-1: #e9edf0;
+    --tier-silver-2: #8b97a1;
+    --tier-gold-1: #f3d48a;
+    --tier-gold-2: #a8741f;
+    --tier-seal-1: #4f7391;
+    --tier-seal-2: #16303f;
 }
 
 .dark {
     color-scheme: dark;
 
-    --surface: #201f1b;
-    --page-plane: #171613;
-    --text-primary: #f2f0e8;
-    --text-secondary: #c4c0b0;
-    --text-muted: #8f8b7a;
-    --border: #33322c;
-    --gridline: #33322c;
+    --surface: #1e1d1a;
+    --surface-2: #26241f;
+    --page-plane: #151411;
+    --text-primary: #f2efe6;
+    --text-secondary: #c5c0b0;
+    --text-muted: #8f8a78;
+    --border: #312f29;
+    --border-strong: #423f36;
+    --gridline: #2c2a25;
 
     --accent: #6fa0d6;
     --accent-strong: #9cc2e8;
+    --accent-soft: #1d2a35;
     --gold: #d1a857;
+    --gold-bright: #e4c07a;
+    --gold-soft: #2c2519;
     --gold-ink: #2a2216;
+
+    --hero-from: #15283a;
+    --hero-to: #0b1720;
+    --hero-ink: #f6efe2;
+    --hero-muted: #a3adb4;
+
+    --success: #3fb98a;
+    --danger: #ea7464;
+    --warning: #d9a440;
+
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 18px -8px rgba(0, 0, 0, 0.5);
+    --shadow-lift: 0 2px 6px rgba(0, 0, 0, 0.35), 0 18px 44px -14px rgba(0, 0, 0, 0.7);
 
     /* Role colors — validated categorical triplet, dark. */
     --role-imam: #a84d5f;
@@ -84,28 +134,188 @@
     --team-color-8: #e66767;
 }
 
+/* The whole interface is sized in rem, and the root size grows with the
+   screen: ~15px on a phone, ~16px on a laptop, up to 18px on a big monitor
+   or projector. So one layout scales smoothly across every device and
+   browser instead of looking tiny on a 27" screen or a meeting-room TV. */
+html {
+    font-size: clamp(15px, 13.6px + 0.2vw, 18px);
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
 body {
-    font-family: var(--font-sans);
+    font-family: var(--font-serif);
     background-color: var(--page-plane);
     color: var(--text-primary);
+    font-feature-settings: 'kern', 'liga';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     /* No grey flash when tapping buttons on iOS/Android. */
     -webkit-tap-highlight-color: transparent;
+    overflow-x: hidden;
+}
+
+.font-display {
+    font-family: var(--font-display);
+    font-variant-numeric: lining-nums;
+    letter-spacing: 0.005em;
+}
+
+button, a, [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+    border-radius: 4px;
 }
 
 /* Page gutter that grows with the screen, and never lets content sit under
    an iPhone's notch / rounded corners (landscape) or home indicator. */
 .page-gutter {
-    padding: max(1.5rem, env(safe-area-inset-top, 0px)) max(1rem, env(safe-area-inset-right, 0px)) max(1.5rem, env(safe-area-inset-bottom, 0px)) max(1rem, env(safe-area-inset-left, 0px));
+    padding-left: max(1rem, env(safe-area-inset-left, 0px));
+    padding-right: max(1rem, env(safe-area-inset-right, 0px));
 }
 @media (min-width: 640px) {
-    .page-gutter {
-        padding: 2rem max(1.5rem, env(safe-area-inset-right, 0px)) 2rem max(1.5rem, env(safe-area-inset-left, 0px));
-    }
+    .page-gutter { padding-left: max(1.5rem, env(safe-area-inset-left, 0px)); padding-right: max(1.5rem, env(safe-area-inset-right, 0px)); }
+}
+@media (min-width: 1024px) {
+    .page-gutter { padding-left: 2.5rem; padding-right: 2.5rem; }
+}
+
+/* Content width: fluid up to a generous cap, so a laptop and a large
+   monitor both use the screen instead of a narrow column in the middle. */
+.app-container {
+    width: 100%;
+    max-width: 88rem;
+    margin-left: auto;
+    margin-right: auto;
+}
+@media (min-width: 1800px) {
+    .app-container { max-width: 98rem; }
+}
+
+/* Room at the bottom on phones for the fixed tab bar. */
+.bottom-nav-space {
+    padding-bottom: calc(5.25rem + env(safe-area-inset-bottom, 0px));
 }
 @media (min-width: 768px) {
-    .page-gutter {
-        padding: 2.5rem 2.5rem;
-    }
+    .bottom-nav-space { padding-bottom: 3rem; }
+}
+
+/* Cards */
+.card {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
+}
+.card-pad { padding: 1.1rem; }
+@media (min-width: 640px) { .card-pad { padding: 1.5rem; } }
+
+.eyebrow {
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--text-muted);
+}
+
+.section-title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.6rem;
+    line-height: 1.1;
+    color: var(--text-primary);
+    font-variant-numeric: lining-nums;
+}
+@media (min-width: 640px) { .section-title { font-size: 1.85rem; } }
+
+.tabular { font-variant-numeric: tabular-nums lining-nums; }
+
+/* Interactive rows (tap a person → profile) */
+.row-link {
+    cursor: pointer;
+    transition: background-color 150ms ease;
+}
+.row-link:hover { background-color: var(--surface-2); }
+.row-link:active { background-color: var(--gold-soft); }
+
+/* Chips / segmented controls */
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    background: var(--surface);
+    transition: all 150ms ease;
+    white-space: nowrap;
+}
+.chip:hover { border-color: var(--border-strong); color: var(--text-primary); }
+.chip[aria-pressed="true"], .chip.is-active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+}
+.dark .chip[aria-pressed="true"], .dark .chip.is-active { color: #0e1a24; }
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    min-height: 2.5rem;
+    padding: 0.5rem 0.9rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+    border-radius: var(--radius-sm);
+    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, transform 100ms ease;
+    white-space: nowrap;
+    letter-spacing: 0.01em;
+}
+.btn:active { transform: scale(0.98); }
+.btn-ghost { border: 1px solid var(--border); color: var(--text-secondary); background: var(--surface); }
+.btn-ghost:hover { border-color: var(--border-strong); color: var(--text-primary); }
+.btn-primary { border: 1px solid var(--accent); background: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent-strong); border-color: var(--accent-strong); }
+.dark .btn-primary { color: #0e1a24; }
+.btn-gold { border: 1px solid var(--gold); background: var(--gold); color: #fff; }
+.dark .btn-gold { color: #1b150b; }
+.btn-hero { border: 1px solid rgba(233, 205, 150, 0.35); color: var(--hero-ink); background: rgba(255, 255, 255, 0.06); }
+.btn-hero:hover { background: rgba(255, 255, 255, 0.12); border-color: rgba(233, 205, 150, 0.6); }
+.btn-icon { width: 2.5rem; padding: 0; }
+
+/* Hero band: deep navy with a faint shyrdak lattice (kochkor-muyuz curls
+   on a diamond grid), drawn as an SVG tile so it's crisp at any size. */
+.hero {
+    position: relative;
+    color: var(--hero-ink);
+    background:
+        radial-gradient(120% 140% at 85% -10%, rgba(201, 154, 82, 0.22) 0%, transparent 55%),
+        linear-gradient(160deg, var(--hero-from) 0%, var(--hero-to) 100%);
+    isolation: isolate;
+}
+.hero:has([role="menu"]) {
+    /* An open dropdown must float above the podium cards that overlap the hero. */
+    z-index: 35;
+}
+.hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    opacity: 0.09;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'%3E%3Cg fill='none' stroke='%23e9cd96' stroke-width='1.4' stroke-linecap='round'%3E%3Cpath d='M36 6 L66 36 L36 66 L6 36 Z'/%3E%3Cpath d='M36 22 C30 22 27 26 27 30 C27 34 31 35 33 33 M36 22 C42 22 45 26 45 30 C45 34 41 35 39 33'/%3E%3Cpath d='M36 50 C30 50 27 46 27 42 C27 38 31 37 33 39 M36 50 C42 50 45 46 45 42 C45 38 41 37 39 39'/%3E%3Ccircle cx='36' cy='36' r='2'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: 72px 72px;
+    -webkit-mask-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, 0.6) 60%, transparent 100%);
+    mask-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, 0.6) 60%, transparent 100%);
 }
 
 /* Horizontally scrolling rows (tab bars, wide tables) on touch screens:
@@ -131,22 +341,30 @@ body {
     }
 }
 
-/* Data tables: tighter cell padding on phones so the columns that matter
-   (rank, name, score) fit without a sideways swipe. The cells set their
-   padding inline, hence !important. */
+/* Data tables */
+table.data-table { border-collapse: collapse; width: 100%; }
+table.data-table th {
+    text-align: left;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    font-weight: 700;
+    padding: 0 0.75rem 0.65rem;
+    border-bottom: 1px solid var(--border-strong);
+    white-space: nowrap;
+}
+table.data-table td {
+    padding: 0.7rem 0.75rem;
+    font-size: 0.92rem;
+    border-bottom: 1px solid var(--border);
+}
+table.data-table tr:last-child td { border-bottom: none; }
 @media (max-width: 639px) {
     table.data-table th,
     table.data-table td {
-        padding-left: 6px !important;
-        padding-right: 6px !important;
-    }
-    table.data-table th:first-child,
-    table.data-table td:first-child {
-        padding-left: 2px !important;
-    }
-    table.data-table th:last-child,
-    table.data-table td:last-child {
-        padding-right: 2px !important;
+        padding-left: 6px;
+        padding-right: 6px;
     }
 }
 
@@ -184,3 +402,66 @@ input[type="number"] {
     -webkit-mask-position: left center;
     mask-position: left center;
 }
+
+/* Running-horn border (kochkor-muyuz chain) — a thin repeating band of
+   paired curls, used under the hero and on the share card. */
+.horn-band {
+    height: 12px;
+    background-color: var(--gold);
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='12' viewBox='0 0 32 12'%3E%3Cg fill='none' stroke='white' stroke-width='1.3' stroke-linecap='round'%3E%3Cpath d='M0 6 H6 C6 2 11 1.5 11 5 C11 7.5 8 7.5 8 5.8'/%3E%3Cpath d='M32 6 H26 C26 2 21 1.5 21 5 C21 7.5 24 7.5 24 5.8'/%3E%3Cpath d='M13 6 H19'/%3E%3C/g%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='12' viewBox='0 0 32 12'%3E%3Cg fill='none' stroke='white' stroke-width='1.3' stroke-linecap='round'%3E%3Cpath d='M0 6 H6 C6 2 11 1.5 11 5 C11 7.5 8 7.5 8 5.8'/%3E%3Cpath d='M32 6 H26 C26 2 21 1.5 21 5 C21 7.5 24 7.5 24 5.8'/%3E%3Cpath d='M13 6 H19'/%3E%3C/g%3E%3C/svg%3E");
+    -webkit-mask-repeat: repeat-x;
+    mask-repeat: repeat-x;
+    -webkit-mask-size: 32px 12px;
+    mask-size: 32px 12px;
+}
+
+/* Motion: views and sheets ease in; respects reduced-motion settings. */
+@keyframes fade-up {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: none; }
+}
+@keyframes sheet-up {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: none; }
+}
+@keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+@keyframes shimmer {
+    0% { background-position: -400px 0; }
+    100% { background-position: 400px 0; }
+}
+@keyframes grow-x {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+}
+.animate-fade-up { animation: fade-up 380ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.animate-sheet-up { animation: sheet-up 320ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.animate-fade-in { animation: fade-in 220ms ease both; }
+.animate-grow-x { transform-origin: left center; animation: grow-x 700ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.stagger > * { animation: fade-up 420ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.stagger > *:nth-child(2) { animation-delay: 40ms; }
+.stagger > *:nth-child(3) { animation-delay: 80ms; }
+.stagger > *:nth-child(4) { animation-delay: 120ms; }
+.stagger > *:nth-child(5) { animation-delay: 160ms; }
+.stagger > *:nth-child(n+6) { animation-delay: 200ms; }
+
+.skeleton {
+    background: linear-gradient(90deg, var(--surface-2) 0px, var(--border) 160px, var(--surface-2) 320px);
+    background-size: 800px 100%;
+    animation: shimmer 1.4s linear infinite;
+    border-radius: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Recharts: themed tooltip + no focus outline box on click */
+.recharts-wrapper:focus, .recharts-surface:focus, .recharts-wrapper *:focus { outline: none; }

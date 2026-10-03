@@ -144,7 +144,7 @@ export const normalizeMiniCard = (value: unknown, fallback: MiniCard): MiniCard 
 
 type HouseRow = { id: string; name: string; display_order: number; active: boolean };
 type MemberRow = { id: string; house_id: string; name: string; role: Role; photo_url: string | null; display_order: number; active: boolean };
-type WeekRow = { week_number: number; start_date: string | null; end_date: string | null };
+type WeekRow = { week_number: number; start_date: string | null; end_date: string | null; locked?: boolean | null };
 type MetricRow = { member_id: string; week_number: number; actual: unknown; target: unknown };
 type ActivityRow = { house_id: string; week_number: number; activity: unknown };
 
@@ -226,13 +226,15 @@ export const fetchDataFile = async (): Promise<DataFile> => {
                 id: house.id,
                 name: house.name,
                 miniCard: normalizeMiniCard(activityRow?.activity, settings.miniCard),
-                members: teamMembers
+                members: teamMembers,
+                submitted: submitted.length > 0 || !!activityRow
             };
         });
 
         return {
             weekNumber: week.week_number,
             date: formatWeekDate(week.start_date, week.end_date),
+            locked: week.locked === true,
             teams
         };
     });
@@ -389,4 +391,111 @@ export const uploadMemberPhoto = async (houseId: string, memberId: string, file:
 
     await updateMember(memberId, { photoUrl });
     return photoUrl;
+};
+
+// ---------------------------------------------------------------------------
+// Change history + week locking + season settings (admin).
+// Needs supabase/history-and-locks-2026-10.sql. Until that's run, these
+// fail with a clear "not set up yet" message instead of breaking the page.
+// ---------------------------------------------------------------------------
+
+export class NotSetUpError extends Error {
+    constructor() {
+        super('Бул функция үчүн базаны жаңыртуу керек: supabase/history-and-locks-2026-10.sql файлын Supabase SQL Editor аркылуу бир жолу иштетиңиз.');
+        this.name = 'NotSetUpError';
+    }
+}
+
+// 42P01 = table missing (Postgres), PGRST205/PGRST204 = table/column not in
+// the API's schema cache, 42703 = column missing.
+const isMissingSchema = (error: DbError) =>
+    ['42P01', 'PGRST205', 'PGRST204', '42703'].includes(error.code ?? '') || /does not exist|schema cache/i.test(error.message ?? '');
+
+export interface AuditEntry {
+    id: number;
+    tableName: 'weekly_metrics' | 'house_activity';
+    houseId: string | null;
+    memberId: string | null;
+    weekNumber: number;
+    action: 'INSERT' | 'UPDATE' | 'DELETE';
+    actorRole: string | null;
+    actorHouseId: string | null;
+    oldData: { actual?: Record<string, number>; activity?: Record<string, { actual?: number; target?: number }>; target?: Record<string, number> } | null;
+    newData: { actual?: Record<string, number>; activity?: Record<string, { actual?: number; target?: number }>; target?: Record<string, number> } | null;
+    changedAt: string;
+}
+
+type AuditRow = {
+    id: number; table_name: AuditEntry['tableName']; house_id: string | null; member_id: string | null; week_number: number;
+    action: AuditEntry['action']; actor_role: string | null; actor_house_id: string | null;
+    old_data: AuditEntry['oldData']; new_data: AuditEntry['newData']; changed_at: string;
+};
+
+export const fetchAuditLog = async (opts: { houseId?: string | null; limit?: number } = {}): Promise<AuditEntry[]> => {
+    let query = supabase.from('audit_log').select('*').order('changed_at', { ascending: false }).limit(opts.limit ?? 300);
+    if (opts.houseId) query = query.eq('house_id', opts.houseId);
+    const { data, error } = await query;
+    if (error) {
+        if (isMissingSchema(error)) throw new NotSetUpError();
+        fail(error);
+    }
+    return ((data ?? []) as AuditRow[]).map(r => ({
+        id: r.id, tableName: r.table_name, houseId: r.house_id, memberId: r.member_id, weekNumber: r.week_number,
+        action: r.action, actorRole: r.actor_role, actorHouseId: r.actor_house_id,
+        oldData: r.old_data, newData: r.new_data, changedAt: r.changed_at
+    }));
+};
+
+export const setWeekLocked = async (weekNumber: number, locked: boolean) => {
+    const { error } = await supabase.from('weeks').update({ locked }).eq('week_number', weekNumber);
+    if (error) {
+        if (isMissingSchema(error)) throw new NotSetUpError();
+        fail(error);
+    }
+};
+
+export const saveSeasonSettings = async (roleTargets: Record<Role, MetricValues>, activityTargets: Record<keyof MiniCard, number>) => {
+    const { error } = await supabase
+        .from('season_settings')
+        .update({ role_targets: roleTargets, activity_targets: activityTargets, updated_at: new Date().toISOString() })
+        .eq('id', 1);
+    if (error) fail(error);
+};
+
+// Admin: make new minimums apply to weeks already saved, from `fromWeek`
+// on. Saved targets are carried forward week to week, so without this a
+// changed minimum would only reach people with no history yet.
+export const applyTargetsFromWeek = async (
+    fromWeek: number,
+    roleTargets: Record<Role, MetricValues> | null,
+    activityTargets: Record<keyof MiniCard, number> | null
+): Promise<{ metricRows: number; activityRows: number }> => {
+    let metricRows = 0, activityRows = 0;
+    if (roleTargets) {
+        const members = await fetchMembers(true);
+        const roleOf = new Map(members.map(m => [m.id, m.role]));
+        const { data, error } = await supabase.from('weekly_metrics').select('id, member_id').gte('week_number', fromWeek);
+        if (error) fail(error);
+        for (const row of (data ?? []) as Array<{ id: string; member_id: string }>) {
+            const role = roleOf.get(row.member_id);
+            if (!role) continue;
+            const { error: e } = await supabase.from('weekly_metrics').update({ target: roleTargets[role] }).eq('id', row.id);
+            if (e) fail(e);
+            metricRows++;
+        }
+    }
+    if (activityTargets) {
+        const { data, error } = await supabase.from('house_activity').select('id, activity').gte('week_number', fromWeek);
+        if (error) fail(error);
+        for (const row of (data ?? []) as Array<{ id: string; activity: Record<string, { actual?: number; target?: number }> | null }>) {
+            const next: Record<string, { actual: number; target: number }> = {};
+            for (const key of Object.keys(activityTargets) as Array<keyof MiniCard>) {
+                next[key] = { actual: Number(row.activity?.[key]?.actual ?? 0) || 0, target: activityTargets[key] };
+            }
+            const { error: e } = await supabase.from('house_activity').update({ activity: next }).eq('id', row.id);
+            if (e) fail(e);
+            activityRows++;
+        }
+    }
+    return { metricRows, activityRows };
 };

@@ -42,9 +42,28 @@ redesign.
   have different expected minimums for each metric — the app seeds new
   weekly entries with the right target for that person's role instead of
   one flat number for everyone.
-- **Four views**: a weekly overview, a per-house breakdown, a
-  multi-week progress chart, and a rolling four-week report, plus a
-  total-ratings leaderboard across all recorded weeks.
+- **Five sections**: a weekly overview (top-3 podium, everyone's rank with
+  ▲/▼ movement since last week and a trend line), a per-house breakdown,
+  season progress charts, reports (four-week periods and the season
+  total), and awards.
+- **Personal profile pages.** Tap anyone to see their score trend, how
+  close they are to each target this week, best week, perfect-week streak,
+  badges and full week-by-week history.
+- **Awards.** Strava-style badges for people and houses (star of the week,
+  perfect plan, streaks, biggest leap, house of the month, …), each earned
+  automatically from the real numbers and shown with the exact reason.
+- **Shareable results card.** A ready-made image of the week's rankings to
+  send to WhatsApp/Telegram groups (drawn in the browser, no server).
+- **Submission status.** Signed-in leaders and the admin see which houses
+  have entered this week's numbers.
+- **Change history and week locking.** Every save is recorded (who, when,
+  before → after); the admin can lock a finished week so it can no longer
+  be edited by house leaders. Both enforced in Postgres.
+- **Admin panel**: open/lock weeks, edit season targets, download a backup.
+- **Installable app (PWA)** with a home-screen icon; refreshes live every
+  couple of minutes while open.
+- **Adapts to any screen**: phones get a bottom tab bar and card layouts,
+  and the whole interface scales smoothly from a phone to a projector.
 - **Self-service member photos**, uploaded by a house's own leader
   straight from the data-entry screen.
 - **Light and dark themes**, both built from the same validated color
@@ -179,8 +198,9 @@ the original app worked).
 
 Each of the 8 individual metrics (К-К, СВТ, КТП, ТХЖ, ДТА, ИСТГ, НФ, ТСП)
 is scored as `(actual / target) × weight`, summed into a member's score;
-a house's score adds its members' scores to its mini-card completion,
-half-weighted. The per-metric weights are the same for everyone — what
+houses are ranked by their members' average score. Weights: К-К 45,
+СВТ 1, КТП 35, ТХЖ 20, ДТА 30, ИСТГ 1, НФ 20, ТСП 25 — the same for
+everyone; what
 changes by role is the **target** each metric is measured against:
 
 | | К-К | СВТ | КТП | ТХЖ | ДТА | ИСТГ | НФ | ТСП |
@@ -213,15 +233,22 @@ npm run lint     # eslint
 
 ```
 src/
-  components/          shared UI (Header, LoginModal, DataEntryForm, Avatar, Ornament, …)
-  components/views/    one component per dashboard tab
+  components/          shared UI (AppHeader, ProfileSheet, AdminPanel, HistorySheet,
+                       ShareSheet, BadgeMedal, DataEntryForm, Ornament, ui.tsx, …)
+  components/views/    one component per section (Overview, Teams, Progress, Reports, Awards)
   services/            Supabase reads/writes (dataService.ts) and auth (authService.ts)
-  utils/               scoring formula and ranking calculations
+  utils/               scoring formula, rankings, season insights, badges
+  pwa.ts               service worker registration + install prompt
   types/               shared TypeScript types
 supabase/
   schema.sql           tables + row-level security policies
   seed.sql             current houses/members roster
   photo-upload-setup.sql   storage bucket + photo-upload policies
+  season-2026-09.sql   season targets + database-enforced season rules
+  history-and-locks-2026-10.sql   change history + admin week locking
+public/
+  favicon.svg, icons/  app mark (eight-pointed star, crescent, tunduk)
+  manifest.webmanifest, sw.js   installable app
 scripts/
   create-auth-users.js provisions the house/admin login accounts
   syr_sozdor.example.json  template for the (gitignored) real passwords file

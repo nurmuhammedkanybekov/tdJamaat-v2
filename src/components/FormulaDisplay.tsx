@@ -1,85 +1,60 @@
 import React from 'react';
 import { weights } from '../utils/scoring';
+import { PLAN_SCORE } from '../utils/insights';
+import { Sheet } from './ui';
 
-interface FormulaDisplayProps {
-    showFormula: boolean;
-}
+const Formula: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+    <div className="font-display text-[1.15rem] sm:text-[1.3rem] font-semibold px-4 py-3 rounded-[8px] text-center tabular" style={{ backgroundColor: 'var(--accent-soft)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}>
+        {children}
+    </div>
+);
 
-const codeStyle: React.CSSProperties = {
-    backgroundColor: 'var(--text-primary)',
-    color: '#4ade80',
-    fontSize: '13px'
-};
+const Step: React.FC<{ n: number; title: string; children: React.ReactNode }> = ({ n, title, children }) => (
+    <section className="py-5" style={{ borderTop: '1px solid var(--border)' }}>
+        <div className="flex items-center gap-2.5 mb-3">
+            <span className="w-7 h-7 rounded-full flex items-center justify-center font-display font-bold text-[0.95rem]" style={{ backgroundColor: 'var(--gold-soft)', color: 'var(--gold)', border: '1px solid color-mix(in oklab, var(--gold) 40%, transparent)' }}>{n}</span>
+            <h3 className="font-bold text-[0.95rem]" style={{ color: 'var(--text-primary)' }}>{title}</h3>
+        </div>
+        {children}
+    </section>
+);
 
-const section: React.CSSProperties = { paddingTop: '18px', paddingBottom: '18px', borderTop: '1px solid var(--border)' };
-
-export const FormulaDisplay: React.FC<FormulaDisplayProps> = ({ showFormula }) => {
-    if (!showFormula) return null;
-
-    return (
-        <div className="mb-7">
-        <div className="p-6" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '4px' }}>
-            <h3 className="font-serif text-lg font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>Упай эсептөө формуласы</h3>
-
-            <div style={{ ...section, borderTop: 'none', paddingTop: '14px' }}>
-                <p className="font-semibold mb-2 text-sm" style={{ color: 'var(--text-secondary)' }}>1. Ар бир көрсөткүч үчүн ишке ашыруу пайызы</p>
-                <code className="block p-3 rounded" style={codeStyle}>
-                    Ишке ашыруу % = (Факт / Максат) × 100
-                </code>
-                <p className="text-sm mt-2" style={{ color: 'var(--text-muted)' }}>Эскертүү: Чектөө жок — максаттан канча гана ашса да эсептелет</p>
-            </div>
-
-            <div style={section}>
-                <p className="font-semibold mb-2 text-sm" style={{ color: 'var(--text-secondary)' }}>2. Ар бир көрсөткүч үчүн упай</p>
-                <code className="block p-3 rounded" style={codeStyle}>
-                    Көрсөткүч упайы = (Ишке ашыруу % / 100) × Салмак
-                </code>
-                <p className="text-sm mt-2" style={{ color: 'var(--text-muted)' }}>Бул жогорку максаты барлар үчүн адилеттүүлүктү камсыз кылат</p>
-            </div>
-
-            <div style={section}>
-                <p className="font-semibold mb-3 text-sm" style={{ color: 'var(--text-secondary)' }}>3. Салмактар (Weights)</p>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-2 text-sm">
+export const FormulaSheet: React.FC<{ onClose: () => void }> = ({ onClose }) => (
+    <Sheet title="Упай эсептөө формуласы" onClose={onClose} width="40rem">
+        <div className="px-4 sm:px-6 pb-6 text-[0.9rem]" style={{ color: 'var(--text-secondary)' }}>
+            <Step n={1} title="Ар бир көрсөткүч үчүн ишке ашыруу пайызы">
+                <Formula>Ишке ашыруу % = Факт ÷ План × 100</Formula>
+                <p className="text-[0.82rem] mt-2" style={{ color: 'var(--text-muted)' }}>Чектөө жок — максаттан канча ашса, ошончо эсептелет. План коюлбаса (0), ал көрсөткүч 0% болот.</p>
+            </Step>
+            <Step n={2} title="Ар бир көрсөткүч үчүн упай">
+                <Formula>Көрсөткүч упайы = (Ишке ашыруу % ÷ 100) × Салмак</Formula>
+                <p className="text-[0.82rem] mt-2" style={{ color: 'var(--text-muted)' }}>Ар кимдин планы ролуна жараша — ошондуктан упай адилеттүү.</p>
+            </Step>
+            <Step n={3} title="Салмактар">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     {Object.entries(weights).map(([key, value]) => (
-                        <div key={key} className="flex justify-between" style={{ color: 'var(--text-primary)' }}>
-                            <span style={{ color: 'var(--text-muted)' }}>{key}</span>
-                            <span className="font-semibold font-variant-tabular">{value}</span>
+                        <div key={key} className="flex items-baseline justify-between px-3 py-2 rounded-[8px]" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
+                            <span className="font-bold" style={{ color: 'var(--text-muted)' }}>{key}</span>
+                            <span className="font-display font-bold text-[1.15rem] tabular" style={{ color: 'var(--text-primary)' }}>{value}</span>
                         </div>
                     ))}
                 </div>
-            </div>
-
-            <div style={section}>
-                <p className="font-semibold mb-2 text-sm" style={{ color: 'var(--text-secondary)' }}>4. Жалпы мүчө упайы</p>
-                <code className="block p-3 rounded" style={codeStyle}>
-                    Жалпы упай = Σ (Бардык көрсөткүчтөрдүн упайы)
-                </code>
-            </div>
-
-            <div style={{ ...section, borderLeft: '2px solid var(--gold)', paddingLeft: '16px' }}>
-                <p className="font-semibold mb-2 text-sm" style={{ color: 'var(--text-primary)' }}>Маанилүү: Командалардын рейтинги</p>
-                <div className="text-sm space-y-2">
-                    <p style={{ color: 'var(--text-secondary)' }}>Командалардын ортосундагы рейтинг <strong>орточо упайга</strong> негизделген (жалпы упайга эмес).</p>
-                    <p style={{ color: 'var(--text-secondary)' }}>Себеби: Кээ бир командаларда аз адам бар, ошондуктан адилеттүүлүк үчүн орточо упай колдонулат.</p>
-                    <code className="block p-2 rounded mt-2" style={codeStyle}>
-                        Команда рейтинги = Орточо упай (Жалпы упай / Мүчөлөрдүн саны)
-                    </code>
+                <p className="text-[0.82rem] mt-2" style={{ color: 'var(--text-muted)' }}>Бардык планды так 100% аткарган адам <b>{PLAN_SCORE}</b> упай алат.</p>
+            </Step>
+            <Step n={4} title="Жалпы мүчө упайы">
+                <Formula>Жалпы упай = Σ бардык көрсөткүчтөрдүн упайы</Formula>
+            </Step>
+            <Step n={5} title="Үйлөрдүн рейтинги">
+                <Formula>Үй рейтинги = Мүчөлөрдүн жалпы упайы ÷ Мүчөлөрдүн саны</Formula>
+                <p className="text-[0.82rem] mt-2" style={{ color: 'var(--text-muted)' }}>Үйлөрдө адам саны ар башка, ошондуктан адилеттүүлүк үчүн <b>орточо упай</b> колдонулат.</p>
+            </Step>
+            <section className="pt-5" style={{ borderTop: '1px solid var(--border)' }}>
+                <div className="eyebrow mb-2" style={{ color: 'var(--gold)' }}>Мисал</div>
+                <div className="space-y-1.5 pl-3" style={{ borderLeft: '2px solid var(--gold)' }}>
+                    <p><b>Имам:</b> К-К план 20, факт 15 → 75% → 0.75 × {weights['К-К']} = <b>{Math.round(0.75 * weights['К-К'] * 100) / 100} упай</b></p>
+                    <p><b>Мүчө:</b> К-К план 7, факт 7 → 100% → 1.0 × {weights['К-К']} = <b>{weights['К-К']} упай</b></p>
                 </div>
-            </div>
-
-            <div style={{ ...section, borderLeft: '2px solid var(--accent)', paddingLeft: '16px' }}>
-                <p className="font-semibold mb-2 text-sm" style={{ color: 'var(--text-primary)' }}>Мисал</p>
-                <div className="text-sm space-y-1" style={{ color: 'var(--text-secondary)' }}>
-                    {/* Computed from the live weights above, not hardcoded — so this
-                        example can never drift out of sync with the real formula
-                        the way the old "× 5.0" version did (К-К's actual weight is
-                        45.0, not 5.0). */}
-                    <p><strong>Жетекчи:</strong> К-К Максат=20, Факт=15 → 15/20=75% → 0.75 × {weights['К-К']} = <strong>{Math.round(0.75 * weights['К-К'] * 100) / 100} упай</strong></p>
-                    <p><strong>Мүчө:</strong> К-К Максат=7, Факт=7 → 7/7=100% → 1.0 × {weights['К-К']} = <strong>{weights['К-К']} упай</strong></p>
-                    <p className="mt-2" style={{ color: 'var(--accent)' }}>Экөө тең өз максаттарына жете албады/жетти, бирок упайлар максатка жараша адилеттүү</p>
-                </div>
-            </div>
+            </section>
         </div>
-        </div>
-    );
-};
+    </Sheet>
+);

@@ -32,6 +32,8 @@ interface DataEntryFormProps {
     onSuccess: () => void;
     /** Weeks changed (admin opened one) — parent should refresh, form stays open. */
     onWeeksChanged?: () => void;
+    /** Weeks the admin has locked (leaders can't change them). */
+    lockedWeeks?: number[];
 }
 
 const ZERO_METRICS: MetricValues = {
@@ -40,8 +42,8 @@ const ZERO_METRICS: MetricValues = {
 
 type MemberDraft = { actual: MetricValues; target: MetricValues };
 
-const inputStyle: React.CSSProperties = { backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '3px', color: 'var(--text-primary)' };
-const inputMutedStyle: React.CSSProperties = { backgroundColor: 'var(--page-plane)', border: '1px solid var(--border)', borderRadius: '3px', color: 'var(--text-secondary)' };
+const inputStyle: React.CSSProperties = { backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)' };
+const inputMutedStyle: React.CSSProperties = { backgroundColor: 'var(--page-plane)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--text-secondary)' };
 const fieldLabel: React.CSSProperties = { fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)' };
 
 // Turn a failed save into something a house leader can act on. 42501 is
@@ -67,7 +69,7 @@ const describeSaveError = (err: unknown): string => {
 //    read-only: the role minimum, or a custom target the admin set.
 //  - Only weeks the admin has opened can be filled in. The admin opens the
 //    next week from this form.
-export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultWeekNumber, initialHouseId, onClose, onSuccess, onWeeksChanged }) => {
+export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultWeekNumber, initialHouseId, onClose, onSuccess, onWeeksChanged, lockedWeeks = [] }) => {
     useModal(onClose);
     const isAdmin = authUser.role === 'admin';
     const [houses, setHouses] = useState<House[]>([]);
@@ -91,6 +93,8 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
     const [photoError, setPhotoError] = useState<string | null>(null);
 
     const latestWeek = weekNumbers.length ? Math.max(...weekNumbers) : 0;
+    const weekLocked = lockedWeeks.includes(weekNumber);
+    const lockedForMe = weekLocked && !isAdmin;
 
     useEffect(() => {
         Promise.all([
@@ -271,9 +275,9 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
     if (success) {
         return (
             <div className="fixed inset-0 flex items-center justify-center z-50 p-6" style={{ backgroundColor: 'color-mix(in oklab, var(--text-primary) 50%, transparent)' }}>
-                <div className="p-8 max-w-sm w-full text-center" style={{ backgroundColor: 'var(--surface)', borderRadius: '4px' }}>
-                    <CheckCircle className="w-12 h-12 mx-auto mb-4" style={{ color: '#1baf7a' }} />
-                    <h2 className="font-serif text-2xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>Ийгиликтүү сакталды!</h2>
+                <div className="p-8 max-w-sm w-full text-center" style={{ backgroundColor: 'var(--surface)', borderRadius: 'var(--radius)' }}>
+                    <CheckCircle className="w-12 h-12 mx-auto mb-4" style={{ color: 'var(--success)' }} />
+                    <h2 className="font-display text-[2rem] font-bold mb-2" style={{ color: 'var(--text-primary)' }}>Ийгиликтүү сакталды!</h2>
                     <p style={{ color: 'var(--text-secondary)' }}>{weekNumber}-апта үчүн маалымат жаңырды.</p>
                 </div>
             </div>
@@ -291,14 +295,14 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                 rows, so the Save bar is always pinned at the bottom and can
                 never end up floating over the middle of the member list. */}
             <div
-                className="w-full sm:max-w-4xl flex flex-col h-[100dvh] sm:h-auto sm:max-h-[90vh] overflow-hidden sm:rounded-[4px] sm:border"
+                className="w-full sm:max-w-4xl flex flex-col h-[100dvh] sm:h-auto sm:max-h-[90vh] overflow-hidden sm:rounded-[14px] sm:border"
                 style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
             >
                 <div
                     className="flex-shrink-0 px-4 sm:px-6 py-4 sm:py-5 flex justify-between items-center gap-3"
                     style={{ borderBottom: '1px solid var(--border)', paddingTop: 'max(1rem, env(safe-area-inset-top, 0px))' }}
                 >
-                    <h2 className="font-serif text-lg sm:text-xl font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
+                    <h2 className="font-display text-[1.5rem] sm:text-[1.7rem] font-bold truncate" style={{ color: 'var(--text-primary)' }}>
                         {selectedHouseName ? `${selectedHouseName} — маалымат` : 'Маалымат кошуу'}
                     </h2>
                     <button onClick={onClose} aria-label="Жабуу" className="p-2 -mr-2 flex-shrink-0" style={{ color: 'var(--text-muted)' }}>
@@ -336,8 +340,8 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                                                 disabled={openingWeek}
                                                 className="flex-shrink-0 inline-flex items-center gap-1.5 px-3 text-sm font-semibold disabled:opacity-60"
                                                 style={confirmOpenWeek
-                                                    ? { backgroundColor: 'var(--accent)', color: '#ffffff', border: '1px solid var(--accent)', borderRadius: '3px' }
-                                                    : { border: '1px solid var(--border)', borderRadius: '3px', color: 'var(--text-secondary)' }}
+                                                    ? { backgroundColor: 'var(--accent)', color: 'var(--surface)', border: '1px solid var(--accent)', borderRadius: 'var(--radius-sm)' }
+                                                    : { border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--text-secondary)' }}
                                             >
                                                 <Plus className="w-4 h-4" />
                                                 {openingWeek ? 'Ачылууда…' : confirmOpenWeek ? `${latestWeek + 1}-аптаны ачуу — ырастаңыз` : 'Жаңы апта'}
@@ -360,11 +364,18 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                                 )}
                             </div>
 
+                            {weekLocked && (
+                                <div className="mb-6 px-4 py-3 rounded-[8px] flex items-start gap-2.5 text-sm" style={{ backgroundColor: 'var(--gold-soft)', border: '1px solid color-mix(in oklab, var(--gold) 35%, transparent)', color: 'var(--text-secondary)' }}>
+                                    <Lock className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: 'var(--gold)' }} />
+                                    <p>{isAdmin ? `${weekNumber}-апта кулпуланган: жетекчилер өзгөртө албайт, бирок админ катары сиз өзгөртө аласыз.` : `${weekNumber}-апта кулпуланган — өзгөртүү үчүн админге кайрылыңыз.`}</p>
+                                </div>
+                            )}
+
                             <div className="mb-8">
-                                <h3 className="font-serif text-base font-semibold mb-4 pb-2" style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border)' }}>Мини Карта (Командалык)</h3>
+                                <h3 className="font-display text-[1.35rem] font-bold mb-4 pb-2" style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border)' }}>Мини-карта (командалык)</h3>
                                 <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
                                     {(Object.keys(DEFAULT_MINICARD) as Array<keyof MiniCard>).map(key => (
-                                        <div key={key} className="p-3" style={{ border: '1px solid var(--border)', borderRadius: '3px' }}>
+                                        <div key={key} className="p-3" style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)' }}>
                                             <div className="text-center text-xs font-semibold mb-2" style={{ color: 'var(--text-muted)' }}>{key}</div>
                                             <div className="flex flex-col gap-2">
                                                 <div>
@@ -397,7 +408,7 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
 
                             <div>
                                 <div className="flex items-baseline justify-between mb-2 flex-wrap gap-2">
-                                    <h3 className="font-serif text-base font-semibold" style={{ color: 'var(--text-primary)' }}>Мүчөлөр</h3>
+                                    <h3 className="font-display text-[1.35rem] font-bold" style={{ color: 'var(--text-primary)' }}>Мүчөлөр</h3>
                                     <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Сүрөттү өзгөртүү үчүн адамдын сүрөтүн басыңыз</p>
                                 </div>
                                 {/* The actual/target pairs had no visible label (only a
@@ -410,13 +421,13 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                                     )}
                                 </p>
                                 {photoError && (
-                                    <div className="px-4 py-2.5 mb-4 flex items-center gap-2 text-sm" style={{ borderLeft: '2px solid #e34948', color: '#e34948' }}>
+                                    <div className="px-4 py-2.5 mb-4 flex items-center gap-2 text-sm" style={{ borderLeft: '2px solid var(--danger)', color: 'var(--danger)' }}>
                                         <AlertCircle className="w-4 h-4 flex-shrink-0" />
                                         <p>{photoError}</p>
                                     </div>
                                 )}
                                 {members.length === 0 ? (
-                                    <p className="text-sm p-4" style={{ color: 'var(--text-muted)', border: '1px solid var(--border)', borderRadius: '3px' }}>
+                                    <p className="text-sm p-4" style={{ color: 'var(--text-muted)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)' }}>
                                         Бул үйдө азырынча мүчө катталган эмес. Мүчө кошуу үчүн админ панелин колдонуңуз.
                                     </p>
                                 ) : (
@@ -512,14 +523,14 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                     style={{ borderTop: '1px solid var(--border)', paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom, 0px))' }}
                 >
                     {error && (
-                        <div role="alert" className="px-3 py-2 mb-3 flex items-start gap-2 text-sm" style={{ borderLeft: '2px solid #e34948', color: '#e34948' }}>
+                        <div role="alert" className="px-3 py-2 mb-3 flex items-start gap-2 text-sm" style={{ borderLeft: '2px solid var(--danger)', color: 'var(--danger)' }}>
                             <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                             <p className="min-w-0 break-words">{error}</p>
                         </div>
                     )}
                     {notice && !error && (
-                        <div role="status" className="px-3 py-2 mb-3 flex items-start gap-2 text-sm" style={{ borderLeft: '2px solid #1baf7a', color: 'var(--text-secondary)' }}>
-                            <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: '#1baf7a' }} />
+                        <div role="status" className="px-3 py-2 mb-3 flex items-start gap-2 text-sm" style={{ borderLeft: '2px solid var(--success)', color: 'var(--text-secondary)' }}>
+                            <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: 'var(--success)' }} />
                             <p className="min-w-0 break-words">{notice}</p>
                         </div>
                     )}
@@ -531,7 +542,7 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                                 disabled={exporting}
                                 title="Бүт базанын камдык көчүрмөсүн (JSON) жүктөп алуу"
                                 className="mr-auto inline-flex items-center justify-center gap-1.5 px-3 py-3 sm:py-2.5 font-semibold text-sm disabled:opacity-60"
-                                style={{ border: '1px solid var(--border)', borderRadius: '3px', color: 'var(--text-secondary)' }}
+                                style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--text-secondary)' }}
                             >
                                 <Download className="w-4 h-4" />
                                 <span className="hidden sm:inline">{exporting ? 'Даярдалууда…' : 'Камдык көчүрмө'}</span>
@@ -541,16 +552,16 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                             type="button"
                             onClick={onClose}
                             className="flex-1 sm:flex-none px-5 py-3 sm:py-2.5 font-semibold text-sm"
-                            style={{ border: '1px solid var(--border)', borderRadius: '3px', color: 'var(--text-secondary)' }}
+                            style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--text-secondary)' }}
                         >
                             Жабуу
                         </button>
                         <button
                             type="button"
                             onClick={handleSubmit}
-                            disabled={saving || loading || !history}
+                            disabled={saving || loading || !history || lockedForMe}
                             className="flex-1 sm:flex-none px-5 py-3 sm:py-2.5 font-semibold flex items-center justify-center gap-2 disabled:opacity-60 text-sm"
-                            style={{ backgroundColor: 'var(--accent)', color: '#ffffff', borderRadius: '3px' }}
+                            style={{ backgroundColor: 'var(--accent)', color: 'var(--surface)', borderRadius: 'var(--radius-sm)' }}
                         >
                             {saving ? 'Сакталууда…' : (<><Save className="w-4 h-4" /> Сактоо</>)}
                         </button>

@@ -28,6 +28,11 @@ In the Supabase dashboard, open **SQL Editor** and run, in order:
    minimums and mini-card targets, makes targets admin-only (enforced by
    the database, not just the UI), and makes opening a week admin-only.
    Safe to re-run.
+5. `supabase/add-babh-2026-09.sql` — adds the БАБХ mini-card activity.
+6. `supabase/kitep-target-5-2026-10.sql` — КИТЕП minimum 7 → 5.
+7. `supabase/history-and-locks-2026-10.sql` — change history (who changed
+   what, when) and admin week locking. Logging can never block a save;
+   every week starts unlocked. Safe to re-run.
 
 ## 3. Configure the app's environment
 

@@ -1,195 +1,230 @@
-import { useIsPhone } from '../../hooks/useMediaQuery';
 import React, { useMemo, useState } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import type { WeekData, Role } from '../../types';
-import { calculateMemberScore, COLORS } from '../../utils/scoring';
-import { getOverallTeamRankings } from '../../utils/rankings';
+import { CheckCircle2, Clock3, Crown } from 'lucide-react';
+import type { DataFile, Role } from '../../types';
+import type { Insights, MemberSeries } from '../../utils/insights';
+import { movement, ROLE_LABEL, weekOf } from '../../utils/insights';
+import { TEAM_COLORS } from '../../utils/scoring';
 import { Avatar } from '../Avatar';
+import { useIsPhone } from '../../hooks/useMediaQuery';
+import { Movement, SectionHeader, Sparkline } from '../ui';
 
-const ROLE_LABEL: Record<Role, string> = { imam: 'Имам', zam: 'Орун басар', member: 'Мүчө' };
 const ROLE_FILTER_LABEL: Record<'all' | Role, string> = { all: 'Бардыгы', imam: 'Имамдар', zam: 'Орун басарлар', member: 'Мүчөлөр' };
+const pad2 = (n: number) => String(n).padStart(2, '0');
+const fmt = (n: number) => (Math.round(n * 10) / 10).toString();
 
 interface OverviewViewProps {
-    currentWeekData: WeekData;
-    isDark: boolean;
+    data: DataFile;
+    weekIndex: number;
+    insights: Insights;
+    onOpenProfile: (memberId: string) => void;
+    showSubmission: boolean;
 }
 
-const th: React.CSSProperties = {
-    textAlign: 'left', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em',
-    color: 'var(--text-muted)', fontWeight: 600, padding: '0 12px 10px', borderBottom: '1px solid var(--text-primary)'
-};
-const td: React.CSSProperties = { padding: '11px 12px', fontSize: '14px', borderBottom: '1px solid var(--border)' };
-const scoreCell: React.CSSProperties = { fontFamily: 'var(--font-serif)', fontWeight: 600, fontVariantNumeric: 'tabular-nums' };
-const rankCell: React.CSSProperties = { fontFamily: 'var(--font-serif)', fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: 'var(--text-secondary)' };
-const pad2 = (n: number) => String(n).padStart(2, '0');
+const PODIUM_TONE = [
+    { ring: 'var(--tier-gold-2)', bg: 'linear-gradient(135deg, var(--tier-gold-1), var(--tier-gold-2))', label: '1' },
+    { ring: 'var(--tier-silver-2)', bg: 'linear-gradient(135deg, var(--tier-silver-1), var(--tier-silver-2))', label: '2' },
+    { ring: 'var(--tier-bronze-2)', bg: 'linear-gradient(135deg, var(--tier-bronze-1), var(--tier-bronze-2))', label: '3' }
+];
 
-export const OverviewView: React.FC<OverviewViewProps> = ({ currentWeekData, isDark }) => {
+const PodiumCard: React.FC<{ series: MemberSeries; weekIndex: number; place: number; onOpen: () => void; featured?: boolean }> = ({ series, weekIndex, place, onOpen, featured }) => {
+    const w = weekOf(series.weeks, weekIndex)!;
+    const tone = PODIUM_TONE[place - 1];
     const isPhone = useIsPhone();
-    const [roleFilter, setRoleFilter] = useState<'all' | Role>('all');
-
-    const teamRankings = getOverallTeamRankings(currentWeekData.teams);
-    const teamChartData = teamRankings.map(team => ({
-        name: team.name,
-        avgScore: team.avgMemberScore,
-        totalScore: team.totalScore
-    }));
-
-    const allIndividuals = currentWeekData.teams.flatMap(team =>
-        team.members.map(member => ({ ...member, team: team.name, score: calculateMemberScore(member) }))
+    if (isPhone && !featured) {
+        // Compact, side-by-side card for 2nd/3rd place on phones.
+        return (
+            <button onClick={onOpen} className="card text-center w-full p-3.5 flex flex-col items-center">
+                <div className="relative">
+                    <div className="rounded-full p-[3px]" style={{ background: tone.bg }}>
+                        <Avatar name={series.name} role={series.role} photoUrl={series.photoUrl} size="lg" />
+                    </div>
+                    <span className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center font-display font-bold text-[0.9rem]" style={{ background: tone.bg, color: '#fff', border: '2px solid var(--surface)' }}>{tone.label}</span>
+                </div>
+                <div className="font-display font-bold text-[1.1rem] leading-tight mt-2 line-clamp-2" style={{ color: 'var(--text-primary)' }}>{series.name}</div>
+                <div className="text-[0.72rem] truncate max-w-full" style={{ color: 'var(--text-muted)' }}>{w.houseName}</div>
+                <div className="flex items-baseline gap-1.5 mt-1.5">
+                    <span className="font-display font-bold text-[1.6rem] tabular leading-none" style={{ color: 'var(--text-primary)' }}>{fmt(w.score)}</span>
+                    <Movement delta={movement(series.weeks, weekIndex)} />
+                </div>
+            </button>
+        );
+    }
+    return (
+        <button
+            onClick={onOpen}
+            className={`card text-left w-full relative overflow-hidden transition-transform hover:-translate-y-0.5 ${featured ? 'p-5 sm:p-6' : 'p-4 sm:p-5'}`}
+            style={featured ? { boxShadow: 'var(--shadow-lift)', borderColor: 'color-mix(in oklab, var(--gold) 45%, var(--border))' } : undefined}
+        >
+            {featured && <div className="ornament-frieze absolute top-0 left-0 right-0 opacity-30" style={{ height: 10 }} aria-hidden="true" />}
+            <div className={`flex items-center gap-3.5 ${featured ? 'mt-1' : ''}`}>
+                <div className="relative flex-shrink-0">
+                    <div className="rounded-full p-[3px]" style={{ background: tone.bg }}>
+                        <Avatar name={series.name} role={series.role} photoUrl={series.photoUrl} size={featured ? 'xl' : 'lg'} />
+                    </div>
+                    <span
+                        className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center font-display font-bold text-[1rem]"
+                        style={{ background: tone.bg, color: '#fff', border: '2px solid var(--surface)', textShadow: '0 1px 1px rgba(0,0,0,0.25)' }}
+                    >
+                        {place === 1 ? <Crown className="w-3.5 h-3.5" /> : tone.label}
+                    </span>
+                </div>
+                <div className="min-w-0 flex-1">
+                    <div className="eyebrow" style={{ color: 'var(--gold)' }}>{place}-орун</div>
+                    <div className={`font-display font-bold leading-tight line-clamp-2 ${featured ? 'text-[1.6rem]' : 'text-[1.3rem]'}`} style={{ color: 'var(--text-primary)' }}>{series.name}</div>
+                    <div className="text-[0.8rem] truncate" style={{ color: 'var(--text-muted)' }}>{w.houseName} · <i>{ROLE_LABEL[series.role]}</i></div>
+                </div>
+            </div>
+            <div className="flex items-end justify-between mt-4">
+                <div>
+                    <div className="eyebrow">Упай</div>
+                    <div className={`font-display font-bold tabular leading-none mt-1 ${featured ? 'text-[2.6rem]' : 'text-[2rem]'}`} style={{ color: 'var(--text-primary)' }}>{fmt(w.score)}</div>
+                </div>
+                <div className="flex flex-col items-end gap-1.5">
+                    <Movement delta={movement(series.weeks, weekIndex)} size="md" />
+                    <Sparkline values={series.weeks.filter(x => x.weekIndex <= weekIndex && x.submitted).map(x => x.score)} color={tone.ring} width={84} height={26} />
+                </div>
+            </div>
+        </button>
     );
-    const sortedIndividuals = [...allIndividuals].sort((a, b) => b.score - a.score);
-    const filteredIndividuals = roleFilter === 'all' ? sortedIndividuals : sortedIndividuals.filter(m => m.role === roleFilter);
+};
 
-    const avgScore = useMemo(() => {
-        if (allIndividuals.length === 0) return 0;
-        return Math.round((allIndividuals.reduce((sum, m) => sum + m.score, 0) / allIndividuals.length) * 10) / 10;
-    }, [allIndividuals]);
+export const OverviewView: React.FC<OverviewViewProps> = ({ data, weekIndex, insights, onOpenProfile, showSubmission }) => {
+    const [roleFilter, setRoleFilter] = useState<'all' | Role>('all');
+    const week = data.weeks[weekIndex];
 
-    const gridStroke = 'var(--gridline)';
-    const axisColor = 'var(--text-muted)';
-    const tooltipStyle: React.CSSProperties = {
-        backgroundColor: isDark ? '#201f1b' : '#ffffff',
-        border: `1px solid ${isDark ? '#33322c' : '#e7e4da'}`,
-        borderRadius: 3,
-        color: isDark ? '#f2f0e8' : '#1c1c1a',
-        fontSize: 13
-    };
+    const people = useMemo(() => {
+        return [...insights.members.values()]
+            .map(s => ({ s, w: weekOf(s.weeks, weekIndex) }))
+            .filter((x): x is { s: MemberSeries; w: NonNullable<typeof x.w> } => !!x.w)
+            .sort((a, b) => (a.w.rank ?? 1e9) - (b.w.rank ?? 1e9) || b.w.score - a.w.score || a.s.name.localeCompare(b.s.name));
+    }, [insights, weekIndex]);
+
+    const filtered = roleFilter === 'all' ? people : people.filter(p => p.s.role === roleFilter);
+    const podium = people.filter(p => p.w.submitted && p.w.score > 0 && p.w.rank !== null && p.w.rank <= 3).slice(0, 3);
+
+    const houses = useMemo(() => {
+        return [...insights.houses.values()]
+            .map(h => ({ h, w: weekOf(h.weeks, weekIndex) }))
+            .filter((x): x is { h: typeof x.h; w: NonNullable<typeof x.w> } => !!x.w)
+            .sort((a, b) => (a.w.rank ?? 1e9) - (b.w.rank ?? 1e9) || b.w.avg - a.w.avg);
+    }, [insights, weekIndex]);
+    const maxAvg = Math.max(1, ...houses.map(x => x.w.avg));
+    const submittedCount = week.teams.filter(t => t.submitted).length;
 
     return (
-        <>
-            <div className="mb-8 pl-4" style={{ borderLeft: '2px solid var(--gold)' }}>
-                <p className="font-semibold text-sm mb-1" style={{ color: 'var(--text-primary)' }}>Рейтинг орточо упайга негизделген</p>
-                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                    Үйлөрдүн саны ар башка болгондуктан, адилеттүүлүк үчүн рейтинг орточо упайга негизделген (жалпы упайга эмес). Орточо упай = Жалпы упай ÷ Мүчөлөрдүн саны
-                </p>
-            </div>
-
-            {/* Three short figures — they stay side by side even on a phone
-                (stacking them made each look like its own section). */}
-            <div className="grid grid-cols-3 mb-9">
-                {[
-                    { label: 'Мыкты үй', value: teamRankings[0]?.name ?? '—' },
-                    { label: 'Катышуучулар', value: String(allIndividuals.length) },
-                    { label: 'Орточо упай', value: String(avgScore) }
-                ].map((stat, i) => (
-                    <div key={stat.label} className={`min-w-0 ${i === 0 ? 'pr-3 sm:pr-6' : 'px-3 sm:px-6'}`} style={i > 0 ? { borderLeft: '1px solid var(--border)' } : undefined}>
-                        <div className="text-[10px] sm:text-[11px] leading-snug tracking-[0.03em] sm:tracking-[0.08em] [overflow-wrap:anywhere]" style={{ color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>{stat.label}</div>
-                        <div className="font-serif text-[19px] sm:text-[26px] truncate" style={{ fontWeight: 500, marginTop: '6px', fontVariantNumeric: 'tabular-nums', color: 'var(--text-primary)' }}>{stat.value}</div>
+        <div className="space-y-8 sm:space-y-10">
+            {/* Podium — overlaps the hero */}
+            {podium.length > 0 && (
+                <section className="-mt-10 md:mt-0 relative z-10" aria-label="Аптанын үч мыктысы">
+                    <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 lg:items-end stagger">
+                        {/* Phone/tablet: 1st on top, 2nd and 3rd side by side; desktop: 2 · 1 · 3 */}
+                        {podium[1] && <div className="order-2 lg:order-1"><PodiumCard series={podium[1].s} weekIndex={weekIndex} place={podium[1].w.rank!} onOpen={() => onOpenProfile(podium[1].s.id)} /></div>}
+                        {podium[0] && <div className="order-1 col-span-2 lg:col-span-1 lg:order-2"><PodiumCard series={podium[0].s} weekIndex={weekIndex} place={podium[0].w.rank!} onOpen={() => onOpenProfile(podium[0].s.id)} featured /></div>}
+                        {podium[2] && <div className="order-3"><PodiumCard series={podium[2].s} weekIndex={weekIndex} place={podium[2].w.rank!} onOpen={() => onOpenProfile(podium[2].s.id)} /></div>}
                     </div>
-                ))}
-            </div>
+                </section>
+            )}
 
-            <div className="mb-12">
-                <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
-                    <h2 className="font-serif text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>Бардык катышуучулардын рейтинги</h2>
-                    <div className="flex flex-wrap gap-1">
-                        {(['all', 'imam', 'zam', 'member'] as const).map(roleType => (
-                            <button
-                                key={roleType}
-                                onClick={() => setRoleFilter(roleType)}
-                                className="px-3 py-1.5 text-xs font-semibold transition-colors"
-                                style={roleFilter === roleType
-                                    ? { border: '1px solid var(--text-primary)', color: 'var(--text-primary)', borderRadius: '3px' }
-                                    : { border: '1px solid transparent', color: 'var(--text-muted)', borderRadius: '3px' }}
-                            >
-                                {ROLE_FILTER_LABEL[roleType]}
-                            </button>
+            {showSubmission && (
+                <section className="card card-pad animate-fade-up" aria-label="Маалымат киргизүү абалы">
+                    <div className="flex items-center justify-between gap-3 flex-wrap mb-3">
+                        <div>
+                            <div className="eyebrow" style={{ color: 'var(--gold)' }}>Бул апта</div>
+                            <div className="font-display font-bold text-[1.35rem]" style={{ color: 'var(--text-primary)' }}>
+                                {submittedCount} / {week.teams.length} үй маалымат киргизди
+                            </div>
+                        </div>
+                        <div className="w-full sm:w-56 h-2 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--gridline)' }}>
+                            <div className="h-full rounded-full animate-grow-x" style={{ width: `${(submittedCount / Math.max(1, week.teams.length)) * 100}%`, backgroundColor: submittedCount === week.teams.length ? 'var(--success)' : 'var(--gold)' }} />
+                        </div>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                        {week.teams.map(t => (
+                            <span key={t.id} className="chip" style={t.submitted ? { borderColor: 'color-mix(in oklab, var(--success) 40%, var(--border))', color: 'var(--success)' } : { borderStyle: 'dashed' }}>
+                                {t.submitted ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Clock3 className="w-3.5 h-3.5" />}
+                                {t.name}
+                                {!t.submitted && <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>— күтүлүүдө</span>}
+                            </span>
                         ))}
                     </div>
-                </div>
+                </section>
+            )}
 
-                <div className="overflow-x-auto mb-7">
-                    <table className="data-table w-full" style={{ borderCollapse: 'collapse' }}>
-                        <thead>
-                            <tr>
-                                <th style={th}>#</th>
-                                <th style={th}>Аты</th>
-                                <th style={th} className="hidden sm:table-cell">Үй</th>
-                                <th style={th} className="hidden sm:table-cell">Ролу</th>
-                                <th style={{ ...th, textAlign: 'right' }}>Упай</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredIndividuals.map((member, idx) => (
-                                <tr key={member.id}>
-                                    <td style={{ ...td, ...rankCell }}>{pad2(idx + 1)}</td>
-                                    <td className="w-full max-w-0 sm:w-auto sm:max-w-none" style={td}>
-                                        <div className="flex items-center gap-2.5 min-w-0">
-                                            <Avatar name={member.name} role={member.role} photoUrl={member.photoUrl} size="sm" />
-                                            <div className="min-w-0">
-                                                <div className="font-semibold truncate" style={{ color: 'var(--text-primary)' }}>{member.name}</div>
-                                                {/* On a phone, house + role live here instead of in their own columns. */}
-                                                <div className="sm:hidden text-[12px] truncate" style={{ color: 'var(--text-muted)' }}>
-                                                    {member.team} · <span className="italic">{ROLE_LABEL[member.role]}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="hidden sm:table-cell" style={{ ...td, color: 'var(--text-secondary)' }}>{member.team}</td>
-                                    <td className="hidden sm:table-cell" style={{ ...td, fontSize: '12.5px', fontStyle: 'italic', color: 'var(--text-muted)' }}>{ROLE_LABEL[member.role]}</td>
-                                    <td style={{ ...td, ...scoreCell, textAlign: 'right' }}>{member.score}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+            <div className="grid gap-8 xl:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)] xl:items-start">
+                {/* Everyone */}
+                <section className="card overflow-hidden order-2 xl:order-1">
+                    <div className="card-pad pb-0 sm:pb-0">
+                        <SectionHeader
+                            eyebrow={`${week.weekNumber}-апта`}
+                            title="Бардык катышуучулар"
+                            action={
+                                <div className="flex flex-wrap gap-1.5" role="group" aria-label="Ролу боюнча">
+                                    {(['all', 'imam', 'zam', 'member'] as const).map(r => (
+                                        <button key={r} className="chip" aria-pressed={roleFilter === r} onClick={() => setRoleFilter(r)}>{ROLE_FILTER_LABEL[r]}</button>
+                                    ))}
+                                </div>
+                            }
+                        />
+                    </div>
+                    <ol className="stagger">
+                        {filtered.map(({ s, w }, i) => (
+                            <li key={s.id}>
+                                <button
+                                    onClick={() => onOpenProfile(s.id)}
+                                    className="row-link w-full flex items-center gap-2.5 sm:gap-3.5 px-3 sm:px-6 py-2.5 text-left"
+                                    style={{ borderTop: i === 0 ? '1px solid var(--border-strong)' : '1px solid var(--border)' }}
+                                >
+                                    <span className="w-6 sm:w-7 flex-shrink-0 font-display font-bold text-[1.05rem] tabular" style={{ color: w.rank && w.rank <= 3 ? 'var(--gold)' : 'var(--text-muted)' }}>
+                                        {w.rank ? pad2(w.rank) : '—'}
+                                    </span>
+                                    <span className="w-7 flex-shrink-0 hidden min-[380px]:inline-flex"><Movement delta={movement(s.weeks, weekIndex)} /></span>
+                                    <Avatar name={s.name} role={s.role} photoUrl={w.member.photoUrl} size="sm" />
+                                    <span className="min-w-0 flex-1">
+                                        <span className="block font-bold truncate text-[0.95rem]" style={{ color: 'var(--text-primary)' }}>{w.member.name}</span>
+                                        <span className="block text-[0.76rem] truncate" style={{ color: 'var(--text-muted)' }}>{w.houseName} · <i>{ROLE_LABEL[s.role]}</i></span>
+                                    </span>
+                                    <span className="hidden sm:block">
+                                        <Sparkline values={s.weeks.filter(x => x.weekIndex <= weekIndex && x.submitted).map(x => x.score)} color="var(--accent)" />
+                                    </span>
+                                    <span className="w-14 text-right font-display font-bold text-[1.25rem] tabular flex-shrink-0" style={{ color: w.submitted ? 'var(--text-primary)' : 'var(--text-muted)' }}>
+                                        {w.submitted ? fmt(w.score) : '—'}
+                                    </span>
+                                </button>
+                            </li>
+                        ))}
+                    </ol>
+                </section>
 
-                <ResponsiveContainer width="100%" height={isPhone ? 260 : 360}>
-                    <BarChart data={filteredIndividuals.slice(0, 15)}>
-                        <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} vertical={false} />
-                        <XAxis dataKey="name" tick={{ fill: axisColor, fontSize: 11 }} axisLine={{ stroke: gridStroke }} tickLine={false} />
-                        <YAxis tick={{ fill: axisColor, fontSize: 11 }} axisLine={false} tickLine={false} />
-                        <Tooltip contentStyle={tooltipStyle} labelStyle={{ color: tooltipStyle.color }} cursor={{ fill: 'var(--gridline)', opacity: 0.4 }} />
-                        <Bar dataKey="score" name="Упай" radius={[2, 2, 0, 0]}>
-                            {filteredIndividuals.slice(0, 15).map((member, index) => (
-                                <Cell key={index} fill={COLORS[member.role]} />
-                            ))}
-                        </Bar>
-                    </BarChart>
-                </ResponsiveContainer>
+                {/* Houses */}
+                <section className="card card-pad xl:sticky xl:top-20 order-1 xl:order-2">
+                    <SectionHeader eyebrow="Орточо упай боюнча" title="Үйлөрдүн рейтинги" />
+                    <ol className="space-y-1 stagger">
+                        {houses.map(({ h, w }) => (
+                            <li key={h.id} className="py-2.5" style={{ borderTop: '1px solid var(--border)' }}>
+                                <div className="flex items-center gap-2.5">
+                                    <span className="w-6 font-display font-bold text-[1.1rem] tabular" style={{ color: w.rank === 1 ? 'var(--gold)' : 'var(--text-muted)' }}>{w.rank ? pad2(w.rank) : '—'}</span>
+                                    <span className="w-7 flex-shrink-0"><Movement delta={movement(h.weeks, weekIndex)} /></span>
+                                    <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: TEAM_COLORS[h.colorIndex % TEAM_COLORS.length] }} />
+                                    <span className="flex-1 min-w-0">
+                                        <span className="block font-bold truncate" style={{ color: 'var(--text-primary)' }}>{h.name}</span>
+                                        <span className="block text-[0.74rem]" style={{ color: 'var(--text-muted)' }}>
+                                            {w.memberCount} адам{!w.submitted && ' · маалымат жок'}
+                                        </span>
+                                    </span>
+                                    <Sparkline values={h.weeks.filter(x => x.weekIndex <= weekIndex && x.submitted).map(x => x.avg)} color={TEAM_COLORS[h.colorIndex % TEAM_COLORS.length]} width={54} />
+                                    <span className="w-14 text-right font-display font-bold text-[1.3rem] tabular" style={{ color: w.submitted ? 'var(--text-primary)' : 'var(--text-muted)' }}>{w.submitted ? fmt(w.avg) : '—'}</span>
+                                </div>
+                                <div className="mt-2 ml-[4.25rem] h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--gridline)' }}>
+                                    <div className="h-full rounded-full animate-grow-x" style={{ width: `${(w.avg / maxAvg) * 100}%`, backgroundColor: TEAM_COLORS[h.colorIndex % TEAM_COLORS.length] }} />
+                                </div>
+                            </li>
+                        ))}
+                    </ol>
+                    <p className="text-[0.76rem] mt-4 pl-3" style={{ color: 'var(--text-muted)', borderLeft: '2px solid var(--gold)' }}>
+                        Үйлөрдүн саны ар башка болгондуктан, адилеттүүлүк үчүн рейтинг <b>орточо упайга</b> негизделген: жалпы упай ÷ мүчөлөрдүн саны.
+                    </p>
+                </section>
             </div>
-
-            <div className="mb-12">
-                <h2 className="font-serif text-lg font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>Үйлөрдүн жалпы рейтинги</h2>
-                <div className="overflow-x-auto">
-                    <table className="data-table w-full" style={{ borderCollapse: 'collapse' }}>
-                        <thead>
-                            <tr>
-                                <th style={th}>#</th>
-                                <th style={th}>Үй</th>
-                                <th style={{ ...th, textAlign: 'center' }}><span className="hidden sm:inline">Мүчөлөр</span><span className="sm:hidden">Адам</span></th>
-                                <th style={{ ...th, textAlign: 'right' }}>Орточо<span className="hidden sm:inline"> упай</span></th>
-                                <th style={{ ...th, textAlign: 'right' }} className="hidden sm:table-cell">Жалпы упай</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {teamRankings.map(team => (
-                                <tr key={team.index}>
-                                    <td style={{ ...td, ...rankCell }}>{pad2(team.rank)}</td>
-                                    <td style={{ ...td, fontWeight: 600, color: 'var(--text-primary)' }}>{team.name}</td>
-                                    <td style={{ ...td, textAlign: 'center', color: 'var(--text-secondary)' }}>{team.memberCount}</td>
-                                    <td style={{ ...td, ...scoreCell, textAlign: 'right', fontSize: '15px' }}>{team.avgMemberScore}</td>
-                                    <td className="hidden sm:table-cell" style={{ ...td, textAlign: 'right', color: 'var(--text-muted)' }}>{team.totalScore}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div>
-                <h2 className="font-serif text-lg font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>Үйлөрдүн көрсөткүчтөрү</h2>
-                <ResponsiveContainer width="100%" height={isPhone ? 260 : 360}>
-                    <BarChart data={teamChartData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} vertical={false} />
-                        <XAxis dataKey="name" tick={{ fill: axisColor, fontSize: 11 }} axisLine={{ stroke: gridStroke }} tickLine={false} />
-                        <YAxis tick={{ fill: axisColor, fontSize: 11 }} axisLine={false} tickLine={false} />
-                        <Tooltip contentStyle={tooltipStyle} labelStyle={{ color: tooltipStyle.color }} cursor={{ fill: 'var(--gridline)', opacity: 0.4 }} />
-                        <Bar dataKey="avgScore" fill="var(--accent)" name="Орточо упай (Рейтинг)" radius={[2, 2, 0, 0]} />
-                        <Bar dataKey="totalScore" fill="var(--border)" name="Жалпы упай" radius={[2, 2, 0, 0]} />
-                    </BarChart>
-                </ResponsiveContainer>
-            </div>
-        </>
+        </div>
     );
 };

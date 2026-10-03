@@ -1,102 +1,160 @@
+import React, { useMemo, useState } from 'react';
+import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { useIsPhone } from '../../hooks/useMediaQuery';
-import React from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import type { DataFile, Team } from '../../types';
+import type { DataFile } from '../../types';
+import type { Insights } from '../../utils/insights';
+import { ROLE_LABEL, weekOf } from '../../utils/insights';
 import { TEAM_COLORS } from '../../utils/scoring';
-import { getProgressData } from '../../utils/rankings';
+import { Avatar } from '../Avatar';
+import { ChartTooltip, SectionHeader, Sparkline } from '../ui';
+import { axisTick, scoreDomain } from '../../utils/style';
 
 interface ProgressViewProps {
     data: DataFile;
-    currentTeams: Team[];
-    isDark: boolean;
+    insights: Insights;
+    onOpenProfile: (memberId: string) => void;
 }
 
-export const ProgressView: React.FC<ProgressViewProps> = ({ data, currentTeams, isDark }) => {
-    const isPhone = useIsPhone();
-    const progressData = getProgressData(data);
-    const allWeeks = [...data.weeks.map(w => w.weekNumber)].sort((a, b) => a - b);
+const fmt = (n: number) => (Math.round(n * 10) / 10).toString();
 
-    const lineChartData = allWeeks.map(weekNum => {
-        const point: Record<string, number | string | null> = { week: `Апта ${weekNum}` };
-        Object.keys(progressData).forEach(teamName => {
-            const wk = progressData[teamName].find(w => w.weekNumber === weekNum);
-            point[teamName] = wk ? wk.score : null;
-        });
+export const ProgressView: React.FC<ProgressViewProps> = ({ data, insights, onOpenProfile }) => {
+    const isPhone = useIsPhone();
+    const houses = useMemo(() => [...insights.houses.values()].sort((a, b) => a.colorIndex - b.colorIndex), [insights]);
+    const [hidden, setHidden] = useState<Set<string>>(new Set());
+    const toggle = (id: string) => setHidden(prev => {
+        const next = new Set(prev);
+        if (next.has(id)) next.delete(id); else next.add(id);
+        return next;
+    });
+
+    const scoreData = data.weeks.map((w, i) => {
+        const point: Record<string, number | string | null> = { week: `${w.weekNumber}-апта` };
+        houses.forEach(h => { const hw = weekOf(h.weeks, i); point[h.id] = hw && hw.submitted ? hw.avg : null; });
+        return point;
+    });
+    const rankData = data.weeks.map((w, i) => {
+        const point: Record<string, number | string | null> = { week: `${w.weekNumber}-апта` };
+        houses.forEach(h => { const hw = weekOf(h.weeks, i); point[h.id] = hw?.rank ?? null; });
         return point;
     });
 
-    const gridStroke = 'var(--gridline)';
-    const axisColor = 'var(--text-muted)';
-    const tooltipStyle: React.CSSProperties = {
-        backgroundColor: isDark ? '#201f1b' : '#ffffff',
-        border: `1px solid ${isDark ? '#33322c' : '#e7e4da'}`,
-        borderRadius: 3,
-        color: isDark ? '#f2f0e8' : '#1c1c1a',
-        fontSize: 13
-    };
+    const lastIndex = data.weeks.length - 1;
+    // People who gained the most since the previous week
+    const risers = [...insights.members.values()]
+        .map(s => {
+            const now = weekOf(s.weeks, lastIndex), prev = weekOf(s.weeks, lastIndex - 1);
+            return now && prev && now.submitted && prev.submitted ? { s, now, delta: now.score - prev.score } : null;
+        })
+        .filter((x): x is NonNullable<typeof x> => !!x && x.delta > 0)
+        .sort((a, b) => b.delta - a.delta)
+        .slice(0, 5);
+
+    const legend = (
+        <div className="flex flex-wrap gap-1.5">
+            {houses.map(h => {
+                const off = hidden.has(h.id);
+                return (
+                    <button key={h.id} className="chip" onClick={() => toggle(h.id)} aria-pressed={!off} style={off ? { opacity: 0.45 } : { borderColor: 'var(--border-strong)' }}>
+                        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: TEAM_COLORS[h.colorIndex % TEAM_COLORS.length] }} />
+                        {h.name}
+                    </button>
+                );
+            })}
+        </div>
+    );
 
     return (
-        <>
-            <div className="mb-12">
-                <h2 className="font-serif text-lg font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>Үйлөрдүн апталык прогресси</h2>
-                <p className="text-sm mb-5" style={{ color: 'var(--text-muted)' }}>График орточо упайга негизделген (адилеттүү салыштыруу үчүн)</p>
-                <ResponsiveContainer width="100%" height={isPhone ? 300 : 460}>
-                    <LineChart data={lineChartData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} vertical={false} />
-                        <XAxis dataKey="week" tick={{ fill: axisColor, fontSize: 11 }} axisLine={{ stroke: gridStroke }} tickLine={false} />
-                        <YAxis label={{ value: 'Орточо упай', angle: -90, position: 'insideLeft', fill: axisColor, fontSize: 12 }} tick={{ fill: axisColor, fontSize: 11 }} axisLine={false} tickLine={false} />
-                        <Tooltip contentStyle={tooltipStyle} labelStyle={{ color: tooltipStyle.color }} />
-                        <Legend wrapperStyle={{ color: axisColor, fontSize: 12 }} />
-                        {currentTeams.map((team, idx) => (
-                            <Line
-                                key={team.id}
-                                type="monotone"
-                                dataKey={team.name}
-                                stroke={TEAM_COLORS[idx % TEAM_COLORS.length]}
-                                strokeWidth={2}
-                                dot={{ r: 3 }}
-                                name={team.name}
-                                connectNulls
-                            />
-                        ))}
-                    </LineChart>
-                </ResponsiveContainer>
+        <div className="space-y-8 sm:space-y-10">
+            <section className="card card-pad">
+                <SectionHeader eyebrow="Орточо упай" title="Үйлөрдүн апталык прогресси" sub="Үйдү жашыруу же көрсөтүү үчүн атын басыңыз." />
+                {legend}
+                <div className="mt-4 -ml-3 sm:ml-0">
+                    <ResponsiveContainer width="100%" height={isPhone ? 280 : 420}>
+                        <LineChart data={scoreData} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
+                            <CartesianGrid stroke="var(--gridline)" vertical={false} />
+                            <XAxis dataKey="week" tick={axisTick} axisLine={false} tickLine={false} />
+                            <YAxis tick={axisTick} axisLine={false} tickLine={false} width={40} domain={scoreDomain} allowDecimals={false} />
+                            <Tooltip content={<ChartTooltip />} cursor={{ stroke: 'var(--border-strong)' }} />
+                            {houses.filter(h => !hidden.has(h.id)).map(h => (
+                                <Line key={h.id} type="monotone" dataKey={h.id} name={h.name} stroke={TEAM_COLORS[h.colorIndex % TEAM_COLORS.length]} strokeWidth={2.5}
+                                    dot={{ r: 3.5, strokeWidth: 2, fill: 'var(--surface)' }} activeDot={{ r: 5 }} connectNulls isAnimationActive />
+                            ))}
+                        </LineChart>
+                    </ResponsiveContainer>
+                </div>
+            </section>
+
+            <div className="grid gap-8 xl:grid-cols-2">
+                <section className="card card-pad">
+                    <SectionHeader eyebrow="Ар бир аптадагы орун" title="Орундардын жарышы" />
+                    <div className="-ml-3 sm:ml-0">
+                        <ResponsiveContainer width="100%" height={isPhone ? 240 : 300}>
+                            <LineChart data={rankData} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
+                                <CartesianGrid stroke="var(--gridline)" vertical={false} />
+                                <XAxis dataKey="week" tick={axisTick} axisLine={false} tickLine={false} />
+                                <YAxis reversed domain={[1, Math.max(1, houses.length)]} allowDecimals={false} tick={axisTick} axisLine={false} tickLine={false} width={30} tickFormatter={v => `${v}`} />
+                                <Tooltip content={<ChartTooltip unit="-орун" />} cursor={{ stroke: 'var(--border-strong)' }} />
+                                {houses.filter(h => !hidden.has(h.id)).map(h => (
+                                    <Line key={h.id} type="monotone" dataKey={h.id} name={h.name} stroke={TEAM_COLORS[h.colorIndex % TEAM_COLORS.length]} strokeWidth={3} dot={{ r: 4, strokeWidth: 0, fill: TEAM_COLORS[h.colorIndex % TEAM_COLORS.length] }} connectNulls />
+                                ))}
+                            </LineChart>
+                        </ResponsiveContainer>
+                    </div>
+                </section>
+
+                <section className="card card-pad">
+                    <SectionHeader eyebrow={`${data.weeks[lastIndex].weekNumber}-апта`} title="Эң көп өскөндөр" sub="Мурунку аптага караганда эң көп упай кошкондор." />
+                    {risers.length === 0 ? (
+                        <p className="text-[0.88rem]" style={{ color: 'var(--text-muted)' }}>Салыштыруу үчүн эки апталык маалымат керек.</p>
+                    ) : (
+                        <ol className="stagger">
+                            {risers.map(({ s, now, delta }, i) => (
+                                <li key={s.id}>
+                                    <button onClick={() => onOpenProfile(s.id)} className="row-link w-full flex items-center gap-3 py-2.5 px-2 -mx-2 rounded-[8px] text-left" style={{ borderTop: i ? '1px solid var(--border)' : undefined }}>
+                                        <Avatar name={s.name} role={s.role} photoUrl={s.photoUrl} size="sm" />
+                                        <span className="flex-1 min-w-0">
+                                            <span className="block font-bold truncate" style={{ color: 'var(--text-primary)' }}>{s.name}</span>
+                                            <span className="block text-[0.75rem] truncate" style={{ color: 'var(--text-muted)' }}>{now.houseName} · <i>{ROLE_LABEL[s.role]}</i></span>
+                                        </span>
+                                        <span className="font-display font-bold text-[1.25rem] tabular" style={{ color: 'var(--success)' }}>+{fmt(delta)}</span>
+                                    </button>
+                                </li>
+                            ))}
+                        </ol>
+                    )}
+                </section>
             </div>
 
-            <div>
-                <h2 className="font-serif text-lg font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>Апталар боюнча статистика</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
-                    {currentTeams.map((team, idx) => {
-                        const teamProgress = progressData[team.name] || [];
-                        const currentScore = teamProgress[teamProgress.length - 1]?.score || 0;
-                        const previousScore = teamProgress[teamProgress.length - 2]?.score || 0;
-                        const change = currentScore - previousScore;
-                        const teamColor = TEAM_COLORS[idx % TEAM_COLORS.length];
-
+            <section>
+                <SectionHeader eyebrow="Үйлөр" title="Апталар боюнча статистика" />
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 stagger">
+                    {houses.map(h => {
+                        const counted = h.weeks.filter(w => w.submitted);
+                        const cur = counted[counted.length - 1];
+                        const prev = counted[counted.length - 2];
+                        const change = cur && prev ? cur.avg - prev.avg : 0;
+                        const best = counted.reduce((b, w) => Math.max(b, w.avg), 0);
+                        const color = TEAM_COLORS[h.colorIndex % TEAM_COLORS.length];
                         return (
-                            <div key={team.id} className="pl-3" style={{ borderLeft: `2px solid ${teamColor}` }}>
-                                <h3 className="font-serif font-semibold mb-2" style={{ fontSize: '15px', color: 'var(--text-primary)' }}>{team.name}</h3>
-                                <div className="space-y-1.5 text-sm">
-                                    <div className="flex justify-between">
-                                        <span style={{ color: 'var(--text-muted)' }}>Азыркы орточо</span>
-                                        <span className="font-semibold font-variant-tabular" style={{ color: 'var(--text-primary)' }}>{currentScore.toFixed(1)}</span>
+                            <div key={h.id} className="card p-4 sm:p-5 relative overflow-hidden">
+                                <div className="absolute left-0 top-0 bottom-0 w-1" style={{ backgroundColor: color }} />
+                                <div className="flex items-start justify-between gap-3">
+                                    <div className="min-w-0">
+                                        <h3 className="font-display font-bold text-[1.35rem] truncate" style={{ color: 'var(--text-primary)' }}>{h.name}</h3>
+                                        <div className="text-[0.75rem]" style={{ color: 'var(--text-muted)' }}>{counted.length} апта катышты</div>
                                     </div>
-                                    <div className="flex justify-between">
-                                        <span style={{ color: 'var(--text-muted)' }}>Өзгөрүү</span>
-                                        <span className="font-semibold font-variant-tabular" style={{ color: change >= 0 ? (isDark ? '#199e70' : '#1baf7a') : (isDark ? '#e66767' : '#e34948') }}>
-                                            {change >= 0 ? '+' : ''}{change.toFixed(1)}
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span style={{ color: 'var(--text-muted)' }}>Апталар</span>
-                                        <span className="font-semibold font-variant-tabular" style={{ color: 'var(--text-primary)' }}>{teamProgress.length}</span>
-                                    </div>
+                                    <Sparkline values={counted.map(w => w.avg)} color={color} width={80} height={30} />
                                 </div>
+                                <dl className="grid grid-cols-3 gap-2 mt-4">
+                                    <div><dt className="eyebrow">Азыр</dt><dd className="font-display font-bold text-[1.35rem] tabular" style={{ color: 'var(--text-primary)' }}>{cur ? fmt(cur.avg) : '—'}</dd></div>
+                                    <div><dt className="eyebrow">Өзгөрүү</dt><dd className="font-display font-bold text-[1.35rem] tabular" style={{ color: change > 0 ? 'var(--success)' : change < 0 ? 'var(--danger)' : 'var(--text-muted)' }}>{change > 0 ? '+' : ''}{fmt(change)}</dd></div>
+                                    <div><dt className="eyebrow">Рекорд</dt><dd className="font-display font-bold text-[1.35rem] tabular" style={{ color: 'var(--text-primary)' }}>{fmt(best)}</dd></div>
+                                </dl>
                             </div>
                         );
                     })}
                 </div>
-            </div>
-        </>
+            </section>
+        </div>
     );
 };

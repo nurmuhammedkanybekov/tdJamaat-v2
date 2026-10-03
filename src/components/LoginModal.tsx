@@ -1,6 +1,6 @@
 import { useModal } from '../hooks/useModal';
 import React, { useEffect, useState } from 'react';
-import { Lock, LogIn, X, Home, ShieldCheck } from 'lucide-react';
+import { LogIn, X, Home, ShieldCheck } from 'lucide-react';
 import { fetchHouses } from '../services/dataService';
 import { signInAsHouse, signInAsAdmin } from '../services/authService';
 import type { House } from '../types';
@@ -62,14 +62,14 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onSuccess, onClose }) =>
     const inputStyle: React.CSSProperties = {
         backgroundColor: 'var(--surface)',
         border: '1px solid var(--border)',
-        borderRadius: '3px',
+        borderRadius: 'var(--radius-sm)',
         color: 'var(--text-primary)'
     };
 
     return (
         <div className="fixed inset-0 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4 pt-[max(1rem,env(safe-area-inset-top))] overflow-y-auto overscroll-contain" style={{ backgroundColor: 'color-mix(in oklab, var(--text-primary) 45%, transparent)' }}>
             <div className="max-w-md w-full relative">
-            <div className="p-6 sm:p-8 relative" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '4px' }}>
+            <div className="p-6 sm:p-8 relative" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '14px' }}>
                 <button
                     onClick={onClose}
                     aria-label="Жабуу"
@@ -80,8 +80,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onSuccess, onClose }) =>
                 </button>
 
                 <div className="flex flex-col items-center mb-7">
-                    <Lock className="w-6 h-6 mb-3" style={{ color: 'var(--accent)' }} />
-                    <h2 className="font-serif text-2xl font-semibold" style={{ color: 'var(--text-primary)' }}>Кирүү</h2>
+                    <img src="/favicon.svg" alt="" className="w-14 h-14 mb-3 rounded-[14px]" style={{ boxShadow: 'var(--shadow-card)' }} />
+                    <h2 className="font-display text-[2rem] font-bold" style={{ color: 'var(--text-primary)' }}>Кирүү</h2>
                     <p className="text-center mt-1.5 text-sm" style={{ color: 'var(--text-muted)' }}>
                         Маалымат киргизүү үчүн сыр сөзүңүздү жазыңыз
                     </p>
@@ -147,8 +147,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onSuccess, onClose }) =>
                             autoFocus={!window.matchMedia('(pointer: coarse)').matches}
                         />
                         {error && (
-                            <p className="text-sm mt-2 ml-1 flex items-center gap-1.5" style={{ color: '#e34948' }}>
-                                <span className="inline-block w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#e34948' }} />
+                            <p className="text-sm mt-2 ml-1 flex items-center gap-1.5" style={{ color: 'var(--danger)' }}>
+                                <span className="inline-block w-1.5 h-1.5 rounded-full" style={{ backgroundColor: 'var(--danger)' }} />
                                 {error}
                             </p>
                         )}
@@ -158,7 +158,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onSuccess, onClose }) =>
                         type="submit"
                         disabled={loading}
                         className="w-full py-3 font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-60"
-                        style={{ backgroundColor: 'var(--accent)', color: '#ffffff', borderRadius: '3px', letterSpacing: '0.02em', fontSize: '13px' }}
+                        style={{ backgroundColor: 'var(--accent)', color: 'var(--surface)', borderRadius: 'var(--radius-sm)', letterSpacing: '0.02em', fontSize: '13px' }}
                     >
                         <LogIn className="w-4 h-4" />
                         {loading ? 'Кирүүдө…' : 'Кирүү'}

@@ -75,11 +75,15 @@ export interface Team {
     name: string;
     miniCard: MiniCard;
     members: TeamMember[];
+    /** The house has saved something for this week (members or mini-card). */
+    submitted: boolean;
 }
 
 export interface WeekData {
     weekNumber: number;
     date: string;
+    /** Admin locked this week: leaders can no longer edit it. */
+    locked: boolean;
     teams: Team[];
 }
 
