@@ -378,7 +378,22 @@ const PHOTO_BUCKET = 'member-photos';
 
 export const uploadMemberPhoto = async (houseId: string, memberId: string, file: File): Promise<string> => {
     const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
-    const path = `${houseId}/${memberId}.${ext}`;
+    const filename = `${memberId}.${ext}`;
+    const path = `${houseId}/${filename}`;
+
+    // A member's photo is saved as "<memberId>.<ext>", so `upsert` only
+    // overwrites a file at that exact path. If they last uploaded a .jpg and
+    // now upload a .png, the path changes and the old .jpg would otherwise
+    // sit in storage forever. Clean up any other file for this member first.
+    try {
+        const { data: existing } = await supabase.storage.from(PHOTO_BUCKET).list(houseId);
+        const stale = (existing ?? [])
+            .filter(entry => entry.name.startsWith(`${memberId}.`) && entry.name !== filename)
+            .map(entry => `${houseId}/${entry.name}`);
+        if (stale.length > 0) await supabase.storage.from(PHOTO_BUCKET).remove(stale);
+    } catch {
+        // Non-fatal — worst case is one leftover old file, not a failed upload.
+    }
 
     const { error: uploadError } = await supabase.storage
         .from(PHOTO_BUCKET)
