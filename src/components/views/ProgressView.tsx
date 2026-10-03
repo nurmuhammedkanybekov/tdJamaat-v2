@@ -86,7 +86,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ data, insights, onOp
                 </div>
             </section>
 
-            <div className="grid gap-8 xl:grid-cols-2">
+            <div className="grid grid-cols-1 gap-8 xl:grid-cols-2">
                 <section className="card card-pad">
                     <SectionHeader eyebrow="Ар бир аптадагы орун" title="Орундардын жарышы" />
                     <div className="-ml-3 sm:ml-0">
@@ -129,7 +129,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ data, insights, onOp
 
             <section>
                 <SectionHeader eyebrow="Үйлөр" title="Апталар боюнча статистика" />
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 stagger">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 stagger">
                     {houses.map(h => {
                         const counted = h.weeks.filter(w => w.submitted);
                         const cur = counted[counted.length - 1];

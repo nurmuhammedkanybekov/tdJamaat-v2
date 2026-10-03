@@ -5,7 +5,7 @@ export const perfColor = (pct: number) =>
     pct >= 100 ? 'var(--gold)' : pct >= 75 ? 'var(--text-primary)' : pct >= 50 ? 'var(--text-secondary)' : 'var(--danger)';
 
 /** Axis tick style for Recharts, in the site's text font. */
-export const axisTick = { fill: 'var(--text-muted)', fontSize: 11, fontFamily: 'Spectral, Georgia, serif' };
+export const axisTick = { fill: 'var(--text-muted)', fontSize: 11, fontFamily: 'Inter, system-ui, sans-serif' };
 
 /** Y-axis range for score charts: starts a little below the lowest value
  *  instead of at 0, so differences between houses are actually visible. */

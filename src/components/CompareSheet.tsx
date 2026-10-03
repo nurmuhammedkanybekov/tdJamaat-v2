@@ -72,9 +72,9 @@ const Row: React.FC<{ row: CompareRow }> = ({ row }) => {
     return (
         <div className="py-3.5" style={{ borderTop: '1px solid var(--border)' }}>
             <div className="grid grid-cols-[1fr_auto_1fr] items-baseline gap-3">
-                <span className="text-right font-display text-[1.35rem] sm:text-[1.6rem] leading-none tabular" style={{ color: w === 'a' ? COLOR_A : 'var(--text-secondary)' }}>{show(row, row.a)}</span>
+                <span className="text-right font-display text-[1.35rem] sm:text-[1.6rem] leading-none" style={{ color: w === 'a' ? COLOR_A : 'var(--text-secondary)' }}>{show(row, row.a)}</span>
                 <span className="eyebrow text-center w-[7.5rem] sm:w-[10rem]">{row.label}</span>
-                <span className="text-left font-display text-[1.35rem] sm:text-[1.6rem] leading-none tabular" style={{ color: w === 'b' ? COLOR_B : 'var(--text-secondary)', fontWeight: w === 'b' ? 500 : undefined }}>{show(row, row.b)}</span>
+                <span className="text-left font-display text-[1.35rem] sm:text-[1.6rem] leading-none" style={{ color: w === 'b' ? COLOR_B : 'var(--text-secondary)', fontWeight: w === 'b' ? 500 : undefined }}>{show(row, row.b)}</span>
             </div>
             {row.a !== null && row.b !== null && <SplitBar a={bar.a} b={bar.b} winner={w} />}
         </div>
