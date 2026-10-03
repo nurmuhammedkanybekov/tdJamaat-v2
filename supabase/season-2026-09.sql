@@ -43,7 +43,7 @@ insert into season_settings (id, role_targets, activity_targets) values (
      "zam":    {"К-К": 10, "СВТ": 1400, "КТП": 40, "ТХЖ": 1, "ДТА": 1, "ИСТГ": 350, "НФ": 7, "ТСП": 7},
      "member": {"К-К": 7,  "СВТ": 700,  "КТП": 30, "ТХЖ": 1, "ДТА": 1, "ИСТГ": 200, "НФ": 7, "ТСП": 7}
    }'::jsonb,
-  '{"БГМДТ": 7, "КПТ": 7, "И-Н.2": 7, "КИТЕП": 7, "СПОРТ": 1, "ТСПХ": 7, "БАБХ": 7}'::jsonb
+  '{"БГМДТ": 7, "КПТ": 7, "И-Н.2": 7, "КИТЕП": 5, "СПОРТ": 1, "ТСПХ": 7, "БАБХ": 7}'::jsonb
 )
 on conflict (id) do nothing;   -- re-running never overwrites minimums you've since changed
 

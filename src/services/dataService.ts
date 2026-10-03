@@ -18,7 +18,7 @@ export const DEFAULT_MINICARD: MiniCard = {
     'БГМДТ': { actual: 0, target: 7 },
     'КПТ': { actual: 0, target: 7 },
     'И-Н.2': { actual: 0, target: 7 },
-    'КИТЕП': { actual: 0, target: 7 },
+    'КИТЕП': { actual: 0, target: 5 },
     'СПОРТ': { actual: 0, target: 1 },
     'ТСПХ': { actual: 0, target: 7 },
     'БАБХ': { actual: 0, target: 7 }

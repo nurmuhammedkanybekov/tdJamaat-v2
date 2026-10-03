@@ -41,7 +41,7 @@ export const Header: React.FC<HeaderProps> = ({
                         tdJamaat
                     </h1>
                     <p className="text-[12.5px] mt-1" style={{ color: 'var(--text-muted)' }}>
-                        Үйлөр боюнча рейтинг системасы — жааматтын ишмердүүлүгүн талдоо
+                        Жамааттын активдүүлүгүн талдоого багытталган үйлөрдүн рейтинги
                     </p>
                 </div>
 

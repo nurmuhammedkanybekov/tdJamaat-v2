@@ -1,13 +1,17 @@
 import type { MetricValues, TeamMember, Team } from '../types';
 
-// Scoring weights.
+// Scoring weights. A weight is the points earned at exactly 100% of target.
+// СВТ and ИСТГ are kept low on purpose: their targets are large counts that
+// are quick to reach, so even with no cap on the percentage they can't
+// outweigh the other metrics. (They were 0.1, which made 100% worth almost
+// nothing.)
 export const weights: MetricValues = {
     'К-К': 45.0,
-    'СВТ': 0.1,
+    'СВТ': 1.0,
     'КТП': 35.0,
     'ТХЖ': 20.0,
     'ДТА': 30.0,
-    'ИСТГ': 0.1,
+    'ИСТГ': 1.0,
     'НФ': 20.0,
     'ТСП': 25.0
 };
