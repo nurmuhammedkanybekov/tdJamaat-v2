@@ -110,26 +110,29 @@ say `"ok": true`.
 
 ## 7. Running the season (weekly routine)
 
-- **Admin, at the start of each week:** log in → **Маалымат кошуу** →
-  **Жаңы апта** (tap twice to confirm). Leaders can only fill in weeks the
-  admin has opened.
+- **Admin, at the start of each week:** log in → menu → **Админ панели**
+  → **Апталар** → **Жаңы апта ачуу** (or **Маалымат кошуу** → **Жаңы
+  апта**, tap twice to confirm). Leaders can only fill in weeks the admin
+  has opened. A finished week can be locked on the same tab.
 - **House leaders:** log in → **Маалымат кошуу** → the form opens on the
   latest week → enter results (**Факт**) → **Сактоо**. Targets (**План**)
   are locked for leaders.
 - **Custom target for one person** (e.g. illness): admin opens that house
   and week, changes the **План** box, saves. It carries forward to later
   weeks that house enters.
-- **Changing a role minimum for everyone:** edit the `season_settings`
-  row in Supabase (Table Editor). Applies to targets from then on; saved
-  weeks keep the target they were saved with.
-- **Backup:** admin → **Маалымат кошуу** → **Камдык көчүрмө** downloads
-  the whole database as a JSON file. Worth doing once a week.
+- **Changing a role minimum for everyone:** **Админ панели** →
+  **Максаттар**. Applies to targets from then on (optionally from a chosen
+  week); saved weeks keep the target they were saved with.
+- **Backup:** **Админ панели** → **Камдык көчүрмө** downloads the whole
+  database as a JSON file. Worth doing once a week.
 - **End of season:** admin → menu → **Админ панели** → **Сезон** → end the season and
   name the next one. The finished season's weeks are locked (optional) and
   stay in the archive; the next season starts at week 1. Then, in
   **Курам**, move people to their new houses and set their roles, and
   open week 1 of the new season.
-- **Roster changes mid-season:** add a member (or set `active = false`)
-  in the `members` table. Past weeks keep the roster they actually had, so
-  a new member never counts as a zero in weeks before they joined.
+- **Roster changes mid-season:** **Админ панели** → **Курам**: add a
+  member, change a name, role or house, or take someone off the roster
+  (their history stays). Past weeks keep the roster they actually had, so
+  a new member never counts as a zero in weeks before they joined. A new
+  house also needs its own login: see step 4.
 
