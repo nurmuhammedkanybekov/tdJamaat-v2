@@ -25,6 +25,8 @@ export const house = (id: string, members: TeamMember[], opts: { submitted?: boo
     id, name: id, members, miniCard: opts.miniCard ?? card(0), submitted: opts.submitted ?? true
 });
 
-export const week = (weekNumber: number, teams: Team[]): WeekData => ({ weekNumber, date: '', locked: false, teams });
+export const week = (weekNumber: number, teams: Team[], seasonId = 1, seasonStart = 1): WeekData => ({
+    weekNumber, globalWeek: weekNumber, seasonId, seasonWeek: weekNumber - seasonStart + 1, date: '', locked: false, teams
+});
 
-export const dataFile = (...weeks: WeekData[]): DataFile => ({ weeks });
+export const dataFile = (...weeks: WeekData[]): DataFile => ({ weeks, seasons: [{ id: 1, name: '2026–27', firstWeek: 1, lastWeek: null }] });

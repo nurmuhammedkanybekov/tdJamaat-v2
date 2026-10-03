@@ -27,6 +27,10 @@ interface AppHeaderProps {
     /** The big centered statement: who leads and by how much. */
     monument?: { kicker: string; title: string; value: string; sub: string };
     seasonLabel?: string;
+    /** Name of the season on screen. */
+    seasonName?: string;
+    /** Season picker, shown when there is more than one season. */
+    season?: { options: Array<{ id: number; name: string }>; selectedId: number; onChange: (id: number) => void };
 }
 
 type MenuItem = { key: string; label: string; icon: React.ComponentType<{ className?: string }>; onClick?: () => void; href?: string; tone?: 'danger' };
@@ -88,7 +92,7 @@ const IconButton: React.FC<{ label: string; onClick: () => void; children: React
 
 export const AppHeader: React.FC<AppHeaderProps> = ({
     authUser, houseName, theme, onToggleTheme, onLogin, onLogout, onDataEntry, onFormula, onAdmin, onHistory, onShare,
-    installMode, onInstall, week, monument, seasonLabel
+    installMode, onInstall, week, monument, seasonLabel, seasonName, season
 }) => {
     const isAdmin = authUser?.role === 'admin';
     const who = isAdmin ? 'Админ' : houseName ?? 'Үй жетекчиси';
@@ -144,6 +148,22 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                 <div className="flex flex-col items-center text-center pt-6 sm:pt-10 pb-10 sm:pb-14">
                     <Crown className="draw-in w-[min(19rem,78%)] h-auto" style={{ color: 'var(--gold)' }} />
 
+                    {season && (
+                        <label className="relative mt-3 inline-flex items-center gap-2 eyebrow cursor-pointer" style={{ color: 'var(--text-muted)' }}>
+                            Сезон
+                            <select
+                                value={season.selectedId}
+                                onChange={e => season.onChange(Number(e.target.value))}
+                                aria-label="Сезонду тандоо"
+                                className="appearance-none bg-transparent pr-4 outline-none cursor-pointer"
+                                style={{ color: 'var(--gold)', letterSpacing: 'inherit', textTransform: 'inherit', font: 'inherit' }}
+                            >
+                                {season.options.map(o => <option key={o.id} value={o.id} style={{ color: '#141413' }}>{o.name}</option>)}
+                            </select>
+                            <ChevronRight className="w-3 h-3 rotate-90 absolute right-0 pointer-events-none" style={{ color: 'var(--gold)' }} />
+                        </label>
+                    )}
+
                     {week ? (
                         <div className="flex items-center gap-4 mt-3">
                             <button onClick={week.onPrev} disabled={!week.canPrev} aria-label="Мурунку апта" className="w-9 h-9 inline-flex items-center justify-center rounded-full transition-colors disabled:opacity-20 hover:text-[var(--gold)]" style={{ border: '1px solid var(--border-strong)', color: 'var(--text-secondary)' }}>
@@ -158,7 +178,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                             </button>
                         </div>
                     ) : (
-                        <div className="eyebrow mt-3" style={{ color: 'var(--gold)' }}>Сезон 2026–27</div>
+                        !season && <div className="eyebrow mt-3" style={{ color: 'var(--gold)' }}>Сезон {seasonName ?? ''}</div>
                     )}
 
                     {monument ? (

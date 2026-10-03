@@ -5,6 +5,7 @@ import type { AuthUser } from '../services/authService';
 import type { AuditEntry } from '../services/dataService';
 import { fetchAuditLog } from '../services/dataService';
 import { Sheet } from './ui';
+import { weekLabel } from '../utils/seasons';
 
 interface HistorySheetProps {
     authUser: AuthUser;
@@ -121,7 +122,7 @@ export const HistorySheet: React.FC<HistorySheetProps> = ({ authUser, data, onCl
                                                         <span className="text-[0.75rem] tabular flex-shrink-0" style={{ color: 'var(--text-muted)' }}>{timeLabel(e.changedAt)}</span>
                                                     </div>
                                                     <div className="text-[0.76rem] flex items-center gap-1.5 flex-wrap" style={{ color: 'var(--text-muted)' }}>
-                                                        <span>{e.weekNumber}-апта</span>·
+                                                        <span>{weekLabel(data, e.weekNumber)}</span>·
                                                         {e.tableName === 'house_activity' && <><span>{houseName.get(e.houseId ?? '') ?? ''}</span>·</>}
                                                         <span className="inline-flex items-center gap-1">{actorIsAdmin ? <ShieldCheck className="w-3 h-3" /> : <Home className="w-3 h-3" />}{actor}</span>·
                                                         <span>{e.action === 'INSERT' ? 'биринчи жолу киргизилди' : e.action === 'DELETE' ? 'өчүрүлдү' : 'өзгөртүлдү'}</span>

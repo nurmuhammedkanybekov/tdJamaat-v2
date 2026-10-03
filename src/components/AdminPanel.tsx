@@ -7,6 +7,8 @@ import { requireActiveSession } from '../services/authService';
 import { METRICS, ROLE_LABEL } from '../utils/insights';
 import { NumberInput } from './NumberInput';
 import { Sheet } from './ui';
+import { RosterTab, SeasonTab } from './AdminSeason';
+import { weekLabel } from '../utils/seasons';
 
 interface AdminPanelProps {
     data: DataFile;
@@ -14,7 +16,7 @@ interface AdminPanelProps {
     onChanged: () => void;
 }
 
-type Tab = 'weeks' | 'targets' | 'backup';
+type Tab = 'weeks' | 'season' | 'roster' | 'targets' | 'backup';
 const ROLES: Role[] = ['imam', 'zam', 'member'];
 const inputStyle: React.CSSProperties = { backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 6, color: 'var(--text-primary)' };
 
@@ -36,7 +38,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
     const [roleTargets, setRoleTargets] = useState<Record<Role, MetricValues>>(DEFAULT_TARGETS);
     const [cardTargets, setCardTargets] = useState<Record<keyof MiniCard, number>>(() => Object.fromEntries(Object.entries(DEFAULT_MINICARD).map(([k, v]) => [k, v.target])) as Record<keyof MiniCard, number>);
     const [applyExisting, setApplyExisting] = useState(false);
-    const latestWeek = Math.max(...data.weeks.map(w => w.weekNumber));
+    const latestWeek = data.weeks.length ? Math.max(...data.weeks.map(w => w.globalWeek)) : 0;
+    const label = (n: number) => weekLabel(data, n);
     const [applyFrom, setApplyFrom] = useState(latestWeek);
 
     useEffect(() => {
@@ -60,7 +63,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
         }
     };
 
-    const tabs: Array<[Tab, string]> = [['weeks', 'Апталар'], ['targets', 'Максаттар (план)'], ['backup', 'Камдык көчүрмө']];
+    const tabs: Array<[Tab, string]> = [['weeks', 'Апталар'], ['season', 'Сезон'], ['roster', 'Курам'], ['targets', 'Максаттар'], ['backup', 'Камдык көчүрмө']];
 
     return (
         <Sheet title="Админ панели" onClose={onClose} width="50rem">
@@ -79,18 +82,18 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
                     <div className="card card-pad mb-5 flex flex-col sm:flex-row sm:items-center gap-3">
                         <div className="flex-1">
                             <div className="font-bold" style={{ color: 'var(--text-primary)' }}>Жаңы апта ачуу</div>
-                            <p className="text-[0.8rem]" style={{ color: 'var(--text-muted)' }}>Ачылгандан кийин үй жетекчилери {latestWeek + 1}-аптага маалымат киргизе алышат.</p>
+                            <p className="text-[0.8rem]" style={{ color: 'var(--text-muted)' }}>Ачылгандан кийин үй жетекчилери {label(latestWeek + 1)} үчүн маалымат киргизе алышат.</p>
                         </div>
                         <button
                             className={`btn ${confirmOpen ? 'btn-gold' : 'btn-primary'}`}
                             disabled={busy === 'open'}
                             onClick={() => {
                                 if (!confirmOpen) { setConfirmOpen(true); return; }
-                                run('open', async () => { await openWeek(latestWeek + 1); setConfirmOpen(false); onChanged(); return `${latestWeek + 1}-апта ачылды.`; });
+                                run('open', async () => { await openWeek(latestWeek + 1); setConfirmOpen(false); onChanged(); return `${label(latestWeek + 1)} ачылды.`; });
                             }}
                         >
                             {busy === 'open' ? <Loader2 className="w-4 h-4 animate-spin" /> : <CalendarPlus className="w-4 h-4" />}
-                            {confirmOpen ? `${latestWeek + 1}-аптаны ачуу — ырастаңыз` : `${latestWeek + 1}-аптаны ачуу`}
+                            {confirmOpen ? `${label(latestWeek + 1)}: ачууну ырастаңыз` : `Ачуу: ${label(latestWeek + 1)}`}
                         </button>
                     </div>
 
@@ -101,21 +104,21 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
                         {[...data.weeks].reverse().map((w, i) => {
                             const submitted = w.teams.filter(t => t.submitted).length;
                             return (
-                                <li key={w.weekNumber} className="flex items-center gap-3 px-4 py-3" style={{ borderTop: i ? '1px solid var(--border)' : undefined }}>
+                                <li key={w.globalWeek} className="flex items-center gap-3 px-4 py-3" style={{ borderTop: i ? '1px solid var(--border)' : undefined }}>
                                     <div className="flex-1 min-w-0">
-                                        <div className="font-display font-bold text-[1.2rem]" style={{ color: 'var(--text-primary)' }}>{w.weekNumber}-апта</div>
+                                        <div className="font-display font-bold text-[1.2rem]" style={{ color: 'var(--text-primary)' }}>{label(w.globalWeek)}</div>
                                         <div className="text-[0.76rem]" style={{ color: submitted === w.teams.length ? 'var(--success)' : 'var(--text-muted)' }}>{submitted} / {w.teams.length} үй киргизди</div>
                                     </div>
                                     <button
                                         className={`btn ${w.locked ? 'btn-gold' : 'btn-ghost'}`}
-                                        disabled={busy === `lock${w.weekNumber}`}
-                                        onClick={() => run(`lock${w.weekNumber}`, async () => {
-                                            await setWeekLocked(w.weekNumber, !w.locked);
+                                        disabled={busy === `lock${w.globalWeek}`}
+                                        onClick={() => run(`lock${w.globalWeek}`, async () => {
+                                            await setWeekLocked(w.globalWeek, !w.locked);
                                             onChanged();
-                                            return w.locked ? `${w.weekNumber}-апта ачылды — жетекчилер кайра өзгөртө алат.` : `${w.weekNumber}-апта кулпуланды.`;
+                                            return w.locked ? `${label(w.globalWeek)} ачылды — жетекчилер кайра өзгөртө алат.` : `${label(w.globalWeek)} кулпуланды.`;
                                         })}
                                     >
-                                        {busy === `lock${w.weekNumber}` ? <Loader2 className="w-4 h-4 animate-spin" /> : w.locked ? <Lock className="w-4 h-4" /> : <LockOpen className="w-4 h-4" />}
+                                        {busy === `lock${w.globalWeek}` ? <Loader2 className="w-4 h-4 animate-spin" /> : w.locked ? <Lock className="w-4 h-4" /> : <LockOpen className="w-4 h-4" />}
                                         {w.locked ? 'Кулпуланган' : 'Ачык'}
                                     </button>
                                 </li>
@@ -124,6 +127,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
                     </ol>
                 </div>
             )}
+
+            {tab === 'season' && <SeasonTab data={data} busy={busy} run={run} onChanged={onChanged} />}
+            {tab === 'roster' && <RosterTab busy={busy} run={run} onChanged={onChanged} />}
 
             {tab === 'targets' && (
                 <div className="px-4 sm:px-6 pb-6">
@@ -182,7 +188,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
                                     {applyExisting && (
                                         <span className="flex items-center gap-2 mt-2">
                                             <select value={applyFrom} onChange={e => setApplyFrom(Number(e.target.value))} className="px-2 py-1.5" style={inputStyle} onClick={e => e.stopPropagation()}>
-                                                {data.weeks.map(w => <option key={w.weekNumber} value={w.weekNumber}>{w.weekNumber}-апта</option>)}
+                                                {data.weeks.map(w => <option key={w.globalWeek} value={w.globalWeek}>{label(w.globalWeek)}</option>)}
                                             </select>
                                             жана андан кийинки бардык апталар (жеке ыңгайлаштырылган пландар да алмашат)
                                         </span>
@@ -198,7 +204,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
                                     let msg = 'Пландар сакталды.';
                                     if (applyExisting) {
                                         const r = await applyTargetsFromWeek(applyFrom, roleTargets, cardTargets);
-                                        msg += ` ${applyFrom}-аптадан баштап ${r.metricRows} жеке жана ${r.activityRows} мини-карта жазуусу жаңырды.`;
+                                        msg += ` ${label(applyFrom)} жана андан кийин: ${r.metricRows} жеке жана ${r.activityRows} мини-карта жазуусу жаңырды.`;
                                     }
                                     onChanged();
                                     return msg;

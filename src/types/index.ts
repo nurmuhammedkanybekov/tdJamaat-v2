@@ -79,8 +79,24 @@ export interface Team {
     submitted: boolean;
 }
 
+export interface Season {
+    id: number;
+    name: string;
+    /** First week number (database numbering) of this season. */
+    firstWeek: number;
+    /** Last week number, or null while the season is running. */
+    lastWeek: number | null;
+}
+
 export interface WeekData {
+    /** Week number as shown. In a season view this is the week within the season (1, 2, …). */
     weekNumber: number;
+    /** Week number in the database (keeps counting across seasons). Use this for saving/locking. */
+    globalWeek: number;
+    /** Season this week belongs to. */
+    seasonId: number;
+    /** Week number within its season (1, 2, …). */
+    seasonWeek: number;
     date: string;
     /** Admin locked this week: leaders can no longer edit it. */
     locked: boolean;
@@ -89,4 +105,6 @@ export interface WeekData {
 
 export interface DataFile {
     weeks: WeekData[];
+    /** Every season, oldest first. */
+    seasons: Season[];
 }

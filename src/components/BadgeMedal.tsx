@@ -94,6 +94,13 @@ const Emblem: React.FC<{ icon: BadgeIcon; clipId: string }> = ({ icon, clipId })
                 <path d="M14 76 L38 40 L50 56 L62 34 L86 76" /><path d="M32 49 L38 53 L44 49 M56 43 L62 47 L68 43" strokeWidth={1.4} />
                 <circle cx="76" cy="24" r="5" /><path d="M14 82 H86" strokeWidth={1.2} />
             </g>;
+        case 'tunduk': // Толук сезон — the yurt crown: a whole season under one roof
+            return <g {...L} strokeWidth={2}>
+                <circle cx="50" cy="50" r="32" /><circle cx="50" cy="50" r="26" strokeWidth={1.2} />
+                <path d="M41 22 Q35 50 41 78 M50 21 V79 M59 22 Q65 50 59 78 M22 41 Q50 35 78 41 M21 50 H79 M22 59 Q50 65 78 59" strokeWidth={1.6} />
+            </g>;
+        case 'medallion': // Сезондун үйү — eight horns around one center
+            return <g>{Array.from({ length: 8 }).map((_, i) => <g key={i}>{horn(`rotate(${i * 45} 50 50) translate(39 4) scale(0.22)`, 8)}</g>)}<circle cx="50" cy="50" r="9" {...L} strokeWidth={2} /></g>;
         default:
             return <g {...L} strokeWidth={2.2}><path d={diamond(50, 50, 22)} /></g>;
     }

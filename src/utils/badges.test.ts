@@ -82,3 +82,28 @@ describe('awards', () => {
         for (const a of awardsOf(data)) expect(a.reason).toMatch(/6-апта/);
     });
 });
+
+describe('season finale awards', () => {
+    const season = (closed: boolean) => {
+        const weeks = [1, 2, 3].map(n => week(n, [
+            house('A', [person('steady', 'member', 1), person('gap', 'member', n === 2 ? 0 : 1)], { miniCard: card(1) }),
+            house('B', [person('b', 'member', 0.6)])
+        ]));
+        return computeAwards(dataFile(...weeks), buildInsights(dataFile(...weeks)), { seasonClosed: closed, seasonName: '2026–27' });
+    };
+
+    it('nothing is given while the season is still running (its length is unknown)', () => {
+        expect(season(false).filter(a => a.def.id === 'full-season' || a.def.id === 'house-season')).toHaveLength(0);
+    });
+
+    it('"full season" goes to people active in every week, whatever the season length', () => {
+        const full = season(true).filter(a => a.def.id === 'full-season').map(a => a.holderId);
+        expect(full.sort()).toEqual(['b', 'steady']); // 'gap' missed week 2
+    });
+
+    it('"house of the season" goes to the best average rating', () => {
+        const hs = season(true).filter(a => a.def.id === 'house-season');
+        expect(hs.map(a => a.holderId)).toEqual(['A']);
+        expect(hs[0].reason).toMatch(/2026–27/);
+    });
+});

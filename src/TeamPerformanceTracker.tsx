@@ -12,6 +12,7 @@ import type { Theme } from './theme';
 import { useInstallPrompt } from './pwa';
 import { buildInsights, weekOf } from './utils/insights';
 import { computeAwards } from './utils/badges';
+import { defaultSeasonId, seasonView } from './utils/seasons';
 
 import { AppHeader } from './components/AppHeader';
 import { ViewNavigator } from './components/ViewNavigator';
@@ -43,15 +44,17 @@ const hashFor = (view: ActiveView, memberId?: string | null) => `#/${view}${memb
 const fmt = (n: number) => (Math.round(n * 10) / 10).toString();
 
 const TeamPerformanceTracker: React.FC = () => {
-    const [data, setData] = useState<DataFile | null>(null);
+    const [allData, setAllData] = useState<DataFile | null>(null);
+    const [seasonChoice, setSeasonChoice] = useState<number | null>(null);
     const [houses, setHouses] = useState<House[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     const [route, setRoute] = useState(parseHash);
     const activeView = route.view;
-    const [selectedWeek, setSelectedWeek] = useState(0);
-    const [selectedPeriod, setSelectedPeriod] = useState(0);
+    // null = "follow the latest" (a new week appears → it's shown automatically)
+    const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
+    const [selectedPeriod, setSelectedPeriod] = useState<number | null>(null);
     const [modal, setModal] = useState<Modal>(null);
     const [dataEntryHouseId, setDataEntryHouseId] = useState<string | null>(null);
     const pushedProfile = useRef(false);
@@ -100,23 +103,12 @@ const TeamPerformanceTracker: React.FC = () => {
     // `silent`: refresh in the background (periodic refresh, after a save,
     // after the admin opens a week) without swapping the page for the
     // loading screen — which would also unmount an open form.
-    const weeksCount = useRef(0);
     const loadData = useCallback(async (silent = false) => {
         try {
             if (!silent) setLoading(true);
             const [df, houseList] = await Promise.all([fetchDataFile(), fetchHouses()]);
-            const prevCount = weeksCount.current;
-            weeksCount.current = df.weeks.length;
-            setData(df);
+            setAllData(df);
             setHouses(houseList);
-            if (df.weeks.length > 0) {
-                const last = df.weeks.length - 1;
-                // First load → latest week. A new week appeared → follow it if
-                // the viewer was looking at the latest one.
-                if (!silent) setSelectedWeek(last);
-                else setSelectedWeek(sel => (sel >= prevCount - 1 ? last : Math.min(sel, last)));
-                if (!silent) setSelectedPeriod(Math.max(0, Math.ceil(df.weeks.length / 4) - 1));
-            }
             setError(null);
         } catch (err) {
             if (!silent) setError('Маалыматтарды жүктөөдө ката кетти. Сураныч, интернет байланышын текшериңиз же кийинчерээк кайра аракет кылыңыз.');
@@ -153,11 +145,18 @@ const TeamPerformanceTracker: React.FC = () => {
         };
     }, [loadData]);
 
+    // The season on screen (default: the running one, or the latest with
+    // weeks). Everything below works on that season only, numbered from 1.
+    const seasonId = allData ? (seasonChoice !== null && allData.seasons.some(x => x.id === seasonChoice) ? seasonChoice : defaultSeasonId(allData)) : null;
+    const data = useMemo(() => (allData && seasonId !== null ? seasonView(allData, seasonId) : null), [allData, seasonId]);
     const insights = useMemo(() => (data ? buildInsights(data) : null), [data]);
-    const awards = useMemo(() => (data && insights ? computeAwards(data, insights) : []), [data, insights]);
+    const seasonClosed = !!allData?.seasons.find(x => x.id === seasonId && x.lastWeek !== null);
+    const seasonNameForAwards = allData?.seasons.find(x => x.id === seasonId)?.name;
+    const awards = useMemo(() => (data && insights ? computeAwards(data, insights, { seasonClosed, seasonName: seasonNameForAwards }) : []), [data, insights, seasonClosed, seasonNameForAwards]);
+    const chooseSeason = (id: number) => { setSeasonChoice(id); setSelectedWeek(null); setSelectedPeriod(null); };
 
     if (loading) return <LoadingScreen />;
-    if (error || !data || !insights || data.weeks.length === 0) {
+    if (error || !allData || !data || !insights || allData.weeks.length === 0) {
         return (
             <StateCard
                 title={error ? 'Ката' : 'Маалымат жок'}
@@ -167,10 +166,36 @@ const TeamPerformanceTracker: React.FC = () => {
         );
     }
 
-    const weekIndex = Math.min(selectedWeek, data.weeks.length - 1);
-    const currentWeekData = data.weeks[weekIndex];
+    const season = allData.seasons.find(x => x.id === seasonId)!;
+    const seasonPicker = allData.seasons.length > 1 ? { options: allData.seasons.map(x => ({ id: x.id, name: x.name })), selectedId: season.id, onChange: chooseSeason } : undefined;
     const authHouseName = authUser?.houseId ? houses.find(h => h.id === authUser.houseId)?.name ?? null : null;
-    const latestWeekNumber = Math.max(...data.weeks.map(w => w.weekNumber));
+    const latestWeekNumber = Math.max(...allData.weeks.map(w => w.globalWeek));
+
+    // A new season that has no weeks yet: say so, and offer the last one.
+    if (data.weeks.length === 0) {
+        const previous = [...allData.seasons].reverse().find(x => allData.weeks.some(w => w.seasonId === x.id));
+        return (
+            <div className="min-h-screen" style={{ backgroundColor: 'var(--page-plane)' }}>
+                <StateCard
+                    title={`Сезон ${season.name}`}
+                    text="Жаңы сезон даярдалууда. Админ биринчи аптаны ачканда жыйынтыктар ушул жерде чыгат."
+                    action={
+                        <div className="flex flex-wrap gap-2 justify-center">
+                            {previous && <button className="btn btn-ghost" onClick={() => chooseSeason(previous.id)}>Сезон {previous.name}</button>}
+                            {authUser?.role === 'admin' && <button className="btn btn-primary" onClick={() => setModal('admin')}>Админ панели</button>}
+                            {!authUser && <button className="btn btn-ghost" onClick={() => setModal('login')}>Кирүү</button>}
+                        </div>
+                    }
+                />
+                {modal === 'login' && <LoginModal onSuccess={() => setModal(null)} onClose={() => setModal(null)} />}
+                {modal === 'admin' && authUser?.role === 'admin' && <AdminPanel data={allData} onClose={() => setModal(null)} onChanged={() => loadData(true)} />}
+            </div>
+        );
+    }
+
+    const weekIndex = selectedWeek === null ? data.weeks.length - 1 : Math.min(selectedWeek, data.weeks.length - 1);
+    const currentWeekData = data.weeks[weekIndex];
+    const periodIndex = selectedPeriod === null ? Math.max(0, Math.ceil(data.weeks.length / 4) - 1) : selectedPeriod;
     const isWeekly = activeView === 'overview' || activeView === 'teams' || activeView === 'awards';
 
     // The monument: the week's leading house and its average (submitted houses only).
@@ -210,11 +235,13 @@ const TeamPerformanceTracker: React.FC = () => {
                     canPrev: weekIndex > 0,
                     canNext: weekIndex < data.weeks.length - 1,
                     onPrev: () => setSelectedWeek(Math.max(0, weekIndex - 1)),
-                    onNext: () => setSelectedWeek(Math.min(data.weeks.length - 1, weekIndex + 1)),
+                    onNext: () => setSelectedWeek(weekIndex + 1 >= data.weeks.length - 1 ? null : weekIndex + 1),
                     isLatest: weekIndex === data.weeks.length - 1
                 } : undefined}
                 seasonLabel={{ overview: undefined, teams: 'Үйлөр', progress: 'Апталык прогресс', reports: 'Отчёттор', awards: 'Сыйлыктар' }[activeView]}
                 monument={monument}
+                season={seasonPicker}
+                seasonName={season.name}
             />
 
             <ViewNavigator activeView={activeView} setActiveView={setActiveView} />
@@ -236,7 +263,7 @@ const TeamPerformanceTracker: React.FC = () => {
                         />
                     )}
                     {activeView === 'progress' && <ProgressView data={data} insights={insights} onOpenProfile={openProfile} />}
-                    {activeView === 'reports' && <ReportsView data={data} selectedPeriod={selectedPeriod} setSelectedPeriod={setSelectedPeriod} />}
+                    {activeView === 'reports' && <ReportsView data={data} selectedPeriod={periodIndex} setSelectedPeriod={setSelectedPeriod} />}
                     {activeView === 'awards' && <AwardsView data={data} weekIndex={weekIndex} awards={awards} insights={insights} onOpenProfile={openProfile} />}
 
                     <footer className="mt-14">
@@ -263,9 +290,9 @@ const TeamPerformanceTracker: React.FC = () => {
             {modal === 'formula' && <FormulaSheet onClose={() => setModal(null)} />}
             {modal === 'share' && <ShareSheet data={data} weekIndex={weekIndex} insights={insights} onClose={() => setModal(null)} />}
             {modal === 'install' && <InstallSheet onClose={() => setModal(null)} />}
-            {modal === 'history' && authUser && <HistorySheet authUser={authUser} data={data} onClose={() => setModal(null)} />}
+            {modal === 'history' && authUser && <HistorySheet authUser={authUser} data={allData} onClose={() => setModal(null)} />}
             {modal === 'admin' && authUser?.role === 'admin' && (
-                <AdminPanel data={data} onClose={() => setModal(null)} onChanged={() => loadData(true)} />
+                <AdminPanel data={allData} onClose={() => setModal(null)} onChanged={() => loadData(true)} />
             )}
             {modal === 'entry' && authUser && (
                 <DataEntryForm
@@ -279,7 +306,8 @@ const TeamPerformanceTracker: React.FC = () => {
                         loadData(true);
                     }}
                     onWeeksChanged={() => loadData(true)}
-                    lockedWeeks={data.weeks.filter(w => w.locked).map(w => w.weekNumber)}
+                    lockedWeeks={allData.weeks.filter(w => w.locked).map(w => w.globalWeek)}
+                    data={allData}
                 />
             )}
         </div>

@@ -12,7 +12,7 @@ import { METRICS, longestStreak, streakUntil, weekOf } from './insights';
 export type Tier = 'bronze' | 'silver' | 'gold' | 'seal';
 export type BadgeIcon =
     | 'star' | 'podium' | 'target' | 'flame' | 'chain5' | 'zap' | 'leap' | 'steady' | 'rising'
-    | 'crown' | 'moon' | 'unity' | 'card' | 'rocket';
+    | 'crown' | 'moon' | 'unity' | 'card' | 'rocket' | 'tunduk' | 'medallion';
 
 export const TIER_LABEL: Record<Tier, string> = { bronze: 'Коло', silver: 'Күмүш', gold: 'Алтын', seal: 'Мөөр' };
 
@@ -54,18 +54,20 @@ export const BADGES: Record<string, BadgeDef> = {
     'rising': { id: 'rising', scope: 'person', name: 'Өсүү жолу', tier: 'bronze', icon: 'rising', rule: 'Упай катары менен 3 апта өстү.' },
     'steady-4': { id: 'steady-4', scope: 'person', name: 'Туруктуу', tier: 'bronze', icon: 'steady', rule: 'Катары менен 4 апта активдүү (ар бир аптада упай бар).' },
     'steady-8': { id: 'steady-8', scope: 'person', name: 'Ишенимдүү', tier: 'silver', icon: 'steady', rule: 'Катары менен 8 апта активдүү.' },
-    'steady-16': { id: 'steady-16', scope: 'person', name: 'Толук сезон', tier: 'gold', icon: 'steady', rule: 'Катары менен 16 апта активдүү — бүт сезон.' },
+    'steady-16': { id: 'steady-16', scope: 'person', name: 'Ак ниет', tier: 'gold', icon: 'steady', rule: 'Катары менен 16 апта активдүү.' },
+    'full-season': { id: 'full-season', scope: 'person', name: 'Толук сезон', tier: 'seal', icon: 'tunduk', rule: 'Сезон аяктаганда берилет: сезондун ар бир аптасында активдүү болгон адамга.' },
 
     'house-week': { id: 'house-week', scope: 'house', name: 'Аптанын үйү', tier: 'gold', icon: 'crown', rule: 'Аптанын үйлөр рейтингинде 1-орун.' },
     'house-month': { id: 'house-month', scope: 'house', name: 'Айдын үйү', tier: 'seal', icon: 'moon', rule: 'Бүткөн 4-апталык мезгилде эң жогорку орточо рейтинг.' },
     'house-unity': { id: 'house-unity', scope: 'house', name: 'Бир жүрөк', tier: 'gold', icon: 'unity', rule: 'Бир аптада үйдүн ар бир мүчөсү толук планды аткарды.' },
     'house-card': { id: 'house-card', scope: 'house', name: 'Мини-карта устаты', tier: 'silver', icon: 'card', rule: 'Бир аптада мини-картанын 7 ишинин баарында план аткарылды.' },
+    'house-season': { id: 'house-season', scope: 'house', name: 'Сезондун үйү', tier: 'seal', icon: 'medallion', rule: 'Сезон аяктаганда берилет: бүт сезондогу эң жогорку орточо рейтинг.' },
     'house-leap': { id: 'house-leap', scope: 'house', name: 'Үйдүн секириги', tier: 'bronze', icon: 'rocket', rule: 'Аптанын эң чоң рейтинг өсүшү (кеминде +5).' }
 };
 
 const fmt = (n: number) => (Math.round(n * 10) / 10).toString();
 
-export const computeAwards = (data: DataFile, insights: Insights): Award[] => {
+export const computeAwards = (data: DataFile, insights: Insights, opts: { seasonClosed?: boolean; seasonName?: string } = {}): Award[] => {
     const awards: Award[] = [];
     const people = [...insights.members.values()];
     const houses = [...insights.houses.values()];
@@ -103,7 +105,7 @@ export const computeAwards = (data: DataFile, insights: Insights): Award[] => {
             const activeRun = streakUntil(p.weeks, weekIndex, x => x.submitted && x.score > 0);
             if (activeRun === 4) give('steady-4', p.id, p.name, w.houseName, w, `${n - 3}–${n}-апталар: 4 апта катары менен активдүү.`);
             if (activeRun === 8) give('steady-8', p.id, p.name, w.houseName, w, `${n - 7}–${n}-апталар: 8 апта катары менен активдүү.`);
-            if (activeRun === 16) give('steady-16', p.id, p.name, w.houseName, w, `${n - 15}–${n}-апталар: бүт сезон активдүү.`);
+            if (activeRun === 16) give('steady-16', p.id, p.name, w.houseName, w, `${n - 15}–${n}-апталар: 16 апта катары менен активдүү.`);
 
             // Rising: score up three weeks running (4 consecutive submitted weeks, each higher)
             const last4 = [3, 2, 1, 0].map(k => weekOf(p.weeks, weekIndex - k));
@@ -160,6 +162,28 @@ export const computeAwards = (data: DataFile, insights: Insights): Award[] => {
             }
         }
     });
+
+    // Season finale — only once the admin has ended the season, because
+    // nobody knows in advance how many weeks a season will have.
+    if (opts.seasonClosed && data.weeks.length > 0) {
+        const lastIndex = data.weeks.length - 1;
+        const last = { weekIndex: lastIndex, weekNumber: data.weeks[lastIndex].weekNumber };
+        const label = opts.seasonName ? `«${opts.seasonName}» сезону` : 'Сезон';
+        const total = data.weeks.length;
+        people.forEach(p => {
+            const active = data.weeks.every((_, i) => { const w = weekOf(p.weeks, i); return !!w && w.submitted && w.score > 0; });
+            if (active) give('full-season', p.id, p.name, p.houseName, last, `${label}: ${total} аптанын баарында активдүү.`);
+        });
+        const season = houses.map(h => {
+            const ws = h.weeks.filter(w => w.submitted);
+            return { h, avg: ws.length ? ws.reduce((s2, w) => s2 + w.avg, 0) / ws.length : 0, count: ws.length };
+        }).filter(x => x.count > 0).sort((a, b) => b.avg - a.avg);
+        if (season[0] && season[0].avg > 0) {
+            const top = season[0].avg;
+            season.filter(x => x.avg === top).forEach(x =>
+                give('house-season', x.h.id, x.h.name, x.h.name, last, `${label}: орточо рейтинг ${fmt(x.avg)} — эң мыкты үй.`));
+        }
+    }
 
     return awards;
 };

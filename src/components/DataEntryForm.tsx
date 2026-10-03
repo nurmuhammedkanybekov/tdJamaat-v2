@@ -1,7 +1,8 @@
 import { useModal } from '../hooks/useModal';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Save, AlertCircle, CheckCircle, X, Camera, Loader2, Lock, Plus, Download } from 'lucide-react';
-import type { House, Member, MetricValues, MiniCard } from '../types';
+import type { DataFile, House, Member, MetricValues, MiniCard } from '../types';
+import { seasonStartFor, weekLabel } from '../utils/seasons';
 import {
     fetchHouses,
     fetchMembers,
@@ -34,6 +35,8 @@ interface DataEntryFormProps {
     onWeeksChanged?: () => void;
     /** Weeks the admin has locked (leaders can't change them). */
     lockedWeeks?: number[];
+    /** All seasons' data — for season week labels and season-scoped targets. */
+    data?: DataFile;
 }
 
 const ZERO_METRICS: MetricValues = {
@@ -69,7 +72,7 @@ const describeSaveError = (err: unknown): string => {
 //    read-only: the role minimum, or a custom target the admin set.
 //  - Only weeks the admin has opened can be filled in. The admin opens the
 //    next week from this form.
-export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultWeekNumber, initialHouseId, onClose, onSuccess, onWeeksChanged, lockedWeeks = [] }) => {
+export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultWeekNumber, initialHouseId, onClose, onSuccess, onWeeksChanged, lockedWeeks = [], data }) => {
     useModal(onClose);
     const isAdmin = authUser.role === 'admin';
     const [houses, setHouses] = useState<House[]>([]);
@@ -93,6 +96,8 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
     const [photoError, setPhotoError] = useState<string | null>(null);
 
     const latestWeek = weekNumbers.length ? Math.max(...weekNumbers) : 0;
+    // Week numbers are stored continuously across seasons; show them per season.
+    const label = (n: number) => (data ? weekLabel(data, n) : `${n}-апта`);
     const weekLocked = lockedWeeks.includes(weekNumber);
     const lockedForMe = weekLocked && !isAdmin;
 
@@ -136,8 +141,10 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
     useEffect(() => {
         if (!selectedHouseId || !history) return;
 
+        // Targets carry forward within the season only (same rule as the database).
+        const seasonStart = data ? seasonStartFor(data, weekNumber) : 0;
         const rowsBefore = <T extends { weekNumber: number }>(rows: T[]) =>
-            rows.filter(r => r.weekNumber < weekNumber).sort((a, b) => b.weekNumber - a.weekNumber);
+            rows.filter(r => r.weekNumber < weekNumber && r.weekNumber >= seasonStart).sort((a, b) => b.weekNumber - a.weekNumber);
 
         const thisWeekActivity = history.activity.find(a => a.weekNumber === weekNumber);
         const prevActivity = rowsBefore(history.activity)[0];
@@ -162,7 +169,7 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
             };
         });
         setDrafts(nextDrafts);
-    }, [selectedHouseId, weekNumber, members, history, settings]);
+    }, [selectedHouseId, weekNumber, members, history, settings, data]);
 
     const selectedHouseName = useMemo(() => {
         if (!isAdmin) return null; // leader's house is fixed, no need to show a picker
@@ -206,7 +213,7 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
             const weeks = await fetchWeekNumbers();
             setWeekNumbers(weeks);
             setWeekNumber(next);
-            setNotice(`${next}-апта ачылды. Эми үй жетекчилери маалымат киргизе алышат.`);
+            setNotice(`${label(next)} ачылды. Эми үй жетекчилери маалымат киргизе алышат.`);
             onWeeksChanged?.();
         } catch (err) {
             setError(describeSaveError(err));
@@ -250,7 +257,7 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
             return;
         }
         if (!weekNumbers.includes(weekNumber)) {
-            setError(`${weekNumber}-апта али ачыла элек — админ ачышы керек.`);
+            setError(`${label(weekNumber)} али ачыла элек — админ ачышы керек.`);
             return;
         }
 
@@ -278,7 +285,7 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                 <div className="p-8 max-w-sm w-full text-center" style={{ backgroundColor: 'var(--surface)', borderRadius: 'var(--radius)' }}>
                     <CheckCircle className="w-12 h-12 mx-auto mb-4" style={{ color: 'var(--success)' }} />
                     <h2 className="font-display text-[2rem] font-bold mb-2" style={{ color: 'var(--text-primary)' }}>Ийгиликтүү сакталды!</h2>
-                    <p style={{ color: 'var(--text-secondary)' }}>{weekNumber}-апта үчүн маалымат жаңырды.</p>
+                    <p style={{ color: 'var(--text-secondary)' }}>{label(weekNumber)} үчүн маалымат жаңырды.</p>
                 </div>
             </div>
         );
@@ -329,7 +336,7 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                                             style={inputStyle}
                                         >
                                             {[...weekNumbers].sort((a, b) => b - a).map(n => (
-                                                <option key={n} value={n}>{n}-апта{n === latestWeek ? ' (акыркы)' : ''}</option>
+                                                <option key={n} value={n}>{label(n)}{n === latestWeek ? ' (акыркы)' : ''}</option>
                                             ))}
                                             {weekNumbers.length === 0 && <option value={weekNumber}>Ачык апта жок</option>}
                                         </select>
@@ -344,7 +351,7 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                                                     : { border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--text-secondary)' }}
                                             >
                                                 <Plus className="w-4 h-4" />
-                                                {openingWeek ? 'Ачылууда…' : confirmOpenWeek ? `${latestWeek + 1}-аптаны ачуу — ырастаңыз` : 'Жаңы апта'}
+                                                {openingWeek ? 'Ачылууда…' : confirmOpenWeek ? `${label(latestWeek + 1)}: ачууну ырастаңыз` : 'Жаңы апта'}
                                             </button>
                                         )}
                                     </div>
@@ -367,7 +374,7 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                             {weekLocked && (
                                 <div className="mb-6 px-4 py-3 rounded-[8px] flex items-start gap-2.5 text-sm" style={{ backgroundColor: 'var(--gold-soft)', border: '1px solid color-mix(in oklab, var(--gold) 35%, transparent)', color: 'var(--text-secondary)' }}>
                                     <Lock className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: 'var(--gold)' }} />
-                                    <p>{isAdmin ? `${weekNumber}-апта кулпуланган: жетекчилер өзгөртө албайт, бирок админ катары сиз өзгөртө аласыз.` : `${weekNumber}-апта кулпуланган — өзгөртүү үчүн админге кайрылыңыз.`}</p>
+                                    <p>{isAdmin ? `${label(weekNumber)} кулпуланган: жетекчилер өзгөртө албайт, бирок админ катары сиз өзгөртө аласыз.` : `${label(weekNumber)} кулпуланган — өзгөртүү үчүн админге кайрылыңыз.`}</p>
                                 </div>
                             )}
 

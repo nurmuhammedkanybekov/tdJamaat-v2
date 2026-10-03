@@ -1,5 +1,7 @@
 import { supabase } from '../lib/supabase';
-import type { DataFile, WeekData, Team, TeamMember, House, Member, MetricValues, MiniCard, Role } from '../types';
+import type { DataFile, House, Member, MetricValues, MiniCard, Role, Season } from '../types';
+import { buildDataFile } from './buildDataFile';
+import type { ActivityRow, HouseRow, MemberRow, MetricRow as FullMetricRow, WeekRow } from './buildDataFile';
 
 const ZERO_METRICS: MetricValues = {
     'К-К': 0, 'СВТ': 0, 'КТП': 0, 'ТХЖ': 0, 'ДТА': 0, 'ИСТГ': 0, 'НФ': 0, 'ТСП': 0
@@ -142,11 +144,7 @@ export const normalizeMiniCard = (value: unknown, fallback: MiniCard): MiniCard 
     return out;
 };
 
-type HouseRow = { id: string; name: string; display_order: number; active: boolean };
-type MemberRow = { id: string; house_id: string; name: string; role: Role; photo_url: string | null; display_order: number; active: boolean };
-type WeekRow = { week_number: number; start_date: string | null; end_date: string | null; locked?: boolean | null };
 type MetricRow = { member_id: string; week_number: number; actual: unknown; target: unknown };
-type ActivityRow = { house_id: string; week_number: number; activity: unknown };
 
 // Everything one house has actually saved (not the placeholders the dashboard
 // shows for weeks a house hasn't submitted) — used by the data-entry form to
@@ -180,71 +178,34 @@ export const fetchHouseHistory = async (houseId: string, memberIds: string[]): P
     };
 };
 
+// Seasons (supabase/seasons-2026-10.sql). Before that migration exists this
+// returns [] and the site treats everything as one season.
+export const fetchSeasons = async (): Promise<Season[]> => {
+    const { data, error } = await supabase.from('seasons').select('*').order('first_week');
+    if (error) {
+        if (!isMissingSchema(error)) console.warn('[tdJamaat] seasons unavailable:', error.message);
+        return [];
+    }
+    return ((data ?? []) as Array<{ id: number; name: string; first_week: number; last_week: number | null }>).map(r => ({
+        id: r.id, name: r.name, firstWeek: r.first_week, lastWeek: r.last_week
+    }));
+};
+
 export const fetchDataFile = async (): Promise<DataFile> => {
-    const [houses, members, weeks, metrics, activities, settings] = await Promise.all([
+    const [houses, members, weeks, metrics, activities, settings, seasons] = await Promise.all([
         fetchAll<HouseRow>('houses', 'display_order'),
         fetchAll<MemberRow>('members', 'display_order'), // inactive too — they still belong to past weeks
         fetchAll<WeekRow>('weeks', 'week_number'),
-        fetchAll<MetricRow>('weekly_metrics', 'week_number'),
+        fetchAll<FullMetricRow>('weekly_metrics', 'week_number'),
         fetchAll<ActivityRow>('house_activity', 'week_number'),
-        fetchSeasonSettings()
+        fetchSeasonSettings(),
+        fetchSeasons()
     ]);
-
-    const activeHouses = houses.filter(h => h.active);
-    const metricByKey = new Map(metrics.map(r => [`${r.member_id}|${r.week_number}`, r]));
-    const activityByKey = new Map(activities.map(r => [`${r.house_id}|${r.week_number}`, r]));
-
-    const weekDataList: WeekData[] = weeks.map(week => {
-        const teams: Team[] = activeHouses.map(house => {
-            const houseMembers = members.filter(m => m.house_id === house.id);
-            const submitted = houseMembers.filter(m => metricByKey.has(`${m.id}|${week.week_number}`));
-
-            // Who counts in a house for a given week:
-            //  - once the house has submitted that week → exactly the people it
-            //    submitted (the roster as it really was). Someone who joins in
-            //    week 8 doesn't appear as a zero in weeks 1–7 and drag those
-            //    old averages down; someone who leaves keeps their past weeks.
-            //  - not submitted yet → today's active roster at zero, so the
-            //    house visibly shows as "nothing entered" rather than vanishing.
-            const roster = submitted.length > 0 ? submitted : houseMembers.filter(m => m.active);
-
-            const teamMembers: TeamMember[] = roster.map(member => {
-                const row = metricByKey.get(`${member.id}|${week.week_number}`);
-                const roleTarget = settings.roleTargets[member.role] ?? DEFAULT_TARGETS.member;
-                return {
-                    id: member.id,
-                    name: member.name,
-                    role: member.role,
-                    photoUrl: member.photo_url,
-                    actual: normalizeMetrics(row?.actual, ZERO_METRICS),
-                    target: row ? normalizeMetrics(row.target, roleTarget) : roleTarget
-                };
-            });
-
-            const activityRow = activityByKey.get(`${house.id}|${week.week_number}`);
-            return {
-                id: house.id,
-                name: house.name,
-                miniCard: normalizeMiniCard(activityRow?.activity, settings.miniCard),
-                members: teamMembers,
-                submitted: submitted.length > 0 || !!activityRow
-            };
-        });
-
-        return {
-            weekNumber: week.week_number,
-            date: formatWeekDate(week.start_date, week.end_date),
-            locked: week.locked === true,
-            teams
-        };
-    });
-
-    return { weeks: weekDataList };
-};
-
-const formatWeekDate = (start: string | null, end: string | null): string => {
-    if (start && end) return `${start} -- ${end}`;
-    return start || end || '';
+    return buildDataFile(
+        { houses, members, weeks, metrics, activities, seasons },
+        settings,
+        { normalizeMetrics, normalizeMiniCard, zeroMetrics: ZERO_METRICS }
+    );
 };
 
 // ---------------------------------------------------------------------------
@@ -513,4 +474,19 @@ export const applyTargetsFromWeek = async (
         }
     }
     return { metricRows, activityRows };
+};
+
+// Admin: end the running season and start the next one (one atomic step in
+// the database — supabase/seasons-2026-10.sql).
+export const startNewSeason = async (name: string, lockFinished: boolean) => {
+    const { error } = await supabase.rpc('start_new_season', { new_name: name, lock_finished: lockFinished });
+    if (error) {
+        if (isMissingSchema(error) || error.code === 'PGRST202') throw new Error('Сезондор үчүн базаны жаңыртуу керек: supabase/seasons-2026-10.sql файлын Supabase SQL Editor аркылуу бир жолу иштетиңиз.');
+        fail(error);
+    }
+};
+
+export const renameSeason = async (id: number, name: string) => {
+    const { error } = await supabase.from('seasons').update({ name }).eq('id', id);
+    if (error) fail(error);
 };
