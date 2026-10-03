@@ -58,7 +58,7 @@ export const AwardsView: React.FC<AwardsViewProps> = ({ data, weekIndex, awards,
             <section>
                 <SectionHeader eyebrow={`${week.weekNumber}-апта`} title="Аптанын сыйлыктары" sub={thisWeek.length ? undefined : 'Бул аптанын маалыматы толгондо сыйлыктар ушул жерде чыгат.'} />
                 {thisWeek.length > 0 && (
-                    <div className="grid md:grid-cols-2 md:gap-x-16">
+                    <div className="grid grid-cols-1 md:grid-cols-2 md:gap-x-16">
                         {thisWeek.map((a, i) => {
                             const clickable = a.def.scope === 'person';
                             return (
@@ -87,7 +87,7 @@ export const AwardsView: React.FC<AwardsViewProps> = ({ data, weekIndex, awards,
             </div>
 
             {/* Season leaders */}
-            <div className="grid gap-16 lg:grid-cols-2 lg:gap-20">
+            <div className="grid grid-cols-1 gap-16 lg:grid-cols-2 lg:gap-20">
                 <section>
                     <SectionHeader eyebrow="Сезон" title="Эң көп сыйлык алгандар" />
                     {personLeaders.length === 0 ? <p className="italic" style={{ color: 'var(--text-muted)' }}>Азырынча жок.</p> : (
@@ -159,7 +159,7 @@ export const AwardsView: React.FC<AwardsViewProps> = ({ data, weekIndex, awards,
                     return (
                         <div className="mt-12 pt-8 animate-fade-up" style={{ borderTop: '1px solid var(--border)' }}>
                             <div className="eyebrow mb-4">{d.name} · {got.length ? `${got.length} жолу берилди` : 'азырынча эч ким алган жок'}</div>
-                            <ul className="grid sm:grid-cols-2 gap-x-16">
+                            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-16">
                                 {holders.map(h => {
                                     const times = got.filter(a => a.holderId === h.holderId);
                                     return (

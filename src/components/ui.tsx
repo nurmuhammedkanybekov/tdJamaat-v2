@@ -124,7 +124,7 @@ export const Sheet: React.FC<{
             >
                 {!bare && (
                     <div className="relative flex-shrink-0 flex items-center gap-3 px-5 sm:px-7 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
-                        <h2 className="font-display text-[1.6rem] leading-tight truncate flex-1 min-w-0" style={{ color: 'var(--text-primary)' }}>{title}</h2>
+                        <h2 className="font-display text-[1.35rem] sm:text-[1.6rem] leading-tight truncate flex-1 min-w-0" style={{ color: 'var(--text-primary)' }}>{title}</h2>
                         {headerExtra}
                         <button onClick={onClose} aria-label="Жабуу" className="w-10 h-10 inline-flex items-center justify-center flex-shrink-0 -mr-2 transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}>
                             <X className="w-5 h-5" strokeWidth={1.3} />

@@ -33,9 +33,9 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ data, selectedPeriod, 
     const [mode, setMode] = useState<'period' | 'total'>('period');
     return (
         <div className="space-y-6">
-            <div className="inline-flex p-1 rounded-full" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }} role="tablist">
-                {([['period', '4-апталык отчёт'], ['total', `Жалпы рейтинг (${TOTAL_FROM_WEEK}-аптадан)`]] as const).map(([k, label]) => (
-                    <button key={k} role="tab" aria-selected={mode === k} onClick={() => setMode(k)} className={`chip ${mode === k ? 'is-active' : ''}`} style={{ border: 'none', padding: '0.5rem 1rem' }}>{label}</button>
+            <div className="flex w-full sm:inline-flex sm:w-auto p-1 rounded-full" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }} role="tablist">
+                {([['period', '4-апталык отчёт'], ['total', 'Жалпы рейтинг']] as const).map(([k, label]) => (
+                    <button key={k} role="tab" aria-selected={mode === k} onClick={() => setMode(k)} className={`chip flex-1 sm:flex-none justify-center whitespace-nowrap ${mode === k ? 'is-active' : ''}`} style={{ border: 'none', padding: '0.5rem 0.6rem', letterSpacing: '0.12em' }}>{label}</button>
                 ))}
             </div>
             {mode === 'period' ? <PeriodReport data={data} selectedPeriod={selectedPeriod} setSelectedPeriod={setSelectedPeriod} /> : <TotalReport data={data} />}
@@ -83,7 +83,7 @@ const PeriodReport: React.FC<ReportsViewProps> = ({ data, selectedPeriod, setSel
                 </button>
             </div>
 
-            <div className="grid gap-3 sm:gap-4 sm:grid-cols-3 stagger">
+            <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-3 stagger">
                 {[
                     { label: 'Эң мыкты үй', value: rows[0]?.name ?? '—', sub: rows[0] ? `Рейтинг: ${rows[0].average}` : '' },
                     { label: 'Эң тез өсүү', value: rising?.name ?? '—', sub: rising ? `${rising.scores[0]} → ${rising.scores.at(-1)}` : 'Өсүш тенденциясы жок' },
