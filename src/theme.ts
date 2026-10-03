@@ -1,13 +1,10 @@
-// Tiny theme helper: light/dark, persisted, defaulting to the OS preference.
+// Tiny theme helper: light/dark, persisted, defaulting to dark.
 // Applied as a `.dark` class on <html> so Tailwind's custom dark variant
 // (see index.css) and the CSS custom properties both key off the same class.
 
 export type Theme = 'light' | 'dark';
 
 const STORAGE_KEY = 'tdjamaat-theme';
-
-const prefersDark = () =>
-    typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches;
 
 export const getStoredTheme = (): Theme | null => {
     try {
@@ -23,8 +20,9 @@ export const applyTheme = (theme: Theme) => {
 };
 
 // Call once, synchronously, before React mounts — avoids a flash of the wrong theme.
+// "Түн" is a night-first design: dark unless the viewer has chosen light.
 export const initTheme = (): Theme => {
-    const theme = getStoredTheme() ?? (prefersDark() ? 'dark' : 'light');
+    const theme = getStoredTheme() ?? 'dark';
     applyTheme(theme);
     return theme;
 };

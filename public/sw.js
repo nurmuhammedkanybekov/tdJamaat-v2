@@ -6,7 +6,7 @@
 //    first — their names change on every deploy, so a cached copy is never
 //    stale.
 //  - Supabase (the data) is never cached here: scores must always be live.
-const CACHE = 'tdjamaat-v1';
+const CACHE = 'tdjamaat-v2';
 const SHELL = ['/', '/favicon.svg', '/manifest.webmanifest'];
 
 self.addEventListener('install', event => {

@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-    ChevronLeft, ChevronRight, Download, ExternalLink, History, Home, Info, Lock, LogIn, LogOut,
-    Menu, Moon, PenLine, Settings2, Share2, ShieldCheck, Sun
+    ChevronLeft, ChevronRight, Download, ExternalLink, History, Info, Lock, LogIn, LogOut,
+    Menu, Moon, PenLine, Settings2, Share2, Sun
 } from 'lucide-react';
 import type { AuthUser } from '../services/authService';
 import type { Theme } from '../theme';
 import type { InstallMode } from '../pwa';
+import { Crown, Horn } from './Ornament';
 
 interface AppHeaderProps {
     authUser: AuthUser | null;
@@ -23,19 +24,14 @@ interface AppHeaderProps {
     onInstall: () => void;
     /** Week switcher; omitted on season-wide views. */
     week?: { number: number; date: string; locked: boolean; canPrev: boolean; canNext: boolean; onPrev: () => void; onNext: () => void; isLatest: boolean };
+    /** The big centered statement: who leads and by how much. */
+    monument?: { kicker: string; title: string; value: string; sub: string };
     seasonLabel?: string;
-    /** Right-hand side of the hero (summary figures). */
-    aside?: React.ReactNode;
 }
 
 type MenuItem = { key: string; label: string; icon: React.ComponentType<{ className?: string }>; onClick?: () => void; href?: string; tone?: 'danger' };
 
-const Logo: React.FC<{ size?: number }> = ({ size = 40 }) => (
-    <img src="/favicon.svg" alt="" width={size} height={size} className="flex-shrink-0" style={{ borderRadius: size * 0.22, boxShadow: '0 0 0 1px rgba(233,205,150,0.25), 0 6px 18px -6px rgba(0,0,0,0.5)' }} />
-);
-
-// Dropdown that also works as a phone menu: anchored under its button,
-// closes on outside tap or Escape.
+// Dropdown anchored under its button; closes on outside tap or Escape.
 const Dropdown: React.FC<{ button: (open: boolean, toggle: () => void) => React.ReactNode; items: MenuItem[]; header?: React.ReactNode }> = ({ button, items, header }) => {
     const [open, setOpen] = useState(false);
     const ref = useRef<HTMLDivElement>(null);
@@ -58,19 +54,19 @@ const Dropdown: React.FC<{ button: (open: boolean, toggle: () => void) => React.
             {open && (
                 <div
                     role="menu"
-                    className="absolute right-0 mt-2 z-40 w-[16.5rem] max-w-[calc(100vw-2rem)] py-1.5 animate-fade-up"
-                    style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, boxShadow: 'var(--shadow-lift)', color: 'var(--text-primary)' }}
+                    className="absolute right-0 mt-2 z-40 w-[17rem] max-w-[calc(100vw-2rem)] py-2 animate-fade-in"
+                    style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border-strong)', boxShadow: 'var(--shadow-lift)' }}
                 >
-                    {header && <div className="px-4 pt-2 pb-2.5 mb-1" style={{ borderBottom: '1px solid var(--border)' }}>{header}</div>}
+                    {header && <div className="px-5 pt-2 pb-3 mb-1" style={{ borderBottom: '1px solid var(--border)' }}>{header}</div>}
                     {items.map(item => {
                         const content = (
                             <>
-                                <item.icon className="w-4 h-4 flex-shrink-0" />
+                                <item.icon className="w-4 h-4 flex-shrink-0 opacity-70" />
                                 <span className="flex-1 text-left">{item.label}</span>
-                                {item.href && <ExternalLink className="w-3.5 h-3.5 opacity-60" />}
+                                {item.href && <ExternalLink className="w-3.5 h-3.5 opacity-50" />}
                             </>
                         );
-                        const cls = 'w-full flex items-center gap-3 px-4 py-2.5 text-[0.88rem] font-bold transition-colors hover:bg-[var(--surface-2)]';
+                        const cls = 'w-full flex items-center gap-3.5 px-5 py-2.5 text-[0.95rem] transition-colors hover:text-[var(--gold)]';
                         const style = { color: item.tone === 'danger' ? 'var(--danger)' : 'var(--text-secondary)' };
                         return item.href ? (
                             <a key={item.key} role="menuitem" href={item.href} target="_blank" rel="noreferrer" className={cls} style={style} onClick={() => setOpen(false)}>{content}</a>
@@ -84,125 +80,101 @@ const Dropdown: React.FC<{ button: (open: boolean, toggle: () => void) => React.
     );
 };
 
+const IconButton: React.FC<{ label: string; onClick: () => void; children: React.ReactNode; expanded?: boolean }> = ({ label, onClick, children, expanded }) => (
+    <button onClick={onClick} aria-label={label} title={label} aria-expanded={expanded} className="w-10 h-10 inline-flex items-center justify-center transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-secondary)' }}>
+        {children}
+    </button>
+);
+
 export const AppHeader: React.FC<AppHeaderProps> = ({
     authUser, houseName, theme, onToggleTheme, onLogin, onLogout, onDataEntry, onFormula, onAdmin, onHistory, onShare,
-    installMode, onInstall, week, seasonLabel, aside
+    installMode, onInstall, week, monument, seasonLabel
 }) => {
     const isAdmin = authUser?.role === 'admin';
     const who = isAdmin ? 'Админ' : houseName ?? 'Үй жетекчиси';
-
-    const common: MenuItem[] = [
-        { key: 'tasbih', label: 'Санарип тасбихат', icon: ExternalLink, href: 'https://addua.vercel.app/' },
-        { key: 'formula', label: 'Упай формуласы', icon: Info, onClick: onFormula },
-        { key: 'share', label: 'Жыйынтыкты бөлүшүү', icon: Share2, onClick: onShare },
-        ...(installMode !== 'none' ? [{ key: 'install', label: 'Телефонго орнотуу', icon: Download, onClick: onInstall }] : [])
-    ];
-    const signedIn: MenuItem[] = authUser ? [
-        { key: 'entry', label: 'Маалымат кошуу', icon: PenLine, onClick: onDataEntry },
-        { key: 'history', label: 'Өзгөртүүлөр тарыхы', icon: History, onClick: onHistory },
-        ...(isAdmin ? [{ key: 'admin', label: 'Админ панели', icon: Settings2, onClick: onAdmin }] : []),
-        { key: 'logout', label: 'Чыгуу', icon: LogOut, onClick: onLogout, tone: 'danger' as const }
-    ] : [];
-
     const ThemeIcon = theme === 'dark' ? Sun : Moon;
 
+    const items: MenuItem[] = [
+        ...(authUser ? [
+            { key: 'entry', label: 'Маалымат кошуу', icon: PenLine, onClick: onDataEntry },
+            { key: 'history', label: 'Өзгөртүүлөр тарыхы', icon: History, onClick: onHistory },
+            ...(isAdmin ? [{ key: 'admin', label: 'Админ панели', icon: Settings2, onClick: onAdmin }] : [])
+        ] : []),
+        { key: 'formula', label: 'Упай формуласы', icon: Info, onClick: onFormula },
+        { key: 'share', label: 'Жыйынтыкты бөлүшүү', icon: Share2, onClick: onShare },
+        ...(installMode !== 'none' ? [{ key: 'install', label: 'Телефонго орнотуу', icon: Download, onClick: onInstall }] : []),
+        { key: 'tasbih', label: 'Санарип тасбихат', icon: ExternalLink, href: 'https://addua.vercel.app/' },
+        authUser
+            ? { key: 'logout', label: 'Чыгуу', icon: LogOut, onClick: onLogout, tone: 'danger' as const }
+            : { key: 'login', label: 'Кирүү', icon: LogIn, onClick: onLogin }
+    ];
+
     return (
-        <header className="hero page-gutter" style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}>
+        <header className="hero page-gutter" style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top))' }}>
             <div className="app-container">
-                {/* Brand row */}
-                <div className="flex items-center gap-3 py-3 sm:py-4">
-                    <Logo size={42} />
-                    <div className="min-w-0 flex-1">
-                        <div className="font-display font-bold leading-none text-[1.7rem] sm:text-[1.95rem]" style={{ color: 'var(--hero-ink)', letterSpacing: '0.01em' }}>tdJamaat</div>
-                        <p className="text-[0.72rem] sm:text-[0.8rem] mt-1 leading-snug line-clamp-2" style={{ color: 'var(--hero-muted)' }}>
-                            Жамааттын активдүүлүгүн талдоого багытталган үйлөрдүн рейтинги
-                        </p>
+                {/* Wordmark bar */}
+                <div className="flex items-center gap-3 h-16">
+                    <div className="flex items-center gap-2.5 flex-1 min-w-0" style={{ color: 'var(--gold)' }}>
+                        <Horn size={26} strokeWidth={3} />
+                        <span className="font-display text-[1.45rem] leading-none tracking-[0.02em]">tdJamaat</span>
                     </div>
-
-                    {/* Desktop actions */}
-                    <div className="hidden lg:flex items-center gap-2 flex-shrink-0">
-                        <a href="https://addua.vercel.app/" target="_blank" rel="noreferrer" className="btn btn-hero">
-                            Санарип тасбихат <ExternalLink className="w-3.5 h-3.5 opacity-70" />
-                        </a>
-                        <button onClick={onFormula} className="btn btn-hero"><Info className="w-4 h-4" /> Формула</button>
-                        <button onClick={onShare} className="btn btn-hero btn-icon" aria-label="Жыйынтыкты бөлүшүү" title="Жыйынтыкты бөлүшүү"><Share2 className="w-4 h-4" /></button>
-                        {installMode !== 'none' && (
-                            <button onClick={onInstall} className="btn btn-hero btn-icon" aria-label="Телефонго орнотуу" title="Тиркеме катары орнотуу"><Download className="w-4 h-4" /></button>
+                    <div className="flex items-center">
+                        {authUser && (
+                            <button onClick={onDataEntry} className="btn btn-ghost hidden sm:inline-flex mr-2">
+                                <PenLine className="w-3.5 h-3.5" /> Маалымат кошуу
+                            </button>
                         )}
-                        <button onClick={onToggleTheme} className="btn btn-hero btn-icon" aria-label={theme === 'dark' ? 'Жарык тема' : 'Караңгы тема'} title={theme === 'dark' ? 'Жарык тема' : 'Караңгы тема'}>
-                            <ThemeIcon className="w-4 h-4" />
-                        </button>
-                        {authUser ? (
-                            <>
-                                <button onClick={onDataEntry} className="btn btn-gold"><PenLine className="w-4 h-4" /> Маалымат кошуу</button>
-                                <Dropdown
-                                    items={signedIn.filter(i => i.key !== 'entry')}
-                                    header={<div className="text-[0.75rem]" style={{ color: 'var(--text-muted)' }}>Кирген: <b style={{ color: 'var(--text-primary)' }}>{who}</b></div>}
-                                    button={(open, toggle) => (
-                                        <button onClick={toggle} aria-expanded={open} className="btn btn-hero">
-                                            {isAdmin ? <ShieldCheck className="w-4 h-4" /> : <Home className="w-4 h-4" />}
-                                            <span className="max-w-[9rem] truncate">{who}</span>
-                                        </button>
-                                    )}
-                                />
-                            </>
-                        ) : (
-                            <button onClick={onLogin} className="btn btn-gold"><LogIn className="w-4 h-4" /> Кирүү</button>
+                        {!authUser && (
+                            <button onClick={onLogin} className="hidden sm:inline-flex mr-1 px-3 h-10 items-center text-[0.7rem] tracking-[0.22em] uppercase transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-secondary)' }}>
+                                Кирүү
+                            </button>
                         )}
-                    </div>
-
-                    {/* Phone / tablet actions */}
-                    <div className="flex lg:hidden items-center gap-1.5 flex-shrink-0">
-                        <button onClick={onToggleTheme} className="btn btn-hero btn-icon" aria-label={theme === 'dark' ? 'Жарык тема' : 'Караңгы тема'}>
-                            <ThemeIcon className="w-4 h-4" />
-                        </button>
+                        <IconButton label={theme === 'dark' ? 'Жарык тема' : 'Караңгы тема'} onClick={onToggleTheme}><ThemeIcon className="w-[1.1rem] h-[1.1rem]" strokeWidth={1.5} /></IconButton>
                         <Dropdown
-                            items={[...signedIn.filter(i => i.key !== 'logout'), ...common, ...(authUser ? signedIn.filter(i => i.key === 'logout') : [{ key: 'login', label: 'Кирүү', icon: LogIn, onClick: onLogin }])]}
-                            header={authUser ? <div className="text-[0.75rem]" style={{ color: 'var(--text-muted)' }}>Кирген: <b style={{ color: 'var(--text-primary)' }}>{who}</b></div> : undefined}
+                            items={items}
+                            header={authUser ? <div className="text-[0.8rem]" style={{ color: 'var(--text-muted)' }}>Кирген: <span style={{ color: 'var(--gold)' }}>{who}</span></div> : undefined}
                             button={(open, toggle) => (
-                                <button onClick={toggle} aria-expanded={open} aria-label="Меню" className="btn btn-hero btn-icon"><Menu className="w-4.5 h-4.5" /></button>
+                                <IconButton label="Меню" onClick={toggle} expanded={open}><Menu className="w-[1.2rem] h-[1.2rem]" strokeWidth={1.5} /></IconButton>
                             )}
                         />
                     </div>
                 </div>
 
-                {/* Week + summary */}
-                <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-5 pt-5 sm:pt-8 pb-8 sm:pb-12">
-                    <div className="min-w-0">
-                        {week ? (
-                            <>
-                                <div className="eyebrow flex items-center gap-2" style={{ color: 'var(--gold-bright)' }}>
-                                    Апталык рейтинг
-                                    {week.isLatest && <span className="px-1.5 py-[1px] rounded text-[0.6rem]" style={{ background: 'rgba(233,205,150,0.16)', color: 'var(--hero-ink)' }}>акыркы</span>}
-                                    {week.locked && <span className="inline-flex items-center gap-1 px-1.5 py-[1px] rounded text-[0.6rem]" style={{ background: 'rgba(255,255,255,0.1)', color: 'var(--hero-ink)' }}><Lock className="w-2.5 h-2.5" /> кулпуланган</span>}
-                                </div>
-                                <div className="flex items-center gap-3 sm:gap-4 mt-2">
-                                    <button onClick={week.onPrev} disabled={!week.canPrev} aria-label="Мурунку апта" className="btn btn-hero btn-icon rounded-full disabled:opacity-25 disabled:cursor-not-allowed">
-                                        <ChevronLeft className="w-5 h-5" />
-                                    </button>
-                                    <h1 className="font-display font-bold leading-none tabular text-[3rem] sm:text-[3.8rem] lg:text-[4.4rem]" style={{ color: 'var(--hero-ink)' }} aria-live="polite">
-                                        {week.number}<span className="text-[0.5em] font-semibold ml-1.5" style={{ color: 'var(--hero-muted)' }}>-апта</span>
-                                    </h1>
-                                    <button onClick={week.onNext} disabled={!week.canNext} aria-label="Кийинки апта" className="btn btn-hero btn-icon rounded-full disabled:opacity-25 disabled:cursor-not-allowed">
-                                        <ChevronRight className="w-5 h-5" />
-                                    </button>
-                                </div>
-                                {week.date && <div className="text-[0.8rem] mt-2" style={{ color: 'var(--hero-muted)' }}>{week.date.replace(' -- ', ' — ')}</div>}
-                            </>
-                        ) : (
-                            <>
-                                <div className="eyebrow" style={{ color: 'var(--gold-bright)' }}>Сезон 2026–27</div>
-                                <h1 className="font-display font-bold leading-none mt-2 text-[2.6rem] sm:text-[3.4rem] lg:text-[4rem]" style={{ color: 'var(--hero-ink)' }}>{seasonLabel}</h1>
-                            </>
-                        )}
-                        {authUser && (
-                            <button onClick={onDataEntry} className="btn btn-gold mt-5 lg:hidden"><PenLine className="w-4 h-4" /> Маалымат кошуу</button>
-                        )}
-                    </div>
-                    {aside && <div className="min-w-0 md:max-w-[60%]">{aside}</div>}
+                {/* Monument */}
+                <div className="flex flex-col items-center text-center pt-6 sm:pt-10 pb-10 sm:pb-14">
+                    <Crown className="draw-in w-[min(19rem,78%)] h-auto" style={{ color: 'var(--gold)' }} />
+
+                    {week ? (
+                        <div className="flex items-center gap-4 mt-3">
+                            <button onClick={week.onPrev} disabled={!week.canPrev} aria-label="Мурунку апта" className="w-9 h-9 inline-flex items-center justify-center rounded-full transition-colors disabled:opacity-20 hover:text-[var(--gold)]" style={{ border: '1px solid var(--border-strong)', color: 'var(--text-secondary)' }}>
+                                <ChevronLeft className="w-4 h-4" strokeWidth={1.5} />
+                            </button>
+                            <div className="eyebrow inline-flex items-center gap-2" style={{ color: 'var(--gold)' }} aria-live="polite">
+                                {monument?.kicker ?? `${week.number}-апта`}
+                                {week.locked && <Lock className="w-3 h-3" aria-label="кулпуланган" />}
+                            </div>
+                            <button onClick={week.onNext} disabled={!week.canNext} aria-label="Кийинки апта" className="w-9 h-9 inline-flex items-center justify-center rounded-full transition-colors disabled:opacity-20 hover:text-[var(--gold)]" style={{ border: '1px solid var(--border-strong)', color: 'var(--text-secondary)' }}>
+                                <ChevronRight className="w-4 h-4" strokeWidth={1.5} />
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="eyebrow mt-3" style={{ color: 'var(--gold)' }}>Сезон 2026–27</div>
+                    )}
+
+                    {monument ? (
+                        <>
+                            <h1 className="font-display leading-none mt-5 text-[2.4rem] sm:text-[3.2rem] lg:text-[3.6rem]" style={{ color: 'var(--text-primary)' }}>{monument.title}</h1>
+                            <div className="font-display tabular leading-[0.9] mt-2 text-[5.2rem] sm:text-[7.5rem] lg:text-[9rem]" style={{ color: 'var(--gold)' }}>{monument.value}</div>
+                            <p className="mt-3 text-[0.9rem] tracking-[0.04em]" style={{ color: 'var(--text-muted)' }}>{monument.sub}</p>
+                        </>
+                    ) : (
+                        <h1 className="font-display leading-none mt-5 text-[2.6rem] sm:text-[3.4rem] lg:text-[4rem]" style={{ color: 'var(--text-primary)' }}>
+                            {seasonLabel ?? (week ? `${week.number}-апта` : '')}
+                        </h1>
+                    )}
+                    {week?.date && !monument && <p className="mt-3 text-[0.9rem]" style={{ color: 'var(--text-muted)' }}>{week.date.replace(' -- ', ' — ')}</p>}
                 </div>
             </div>
-            <div className="horn-band absolute left-0 right-0 bottom-3 opacity-25" aria-hidden="true" />
         </header>
     );
 };

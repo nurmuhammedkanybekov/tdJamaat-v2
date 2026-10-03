@@ -3,7 +3,7 @@ import { CheckCircle2, Clock3, PenLine } from 'lucide-react';
 import type { DataFile } from '../../types';
 import type { Insights, MemberSeries, MemberWeek } from '../../utils/insights';
 import { METRICS, movement, ROLE_LABEL, weekOf } from '../../utils/insights';
-import { COLORS, TEAM_COLORS, calculatePerformancePercentage } from '../../utils/scoring';
+import { TEAM_COLORS, calculatePerformancePercentage } from '../../utils/scoring';
 import { Avatar } from '../Avatar';
 import { Movement, ProgressBar, SectionHeader, Sparkline } from '../ui';
 import { perfColor } from '../../utils/style';
@@ -66,7 +66,6 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
 
             {/* House summary */}
             <section className="card overflow-hidden">
-                <div className="h-1.5" style={{ background: `linear-gradient(90deg, ${color}, color-mix(in oklab, ${color} 30%, transparent))` }} />
                 <div className="card-pad flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
                     <div className="flex-1 min-w-0">
                         <div className="eyebrow flex items-center gap-2" style={{ color: 'var(--gold)' }}>
@@ -127,15 +126,6 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
                 <SectionHeader
                     eyebrow={team.name}
                     title="Мүчөлөрдүн рейтинги"
-                    action={
-                        <div className="flex gap-3 text-[0.75rem]">
-                            {(['imam', 'zam', 'member'] as const).map(role => (
-                                <span key={role} className="flex items-center gap-1.5" style={{ color: 'var(--text-muted)' }}>
-                                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[role] }} /><i>{ROLE_LABEL[role]}</i>
-                                </span>
-                            ))}
-                        </div>
-                    }
                 />
 
                 {/* Phone & tablet: cards */}

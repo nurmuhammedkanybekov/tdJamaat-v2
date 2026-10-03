@@ -173,20 +173,17 @@ const TeamPerformanceTracker: React.FC = () => {
     const latestWeekNumber = Math.max(...data.weeks.map(w => w.weekNumber));
     const isWeekly = activeView === 'overview' || activeView === 'teams' || activeView === 'awards';
 
-    // Hero summary for the selected week (submitted houses only).
-    const houseRows = [...insights.houses.values()].map(h => weekOf(h.weeks, weekIndex)).filter(Boolean);
+    // The monument: the week's leading house and its average (submitted houses only).
     const leader = [...insights.houses.values()].find(h => weekOf(h.weeks, weekIndex)?.rank === 1);
+    const leaderWeek = leader ? weekOf(leader.weeks, weekIndex) : undefined;
     const weekPeople = [...insights.members.values()].map(m => weekOf(m.weeks, weekIndex)).filter(w => w && w.submitted);
-    const avgScore = weekPeople.length ? weekPeople.reduce((s, w) => s + w!.score, 0) / weekPeople.length : 0;
-    const heroStats = isWeekly ? [
-        { label: 'Мыкты үй', value: leader?.name ?? '—' },
-        { label: 'Адамдар', value: String(weekPeople.length || currentWeekData.teams.reduce((s, t) => s + t.members.length, 0)) },
-        { label: 'Орточо упай', value: weekPeople.length ? fmt(avgScore) : '—' }
-    ] : [
-        { label: 'Апталар', value: String(data.weeks.length) },
-        { label: 'Үйлөр', value: String(houseRows.length) },
-        { label: 'Сыйлыктар', value: String(awards.length) }
-    ];
+    const submittedHouses = currentWeekData.teams.filter(t => t.submitted).length;
+    const monument = activeView === 'overview' ? {
+        kicker: `${currentWeekData.weekNumber}-апта · аптанын үйү`,
+        title: leader?.name ?? 'Маалымат күтүлүүдө',
+        value: leaderWeek ? fmt(leaderWeek.avg) : '—',
+        sub: `орточо упай · ${weekPeople.length} адам · ${submittedHouses}/${currentWeekData.teams.length} үй киргизди`
+    } : undefined;
 
     const profileSeries = route.memberId ? insights.members.get(route.memberId) : undefined;
 
@@ -216,17 +213,8 @@ const TeamPerformanceTracker: React.FC = () => {
                     onNext: () => setSelectedWeek(Math.min(data.weeks.length - 1, weekIndex + 1)),
                     isLatest: weekIndex === data.weeks.length - 1
                 } : undefined}
-                seasonLabel={activeView === 'progress' ? 'Апталык прогресс' : 'Отчёттор'}
-                aside={
-                    <dl className="grid grid-cols-3 gap-0 rounded-[12px] overflow-hidden" style={{ border: '1px solid rgba(233,205,150,0.18)', background: 'rgba(255,255,255,0.04)' }}>
-                        {heroStats.map((s, i) => (
-                            <div key={s.label} className="px-3 sm:px-5 py-3 sm:py-4 min-w-0" style={i ? { borderLeft: '1px solid rgba(233,205,150,0.14)' } : undefined}>
-                                <dt className="eyebrow truncate" style={{ color: 'var(--hero-muted)' }}>{s.label}</dt>
-                                <dd className="font-display font-bold truncate mt-1 text-[1.3rem] sm:text-[1.7rem] tabular" style={{ color: 'var(--hero-ink)' }}>{s.value}</dd>
-                            </div>
-                        ))}
-                    </dl>
-                }
+                seasonLabel={{ overview: undefined, teams: 'Үйлөр', progress: 'Апталык прогресс', reports: 'Отчёттор', awards: 'Сыйлыктар' }[activeView]}
+                monument={monument}
             />
 
             <ViewNavigator activeView={activeView} setActiveView={setActiveView} />

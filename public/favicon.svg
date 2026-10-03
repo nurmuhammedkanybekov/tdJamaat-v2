@@ -5,8 +5,8 @@
        (shyrdak trim). -->
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#26445a"/>
-      <stop offset="1" stop-color="#112634"/>
+      <stop offset="0" stop-color="#1b1b1e"/>
+      <stop offset="1" stop-color="#09090a"/>
     </linearGradient>
     <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#ecd08f"/>

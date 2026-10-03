@@ -149,7 +149,7 @@ const PeriodReport: React.FC<ReportsViewProps> = ({ data, selectedPeriod, setSel
                                 <YAxis tick={axisTick} axisLine={false} tickLine={false} width={40} domain={scoreDomain} allowDecimals={false} />
                                 <Tooltip content={<ChartTooltip />} cursor={{ stroke: 'var(--border-strong)' }} />
                                 {rows.map(r => (
-                                    <Line key={r.id} type="monotone" dataKey={r.id} name={r.name} stroke={TEAM_COLORS[r.colorIndex % TEAM_COLORS.length]} strokeWidth={2.5} dot={{ r: 3.5, strokeWidth: 2, fill: 'var(--surface)' }} />
+                                    <Line key={r.id} type="monotone" dataKey={r.id} name={r.name} stroke={TEAM_COLORS[r.colorIndex % TEAM_COLORS.length]} strokeWidth={1.4} dot={{ r: 2.5, strokeWidth: 1.2, fill: 'var(--page-plane)' }} />
                                 ))}
                             </LineChart>
                         </ResponsiveContainer>

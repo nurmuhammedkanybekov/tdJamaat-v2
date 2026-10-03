@@ -11,7 +11,7 @@ import { METRICS, longestStreak, streakUntil, weekOf } from './insights';
 
 export type Tier = 'bronze' | 'silver' | 'gold' | 'seal';
 export type BadgeIcon =
-    | 'star' | 'medal' | 'target' | 'flame' | 'zap' | 'leap' | 'steady' | 'rising'
+    | 'star' | 'podium' | 'target' | 'flame' | 'chain5' | 'zap' | 'leap' | 'steady' | 'rising'
     | 'crown' | 'moon' | 'unity' | 'card' | 'rocket';
 
 export const TIER_LABEL: Record<Tier, string> = { bronze: 'Коло', silver: 'Күмүш', gold: 'Алтын', seal: 'Мөөр' };
@@ -45,10 +45,10 @@ const DOUBLE_EXCLUDED: Array<keyof MetricValues> = ['СВТ', 'ИСТГ'];
 
 export const BADGES: Record<string, BadgeDef> = {
     'week-star': { id: 'week-star', scope: 'person', name: 'Апта жылдызы', tier: 'gold', icon: 'star', rule: 'Аптанын эң жогорку жеке упайы — бардык катышуучулардын ичинен 1-орун.' },
-    'podium': { id: 'podium', scope: 'person', name: 'Сыйлык тепкичи', tier: 'silver', icon: 'medal', rule: 'Аптанын жеке рейтингинде 2- же 3-орун.' },
+    'podium': { id: 'podium', scope: 'person', name: 'Сыйлык тепкичи', tier: 'silver', icon: 'podium', rule: 'Аптанын жеке рейтингинде 2- же 3-орун.' },
     'perfect': { id: 'perfect', scope: 'person', name: 'Толук план', tier: 'bronze', icon: 'target', rule: 'Бир аптада 8 көрсөткүчтүн баарында планды аткаруу.' },
     'iron-3': { id: 'iron-3', scope: 'person', name: 'Темир тартип', tier: 'silver', icon: 'flame', rule: 'Толук планды катары менен 3 апта аткаруу.' },
-    'iron-5': { id: 'iron-5', scope: 'person', name: 'Болот тартип', tier: 'gold', icon: 'flame', rule: 'Толук планды катары менен 5 апта аткаруу.' },
+    'iron-5': { id: 'iron-5', scope: 'person', name: 'Болот тартип', tier: 'gold', icon: 'chain5', rule: 'Толук планды катары менен 5 апта аткаруу.' },
     'double': { id: 'double', scope: 'person', name: 'Эки эсе', tier: 'bronze', icon: 'zap', rule: 'Бир көрсөткүч боюнча планды эки эсе ашыра аткаруу (СВТ жана ИСТГ эсепке кирбейт — алардын максаты чоң сан, тез көбөйөт).' },
     'leap': { id: 'leap', scope: 'person', name: 'Чоң секирик', tier: 'silver', icon: 'leap', rule: 'Аптанын эң чоң өсүшү: мурунку аптага караганда эң көп упай кошкон адам (кеминде +10).' },
     'rising': { id: 'rising', scope: 'person', name: 'Өсүү жолу', tier: 'bronze', icon: 'rising', rule: 'Упай катары менен 3 апта өстү.' },

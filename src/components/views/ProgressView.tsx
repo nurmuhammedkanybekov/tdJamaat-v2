@@ -76,8 +76,8 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ data, insights, onOp
                             <YAxis tick={axisTick} axisLine={false} tickLine={false} width={40} domain={scoreDomain} allowDecimals={false} />
                             <Tooltip content={<ChartTooltip />} cursor={{ stroke: 'var(--border-strong)' }} />
                             {houses.filter(h => !hidden.has(h.id)).map(h => (
-                                <Line key={h.id} type="monotone" dataKey={h.id} name={h.name} stroke={TEAM_COLORS[h.colorIndex % TEAM_COLORS.length]} strokeWidth={2.5}
-                                    dot={{ r: 3.5, strokeWidth: 2, fill: 'var(--surface)' }} activeDot={{ r: 5 }} connectNulls isAnimationActive />
+                                <Line key={h.id} type="monotone" dataKey={h.id} name={h.name} stroke={TEAM_COLORS[h.colorIndex % TEAM_COLORS.length]} strokeWidth={1.4}
+                                    dot={{ r: 2.5, strokeWidth: 1.2, fill: 'var(--page-plane)' }} activeDot={{ r: 4 }} connectNulls isAnimationActive />
                             ))}
                         </LineChart>
                     </ResponsiveContainer>
@@ -95,7 +95,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ data, insights, onOp
                                 <YAxis reversed domain={[1, Math.max(1, houses.length)]} allowDecimals={false} tick={axisTick} axisLine={false} tickLine={false} width={30} tickFormatter={v => `${v}`} />
                                 <Tooltip content={<ChartTooltip unit="-орун" />} cursor={{ stroke: 'var(--border-strong)' }} />
                                 {houses.filter(h => !hidden.has(h.id)).map(h => (
-                                    <Line key={h.id} type="monotone" dataKey={h.id} name={h.name} stroke={TEAM_COLORS[h.colorIndex % TEAM_COLORS.length]} strokeWidth={3} dot={{ r: 4, strokeWidth: 0, fill: TEAM_COLORS[h.colorIndex % TEAM_COLORS.length] }} connectNulls />
+                                    <Line key={h.id} type="monotone" dataKey={h.id} name={h.name} stroke={TEAM_COLORS[h.colorIndex % TEAM_COLORS.length]} strokeWidth={1.4} dot={{ r: 2.5, strokeWidth: 0, fill: TEAM_COLORS[h.colorIndex % TEAM_COLORS.length] }} connectNulls />
                                 ))}
                             </LineChart>
                         </ResponsiveContainer>
@@ -137,10 +137,9 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ data, insights, onOp
                         const color = TEAM_COLORS[h.colorIndex % TEAM_COLORS.length];
                         return (
                             <div key={h.id} className="card p-4 sm:p-5 relative overflow-hidden">
-                                <div className="absolute left-0 top-0 bottom-0 w-1" style={{ backgroundColor: color }} />
                                 <div className="flex items-start justify-between gap-3">
                                     <div className="min-w-0">
-                                        <h3 className="font-display font-bold text-[1.35rem] truncate" style={{ color: 'var(--text-primary)' }}>{h.name}</h3>
+                                        <h3 className="font-display text-[1.45rem] truncate flex items-center gap-2.5" style={{ color: 'var(--text-primary)' }}><span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />{h.name}</h3>
                                         <div className="text-[0.75rem]" style={{ color: 'var(--text-muted)' }}>{counted.length} апта катышты</div>
                                     </div>
                                     <Sparkline values={counted.map(w => w.avg)} color={color} width={80} height={30} />

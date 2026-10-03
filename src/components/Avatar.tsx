@@ -31,7 +31,7 @@ const initials = (name: string) =>
 export const Avatar: React.FC<AvatarProps> = ({ name, role, photoUrl, size = 'md' }) => {
     const [failed, setFailed] = useState(false);
     const s = SIZE[size];
-    const box: React.CSSProperties = { width: s.box, height: s.box, boxShadow: '0 0 0 2px var(--surface)' };
+    const box: React.CSSProperties = { width: s.box, height: s.box };
 
     if (photoUrl && !failed) {
         return (
@@ -48,8 +48,8 @@ export const Avatar: React.FC<AvatarProps> = ({ name, role, photoUrl, size = 'md
 
     return (
         <div
-            className="rounded-full flex items-center justify-center font-bold text-white flex-shrink-0 font-display"
-            style={{ ...box, fontSize: s.font, background: `linear-gradient(145deg, color-mix(in oklab, ${COLORS[role]} 78%, #fff), ${COLORS[role]})`, letterSpacing: '0.02em' }}
+            className="rounded-full flex items-center justify-center flex-shrink-0 font-display"
+            style={{ ...box, fontSize: s.font, backgroundColor: 'var(--surface-2)', color: COLORS[role], border: '1px solid color-mix(in oklab, var(--gold) 35%, transparent)', letterSpacing: '0.04em' }}
             title={name}
             aria-hidden="true"
         >

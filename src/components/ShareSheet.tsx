@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Download, Loader2, Share2 } from 'lucide-react';
 import type { DataFile } from '../types';
 import type { Insights } from '../utils/insights';
-import { ROLE_LABEL, weekOf } from '../utils/insights';
+import { weekOf } from '../utils/insights';
 import { Sheet } from './ui';
 
 // Weekly results as an image (1080×1350, the portrait size WhatsApp,
@@ -18,21 +18,12 @@ interface ShareSheetProps {
 }
 
 const W = 1080, H = 1350;
-const GOLD = '#d9b56f', GOLD_DIM = 'rgba(217,181,111,0.55)', INK = '#f6efe2', MUTED = '#a9b4bb';
-const DISPLAY = '"Cormorant Garamond", "PT Serif", Georgia, serif';
-const TEXT = '"PT Serif", Georgia, serif';
-// Numbers in PT Serif: canvas can't switch Cormorant to lining figures.
-const NUM = TEXT;
-const TEAM = ['#5b9df0', '#f08a5d', '#3cc596', '#f2b733', '#ee8fb4', '#4fb84f', '#9a8cf0', '#f07070'];
+const NIGHT = '#0c0c0d', GOLD = '#c9a961', GOLD_DIM = '#8c7646', INK = '#ece7db', MUTED = '#8a857a', LINE = '#2f2e2b';
+const DISPLAY = '"Oranienbaum", Georgia, serif';
+const TEXT = '"Spectral", Georgia, serif';
+const ROMAN = ['I', 'II', 'III'];
 
 const fmt = (n: number) => (Math.round(n * 10) / 10).toString();
-
-const loadImage = (src: string) => new Promise<HTMLImageElement>((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = reject;
-    img.src = src;
-});
 
 const fitText = (ctx: CanvasRenderingContext2D, text: string, maxWidth: number) => {
     if (ctx.measureText(text).width <= maxWidth) return text;
@@ -41,145 +32,131 @@ const fitText = (ctx: CanvasRenderingContext2D, text: string, maxWidth: number) 
     return t + '…';
 };
 
+// Letterspaced caps (canvas letterSpacing isn't everywhere yet).
+const spaced = (ctx: CanvasRenderingContext2D, text: string, x: number, y: number, spacing: number, align: 'left' | 'center' = 'left') => {
+    const chars = [...text];
+    const width = chars.reduce((w, c) => w + ctx.measureText(c).width + spacing, -spacing);
+    let cx = align === 'center' ? x - width / 2 : x;
+    ctx.textAlign = 'left';
+    chars.forEach(c => { ctx.fillText(c, cx, y); cx += ctx.measureText(c).width + spacing; });
+};
+
+const HORN = [
+    'M50 64 C50 42 58 28 71 25 C85 22 92 35 87 45 C82 54 70 53 70 45 C70 39 76 37 79 41',
+    'M50 64 C50 42 42 28 29 25 C15 22 8 35 13 45 C18 54 30 53 30 45 C30 39 24 37 21 41',
+    'M50 64 L50 80', 'M50 78 L56 86 L50 94 L44 86 Z'
+];
+const CORNER = ['M6 54 L6 24 C6 12 14 6 26 6 L54 6', 'M6 30 C6 20 12 16 20 16 C28 16 30 24 25 28 C21 31 16 28 18 24'];
+
+const strokePaths = (ctx: CanvasRenderingContext2D, paths: string[], x: number, y: number, scale: number, rot = 0, width = 2) => {
+    ctx.save();
+    ctx.translate(x, y); ctx.rotate(rot); ctx.scale(scale, scale);
+    ctx.lineWidth = width / scale; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    paths.forEach(d => ctx.stroke(new Path2D(d)));
+    ctx.restore();
+};
+
 async function drawCard(canvas: HTMLCanvasElement, data: DataFile, weekIndex: number, insights: Insights) {
     await Promise.all([
-        document.fonts.load(`700 80px "Cormorant Garamond"`),
-        document.fonts.load(`700 30px "PT Serif"`),
-        document.fonts.load(`400 30px "PT Serif"`)
+        document.fonts.load(`400 80px "Oranienbaum"`),
+        document.fonts.load(`400 30px "Spectral"`),
+        document.fonts.load(`italic 400 30px "Spectral"`)
     ]).catch(() => undefined);
     const ctx = canvas.getContext('2d')!;
     canvas.width = W; canvas.height = H;
     const week = data.weeks[weekIndex];
 
-    // Ground
-    const bg = ctx.createLinearGradient(0, 0, W * 0.4, H);
-    bg.addColorStop(0, '#20394c'); bg.addColorStop(1, '#0c1b25');
-    ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
-    const glow = ctx.createRadialGradient(W * 0.85, 0, 0, W * 0.85, 0, W * 0.9);
-    glow.addColorStop(0, 'rgba(201,154,82,0.28)'); glow.addColorStop(1, 'rgba(201,154,82,0)');
+    ctx.fillStyle = NIGHT; ctx.fillRect(0, 0, W, H);
+    const glow = ctx.createRadialGradient(W / 2, 260, 0, W / 2, 260, 700);
+    glow.addColorStop(0, 'rgba(201,169,97,0.07)'); glow.addColorStop(1, 'rgba(201,169,97,0)');
     ctx.fillStyle = glow; ctx.fillRect(0, 0, W, H);
 
-    // Shyrdak lattice (diamonds with paired horn curls), faint, fading down
-    ctx.save();
-    ctx.globalAlpha = 0.07;
-    ctx.strokeStyle = GOLD; ctx.lineWidth = 2;
-    const s = 96;
-    for (let y = -s / 2; y < H * 0.55; y += s) {
-        for (let x = -s / 2; x < W + s; x += s) {
-            const cx = x + s / 2, cy = y + s / 2;
-            ctx.beginPath();
-            ctx.moveTo(cx, cy - s / 2.4); ctx.lineTo(cx + s / 2.4, cy); ctx.lineTo(cx, cy + s / 2.4); ctx.lineTo(cx - s / 2.4, cy); ctx.closePath();
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(cx, cy - 14); ctx.bezierCurveTo(cx - 12, cy - 14, cx - 16, cy - 6, cx - 12, cy - 2);
-            ctx.moveTo(cx, cy - 14); ctx.bezierCurveTo(cx + 12, cy - 14, cx + 16, cy - 6, cx + 12, cy - 2);
-            ctx.moveTo(cx, cy + 14); ctx.bezierCurveTo(cx - 12, cy + 14, cx - 16, cy + 6, cx - 12, cy + 2);
-            ctx.moveTo(cx, cy + 14); ctx.bezierCurveTo(cx + 12, cy + 14, cx + 16, cy + 6, cx + 12, cy + 2);
-            ctx.stroke();
-        }
-    }
-    ctx.restore();
+    // Frame: hairline + сынган мүйүз corners
+    ctx.strokeStyle = LINE; ctx.lineWidth = 1.5;
+    ctx.strokeRect(54, 54, W - 108, H - 108);
+    ctx.strokeStyle = GOLD;
+    strokePaths(ctx, CORNER, 40, 40, 1.1, 0, 1.6);
+    strokePaths(ctx, CORNER, W - 40, 40, 1.1, Math.PI / 2, 1.6);
+    strokePaths(ctx, CORNER, W - 40, H - 40, 1.1, Math.PI, 1.6);
+    strokePaths(ctx, CORNER, 40, H - 40, 1.1, -Math.PI / 2, 1.6);
 
-    // Frame with diamond corner studs
-    ctx.strokeStyle = GOLD_DIM; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.roundRect(36, 36, W - 72, H - 72, 28); ctx.stroke();
-    [[36, 36], [W - 36, 36], [36, H - 36], [W - 36, H - 36]].forEach(([x, y]) => {
-        ctx.fillStyle = GOLD;
-        ctx.beginPath(); ctx.moveTo(x, y - 10); ctx.lineTo(x + 10, y); ctx.lineTo(x, y + 10); ctx.lineTo(x - 10, y); ctx.closePath(); ctx.fill();
-    });
+    // Wordmark + crown
+    ctx.fillStyle = GOLD; ctx.font = `400 34px ${DISPLAY}`; ctx.textAlign = 'center';
+    ctx.fillText('tdJamaat', W / 2, 128);
+    ctx.strokeStyle = GOLD;
+    strokePaths(ctx, HORN, W / 2 - 42, 156, 0.84, 0, 2.2);
+    ctx.lineWidth = 1.2; ctx.strokeStyle = GOLD_DIM;
+    ctx.beginPath(); ctx.moveTo(250, 214); ctx.lineTo(W / 2 - 60, 214); ctx.moveTo(W / 2 + 60, 214); ctx.lineTo(W - 250, 214); ctx.stroke();
 
-    // Header
-    try {
-        const logo = await loadImage('/favicon.svg');
-        ctx.drawImage(logo, 90, 92, 96, 96);
-    } catch { /* logo is optional */ }
-    ctx.fillStyle = INK; ctx.font = `700 76px ${DISPLAY}`; ctx.textBaseline = 'alphabetic';
-    ctx.fillText('tdJamaat', 210, 160);
-    ctx.fillStyle = MUTED; ctx.font = `400 24px ${TEXT}`;
-    ctx.fillText(fitText(ctx, 'Жамааттын активдүүлүгүн талдоого багытталган үйлөрдүн рейтинги', W - 300), 212, 196);
-
-    ctx.fillStyle = GOLD; ctx.font = `700 24px ${TEXT}`;
-    ctx.fillText('АПТАЛЫК РЕЙТИНГ', 90, 292);
-    ctx.fillStyle = INK; ctx.font = `700 120px ${NUM}`;
-    const num = String(week.weekNumber);
-    ctx.fillText(num, 86, 410);
-    const numW = ctx.measureText(num).width;
-    ctx.fillStyle = MUTED; ctx.font = `600 64px ${DISPLAY}`;
-    ctx.fillText('-апта', 92 + numW, 410);
-    if (week.date) { ctx.font = `400 26px ${TEXT}`; ctx.fillText(week.date.replace(' -- ', ' — '), 92, 456); }
-
-    // Houses
+    // Monument
     const houses = [...insights.houses.values()]
         .map(h => ({ h, w: weekOf(h.weeks, weekIndex) }))
         .filter(x => x.w)
         .sort((a, b) => (a.w!.rank ?? 99) - (b.w!.rank ?? 99) || b.w!.avg - a.w!.avg);
-    const maxAvg = Math.max(1, ...houses.map(x => x.w!.avg));
-    let y = 536;
-    ctx.fillStyle = GOLD; ctx.font = `700 22px ${TEXT}`;
-    ctx.fillText('ҮЙЛӨРДҮН РЕЙТИНГИ · ОРТОЧО УПАЙ', 90, y - 26);
-    const rowH = Math.min(62, 372 / Math.max(1, houses.length));
-    houses.forEach(({ h, w }, i) => {
-        const cy = y + i * rowH;
-        ctx.fillStyle = i === 0 ? GOLD : MUTED; ctx.font = `700 32px ${NUM}`;
-        ctx.fillText(w!.rank ? String(w!.rank).padStart(2, '0') : '—', 90, cy + 30);
-        ctx.fillStyle = INK; ctx.font = `700 32px ${TEXT}`;
-        ctx.fillText(fitText(ctx, h.name, 330), 170, cy + 28);
-        // bar
-        const bx = 520, bw = 360, by = cy + 12;
-        ctx.fillStyle = 'rgba(255,255,255,0.08)'; ctx.beginPath(); ctx.roundRect(bx, by, bw, 14, 7); ctx.fill();
-        ctx.fillStyle = TEAM[h.colorIndex % TEAM.length];
-        ctx.beginPath(); ctx.roundRect(bx, by, Math.max(14, (w!.avg / maxAvg) * bw), 14, 7); ctx.fill();
-        ctx.fillStyle = w!.submitted ? INK : MUTED; ctx.font = `700 34px ${NUM}`; ctx.textAlign = 'right';
-        ctx.fillText(w!.submitted ? fmt(w!.avg) : '—', W - 90, cy + 32);
-        ctx.textAlign = 'left';
-    });
-    y += houses.length * rowH + 40;
+    const lead = houses.find(x => x.w!.rank === 1);
+    ctx.fillStyle = GOLD; ctx.font = `400 22px ${TEXT}`;
+    spaced(ctx, `${week.weekNumber}-АПТА · АПТАНЫН ҮЙҮ`, W / 2, 290, 6, 'center');
+    ctx.textAlign = 'center';
+    ctx.fillStyle = INK; ctx.font = `400 74px ${DISPLAY}`;
+    ctx.fillText(lead ? fitText(ctx, lead.h.name, W - 240) : '—', W / 2, 380);
+    ctx.fillStyle = GOLD; ctx.font = `400 168px ${DISPLAY}`;
+    ctx.fillText(lead ? fmt(lead.w!.avg) : '—', W / 2, 535);
+    ctx.fillStyle = MUTED; ctx.font = `italic 400 24px ${TEXT}`;
+    ctx.fillText('орточо упай', W / 2, 580);
 
-    // Top three people
+    // Houses with dotted leaders
+    let y = 660;
+    ctx.fillStyle = GOLD_DIM; ctx.font = `400 18px ${TEXT}`;
+    spaced(ctx, 'ҮЙЛӨР', W / 2, y, 8, 'center');
+    y += 46;
+    const rowH = Math.min(42, 260 / Math.max(1, houses.length));
+    houses.forEach(({ h, w }) => {
+        const leader = w!.rank === 1;
+        ctx.textAlign = 'left';
+        ctx.fillStyle = GOLD_DIM; ctx.font = `400 18px ${TEXT}`;
+        ctx.fillText(w!.rank ? String(w!.rank).padStart(2, '0') : '—', 150, y);
+        ctx.fillStyle = leader ? GOLD : INK; ctx.font = `400 32px ${DISPLAY}`;
+        const name = fitText(ctx, h.name, 420);
+        ctx.fillText(name, 196, y);
+        const nameEnd = 196 + ctx.measureText(name).width + 16;
+        ctx.textAlign = 'right';
+        ctx.fillStyle = w!.submitted ? (leader ? GOLD : INK) : MUTED; ctx.font = `400 34px ${DISPLAY}`;
+        const val = w!.submitted ? fmt(w!.avg) : '—';
+        ctx.fillText(val, W - 150, y);
+        const valStart = W - 150 - ctx.measureText(val).width - 16;
+        ctx.fillStyle = '#4a4740';
+        for (let x = nameEnd; x < valStart; x += 9) ctx.fillRect(x, y - 6, 2, 2);
+        y += rowH;
+    });
+
+    // Top three in hairline rings
     const top = [...insights.members.values()]
         .map(m => ({ m, w: weekOf(m.weeks, weekIndex) }))
         .filter(x => x.w && x.w.submitted && x.w.rank && x.w.rank <= 3 && x.w.score > 0)
         .sort((a, b) => a.w!.rank! - b.w!.rank!)
         .slice(0, 3);
     if (top.length) {
-        ctx.fillStyle = GOLD; ctx.font = `700 22px ${TEXT}`;
-        ctx.fillText('АПТАНЫН ҮЧ МЫКТЫСЫ', 90, y);
-        y += 24;
-        const colW = (W - 180 - 40) / 3;
-        const medals = [['#f3d48a', '#a8741f'], ['#eef1f3', '#8b97a1'], ['#e0aa7c', '#8f5427']];
+        y += 26;
+        ctx.fillStyle = GOLD_DIM; ctx.font = `400 18px ${TEXT}`;
+        spaced(ctx, 'АПТАНЫН ҮЧ МЫКТЫСЫ', W / 2, y, 8, 'center');
+        const colW = (W - 240) / 3;
         top.forEach(({ m, w }, i) => {
-            const x = 90 + i * (colW + 20);
-            ctx.fillStyle = 'rgba(255,255,255,0.05)'; ctx.strokeStyle = 'rgba(217,181,111,0.25)'; ctx.lineWidth = 1.5;
-            ctx.beginPath(); ctx.roundRect(x, y, colW, 190, 20); ctx.fill(); ctx.stroke();
-            const g = ctx.createLinearGradient(x + 24, y + 24, x + 84, y + 84);
-            g.addColorStop(0, medals[w!.rank! - 1][0]); g.addColorStop(1, medals[w!.rank! - 1][1]);
-            ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x + 54, y + 54, 30, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = '#fff'; ctx.font = `700 30px ${NUM}`; ctx.textAlign = 'center';
-            ctx.fillText(String(w!.rank), x + 54, y + 65);
-            ctx.textAlign = 'right'; ctx.fillStyle = INK; ctx.font = `700 44px ${NUM}`;
-            ctx.fillText(fmt(w!.score), x + colW - 22, y + 72);
-            ctx.textAlign = 'left';
-            ctx.fillStyle = INK; ctx.font = `700 28px ${TEXT}`;
-            ctx.fillText(fitText(ctx, m.name, colW - 44), x + 22, y + 135);
-            ctx.fillStyle = MUTED; ctx.font = `400 22px ${TEXT}`;
-            ctx.fillText(fitText(ctx, `${w!.houseName} · ${ROLE_LABEL[m.role]}`, colW - 44), x + 22, y + 170);
+            const cx = 120 + colW * i + colW / 2, cy = y + 66;
+            ctx.strokeStyle = GOLD; ctx.lineWidth = 1.4;
+            ctx.beginPath(); ctx.arc(cx, cy, 34, 0, Math.PI * 2); ctx.stroke();
+            ctx.fillStyle = GOLD; ctx.font = `400 30px ${DISPLAY}`; ctx.textAlign = 'center';
+            ctx.fillText(ROMAN[w!.rank! - 1], cx, cy + 10);
+            ctx.fillStyle = INK; ctx.font = `400 30px ${DISPLAY}`;
+            ctx.fillText(fitText(ctx, m.name.split(' ')[0], colW - 30), cx, cy + 82);
+            ctx.fillStyle = MUTED; ctx.font = `italic 400 19px ${TEXT}`;
+            ctx.fillText(fitText(ctx, w!.houseName, colW - 30), cx, cy + 110);
+            ctx.fillStyle = INK; ctx.font = `400 34px ${DISPLAY}`;
+            ctx.fillText(fmt(w!.score), cx, cy + 146);
         });
     }
 
-    // Horn-chain trim + footer
-    ctx.save();
-    ctx.strokeStyle = GOLD_DIM; ctx.lineWidth = 2; ctx.lineCap = 'round';
-    for (let x = 90; x < W - 90; x += 48) {
-        const cy = H - 112;
-        ctx.beginPath();
-        ctx.moveTo(x, cy); ctx.lineTo(x + 9, cy); ctx.bezierCurveTo(x + 9, cy - 9, x + 18, cy - 10, x + 18, cy - 2); ctx.bezierCurveTo(x + 18, cy + 3, x + 12, cy + 3, x + 12, cy - 1);
-        ctx.moveTo(x + 48, cy); ctx.lineTo(x + 39, cy); ctx.bezierCurveTo(x + 39, cy - 9, x + 30, cy - 10, x + 30, cy - 2); ctx.bezierCurveTo(x + 30, cy + 3, x + 36, cy + 3, x + 36, cy - 1);
-        ctx.moveTo(x + 21, cy); ctx.lineTo(x + 27, cy);
-        ctx.stroke();
-    }
-    ctx.restore();
-    ctx.fillStyle = MUTED; ctx.font = `400 26px ${TEXT}`; ctx.textAlign = 'center';
-    ctx.fillText(window.location.host || 'tdjamaat.vercel.app', W / 2, H - 66);
+    ctx.fillStyle = MUTED; ctx.font = `400 18px ${TEXT}`;
+    spaced(ctx, (window.location.host || 'tdjamaat.vercel.app').toUpperCase(), W / 2, H - 76, 5, 'center');
     ctx.textAlign = 'left';
 }
 
