@@ -24,11 +24,13 @@ visual redesign.
   <img src="docs/desktop.jpg" alt="Weekly overview on a laptop: house of the week, its rating, and the week's top three" width="100%">
 </p>
 <p align="center">
-  <img src="docs/phone-overview.jpg" alt="Weekly overview on a phone, dark theme" width="32%">
+  <img src="docs/phone-overview.jpg" alt="Weekly overview on a phone" width="30%">
   &nbsp;
-  <img src="docs/phone-profile.jpg" alt="A member's profile on a phone, light theme" width="32%">
+  <img src="docs/phone-houses.jpg" alt="A house's rating and mini-card on a phone" width="30%">
+  &nbsp;
+  <img src="docs/phone-profile.jpg" alt="A member's profile on a phone" width="30%">
 </p>
-<p align="center"><sub>Screenshots use invented demo data.</sub></p>
+<p align="center"><sub>Light theme, invented demo data. The site also has a black-and-gold dark theme.</sub></p>
 
 ## Contents
 
