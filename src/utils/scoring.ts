@@ -65,13 +65,26 @@ export const calculateMemberScore = (member: TeamMember): number => {
     return Math.round(totalScore * 10) / 10;
 };
 
-export const calculateTeamScore = (team: Team): number => {
-    const memberScores = team.members.reduce((sum, member) => sum + calculateMemberScore(member), 0);
+// House rating (what houses are ranked by):
+//   average member score  +  mini-card bonus
+// Average, not total, so a small house competes fairly with a big one.
+// The mini-card (house activities) adds up to MINI_CARD_POINTS per activity
+// at 100% of its target. Each activity is capped at 100%: a target of 1
+// (СПОРТ) done 7 times must not count as 700%. No target → no points.
+export const MINI_CARD_POINTS = 5;
 
-    const miniCardScore = Object.keys(team.miniCard).reduce((sum, key) => {
-        const activity = team.miniCard[key as keyof typeof team.miniCard];
-        return sum + calculatePerformancePercentage(activity.actual, activity.target);
+export const calculateMiniCardBonus = (miniCard: Team['miniCard']): number => {
+    const total = Object.values(miniCard).reduce((sum, a) => {
+        if (!a || a.target <= 0) return sum;
+        return sum + Math.min(Math.max(a.actual, 0) / a.target, 1) * MINI_CARD_POINTS;
     }, 0);
-
-    return Math.round((memberScores + miniCardScore * 0.5) * 10) / 10;
+    return Math.round(total * 10) / 10;
 };
+
+export const calculateMemberAverage = (team: Team): number =>
+    team.members.length === 0
+        ? 0
+        : Math.round((team.members.reduce((sum, m) => sum + calculateMemberScore(m), 0) / team.members.length) * 10) / 10;
+
+export const calculateHouseRating = (team: Team): number =>
+    Math.round((calculateMemberAverage(team) + calculateMiniCardBonus(team.miniCard)) * 10) / 10;

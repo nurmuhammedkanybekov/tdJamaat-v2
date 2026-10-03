@@ -3,7 +3,7 @@
 // already load, with the same scoring rules (src/utils/scoring.ts), so a
 // number on a profile page always matches the number in the tables.
 import type { DataFile, MetricValues, Role, TeamMember } from '../types';
-import { calculateMemberScore, calculatePerformancePercentage, weights } from './scoring';
+import { calculateMemberAverage, calculateMemberScore, calculateMiniCardBonus, calculatePerformancePercentage, weights } from './scoring';
 
 export const METRICS = Object.keys(weights) as Array<keyof MetricValues>;
 
@@ -42,7 +42,12 @@ export interface MemberSeries {
 export interface HouseWeek {
     weekIndex: number;
     weekNumber: number;
+    /** House rating: member average + mini-card bonus (what houses are ranked by). */
     avg: number;
+    /** Average member score alone. */
+    memberAvg: number;
+    /** Mini-card bonus alone (0 … 7 × MINI_CARD_POINTS). */
+    cardBonus: number;
     rank: number | null;
     submitted: boolean;
     memberCount: number;
@@ -121,14 +126,15 @@ export const buildInsights = (data: DataFile): Insights => {
 
         // Houses
         const hrows = week.teams.map((team, colorIndex) => {
-            const scores = team.members.map(calculateMemberScore);
-            const avg = scores.length ? round1(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
+            const memberAvg = calculateMemberAverage(team);
+            const cardBonus = calculateMiniCardBonus(team.miniCard);
+            const avg = round1(memberAvg + cardBonus);
             const keys = Object.keys(team.miniCard) as Array<keyof typeof team.miniCard>;
             const cardPcts = keys.map(k => calculatePerformancePercentage(team.miniCard[k].actual, team.miniCard[k].target));
             const miniCardPct = cardPcts.length ? cardPcts.reduce((a, b) => a + Math.min(b, 100), 0) / cardPcts.length : 0;
             const miniCardComplete = team.submitted && keys.every(k => team.miniCard[k].target > 0 && team.miniCard[k].actual >= team.miniCard[k].target);
             const allPerfect = team.submitted && team.members.length > 0 && rows.filter(r => r.houseId === team.id).every(r => r.perfect);
-            return { team, colorIndex, hw: { weekIndex, weekNumber: week.weekNumber, avg, rank: null as number | null, submitted: team.submitted, memberCount: team.members.length, miniCardPct, miniCardComplete, allPerfect } };
+            return { team, colorIndex, hw: { weekIndex, weekNumber: week.weekNumber, avg, memberAvg, cardBonus, rank: null as number | null, submitted: team.submitted, memberCount: team.members.length, miniCardPct, miniCardComplete, allPerfect } };
         });
         const hranked = rankBy(hrows.filter(h => h.hw.submitted), h => h.hw.avg);
         hrows.forEach(h => {

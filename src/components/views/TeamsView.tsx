@@ -3,7 +3,7 @@ import { CheckCircle2, Clock3, PenLine } from 'lucide-react';
 import type { DataFile } from '../../types';
 import type { Insights, MemberSeries, MemberWeek } from '../../utils/insights';
 import { METRICS, movement, ROLE_LABEL, weekOf } from '../../utils/insights';
-import { TEAM_COLORS, calculatePerformancePercentage } from '../../utils/scoring';
+import { MINI_CARD_POINTS, TEAM_COLORS, calculatePerformancePercentage } from '../../utils/scoring';
 import { Avatar } from '../Avatar';
 import { Movement, ProgressBar, SectionHeader, Sparkline } from '../ui';
 import { perfColor } from '../../utils/style';
@@ -81,11 +81,16 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
                     </div>
                     <div className="flex items-center gap-5 sm:gap-7">
                         <div>
-                            <div className="eyebrow">Орточо упай</div>
+                            <div className="eyebrow">Үй рейтинги</div>
                             <div className="flex items-baseline gap-2 mt-1">
-                                <span className="font-display font-bold text-[2.6rem] leading-none tabular" style={{ color: 'var(--text-primary)' }}>{hw?.submitted ? fmt(hw.avg) : '—'}</span>
+                                <span className="font-display text-[2.6rem] leading-none tabular" style={{ color: 'var(--gold)' }}>{hw?.submitted ? fmt(hw.avg) : '—'}</span>
                                 {series && <Movement delta={movement(series.weeks, weekIndex)} size="md" />}
                             </div>
+                            {hw?.submitted && (
+                                <div className="text-[0.78rem] italic mt-1.5 tabular" style={{ color: 'var(--text-muted)' }}>
+                                    орточо {fmt(hw.memberAvg)} + мини-карта {fmt(hw.cardBonus)}
+                                </div>
+                            )}
                         </div>
                         {series && <Sparkline values={series.weeks.filter(w => w.weekIndex <= weekIndex && w.submitted).map(w => w.avg)} color={color} width={110} height={40} />}
                     </div>
@@ -99,7 +104,7 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
 
             {/* Mini card */}
             <section>
-                <SectionHeader eyebrow="Командалык иштер" title="Мини-карта" />
+                <SectionHeader eyebrow="Командалык иштер" title="Мини-карта" sub={`Ар бир иш 100% аткарылса ${MINI_CARD_POINTS} упай кошулат (эң көп ${MINI_CARD_POINTS * 7}). Ашыкчасы эсептелбейт.`} />
                 <div className="grid grid-cols-2 min-[460px]:grid-cols-3 md:grid-cols-4 xl:grid-cols-7 gap-3 stagger">
                     {cardKeys.map(key => {
                         const v = team.miniCard[key];

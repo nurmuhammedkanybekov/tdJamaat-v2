@@ -66,7 +66,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ data, insights, onOp
     return (
         <div className="space-y-8 sm:space-y-10">
             <section className="card card-pad">
-                <SectionHeader eyebrow="Орточо упай" title="Үйлөрдүн апталык прогресси" sub="Үйдү жашыруу же көрсөтүү үчүн атын басыңыз." />
+                <SectionHeader eyebrow="Үй рейтинги" title="Үйлөрдүн апталык прогресси" sub="Үйдү жашыруу же көрсөтүү үчүн атын басыңыз." />
                 {legend}
                 <div className="mt-4 -ml-3 sm:ml-0">
                     <ResponsiveContainer width="100%" height={isPhone ? 280 : 420}>

@@ -56,11 +56,11 @@ export const BADGES: Record<string, BadgeDef> = {
     'steady-8': { id: 'steady-8', scope: 'person', name: 'Ишенимдүү', tier: 'silver', icon: 'steady', rule: 'Катары менен 8 апта активдүү.' },
     'steady-16': { id: 'steady-16', scope: 'person', name: 'Толук сезон', tier: 'gold', icon: 'steady', rule: 'Катары менен 16 апта активдүү — бүт сезон.' },
 
-    'house-week': { id: 'house-week', scope: 'house', name: 'Аптанын үйү', tier: 'gold', icon: 'crown', rule: 'Аптанын үйлөр рейтингинде 1-орун (орточо упай боюнча).' },
-    'house-month': { id: 'house-month', scope: 'house', name: 'Айдын үйү', tier: 'seal', icon: 'moon', rule: 'Бүткөн 4-апталык мезгилдин эң жогорку орточо упайы.' },
+    'house-week': { id: 'house-week', scope: 'house', name: 'Аптанын үйү', tier: 'gold', icon: 'crown', rule: 'Аптанын үйлөр рейтингинде 1-орун.' },
+    'house-month': { id: 'house-month', scope: 'house', name: 'Айдын үйү', tier: 'seal', icon: 'moon', rule: 'Бүткөн 4-апталык мезгилде эң жогорку орточо рейтинг.' },
     'house-unity': { id: 'house-unity', scope: 'house', name: 'Бир жүрөк', tier: 'gold', icon: 'unity', rule: 'Бир аптада үйдүн ар бир мүчөсү толук планды аткарды.' },
     'house-card': { id: 'house-card', scope: 'house', name: 'Мини-карта устаты', tier: 'silver', icon: 'card', rule: 'Бир аптада мини-картанын 7 ишинин баарында план аткарылды.' },
-    'house-leap': { id: 'house-leap', scope: 'house', name: 'Үйдүн секириги', tier: 'bronze', icon: 'rocket', rule: 'Аптанын эң чоң орточо өсүшү (кеминде +5).' }
+    'house-leap': { id: 'house-leap', scope: 'house', name: 'Үйдүн секириги', tier: 'bronze', icon: 'rocket', rule: 'Аптанын эң чоң рейтинг өсүшү (кеминде +5).' }
 };
 
 const fmt = (n: number) => (Math.round(n * 10) / 10).toString();
@@ -129,7 +129,7 @@ export const computeAwards = (data: DataFile, insights: Insights): Award[] => {
         // Houses
         const hrows = houses.map(h => ({ h, w: weekOf(h.weeks, weekIndex) })).filter((x): x is { h: HouseSeries; w: HouseWeek } => !!x.w && x.w.submitted);
         hrows.filter(x => x.w.rank === 1 && x.w.avg > 0).forEach(x =>
-            give('house-week', x.h.id, x.h.name, x.h.name, x.w, `${n}-апта: үйлөрдүн ичинен 1-орун, орточо ${fmt(x.w.avg)} упай.`));
+            give('house-week', x.h.id, x.h.name, x.h.name, x.w, `${n}-апта: үйлөрдүн ичинен 1-орун, рейтинг ${fmt(x.w.avg)} упай.`));
         hrows.filter(x => x.w.allPerfect).forEach(x =>
             give('house-unity', x.h.id, x.h.name, x.h.name, x.w, `${n}-апта: ${x.w.memberCount} мүчөнүн баары толук планды аткарды.`));
         hrows.filter(x => x.w.miniCardComplete).forEach(x =>
@@ -142,7 +142,7 @@ export const computeAwards = (data: DataFile, insights: Insights): Award[] => {
         if (hleaps[0] && hleaps[0].delta >= 5) {
             const top = hleaps[0].delta;
             hleaps.filter(x => x.delta === top).forEach(x =>
-                give('house-leap', x.h.id, x.h.name, x.h.name, x.w, `${n}-апта: орточо +${fmt(x.delta)} (${fmt(x.prev!.avg)} → ${fmt(x.w.avg)}).`));
+                give('house-leap', x.h.id, x.h.name, x.h.name, x.w, `${n}-апта: рейтинг +${fmt(x.delta)} (${fmt(x.prev!.avg)} → ${fmt(x.w.avg)}).`));
         }
 
         // House of the month: when a 4-week period completes
@@ -156,7 +156,7 @@ export const computeAwards = (data: DataFile, insights: Insights): Award[] => {
                 const top = totals[0].avg;
                 const first = data.weeks[period[0]].weekNumber;
                 totals.filter(t => t.avg === top).forEach(t =>
-                    give('house-month', t.h.id, t.h.name, t.h.name, { weekIndex, weekNumber: n }, `${first}–${n}-апталар: орточо ${fmt(t.avg)} упай — мезгилдин эң мыкты үйү.`));
+                    give('house-month', t.h.id, t.h.name, t.h.name, { weekIndex, weekNumber: n }, `${first}–${n}-апталар: орточо рейтинг ${fmt(t.avg)} — мезгилдин эң мыкты үйү.`));
             }
         }
     });

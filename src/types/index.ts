@@ -90,36 +90,3 @@ export interface WeekData {
 export interface DataFile {
     weeks: WeekData[];
 }
-
-// ---------------------------------------------------------------------------
-// Rankings (unchanged shape from the original app)
-// ---------------------------------------------------------------------------
-
-export interface TeamRanking {
-    name: string;
-    index: number;
-    totalScore: number;
-    avgMemberScore: number;
-    memberCount: number;
-    rank: number;
-}
-
-export interface MemberRanking extends TeamMember {
-    index: number;
-    score: number;
-    performancePercentages: MetricValues;
-    rank: number;
-}
-
-export interface FourWeekData {
-    teamName: string;
-    weeklyScores: number[];
-    averageScore: number;
-    totalScore: number;
-    bestWeek: number;
-    worstWeek: number;
-    trends: 'up' | 'down' | 'stable';
-    ranking: number;
-    periodStart: number;
-    periodEnd: number;
-}

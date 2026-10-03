@@ -3,7 +3,7 @@ import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YA
 import { ChevronLeft, ChevronRight, Minus, TrendingDown, TrendingUp } from 'lucide-react';
 import { useIsPhone } from '../../hooks/useMediaQuery';
 import type { DataFile } from '../../types';
-import { calculateMemberScore, TEAM_COLORS } from '../../utils/scoring';
+import { calculateHouseRating, TEAM_COLORS } from '../../utils/scoring';
 import { ChartTooltip, SectionHeader } from '../ui';
 import { axisTick, scoreDomain } from '../../utils/style';
 
@@ -17,10 +17,10 @@ const round1 = (n: number) => Math.round(n * 10) / 10;
 const pad2 = (n: number) => String(n).padStart(2, '0');
 const TOTAL_FROM_WEEK = 5;
 
-// A house's average member score for one week (same rule as everywhere:
-// total ÷ members; a week the house hasn't filled counts its roster at 0).
+// A house's rating for one week (same rule as everywhere: member average +
+// mini-card bonus; a week the house hasn't filled counts its roster at 0).
 const weekAvg = (team: DataFile['weeks'][number]['teams'][number]) =>
-    team.members.length ? round1(team.members.reduce((s, m) => s + calculateMemberScore(m), 0) / team.members.length) : null;
+    team.members.length ? calculateHouseRating(team) : null;
 
 type Trend = 'up' | 'down' | 'stable';
 const TREND: Record<Trend, { label: string; icon: React.ComponentType<{ className?: string }>; color: string }> = {
@@ -85,7 +85,7 @@ const PeriodReport: React.FC<ReportsViewProps> = ({ data, selectedPeriod, setSel
 
             <div className="grid gap-3 sm:gap-4 sm:grid-cols-3 stagger">
                 {[
-                    { label: 'Эң мыкты үй', value: rows[0]?.name ?? '—', sub: rows[0] ? `Орточо: ${rows[0].average}` : '' },
+                    { label: 'Эң мыкты үй', value: rows[0]?.name ?? '—', sub: rows[0] ? `Рейтинг: ${rows[0].average}` : '' },
                     { label: 'Эң тез өсүү', value: rising?.name ?? '—', sub: rising ? `${rising.scores[0]} → ${rising.scores.at(-1)}` : 'Өсүш тенденциясы жок' },
                     { label: 'Мезгил', value: `${weeks.length} апта`, sub: `${rows.length} үй катышты` }
                 ].map(s => (
@@ -98,7 +98,7 @@ const PeriodReport: React.FC<ReportsViewProps> = ({ data, selectedPeriod, setSel
             </div>
 
             <section className="card overflow-hidden">
-                <div className="card-pad pb-0 sm:pb-0"><SectionHeader eyebrow="Орточо упай боюнча" title="Мезгилдин рейтинги" /></div>
+                <div className="card-pad pb-0 sm:pb-0"><SectionHeader eyebrow="Үй рейтинги боюнча" title="Мезгилдин рейтинги" /></div>
                 <div className="overflow-x-auto">
                     <table className="data-table">
                         <thead>
@@ -106,7 +106,7 @@ const PeriodReport: React.FC<ReportsViewProps> = ({ data, selectedPeriod, setSel
                                 <th style={{ paddingLeft: '1.25rem' }}>#</th>
                                 <th>Үй</th>
                                 {weeks.map(w => <th key={w.weekNumber} className="hidden md:table-cell" style={{ textAlign: 'center' }}>{w.weekNumber}-апта</th>)}
-                                <th style={{ textAlign: 'right' }}>Орточо</th>
+                                <th style={{ textAlign: 'right' }}>Рейтинг</th>
                                 <th className="hidden sm:table-cell" style={{ textAlign: 'right' }}>Эң жакшы</th>
                                 <th className="hidden sm:table-cell" style={{ textAlign: 'right' }}>Эң начар</th>
                                 <th style={{ textAlign: 'right', paddingRight: '1.25rem' }}>Тенденция</th>
@@ -175,7 +175,7 @@ const TotalReport: React.FC<{ data: DataFile }> = ({ data }) => {
             <SectionHeader
                 eyebrow="Сезондун жыйынтыгы"
                 title={`Жалпы рейтинг (${TOTAL_FROM_WEEK}-аптадан)`}
-                sub={`${TOTAL_FROM_WEEK}-аптадан баштап акыркы аптага чейинки орточо упайлардын суммасы.`}
+                sub={`${TOTAL_FROM_WEEK}-аптадан баштап акыркы аптага чейинки апталык рейтингдердин суммасы.`}
             />
             {relevant.length === 0 ? (
                 <p className="text-center py-10 font-display text-[1.3rem]" style={{ color: 'var(--text-muted)' }}>{TOTAL_FROM_WEEK}-аптадан баштап маалымат азырынча жок.</p>

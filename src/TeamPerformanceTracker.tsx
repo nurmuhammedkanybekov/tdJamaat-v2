@@ -182,7 +182,7 @@ const TeamPerformanceTracker: React.FC = () => {
         kicker: `${currentWeekData.weekNumber}-апта · аптанын үйү`,
         title: leader?.name ?? 'Маалымат күтүлүүдө',
         value: leaderWeek ? fmt(leaderWeek.avg) : '—',
-        sub: `орточо упай · ${weekPeople.length} адам · ${submittedHouses}/${currentWeekData.teams.length} үй киргизди`
+        sub: `үй рейтинги · ${weekPeople.length} адам · ${submittedHouses}/${currentWeekData.teams.length} үй киргизди`
     } : undefined;
 
     const profileSeries = route.memberId ? insights.members.get(route.memberId) : undefined;

@@ -102,7 +102,7 @@ async function drawCard(canvas: HTMLCanvasElement, data: DataFile, weekIndex: nu
     ctx.fillStyle = GOLD; ctx.font = `400 168px ${DISPLAY}`;
     ctx.fillText(lead ? fmt(lead.w!.avg) : '—', W / 2, 535);
     ctx.fillStyle = MUTED; ctx.font = `italic 400 24px ${TEXT}`;
-    ctx.fillText('орточо упай', W / 2, 580);
+    ctx.fillText('үй рейтинги', W / 2, 580);
 
     // Houses with dotted leaders
     let y = 660;

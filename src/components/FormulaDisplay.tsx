@@ -1,5 +1,5 @@
 import React from 'react';
-import { weights } from '../utils/scoring';
+import { MINI_CARD_POINTS, weights } from '../utils/scoring';
 import { PLAN_SCORE } from '../utils/insights';
 import { Sheet } from './ui';
 
@@ -45,8 +45,10 @@ export const FormulaSheet: React.FC<{ onClose: () => void }> = ({ onClose }) => 
                 <Formula>Жалпы упай = Σ бардык көрсөткүчтөрдүн упайы</Formula>
             </Step>
             <Step n={5} title="Үйлөрдүн рейтинги">
-                <Formula>Үй рейтинги = Мүчөлөрдүн жалпы упайы ÷ Мүчөлөрдүн саны</Formula>
-                <p className="text-[0.82rem] mt-2" style={{ color: 'var(--text-muted)' }}>Үйлөрдө адам саны ар башка, ошондуктан адилеттүүлүк үчүн <b>орточо упай</b> колдонулат.</p>
+                <Formula>Үй рейтинги = Мүчөлөрдүн орточо упайы + Мини-карта</Formula>
+                <p className="text-[0.82rem] mt-2" style={{ color: 'var(--text-muted)' }}>Үйлөрдө адам саны ар башка, ошондуктан жалпы эмес, <b>орточо</b> упай алынат.</p>
+                <Formula>Мини-карта = Σ (Факт ÷ План, эң көп 100%) × {MINI_CARD_POINTS}</Formula>
+                <p className="text-[0.82rem] mt-2" style={{ color: 'var(--text-muted)' }}>7 иштин ар бири толук аткарылса {MINI_CARD_POINTS} упай, бардыгы — {MINI_CARD_POINTS * 7} упай. Ар бир иш 100% менен чектелет: мисалы, СПОРТ планы 1 болсо, 7 жолу кылуу 700% болуп кетпейт.</p>
             </Step>
             <section className="pt-5" style={{ borderTop: '1px solid var(--border)' }}>
                 <div className="eyebrow mb-2" style={{ color: 'var(--gold)' }}>Мисал</div>

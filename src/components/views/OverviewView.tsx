@@ -85,7 +85,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ data, weekIndex, ins
             <div className="grid gap-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] lg:gap-20 items-start">
                 {/* Houses */}
                 <section>
-                    <SectionHeader eyebrow="Орточо упай боюнча" title="Үйлөр" />
+                    <SectionHeader eyebrow="Үй рейтинги" title="Үйлөр" />
                     <ol className="stagger">
                         {houses.map(({ h, w }) => (
                             <li key={h.id} className="flex items-baseline gap-3 py-3">
@@ -98,7 +98,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ data, weekIndex, ins
                         ))}
                     </ol>
                     <p className="text-[0.82rem] italic mt-5 max-w-[42ch]" style={{ color: 'var(--text-muted)' }}>
-                        Үйлөрдө адам саны ар башка, ошондуктан рейтинг орточо упайга негизделген: жалпы упай ÷ мүчөлөрдүн саны.
+                        Рейтинг = мүчөлөрдүн орточо упайы + мини-карта (ар бир иш 100% аткарылса 5 упай, эң көп 35).
                     </p>
                 </section>
 
