@@ -2,6 +2,12 @@
   "name": "tdjamaat",
   "private": true,
   "version": "2.0.0",
+  "description": "Weekly house rankings for a Kyrgyz Muslim community in Hungary",
+  "homepage": "https://tdjamaat.vercel.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nurmuhammedkanybekov/tdJamaat-v2.git"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",

@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+    branches: [master, nurmss, 'nurmss-*']
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      # Only checks that it builds: the Supabase keys are not needed for that
+      # (the real deploy builds with them on Nur's machine / Vercel).
+      - run: npm run build
