@@ -33,6 +33,10 @@ In the Supabase dashboard, open **SQL Editor** and run, in order:
 7. `supabase/history-and-locks-2026-10.sql` — change history (who changed
    what, when) and admin week locking. Logging can never block a save;
    every week starts unlocked. Safe to re-run.
+8. `supabase/seasons-2026-10.sql` — seasons: the current season becomes
+   "2026–27", every saved row remembers the house and role it was saved
+   under, targets carry forward within a season only, and the admin's
+   "end the season" button. Safe to re-run.
 
 ## 3. Configure the app's environment
 
@@ -120,6 +124,11 @@ say `"ok": true`.
   weeks keep the target they were saved with.
 - **Backup:** admin → **Маалымат кошуу** → **Камдык көчүрмө** downloads
   the whole database as a JSON file. Worth doing once a week.
+- **End of season:** admin → menu → **Админ панели** → **Сезон** → end the season and
+  name the next one. The finished season's weeks are locked (optional) and
+  stay in the archive; the next season starts at week 1. Then, in
+  **Курам**, move people to their new houses and set their roles, and
+  open week 1 of the new season.
 - **Roster changes mid-season:** add a member (or set `active = false`)
   in the `members` table. Past weeks keep the roster they actually had, so
   a new member never counts as a zero in weeks before they joined.

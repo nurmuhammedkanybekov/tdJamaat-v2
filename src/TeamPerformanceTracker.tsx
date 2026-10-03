@@ -27,11 +27,14 @@ import type { ShareTarget } from './components/ShareSheet';
 import { AdminPanel } from './components/AdminPanel';
 import { HistorySheet } from './components/HistorySheet';
 import { InstallSheet } from './components/InstallSheet';
+import { PrayerSheet } from './components/PrayerSheet';
+import { CompareSheet } from './components/CompareSheet';
+import type { CompareInit } from './components/CompareSheet';
 import { OverviewView, TeamsView, ProgressView, ReportsView, AwardsView } from './components/views';
 import { OrnamentDivider, SunMark } from './components/Ornament';
 import { LoadingScreen, StateCard } from './components/ui';
 
-type Modal = null | 'login' | 'entry' | 'formula' | 'share' | 'admin' | 'history' | 'install';
+type Modal = null | 'login' | 'entry' | 'formula' | 'share' | 'admin' | 'history' | 'install' | 'prayer' | 'compare';
 
 const VIEW_KEYS = TABS.map(t => t.key);
 const parseHash = (): { view: ActiveView; memberId: string | null } => {
@@ -57,6 +60,8 @@ const TeamPerformanceTracker: React.FC = () => {
     const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
     const [selectedPeriod, setSelectedPeriod] = useState<number | null>(null);
     const [modal, setModal] = useState<Modal>(null);
+    const [compareInit, setCompareInit] = useState<CompareInit>({ kind: 'person' });
+    const openCompare = (init: CompareInit) => { setCompareInit(init); setModal('compare'); };
     const [dataEntryHouseId, setDataEntryHouseId] = useState<string | null>(null);
     const [shareTarget, setShareTarget] = useState<ShareTarget>({ type: 'week' });
     const pushedProfile = useRef(false);
@@ -228,6 +233,8 @@ const TeamPerformanceTracker: React.FC = () => {
                 onAdmin={() => setModal('admin')}
                 onHistory={() => setModal('history')}
                 onShare={() => { setShareTarget({ type: 'week' }); setModal('share'); }}
+                onPrayer={() => setModal('prayer')}
+                onCompare={() => openCompare({ kind: 'person' })}
                 installMode={installMode}
                 onInstall={async () => { if (installMode === 'prompt') await install(); else setModal('install'); }}
                 week={isWeekly ? {
@@ -264,7 +271,7 @@ const TeamPerformanceTracker: React.FC = () => {
                             onOpenProfile={openProfile}
                         />
                     )}
-                    {activeView === 'progress' && <ProgressView data={data} insights={insights} onOpenProfile={openProfile} />}
+                    {activeView === 'progress' && <ProgressView data={data} insights={insights} onOpenProfile={openProfile} onCompare={kind => openCompare({ kind })} />}
                     {activeView === 'reports' && <ReportsView data={data} selectedPeriod={periodIndex} setSelectedPeriod={setSelectedPeriod} />}
                     {activeView === 'awards' && <AwardsView data={data} weekIndex={weekIndex} awards={awards} insights={insights} onOpenProfile={openProfile} />}
 
@@ -288,6 +295,7 @@ const TeamPerformanceTracker: React.FC = () => {
                     seasonName={season.name}
                     seasonFinished={seasonClosed}
                     onShare={(card: 'week' | 'season') => { setShareTarget({ type: 'person', memberId: profileSeries.id, card }); setModal('share'); }}
+                    onCompare={() => openCompare({ kind: 'person', a: profileSeries.id })}
                     onClose={closeProfile}
                 />
             )}
@@ -297,6 +305,8 @@ const TeamPerformanceTracker: React.FC = () => {
                 <ShareSheet data={data} weekIndex={weekIndex} insights={insights} awards={awards} target={shareTarget} siteTheme={theme} seasonName={season.name} seasonFinished={seasonClosed} onClose={() => setModal(null)} />
             )}
             {modal === 'install' && <InstallSheet onClose={() => setModal(null)} />}
+            {modal === 'prayer' && <PrayerSheet onClose={() => setModal(null)} />}
+            {modal === 'compare' && <CompareSheet data={data} insights={insights} awards={awards} weekIndex={weekIndex} init={compareInit} onClose={() => setModal(null)} />}
             {modal === 'history' && authUser && <HistorySheet authUser={authUser} data={allData} onClose={() => setModal(null)} />}
             {modal === 'admin' && authUser?.role === 'admin' && (
                 <AdminPanel data={allData} onClose={() => setModal(null)} onChanged={() => loadData(true)} />

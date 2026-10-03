@@ -1,12 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-    ChevronLeft, ChevronRight, Download, ExternalLink, History, Info, Lock, LogIn, LogOut,
+    ChevronLeft, ChevronRight, Clock3, Columns2, Download, ExternalLink, History, Info, Lock, LogIn, LogOut,
     Menu, Moon, PenLine, Settings2, Share2, Sun
 } from 'lucide-react';
 import type { AuthUser } from '../services/authService';
 import type { Theme } from '../theme';
 import type { InstallMode } from '../pwa';
 import { Crown, Mark } from './Ornament';
+import { loadCity } from '../utils/city';
+import { useNow } from '../hooks/useNow';
+import { formatHijri, isRamadan, toHijri } from '../utils/hijri';
+import { PRAYER_NAMES, clock, nextPrayer, prayerTimes } from '../utils/prayer';
 
 interface AppHeaderProps {
     authUser: AuthUser | null;
@@ -20,6 +24,8 @@ interface AppHeaderProps {
     onAdmin: () => void;
     onHistory: () => void;
     onShare: () => void;
+    onPrayer: () => void;
+    onCompare: () => void;
     installMode: InstallMode;
     onInstall: () => void;
     /** Week switcher; omitted on season-wide views. */
@@ -91,12 +97,18 @@ const IconButton: React.FC<{ label: string; onClick: () => void; children: React
 );
 
 export const AppHeader: React.FC<AppHeaderProps> = ({
-    authUser, houseName, theme, onToggleTheme, onLogin, onLogout, onDataEntry, onFormula, onAdmin, onHistory, onShare,
+    authUser, houseName, theme, onToggleTheme, onLogin, onLogout, onDataEntry, onFormula, onAdmin, onHistory, onShare, onPrayer, onCompare,
     installMode, onInstall, week, monument, seasonLabel, seasonName, season
 }) => {
     const isAdmin = authUser?.role === 'admin';
     const who = isAdmin ? 'Админ' : houseName ?? 'Үй жетекчиси';
     const ThemeIcon = theme === 'dark' ? Sun : Moon;
+    const now = useNow();
+    const city = loadCity();
+    const hijri = toHijri(now);
+    const ramadan = isRamadan(hijri);
+    const next = nextPrayer(city, now);
+    const todayTimes = prayerTimes(city, now);
 
     const items: MenuItem[] = [
         ...(authUser ? [
@@ -104,6 +116,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             { key: 'history', label: 'Өзгөртүүлөр тарыхы', icon: History, onClick: onHistory },
             ...(isAdmin ? [{ key: 'admin', label: 'Админ панели', icon: Settings2, onClick: onAdmin }] : [])
         ] : []),
+        { key: 'compare', label: 'Салыштыруу', icon: Columns2, onClick: onCompare },
+        { key: 'prayer', label: 'Намаз убактылары', icon: Clock3, onClick: onPrayer },
         { key: 'formula', label: 'Упай формуласы', icon: Info, onClick: onFormula },
         { key: 'share', label: 'Жыйынтыкты бөлүшүү', icon: Share2, onClick: onShare },
         ...(installMode !== 'none' ? [{ key: 'install', label: 'Телефонго орнотуу', icon: Download, onClick: onInstall }] : []),
@@ -146,6 +160,12 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
                 {/* Monument */}
                 <div className="flex flex-col items-center text-center pt-6 sm:pt-10 pb-10 sm:pb-14">
+                    {ramadan && (
+                        <div className="flex flex-col items-center mb-2 animate-fade-in" aria-label="Рамазан">
+                            <svg width="34" height="34" viewBox="0 0 40 40" aria-hidden="true"><defs><mask id="ramadan-m"><rect width="40" height="40" fill="#fff" /><circle cx="25" cy="16" r="12" fill="#000" /></mask></defs><circle cx="20" cy="20" r="14" fill="var(--gold)" mask="url(#ramadan-m)" /></svg>
+                            <div className="eyebrow mt-1" style={{ color: 'var(--gold)' }}>Рамазан мубарак</div>
+                        </div>
+                    )}
                     <Crown className="draw-in w-[min(19rem,78%)] h-auto" style={{ color: 'var(--gold)' }} />
 
                     {season && (
@@ -193,6 +213,11 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                         </h1>
                     )}
                     {week?.date && !monument && <p className="mt-3 text-[0.9rem]" style={{ color: 'var(--text-muted)' }}>{week.date.replace(' -- ', ' — ')}</p>}
+                    <button onClick={onPrayer} className="mt-5 inline-flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[0.82rem] transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}>
+                        {hijri && <span className="italic">{formatHijri(hijri)}</span>}
+                        {hijri && <span aria-hidden="true" style={{ color: 'var(--gold-dim)' }}>·</span>}
+                        <span>{ramadan ? 'Ифтар' : PRAYER_NAMES[next.key]} <span className="tabular" style={{ color: 'var(--gold)' }}>{clock(ramadan ? todayTimes.maghrib : next.at, city.tz)}</span></span>
+                    </button>
                 </div>
             </div>
         </header>

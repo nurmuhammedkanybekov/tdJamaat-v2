@@ -59,7 +59,23 @@ redesign.
 - **Change history and week locking.** Every save is recorded (who, when,
   before → after); the admin can lock a finished week so it can no longer
   be edited by house leaders. Both enforced in Postgres.
-- **Admin panel**: open/lock weeks, edit season targets, download a backup.
+- **Seasons.** Results are kept per season with a full archive of past
+  seasons. The admin ends a season with one button; the next one starts at
+  week 1, and people can move to new houses without last season's results
+  moving with them.
+- **Compare.** Put two people or two houses side by side: this week,
+  season average and place, best week, perfect weeks, medals, who won more
+  weeks head to head, per-metric percentages and a two-line trend chart.
+- **Season summary ("Wrapped").** Each profile shows the person's season
+  so far, and both the week and the season can be shared as an image, in a
+  dark or a light version.
+- **Hijri date, prayer times and Ramadan mode.** The header shows today's
+  Hijri date and the next prayer; a prayer-times page (Budapest/Debrecen,
+  Hanafi Asr, computed on the device, works offline) lists today and the
+  next 7 days. During Ramadan the header greets with "Рамазан мубарак" and
+  shows iftar time, and the prayer page adds suhoor/iftar.
+- **Admin panel**: open/lock weeks, end the season, edit the roster
+  (names, roles, houses), edit season targets, download a backup.
 - **Installable app (PWA)** with a home-screen icon; refreshes live every
   couple of minutes while open.
 - **Adapts to any screen**: phones get a bottom tab bar and card layouts,
@@ -237,7 +253,8 @@ src/
                        ShareSheet, BadgeMedal, DataEntryForm, Ornament, ui.tsx, …)
   components/views/    one component per section (Overview, Teams, Progress, Reports, Awards)
   services/            Supabase reads/writes (dataService.ts) and auth (authService.ts)
-  utils/               scoring formula, rankings, season insights, badges
+  utils/               scoring formula, season insights, badges, seasons, compare,
+                       share-card drawing, Hijri date, prayer times
   pwa.ts               service worker registration + install prompt
   types/               shared TypeScript types
 supabase/
@@ -246,6 +263,7 @@ supabase/
   photo-upload-setup.sql   storage bucket + photo-upload policies
   season-2026-09.sql   season targets + database-enforced season rules
   history-and-locks-2026-10.sql   change history + admin week locking
+  seasons-2026-10.sql  seasons, per-week house snapshot, end-of-season function
 public/
   favicon.svg, icons/  app mark (eight-pointed star, crescent, tunduk)
   manifest.webmanifest, sw.js   installable app

@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { Columns2 } from 'lucide-react';
 import { useIsPhone } from '../../hooks/useMediaQuery';
 import type { DataFile } from '../../types';
 import type { Insights } from '../../utils/insights';
@@ -13,11 +14,12 @@ interface ProgressViewProps {
     data: DataFile;
     insights: Insights;
     onOpenProfile: (memberId: string) => void;
+    onCompare: (kind: 'person' | 'house') => void;
 }
 
 const fmt = (n: number) => (Math.round(n * 10) / 10).toString();
 
-export const ProgressView: React.FC<ProgressViewProps> = ({ data, insights, onOpenProfile }) => {
+export const ProgressView: React.FC<ProgressViewProps> = ({ data, insights, onOpenProfile, onCompare }) => {
     const isPhone = useIsPhone();
     const houses = useMemo(() => [...insights.houses.values()].sort((a, b) => a.colorIndex - b.colorIndex), [insights]);
     const [hidden, setHidden] = useState<Set<string>>(new Set());
@@ -66,7 +68,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ data, insights, onOp
     return (
         <div className="space-y-8 sm:space-y-10">
             <section className="card card-pad">
-                <SectionHeader eyebrow="Үй рейтинги" title="Үйлөрдүн апталык прогресси" sub="Үйдү жашыруу же көрсөтүү үчүн атын басыңыз." />
+                <SectionHeader eyebrow="Үй рейтинги" title="Үйлөрдүн апталык прогресси" sub="Үйдү жашыруу же көрсөтүү үчүн атын басыңыз." action={<button className="btn btn-ghost" onClick={() => onCompare('house')}><Columns2 className="w-3.5 h-3.5" /> Салыштыруу</button>} />
                 {legend}
                 <div className="mt-4 -ml-3 sm:ml-0">
                     <ResponsiveContainer width="100%" height={isPhone ? 280 : 420}>

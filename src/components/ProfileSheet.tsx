@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Area, AreaChart, CartesianGrid, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { Share2, X } from 'lucide-react';
+import { Columns2, Share2, X } from 'lucide-react';
 import type { DataFile } from '../types';
 import type { Insights, MemberSeries } from '../utils/insights';
 import { METRICS, PLAN_SCORE, ROLE_LABEL, movement, seasonSummary, streakUntil, weekOf } from '../utils/insights';
@@ -24,6 +24,7 @@ interface ProfileSheetProps {
     seasonName: string;
     seasonFinished: boolean;
     onShare: (card: 'week' | 'season') => void;
+    onCompare: () => void;
     onClose: () => void;
 }
 
@@ -34,7 +35,7 @@ const H3: React.FC<{ children: React.ReactNode; aside?: React.ReactNode }> = ({ 
     </div>
 );
 
-export const ProfileSheet: React.FC<ProfileSheetProps> = ({ series, data, insights, awards, weekIndex, seasonName, seasonFinished, onShare, onClose }) => {
+export const ProfileSheet: React.FC<ProfileSheetProps> = ({ series, data, insights, awards, weekIndex, seasonName, seasonFinished, onShare, onCompare, onClose }) => {
     useModal(onClose);
     const [openBadge, setOpenBadge] = useState<string | null>(null);
 
@@ -95,6 +96,7 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({ series, data, insigh
                         <div className="flex flex-wrap justify-center gap-2 mt-7">
                             <button className="btn btn-ghost" onClick={() => onShare('week')}><Share2 className="w-3.5 h-3.5" /> Аптаны бөлүшүү</button>
                             <button className="btn btn-ghost" onClick={() => onShare('season')}><Share2 className="w-3.5 h-3.5" /> Сезонду бөлүшүү</button>
+                            <button className="btn btn-ghost" onClick={onCompare}><Columns2 className="w-3.5 h-3.5" /> Салыштыруу</button>
                         </div>
                     </div>
 
