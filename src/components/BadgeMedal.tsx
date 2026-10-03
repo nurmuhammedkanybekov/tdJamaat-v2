@@ -139,7 +139,7 @@ export const BadgeMedal: React.FC<BadgeMedalProps> = ({ icon, tier, size = 64, c
             <circle cx="60" cy="60" r="55" fill="none" stroke="currentColor" strokeWidth={1.3} />
             <circle cx="60" cy="60" r={engrave ? 36 : 50} fill={seal ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={0.8} />
             {engrave && (
-                <g fill="currentColor" fontFamily="Inter, system-ui, sans-serif" fontSize="7" letterSpacing="1.6">
+                <g fill="currentColor" fontFamily="Spectral, Georgia, serif" fontSize="7" letterSpacing="1.6">
                     <text><textPath href={`#t${uid}`} startOffset="50%" textAnchor="middle">{label!.toUpperCase()}</textPath></text>
                     <text fontSize="6.2" letterSpacing="2"><textPath href={`#b${uid}`} startOffset="50%" textAnchor="middle">{count && count > 1 ? `${count} ЖОЛУ` : '· TDJAMAAT ·'}</textPath></text>
                     <path d="M20 60 h3 M97 60 h3" stroke="currentColor" strokeWidth={0.8} />
@@ -149,7 +149,7 @@ export const BadgeMedal: React.FC<BadgeMedalProps> = ({ icon, tier, size = 64, c
                 <Emblem icon={icon} clipId={`c${uid}`} />
             </g>
             {!engrave && count !== undefined && count > 1 && (
-                <text x="60" y="113" textAnchor="middle" fontFamily="Inter, system-ui, sans-serif" fontSize="12" fill="currentColor">×{count}</text>
+                <text x="60" y="113" textAnchor="middle" fontFamily="Spectral, Georgia, serif" fontSize="12" fill="currentColor">×{count}</text>
             )}
         </svg>
     );

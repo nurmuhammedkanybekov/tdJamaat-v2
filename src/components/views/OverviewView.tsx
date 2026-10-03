@@ -27,11 +27,11 @@ const Laureate: React.FC<{ s: MemberSeries; w: MemberWeek; weekIndex: number; on
             <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 px-2 font-display text-[0.95rem] leading-none" style={{ color: 'var(--gold)', backgroundColor: 'var(--page-plane)' }}>{ROMAN[(w.rank ?? 1) - 1]}</span>
         </span>
         <span className="flex-1 min-w-0 sm:mt-2">
-            <span className="block font-display text-[1.25rem] sm:text-[1.45rem] leading-tight line-clamp-2 sm:truncate transition-colors group-hover:text-[var(--gold)]" style={{ color: 'var(--text-primary)' }}>{w.member.name}</span>
+            <span className="block font-display text-[1.45rem] leading-tight truncate transition-colors group-hover:text-[var(--gold)]" style={{ color: 'var(--text-primary)' }}>{w.member.name}</span>
             <span className="block text-[0.82rem] italic truncate" style={{ color: 'var(--text-muted)' }}>{w.houseName} · {ROLE_LABEL[s.role].toLowerCase()}</span>
         </span>
-        <span className="flex-shrink-0 flex sm:flex-col items-center gap-1.5 sm:gap-1">
-            <span className="font-display text-[1.55rem] sm:text-[1.9rem] leading-none tabular" style={{ color: 'var(--text-primary)' }}>{fmt(w.score)}</span>
+        <span className="flex sm:flex-col items-center gap-2 sm:gap-1">
+            <span className="font-display text-[1.9rem] leading-none tabular" style={{ color: 'var(--text-primary)' }}>{fmt(w.score)}</span>
             <Movement delta={movement(s.weeks, weekIndex)} />
         </span>
     </button>
@@ -62,7 +62,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ data, weekIndex, ins
             {top.length > 0 && (
                 <section aria-label="Аптанын үч мыктысы">
                     <div className="eyebrow text-center mb-6">Аптанын үч мыктысы</div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 sm:gap-6 divide-y divide-[var(--border)] sm:divide-y-0">
+                    <div className="grid sm:grid-cols-3 sm:gap-6 divide-y divide-[var(--border)] sm:divide-y-0">
                         {top.map(({ s, w }) => <Laureate key={s.id} s={s} w={w} weekIndex={weekIndex} onOpen={() => onOpenProfile(s.id)} />)}
                     </div>
                 </section>
@@ -82,7 +82,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ data, weekIndex, ins
                 </section>
             )}
 
-            <div className="grid grid-cols-1 gap-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] lg:gap-20 items-start">
+            <div className="grid gap-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] lg:gap-20 items-start">
                 {/* Houses */}
                 <section>
                     <SectionHeader eyebrow="Үй рейтинги" title="Үйлөр" />
@@ -90,10 +90,10 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ data, weekIndex, ins
                         {houses.map(({ h, w }) => (
                             <li key={h.id} className="flex items-baseline gap-3 py-3">
                                 <span className="w-6 text-[0.75rem] tabular" style={{ color: 'var(--gold-dim)' }}>{w.rank ? pad2(w.rank) : '—'}</span>
-                                <span className="font-display text-[1.35rem] min-w-0 truncate" style={{ color: w.rank === 1 ? 'var(--gold)' : 'var(--text-primary)' }}>{h.name}</span>
+                                <span className="font-display text-[1.35rem]" style={{ color: w.rank === 1 ? 'var(--gold)' : 'var(--text-primary)' }}>{h.name}</span>
                                 <Movement delta={movement(h.weeks, weekIndex)} />
                                 <span className="leader" />
-                                <span className="font-display text-[1.45rem] tabular flex-shrink-0" style={{ color: w.submitted ? (w.rank === 1 ? 'var(--gold)' : 'var(--text-primary)') : 'var(--text-muted)' }}>{w.submitted ? fmt(w.avg) : '—'}</span>
+                                <span className="font-display text-[1.45rem] tabular" style={{ color: w.submitted ? (w.rank === 1 ? 'var(--gold)' : 'var(--text-primary)') : 'var(--text-muted)' }}>{w.submitted ? fmt(w.avg) : '—'}</span>
                             </li>
                         ))}
                     </ol>

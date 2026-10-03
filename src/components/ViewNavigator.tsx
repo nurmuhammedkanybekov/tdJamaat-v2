@@ -27,7 +27,7 @@ export const ViewNavigator: React.FC<ViewNavigatorProps> = ({ activeView, setAct
                             role="tab"
                             aria-selected={active}
                             onClick={() => setActiveView(key)}
-                            className="relative whitespace-nowrap px-3 py-4 text-[0.68rem] tracking-[0.18em] uppercase transition-colors hover:text-[var(--text-primary)]"
+                            className="relative whitespace-nowrap px-3 py-4 text-[0.68rem] tracking-[0.26em] uppercase transition-colors hover:text-[var(--text-primary)]"
                             style={{ color: active ? 'var(--gold)' : 'var(--text-muted)' }}
                         >
                             <span className="lg:hidden">{short}</span>
@@ -64,7 +64,7 @@ export const ViewNavigator: React.FC<ViewNavigatorProps> = ({ activeView, setAct
                             style={{ color: active ? 'var(--gold)' : 'var(--text-muted)' }}
                         >
                             <Icon className="w-[1.2rem] h-[1.2rem]" strokeWidth={1.3} />
-                            <span className="text-[0.58rem] tracking-[0.06em] uppercase leading-none">{short}</span>
+                            <span className="text-[0.58rem] tracking-[0.14em] uppercase leading-none">{short}</span>
                         </button>
                     );
                 })}

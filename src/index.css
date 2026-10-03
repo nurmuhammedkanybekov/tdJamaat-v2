@@ -5,33 +5,14 @@
    OS setting. */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Typefaces (self-hosted, so they also work offline):
-   - Inter — every Cyrillic word and every number. Drawn for screens, covers
-     all Kyrgyz letters (Ң Ө Ү), true italics, light weights for headings.
-   - Oranienbaum — Latin letters only ("tdJamaat", house names like Mester).
-     It has no Ң/Ө/Ү, so it is limited to Latin with unicode-range: a
-     Cyrillic word never mixes two typefaces. */
-@font-face {
-    font-family: 'Oranienbaum Latin';
-    font-style: normal;
-    font-weight: 300 500;
-    font-display: swap;
-    src: url('../node_modules/@fontsource/oranienbaum/files/oranienbaum-latin-400-normal.woff2') format('woff2');
-    unicode-range: U+0041-005A, U+0061-007A;
-}
-@font-face {
-    font-family: 'Oranienbaum Latin';
-    font-style: normal;
-    font-weight: 300 500;
-    font-display: swap;
-    src: url('../node_modules/@fontsource/oranienbaum/files/oranienbaum-latin-ext-400-normal.woff2') format('woff2');
-    unicode-range: U+00C0-00D6, U+00D8-00F6, U+00F8-024F;
-}
-
+/* Typefaces (self-hosted in main.tsx, so they also work offline):
+   - Oranienbaum — display: a high-contrast didone, used for names and the
+     big numbers. Used sparingly; it carries the "engraved" voice.
+   - Spectral — text: light, literary, quiet. Both cover every Kyrgyz letter. */
 @theme {
-    --font-display: 'Oranienbaum Latin', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-    --font-text: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-    --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --font-display: 'Oranienbaum', 'Spectral', Georgia, serif;
+    --font-serif: 'Spectral', Georgia, 'Times New Roman', serif;
+    --font-sans: 'Spectral', Georgia, 'Times New Roman', serif;
 }
 
 /* -----------------------------------------------------------------------
@@ -155,11 +136,11 @@ html {
 }
 
 body {
-    font-family: var(--font-text);
+    font-family: var(--font-serif);
     font-weight: 400;
     background-color: var(--page-plane);
     color: var(--text-primary);
-    font-feature-settings: 'kern', 'liga';
+    font-feature-settings: 'kern', 'liga', 'lnum';
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     -webkit-tap-highlight-color: transparent;
@@ -168,14 +149,14 @@ body {
 
 .font-display {
     font-family: var(--font-display);
-    font-weight: 300 !important;
+    font-weight: 400 !important;
     font-variant-numeric: lining-nums;
-    letter-spacing: -0.01em;
+    letter-spacing: 0;
 }
 
 button, a, [role="button"] { -webkit-tap-highlight-color: transparent; }
 
-/* Only Inter 300–500 is loaded: map "bold" to the real medium weight so
+/* Only Spectral 300–500 is loaded: map "bold" to the real medium weight so
    the browser never fakes a heavy bold. Emphasis comes from size and gold. */
 .font-bold, .font-semibold, b, strong { font-weight: 500; }
 
@@ -215,9 +196,9 @@ button, a, [role="button"] { -webkit-tap-highlight-color: transparent; }
 
 /* Small letterspaced caption — used once per section at most. */
 .eyebrow {
-    font-family: var(--font-text);
+    font-family: var(--font-serif);
     font-size: 0.66rem;
-    letter-spacing: 0.22em;
+    letter-spacing: 0.32em;
     text-transform: uppercase;
     font-weight: 400;
     color: var(--gold-dim);
@@ -225,8 +206,7 @@ button, a, [role="button"] { -webkit-tap-highlight-color: transparent; }
 
 .section-title {
     font-family: var(--font-display);
-    font-weight: 300;
-    letter-spacing: -0.01em;
+    font-weight: 400;
     font-size: 1.7rem;
     line-height: 1.1;
     color: var(--text-primary);
@@ -247,7 +227,7 @@ button, a, [role="button"] { -webkit-tap-highlight-color: transparent; }
     padding: 0.45rem 0.1rem;
     margin-right: 0.9rem;
     font-size: 0.72rem;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
     color: var(--text-muted);
     border-bottom: 1px solid transparent;
@@ -266,7 +246,7 @@ button, a, [role="button"] { -webkit-tap-highlight-color: transparent; }
     min-height: 2.5rem;
     padding: 0.5rem 1.1rem;
     font-size: 0.7rem;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
     border-radius: var(--radius-sm);
     transition: background-color 200ms ease, border-color 200ms ease, color 200ms ease;
@@ -301,7 +281,7 @@ table.data-table th {
     text-align: left;
     font-size: 0.62rem;
     text-transform: uppercase;
-    letter-spacing: 0.16em;
+    letter-spacing: 0.24em;
     color: var(--gold-dim);
     font-weight: 400;
     padding: 0 0.75rem 0.7rem;

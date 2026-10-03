@@ -143,7 +143,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                             </button>
                         )}
                         {!authUser && (
-                            <button onClick={onLogin} className="hidden sm:inline-flex mr-1 px-3 h-10 items-center text-[0.7rem] tracking-[0.16em] uppercase transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-secondary)' }}>
+                            <button onClick={onLogin} className="hidden sm:inline-flex mr-1 px-3 h-10 items-center text-[0.7rem] tracking-[0.22em] uppercase transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-secondary)' }}>
                                 Кирүү
                             </button>
                         )}

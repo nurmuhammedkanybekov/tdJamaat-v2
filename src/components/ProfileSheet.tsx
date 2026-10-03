@@ -153,7 +153,7 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({ series, data, insigh
                         <section>
                             <H3 aside={<span className="text-[0.78rem] italic" style={{ color: 'var(--text-muted)' }}>{current.perfect ? 'бардык план аткарылды' : 'факт / план'}</span>}>{current.weekNumber}-апта: планга карата</H3>
                             {current.submitted ? (
-                                <div className="grid grid-cols-1 gap-x-12 gap-y-5 sm:grid-cols-2">
+                                <div className="grid gap-x-12 gap-y-5 sm:grid-cols-2">
                                     {METRICS.map(m => {
                                         const pct = current.pct[m];
                                         return (

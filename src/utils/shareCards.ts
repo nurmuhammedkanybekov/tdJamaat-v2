@@ -19,19 +19,16 @@ const PALETTES = {
 };
 type Palette = typeof PALETTES.dark;
 
-// Same pairing as the site: Oranienbaum for Latin letters only, Inter for
-// Cyrillic and numbers (see index.css).
-const DISPLAY = '"Oranienbaum Latin", "Inter", system-ui, sans-serif';
-const TEXT = '"Inter", system-ui, sans-serif';
+const DISPLAY = '"Oranienbaum", Georgia, serif';
+const TEXT = '"Spectral", Georgia, serif';
 const ROMAN = ['I', 'II', 'III'];
 const CORNER = ['M6 54 L6 24 C6 12 14 6 26 6 L54 6', 'M6 30 C6 20 12 16 20 16 C28 16 30 24 25 28 C21 31 16 28 18 24'];
 const fmt = (n: number) => (Math.round(n * 10) / 10).toString();
 
 const loadFonts = () => Promise.all([
-    document.fonts.load(`300 80px "Oranienbaum Latin"`, 'tdJamaat'),
-    document.fonts.load(`300 80px "Inter"`, 'Үйлөр 0123'),
-    document.fonts.load(`400 30px "Inter"`, 'Үйлөр 0123'),
-    document.fonts.load(`italic 400 30px "Inter"`, 'Үйлөр')
+    document.fonts.load(`400 80px "Oranienbaum"`),
+    document.fonts.load(`400 30px "Spectral"`),
+    document.fonts.load(`italic 400 30px "Spectral"`)
 ]).catch(() => undefined);
 
 const fit = (ctx: CanvasRenderingContext2D, text: string, max: number) => {
@@ -93,7 +90,7 @@ const frame = (ctx: CanvasRenderingContext2D, p: Palette) => {
 
 const header = (ctx: CanvasRenderingContext2D, p: Palette) => {
     drawMark(ctx, CARD_W / 2 - 92, 120, 58, p);
-    ctx.fillStyle = p.gold; ctx.font = `300 38px ${DISPLAY}`; ctx.textAlign = 'left';
+    ctx.fillStyle = p.gold; ctx.font = `400 38px ${DISPLAY}`; ctx.textAlign = 'left';
     ctx.fillText('tdJamaat', CARD_W / 2 - 52, 133);
     ctx.strokeStyle = p.goldDim; ctx.lineWidth = 1.2;
     ctx.beginPath(); ctx.moveTo(250, 196); ctx.lineTo(CARD_W - 250, 196); ctx.stroke();
@@ -112,12 +109,12 @@ const leaderRow = (ctx: CanvasRenderingContext2D, p: Palette, y: number, left: {
         ctx.fillStyle = p.goldDim; ctx.font = `400 18px ${TEXT}`;
         ctx.fillText(left.num, 150, y); x = 196;
     }
-    ctx.fillStyle = left.gold ? p.gold : p.ink; ctx.font = `300 32px ${DISPLAY}`;
+    ctx.fillStyle = left.gold ? p.gold : p.ink; ctx.font = `400 32px ${DISPLAY}`;
     const name = fit(ctx, left.text, 470);
     ctx.fillText(name, x, y);
     const nameEnd = x + ctx.measureText(name).width + 16;
     ctx.textAlign = 'right';
-    ctx.fillStyle = rightGold ? p.gold : p.ink; ctx.font = `300 33px ${DISPLAY}`;
+    ctx.fillStyle = rightGold ? p.gold : p.ink; ctx.font = `400 33px ${DISPLAY}`;
     ctx.fillText(right, CARD_W - 150, y);
     const valStart = CARD_W - 150 - ctx.measureText(right).width - 16;
     ctx.fillStyle = p.dots;
@@ -147,9 +144,9 @@ export async function drawWeekCard(canvas: HTMLCanvasElement, theme: CardTheme, 
     ctx.fillStyle = p.gold; ctx.font = `400 22px ${TEXT}`;
     spaced(ctx, `${week.weekNumber}-АПТА · АПТАНЫН ҮЙҮ`, CARD_W / 2, 280, 6, 'center');
     ctx.textAlign = 'center';
-    ctx.fillStyle = p.ink; ctx.font = `300 74px ${DISPLAY}`;
+    ctx.fillStyle = p.ink; ctx.font = `400 74px ${DISPLAY}`;
     ctx.fillText(lead ? fit(ctx, lead.h.name, CARD_W - 240) : '—', CARD_W / 2, 370);
-    ctx.fillStyle = p.gold; ctx.font = `300 168px ${DISPLAY}`;
+    ctx.fillStyle = p.gold; ctx.font = `400 168px ${DISPLAY}`;
     ctx.fillText(lead ? fmt(lead.w!.avg) : '—', CARD_W / 2, 525);
     ctx.fillStyle = p.muted; ctx.font = `italic 400 24px ${TEXT}`;
     ctx.fillText('үй рейтинги', CARD_W / 2, 570);
@@ -180,13 +177,13 @@ export async function drawWeekCard(canvas: HTMLCanvasElement, theme: CardTheme, 
             ctx.strokeStyle = p.gold; ctx.lineWidth = 1.4;
             ctx.beginPath(); ctx.arc(cx, cy, 34, 0, Math.PI * 2); ctx.stroke();
             ctx.textAlign = 'center';
-            ctx.fillStyle = p.gold; ctx.font = `300 30px ${DISPLAY}`;
+            ctx.fillStyle = p.gold; ctx.font = `400 30px ${DISPLAY}`;
             ctx.fillText(ROMAN[w!.rank! - 1], cx, cy + 10);
-            ctx.fillStyle = p.ink; ctx.font = `300 30px ${DISPLAY}`;
+            ctx.fillStyle = p.ink; ctx.font = `400 30px ${DISPLAY}`;
             ctx.fillText(fit(ctx, m.name.split(' ')[0], colW - 30), cx, cy + 82);
             ctx.fillStyle = p.muted; ctx.font = `italic 400 19px ${TEXT}`;
             ctx.fillText(fit(ctx, w!.houseName, colW - 30), cx, cy + 110);
-            ctx.fillStyle = p.ink; ctx.font = `300 34px ${DISPLAY}`;
+            ctx.fillStyle = p.ink; ctx.font = `400 34px ${DISPLAY}`;
             ctx.fillText(fmt(w!.score), cx, cy + 146);
         });
     }
@@ -200,11 +197,11 @@ export async function drawPersonWeekCard(canvas: HTMLCanvasElement, theme: CardT
     ctx.fillStyle = p.gold; ctx.font = `400 22px ${TEXT}`;
     spaced(ctx, `${w.weekNumber}-АПТА · ${w.houseName.toUpperCase()}`, CARD_W / 2, 278, 6, 'center');
     ctx.textAlign = 'center';
-    ctx.fillStyle = p.ink; ctx.font = `300 76px ${DISPLAY}`;
+    ctx.fillStyle = p.ink; ctx.font = `400 76px ${DISPLAY}`;
     ctx.fillText(fit(ctx, series.name, CARD_W - 220), CARD_W / 2, 368);
     ctx.fillStyle = p.muted; ctx.font = `italic 400 24px ${TEXT}`;
     ctx.fillText(ROLE_LABEL[series.role].toLowerCase(), CARD_W / 2, 408);
-    ctx.fillStyle = p.gold; ctx.font = `300 150px ${DISPLAY}`;
+    ctx.fillStyle = p.gold; ctx.font = `400 150px ${DISPLAY}`;
     ctx.fillText(w.submitted ? fmt(w.score) : '—', CARD_W / 2, 556);
     const mv = movement(series.weeks, w.weekIndex);
     const place = w.rank ? `${w.rank}-орун · ${peopleCount} адамдан` : 'маалымат жок';
@@ -237,22 +234,22 @@ export async function drawSeasonCard(canvas: HTMLCanvasElement, theme: CardTheme
     ctx.fillStyle = p.gold; ctx.font = `400 22px ${TEXT}`;
     spaced(ctx, `СЕЗОН ${seasonName} · ${finished ? 'ЖЫЙЫНТЫК' : 'АЗЫРЫНЧА'}`, CARD_W / 2, 278, 6, 'center');
     ctx.textAlign = 'center';
-    ctx.fillStyle = p.ink; ctx.font = `300 78px ${DISPLAY}`;
+    ctx.fillStyle = p.ink; ctx.font = `400 78px ${DISPLAY}`;
     ctx.fillText(fit(ctx, series.name, CARD_W - 220), CARD_W / 2, 370);
     ctx.fillStyle = p.muted; ctx.font = `italic 400 24px ${TEXT}`;
     ctx.fillText(`${series.houseName} · ${ROLE_LABEL[series.role].toLowerCase()}`, CARD_W / 2, 410);
 
     // "2-орун" as one unit: big gold numeral, smaller "-орун" beside it.
     const num = summary.rank ? String(summary.rank) : '—';
-    ctx.font = `300 160px ${DISPLAY}`;
+    ctx.font = `400 160px ${DISPLAY}`;
     const numW = ctx.measureText(num).width;
-    ctx.font = `300 64px ${DISPLAY}`;
+    ctx.font = `400 64px ${DISPLAY}`;
     const sufW = summary.rank ? ctx.measureText('-орун').width : 0;
     const startX = CARD_W / 2 - (numW + sufW) / 2;
     ctx.textAlign = 'left';
-    ctx.fillStyle = p.gold; ctx.font = `300 160px ${DISPLAY}`;
+    ctx.fillStyle = p.gold; ctx.font = `400 160px ${DISPLAY}`;
     ctx.fillText(num, startX, 570);
-    if (summary.rank) { ctx.fillStyle = p.muted; ctx.font = `300 64px ${DISPLAY}`; ctx.fillText('-орун', startX + numW, 570); }
+    if (summary.rank) { ctx.fillStyle = p.muted; ctx.font = `400 64px ${DISPLAY}`; ctx.fillText('-орун', startX + numW, 570); }
     ctx.textAlign = 'center';
     ctx.fillStyle = p.muted; ctx.font = `italic 400 25px ${TEXT}`;
     ctx.fillText(summary.rank ? `${summary.of} адамдын ичинен · сезондогу орточо упай боюнча` : 'сезондо маалымат жок', CARD_W / 2, 616);
@@ -277,7 +274,7 @@ export async function drawSeasonCard(canvas: HTMLCanvasElement, theme: CardTheme
         ctx.fillStyle = p.goldDim; ctx.font = `400 18px ${TEXT}`;
         spaced(ctx, label.toUpperCase(), x + cw / 2, y + 44, 5, 'center');
         ctx.textAlign = 'center';
-        ctx.fillStyle = i === 0 ? p.gold : p.ink; ctx.font = `300 52px ${DISPLAY}`;
+        ctx.fillStyle = i === 0 ? p.gold : p.ink; ctx.font = `400 52px ${DISPLAY}`;
         ctx.fillText(value, x + cw / 2, y + 104);
     });
 
