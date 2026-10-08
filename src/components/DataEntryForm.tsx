@@ -1,5 +1,5 @@
 import { useModal } from '../hooks/useModal';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Save, AlertCircle, CheckCircle, X, Camera, Loader2, Lock, Plus, Download } from 'lucide-react';
 import type { DataFile, House, Member, MetricValues, MiniCard } from '../types';
 import { seasonStartFor, weekLabel } from '../utils/seasons';
@@ -44,6 +44,28 @@ const ZERO_METRICS: MetricValues = {
 };
 
 type MemberDraft = { actual: MetricValues; target: MetricValues };
+
+// Unsaved typing is also kept on the phone, per house and week, until it is
+// saved. Phones (iPhone especially) reload a page that was in the
+// background, e.g. after checking WhatsApp for someone's numbers; without
+// this, everything typed so far would be gone.
+type StoredDraft = { drafts: Record<string, MemberDraft>; miniCard: MiniCard; at: number };
+const DRAFT_TTL = 7 * 24 * 3600_000;
+const draftKey = (houseId: string, week: number) => `tdjamaat-draft:${houseId}:${week}`;
+const readDraft = (houseId: string, week: number): StoredDraft | null => {
+    try {
+        const raw = localStorage.getItem(draftKey(houseId, week));
+        if (!raw) return null;
+        const d = JSON.parse(raw) as StoredDraft;
+        return d && d.drafts && d.miniCard && Date.now() - d.at < DRAFT_TTL ? d : null;
+    } catch { return null; }
+};
+const writeDraft = (houseId: string, week: number, d: Omit<StoredDraft, 'at'>) => {
+    try { localStorage.setItem(draftKey(houseId, week), JSON.stringify({ ...d, at: Date.now() })); } catch { /* storage full or blocked: not critical */ }
+};
+const clearDraft = (houseId: string, week: number) => {
+    try { localStorage.removeItem(draftKey(houseId, week)); } catch { /* not critical */ }
+};
 
 const inputStyle: React.CSSProperties = { backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)' };
 const inputMutedStyle: React.CSSProperties = { backgroundColor: 'var(--page-plane)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--text-secondary)' };
@@ -94,6 +116,12 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
     const [success, setSuccess] = useState(false);
     const [uploadingPhotoFor, setUploadingPhotoFor] = useState<string | null>(null);
     const [photoError, setPhotoError] = useState<string | null>(null);
+    // Photos uploaded while the form is open (kept apart from `members` so an
+    // upload never re-seeds the form and wipes what was typed).
+    const [newPhotos, setNewPhotos] = useState<Record<string, string>>({});
+    // Something was typed since the form was filled from the database.
+    const dirty = useRef(false);
+    const [restored, setRestored] = useState(false);
 
     const latestWeek = weekNumbers.length ? Math.max(...weekNumbers) : 0;
     // Week numbers are stored continuously across seasons; show them per season.
@@ -138,11 +166,16 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
     //  targets  → that week's saved target, else the member's most recent
     //             EARLIER target (carries an admin's custom target forward),
     //             else the role minimum. Same rule the database applies.
+    //
+    // It runs ONLY when the house, the week or the loaded history changes.
+    // It must never depend on `data` itself: the page refreshes `data` in the
+    // background, and every new object here used to wipe everything typed so
+    // far back to the saved values (all zeros in a new week).
+    const seasonStart = data ? seasonStartFor(data, weekNumber) : 0;
     useEffect(() => {
         if (!selectedHouseId || !history) return;
 
         // Targets carry forward within the season only (same rule as the database).
-        const seasonStart = data ? seasonStartFor(data, weekNumber) : 0;
         const rowsBefore = <T extends { weekNumber: number }>(rows: T[]) =>
             rows.filter(r => r.weekNumber < weekNumber && r.weekNumber >= seasonStart).sort((a, b) => b.weekNumber - a.weekNumber);
 
@@ -156,8 +189,6 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                 target: cardTargets[key]?.target ?? settings.miniCard[key].target
             };
         }
-        setMiniCard(nextCard);
-
         const nextDrafts: Record<string, MemberDraft> = {};
         members.forEach(member => {
             const mine = history.metrics.filter(r => r.memberId === member.id);
@@ -168,8 +199,47 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                 target: thisWeek?.target ?? previous?.target ?? settings.roleTargets[member.role] ?? DEFAULT_TARGETS.member
             };
         });
+
+        // Bring back what was typed here before and never saved.
+        const stored = readDraft(selectedHouseId, weekNumber);
+        let fromStore = false;
+        // Leaders only get their typed results back; targets always come from
+        // the database (only the admin can change them).
+        if (stored) {
+            for (const id of Object.keys(nextDrafts)) {
+                const d = stored.drafts[id];
+                if (!d?.actual) continue;
+                nextDrafts[id] = isAdmin && d.target ? d : { ...nextDrafts[id], actual: d.actual };
+                fromStore = true;
+            }
+            for (const key of Object.keys(nextCard) as Array<keyof MiniCard>) {
+                const c = stored.miniCard[key];
+                if (!c) continue;
+                nextCard[key] = isAdmin ? c : { ...nextCard[key], actual: c.actual };
+                fromStore = true;
+            }
+        }
+        dirty.current = fromStore;
+        setRestored(fromStore);
+        setMiniCard(nextCard);
         setDrafts(nextDrafts);
-    }, [selectedHouseId, weekNumber, members, history, settings, data]);
+        // `members` is loaded together with `history` (same render), so it is
+        // always current here; it is left out on purpose (see above).
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedHouseId, weekNumber, history, settings, seasonStart]);
+
+    // Keep unsaved typing on the phone (see StoredDraft).
+    useEffect(() => {
+        if (!dirty.current || !selectedHouseId) return;
+        writeDraft(selectedHouseId, weekNumber, { drafts, miniCard });
+    }, [drafts, miniCard, selectedHouseId, weekNumber]);
+
+    // Throw away the unsaved typing and show what is saved.
+    const discardDraft = () => {
+        if (!selectedHouseId) return;
+        clearDraft(selectedHouseId, weekNumber);
+        setHistory(h => (h ? { ...h } : h)); // re-seed from the database
+    };
 
     const selectedHouseName = useMemo(() => {
         if (!isAdmin) return null; // leader's house is fixed, no need to show a picker
@@ -177,10 +247,12 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
     }, [isAdmin, houses, selectedHouseId]);
 
     const handleMiniCardChange = (key: keyof MiniCard, field: 'actual' | 'target', value: number) => {
+        dirty.current = true;
         setMiniCard(prev => ({ ...prev, [key]: { ...prev[key], [field]: value } }));
     };
 
     const handleMemberChange = (memberId: string, field: 'actual' | 'target', metric: keyof MetricValues, value: number) => {
+        dirty.current = true;
         setDrafts(prev => ({
             ...prev,
             [memberId]: { ...prev[memberId], [field]: { ...prev[memberId][field], [metric]: value } }
@@ -193,7 +265,7 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
         setUploadingPhotoFor(memberId);
         try {
             const photoUrl = await uploadMemberPhoto(selectedHouseId, memberId, file);
-            setMembers(prev => prev.map(m => (m.id === memberId ? { ...m, photoUrl } : m)));
+            setNewPhotos(prev => ({ ...prev, [memberId]: photoUrl }));
         } catch (err) {
             setPhotoError(err instanceof Error ? err.message : 'Сүрөт жүктөлбөй калды');
         } finally {
@@ -270,6 +342,8 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
             await Promise.all(
                 members.map(member => upsertMemberMetrics(member.id, weekNumber, drafts[member.id].actual, drafts[member.id].target))
             );
+            clearDraft(selectedHouseId, weekNumber);
+            dirty.current = false;
             setSuccess(true);
             setTimeout(onSuccess, 1200);
         } catch (err) {
@@ -449,7 +523,7 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                                                             className="relative flex-shrink-0 cursor-pointer group"
                                                             title="Сүрөт жүктөө / өзгөртүү"
                                                         >
-                                                            <Avatar name={member.name} role={member.role} photoUrl={member.photoUrl} />
+                                                            <Avatar name={member.name} role={member.role} photoUrl={newPhotos[member.id] ?? member.photoUrl} />
                                                             <span
                                                                 className="absolute inset-0 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                                                                 style={{ backgroundColor: 'color-mix(in oklab, var(--text-primary) 55%, transparent)', opacity: uploadingPhotoFor === member.id ? 1 : undefined }}
@@ -533,6 +607,12 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                         <div role="alert" className="px-3 py-2 mb-3 flex items-start gap-2 text-sm" style={{ borderLeft: '2px solid var(--danger)', color: 'var(--danger)' }}>
                             <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                             <p className="min-w-0 break-words">{error}</p>
+                        </div>
+                    )}
+                    {restored && !error && (
+                        <div role="status" className="px-3 py-2 mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm" style={{ borderLeft: '2px solid var(--gold)', color: 'var(--text-secondary)' }}>
+                            <p className="min-w-0 flex-1">Мурда киргизилип, сакталбай калган сандар кайра коюлду. Текшерип, «Сактоо» басыңыз.</p>
+                            <button type="button" onClick={discardDraft} className="underline underline-offset-2" style={{ color: 'var(--text-muted)' }}>Өчүрүү</button>
                         </div>
                     )}
                     {notice && !error && (

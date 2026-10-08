@@ -60,6 +60,10 @@ const TeamPerformanceTracker: React.FC = () => {
     const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
     const [selectedPeriod, setSelectedPeriod] = useState<number | null>(null);
     const [modal, setModal] = useState<Modal>(null);
+    // Read by the background refresh, which must not run while someone is
+    // typing results (see the live refresh below).
+    const modalRef = useRef<Modal>(null);
+    useEffect(() => { modalRef.current = modal; }, [modal]);
     const [compareInit, setCompareInit] = useState<CompareInit>({ kind: 'person' });
     const openCompare = (init: CompareInit) => { setCompareInit(init); setModal('compare'); };
     const [dataEntryHouseId, setDataEntryHouseId] = useState<string | null>(null);
@@ -138,6 +142,10 @@ const TeamPerformanceTracker: React.FC = () => {
         let last = Date.now();
         const refresh = () => {
             if (document.visibilityState !== 'visible') return;
+            // Not while the data entry form is open: a leader is typing, and
+            // fresh numbers would only get in the way. Saving reloads the data;
+            // after closing, the next refresh catches up.
+            if (modalRef.current === 'entry') return;
             if (Date.now() - last < 30_000) return;
             last = Date.now();
             loadData(true);
