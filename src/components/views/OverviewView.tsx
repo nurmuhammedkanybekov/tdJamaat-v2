@@ -75,7 +75,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ data, weekIndex, ins
                         {week.teams.map(t => (
                             <span key={t.id} className="inline-flex items-center gap-2" style={{ color: t.submitted ? 'var(--text-primary)' : 'var(--text-muted)' }}>
                                 <span className="w-1.5 h-1.5 rounded-full" style={t.submitted ? { backgroundColor: 'var(--gold)' } : { border: '1px solid var(--text-muted)' }} />
-                                {t.name}{!t.submitted && <i className="text-[0.8rem]"> — күтүлүүдө</i>}
+                                {t.name}{!t.submitted && <i className="text-[0.8rem]"> — {week.locked ? 'киргизилген жок (0)' : 'күтүлүүдө'}</i>}
                             </span>
                         ))}
                     </div>

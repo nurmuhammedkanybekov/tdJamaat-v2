@@ -3,7 +3,9 @@ import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YA
 import { ChevronLeft, ChevronRight, Minus, TrendingDown, TrendingUp } from 'lucide-react';
 import { useIsPhone } from '../../hooks/useMediaQuery';
 import type { DataFile } from '../../types';
-import { calculateHouseRating, TEAM_COLORS } from '../../utils/scoring';
+import { TEAM_COLORS } from '../../utils/scoring';
+import { houseWeekRating, reportRows } from '../../utils/reports';
+import type { Trend } from '../../utils/reports';
 import { ChartTooltip, SectionHeader } from '../ui';
 import { axisTick, scoreDomain } from '../../utils/style';
 
@@ -17,12 +19,6 @@ const round1 = (n: number) => Math.round(n * 10) / 10;
 const pad2 = (n: number) => String(n).padStart(2, '0');
 const TOTAL_FROM_WEEK = 5;
 
-// A house's rating for one week (same rule as everywhere: member average +
-// mini-card bonus; a week the house hasn't filled counts its roster at 0).
-const weekAvg = (team: DataFile['weeks'][number]['teams'][number]) =>
-    team.members.length ? calculateHouseRating(team) : null;
-
-type Trend = 'up' | 'down' | 'stable';
 const TREND: Record<Trend, { label: string; icon: React.ComponentType<{ className?: string }>; color: string }> = {
     up: { label: 'Өсүш', icon: TrendingUp, color: 'var(--success)' },
     down: { label: 'Төмөндөш', icon: TrendingDown, color: 'var(--danger)' },
@@ -52,19 +48,12 @@ const PeriodReport: React.FC<ReportsViewProps> = ({ data, selectedPeriod, setSel
     const last = weeks[weeks.length - 1]?.weekNumber ?? first;
     const teams = data.weeks[0]?.teams ?? [];
 
-    const rows = teams.map((t, colorIndex) => {
-        const scores = weeks.map(w => w.teams.find(x => x.id === t.id)).map(x => (x ? weekAvg(x) : null)).filter((x): x is number => x !== null);
-        const average = scores.length ? round1(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
-        const firstHalf = scores.slice(0, Math.ceil(scores.length / 2)).reduce((a, b) => a + b, 0);
-        const secondHalf = scores.slice(Math.floor(scores.length / 2)).reduce((a, b) => a + b, 0);
-        const trend: Trend = secondHalf > firstHalf ? 'up' : secondHalf < firstHalf ? 'down' : 'stable';
-        return { id: t.id, name: t.name, colorIndex, scores, average, best: scores.length ? Math.max(...scores) : 0, worst: scores.length ? Math.min(...scores) : 0, trend };
-    }).sort((a, b) => b.average - a.average);
+    const rows = reportRows(weeks, teams);
 
-    const rising = rows.filter(r => r.trend === 'up' && r.scores.length > 1).sort((a, b) => (b.scores.at(-1)! - b.scores[0]) - (a.scores.at(-1)! - a.scores[0]))[0];
+    const rising = rows.filter(r => r.trend === 'up').sort((a, b) => (b.change ?? 0) - (a.change ?? 0))[0];
     const chartData = weeks.map(w => {
         const p: Record<string, number | string | null> = { week: `${w.weekNumber}-апта` };
-        w.teams.forEach(t => { p[t.id] = weekAvg(t); });
+        w.teams.forEach(t => { p[t.id] = houseWeekRating(w, t.id); });
         return p;
     });
 
@@ -109,7 +98,7 @@ const PeriodReport: React.FC<ReportsViewProps> = ({ data, selectedPeriod, setSel
                                 <th style={{ textAlign: 'right' }}>Рейтинг</th>
                                 <th className="hidden sm:table-cell" style={{ textAlign: 'right' }}>Эң жакшы</th>
                                 <th className="hidden sm:table-cell" style={{ textAlign: 'right' }}>Эң начар</th>
-                                <th style={{ textAlign: 'right', paddingRight: '1.25rem' }}>Тенденция</th>
+                                <th style={{ textAlign: 'right', paddingRight: '1.25rem' }} title="Мезгилдин акыркы эсептелген аптасы биринчисине салыштырмалуу">Мезгил ичинде</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -121,13 +110,13 @@ const PeriodReport: React.FC<ReportsViewProps> = ({ data, selectedPeriod, setSel
                                         <td className="font-bold" style={{ color: 'var(--text-primary)' }}>
                                             <span className="inline-flex items-center gap-2"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: TEAM_COLORS[r.colorIndex % TEAM_COLORS.length] }} />{r.name}</span>
                                         </td>
-                                        {weeks.map((w, k) => <td key={w.weekNumber} className="hidden md:table-cell tabular" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>{r.scores[k] !== undefined ? r.scores[k].toFixed(1) : '—'}</td>)}
+                                        {weeks.map((w, k) => <td key={w.weekNumber} className="hidden md:table-cell tabular" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>{r.cells[k] !== null ? r.cells[k]!.toFixed(1) : '—'}</td>)}
                                         <td className="font-display font-bold text-[1.2rem] tabular" style={{ textAlign: 'right', color: 'var(--text-primary)' }}>{r.average}</td>
-                                        <td className="hidden sm:table-cell tabular font-bold" style={{ textAlign: 'right', color: 'var(--success)' }}>{r.best}</td>
-                                        <td className="hidden sm:table-cell tabular font-bold" style={{ textAlign: 'right', color: 'var(--danger)' }}>{r.worst}</td>
+                                        <td className="hidden sm:table-cell tabular font-bold" style={{ textAlign: 'right', color: 'var(--success)' }}>{r.best !== null ? r.best.toFixed(1) : '—'}</td>
+                                        <td className="hidden sm:table-cell tabular font-bold" style={{ textAlign: 'right', color: 'var(--danger)' }}>{r.worst !== null ? r.worst.toFixed(1) : '—'}</td>
                                         <td style={{ textAlign: 'right', paddingRight: '1.25rem' }}>
-                                            <span className="inline-flex items-center gap-1 font-bold text-[0.82rem]" style={{ color: T.color }} title={T.label}>
-                                                <T.icon className="w-4 h-4" /><span className="hidden sm:inline">{T.label}</span>
+                                            <span className="inline-flex items-center gap-1 font-bold text-[0.82rem] tabular whitespace-nowrap" style={{ color: r.change === null ? 'var(--text-muted)' : T.color }} title={T.label}>
+                                                {r.change === null ? '—' : <><T.icon className="w-4 h-4" />{r.change > 0 ? '+' : ''}{r.change.toFixed(1)}</>}
                                             </span>
                                         </td>
                                     </tr>
@@ -164,7 +153,7 @@ const TotalReport: React.FC<{ data: DataFile }> = ({ data }) => {
     const relevant = data.weeks.filter(w => w.weekNumber >= TOTAL_FROM_WEEK);
     const teams = data.weeks[0]?.teams ?? [];
     const rows = teams.map((t, colorIndex) => {
-        const scores = relevant.map(w => w.teams.find(x => x.id === t.id)).map(x => (x ? weekAvg(x) : null)).filter((x): x is number => x !== null);
+        const scores = relevant.map(w => houseWeekRating(w, t.id)).filter((x): x is number => x !== null);
         const total = round1(scores.reduce((a, b) => a + b, 0));
         return { id: t.id, name: t.name, colorIndex, weeks: scores.length, total, average: scores.length ? round1(total / scores.length) : 0 };
     }).sort((a, b) => b.total - a.total);

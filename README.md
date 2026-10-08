@@ -279,8 +279,13 @@ The weights are the same for everyone; what changes by role is the
 mini-card has 7 team activities (БГМДТ, КПТ, И-Н.2, КИТЕП, СПОРТ, ТСПХ,
 БАБХ; target 7 each, except КИТЕП 5 and СПОРТ 1). Each activity gives up
 to 5 points, capped at 100%, so the bonus is at most 35. The average (not
-the total) keeps houses of different sizes comparable, and houses are
-ranked only among those that submitted that week.
+the total) keeps houses of different sizes comparable.
+
+A week a house hasn't submitted shows "—" and isn't counted anywhere
+(rankings, averages, trends, reports) while the week is open, so a house
+that is simply late doesn't look like it collapsed. Once the admin locks
+the week, a house that still hasn't submitted counts as 0 for it
+(`weekCounts` in `src/utils/insights.ts`).
 
 Targets are enforced in the database: a person's target carries forward
 from their previous week within the season, or starts from the role

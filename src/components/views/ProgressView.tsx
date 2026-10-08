@@ -41,6 +41,11 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ data, insights, onOp
     });
 
     const lastIndex = data.weeks.length - 1;
+    // The latest week is still open and this house hasn't entered it yet.
+    const latestOpenMissing = (h: (typeof houses)[number]) => {
+        const hw = weekOf(h.weeks, lastIndex);
+        return !!hw && !hw.submitted;
+    };
     // People who gained the most since the previous week
     const risers = [...insights.members.values()]
         .map(s => {
@@ -147,10 +152,14 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ data, insights, onOp
                                     <Sparkline values={counted.map(w => w.avg)} color={color} width={80} height={30} />
                                 </div>
                                 <dl className="grid grid-cols-3 gap-2 mt-4">
-                                    <div><dt className="eyebrow">Азыр</dt><dd className="font-display font-bold text-[1.35rem] tabular" style={{ color: 'var(--text-primary)' }}>{cur ? fmt(cur.avg) : '—'}</dd></div>
-                                    <div><dt className="eyebrow">Өзгөрүү</dt><dd className="font-display font-bold text-[1.35rem] tabular" style={{ color: change > 0 ? 'var(--success)' : change < 0 ? 'var(--danger)' : 'var(--text-muted)' }}>{change > 0 ? '+' : ''}{fmt(change)}</dd></div>
-                                    <div><dt className="eyebrow">Рекорд</dt><dd className="font-display font-bold text-[1.35rem] tabular" style={{ color: 'var(--text-primary)' }}>{fmt(best)}</dd></div>
+                                    <div><dt className="eyebrow">{cur ? `${cur.weekNumber}-апта` : 'Акыркы апта'}</dt><dd className="font-display font-bold text-[1.35rem] tabular" style={{ color: 'var(--text-primary)' }}>{cur ? fmt(cur.avg) : '—'}</dd></div>
+                                    <div><dt className="eyebrow">Өзгөрүү</dt><dd className="font-display font-bold text-[1.35rem] tabular" style={{ color: change > 0 ? 'var(--success)' : change < 0 ? 'var(--danger)' : 'var(--text-muted)' }}>{prev ? `${change > 0 ? '+' : ''}${fmt(change)}` : '—'}</dd></div>
+                                    <div><dt className="eyebrow">Рекорд</dt><dd className="font-display font-bold text-[1.35rem] tabular" style={{ color: 'var(--text-primary)' }}>{counted.length ? fmt(best) : '—'}</dd></div>
                                 </dl>
+                                <p className="text-[0.75rem] italic mt-2" style={{ color: 'var(--text-muted)' }}>
+                                    {prev ? `Өзгөрүү: ${prev.weekNumber}-аптага караганда.` : 'Өзгөрүү эки аптадан кийин көрүнөт.'}
+                                    {latestOpenMissing(h) && ` ${data.weeks[data.weeks.length - 1].weekNumber}-апта али киргизиле элек.`}
+                                </p>
                             </div>
                         );
                     })}

@@ -2,7 +2,7 @@
 // streaks. Everything here is computed from the same DataFile the views
 // already load, with the same scoring rules (src/utils/scoring.ts), so a
 // number on a profile page always matches the number in the tables.
-import type { DataFile, MetricValues, Role, TeamMember } from '../types';
+import type { DataFile, MetricValues, Role, Team, TeamMember, WeekData } from '../types';
 import { calculateMemberAverage, calculateMemberScore, calculateMiniCardBonus, calculatePerformancePercentage, weights } from './scoring';
 
 export const METRICS = Object.keys(weights) as Array<keyof MetricValues>;
@@ -11,6 +11,17 @@ export const METRICS = Object.keys(weights) as Array<keyof MetricValues>;
 export const PLAN_SCORE = Math.round(METRICS.reduce((s, m) => s + weights[m], 0) * 10) / 10;
 
 export const ROLE_LABEL: Record<Role, string> = { imam: 'Имам', zam: 'Орун басар', member: 'Мүчө' };
+
+/**
+ * Does a house's week count (in averages, ranks, trends, reports)?
+ *  - the house submitted it → yes;
+ *  - not submitted, week still open → no: shown as "—", nothing is averaged,
+ *    so a house that is simply late doesn't look like it collapsed;
+ *  - not submitted, week LOCKED by the admin → yes, as zeros (a house that
+ *    never submits can't escape the average by staying silent).
+ */
+export const weekCounts = (week: Pick<WeekData, 'locked'>, team: Pick<Team, 'submitted'>): boolean =>
+    team.submitted || week.locked;
 
 export interface MemberWeek {
     weekIndex: number;
@@ -25,6 +36,7 @@ export interface MemberWeek {
     pct: MetricValues;
     /** Every one of the 8 targets met (and every target actually set). */
     perfect: boolean;
+    /** The week counts for this person's house (see weekCounts): submitted, or locked by the admin. */
     submitted: boolean;
 }
 
@@ -49,6 +61,7 @@ export interface HouseWeek {
     /** Mini-card bonus alone (0 … 7 × MINI_CARD_POINTS). */
     cardBonus: number;
     rank: number | null;
+    /** The week counts (see weekCounts): submitted, or locked by the admin (then as zeros). */
     submitted: boolean;
     memberCount: number;
     miniCardPct: number;
@@ -92,6 +105,7 @@ export const buildInsights = (data: DataFile): Insights => {
         // fell to the bottom.
         const rows: MemberWeek[] = [];
         week.teams.forEach(team => {
+            const counts = weekCounts(week, team);
             team.members.forEach(member => {
                 const pct = {} as MetricValues;
                 let perfect = true;
@@ -103,7 +117,7 @@ export const buildInsights = (data: DataFile): Insights => {
                 rows.push({
                     weekIndex, weekNumber: week.weekNumber, houseId: team.id, houseName: team.name, member,
                     score: calculateMemberScore(member), rank: null, pct, perfect: perfect && team.submitted,
-                    submitted: team.submitted
+                    submitted: counts
                 });
             });
         });
@@ -134,7 +148,7 @@ export const buildInsights = (data: DataFile): Insights => {
             const miniCardPct = cardPcts.length ? cardPcts.reduce((a, b) => a + Math.min(b, 100), 0) / cardPcts.length : 0;
             const miniCardComplete = team.submitted && keys.every(k => team.miniCard[k].target > 0 && team.miniCard[k].actual >= team.miniCard[k].target);
             const allPerfect = team.submitted && team.members.length > 0 && rows.filter(r => r.houseId === team.id).every(r => r.perfect);
-            return { team, colorIndex, hw: { weekIndex, weekNumber: week.weekNumber, avg, memberAvg, cardBonus, rank: null as number | null, submitted: team.submitted, memberCount: team.members.length, miniCardPct, miniCardComplete, allPerfect } };
+            return { team, colorIndex, hw: { weekIndex, weekNumber: week.weekNumber, avg, memberAvg, cardBonus, rank: null as number | null, submitted: weekCounts(week, team), memberCount: team.members.length, miniCardPct, miniCardComplete, allPerfect } };
         });
         const hranked = rankBy(hrows.filter(h => h.hw.submitted), h => h.hw.avg);
         hrows.forEach(h => {
