@@ -55,11 +55,13 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ data, weekIndex, ins
         .sort((a, b) => a.w.rank! - b.w.rank!)
         .slice(0, 3), [insights, weekIndex]);
 
-    const people = useMemo(() => personStandings(insights, weekIndex, scope, city, weeksSoFar), [insights, weekIndex, scope, city, weeksSoFar]);
+    const people = useMemo(() => personStandings(insights, weekIndex, scope, 'all', weeksSoFar), [insights, weekIndex, scope, weeksSoFar]);
     const filtered = roleFilter === 'all' ? people : people.filter(p => p.s.role === roleFilter);
     const houses = useMemo(() => houseStandings(insights, weekIndex, scope, city), [insights, weekIndex, scope, city]);
-    // Movement arrows are about the whole jamaat's weekly ranking, so only there.
-    const showMovement = scope === 'week' && city === 'all';
+    // Movement arrows are about the whole jamaat's weekly ranking, so only
+    // there (the city filter re-ranks houses within the city).
+    const showHouseMovement = scope === 'week' && city === 'all';
+    const showMovement = scope === 'week';
     const minWeeks = Math.max(1, Math.ceil(weeksSoFar / 2));
 
     return (
@@ -88,26 +90,29 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ data, weekIndex, ins
             )}
 
             <div>
-            <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 mb-10 pb-4" style={{ borderBottom: '1px solid var(--border)' }}>
-                <div className="flex flex-wrap" role="group" aria-label={t('Мезгил')}>
-                    <button className="chip" aria-pressed={scope === 'week'} onClick={() => setScope('week')}>{t('{0}-апта', week.weekNumber)}</button>
-                    <button className="chip" aria-pressed={scope === 'season'} onClick={() => setScope('season')}>{t('Бүт сезон')}</button>
-                </div>
-                <div className="flex flex-wrap" role="group" aria-label={t('Шаар')}>
-                    <button className="chip" aria-pressed={city === 'all'} onClick={() => setCity('all')}>{t('Бардык шаарлар')}</button>
-                    {CITIES.map(c => <button key={c.id} className="chip" aria-pressed={city === c.id} onClick={() => setCity(c.id)}>{c.label}</button>)}
-                </div>
+            <div className="flex flex-wrap mb-10 pb-4" role="group" aria-label={t('Мезгил')} style={{ borderBottom: '1px solid var(--border)' }}>
+                <button className="chip" aria-pressed={scope === 'week'} onClick={() => setScope('week')}>{t('{0}-апта', week.weekNumber)}</button>
+                <button className="chip" aria-pressed={scope === 'season'} onClick={() => setScope('season')}>{t('Бүт сезон')}</button>
             </div>
             <div className="grid grid-cols-1 gap-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] lg:gap-20 items-start">
                 {/* Houses */}
                 <section>
-                    <SectionHeader eyebrow={scope === 'week' ? t('Үй рейтинги') : t('Бүт сезон · {0} апта', weeksSoFar)} title={t('Үйлөр')} />
+                    <SectionHeader
+                        eyebrow={scope === 'week' ? t('Үй рейтинги') : t('Бүт сезон · {0} апта', weeksSoFar)}
+                        title={t('Үйлөр')}
+                        action={
+                            <div className="flex flex-wrap" role="group" aria-label={t('Шаар')}>
+                                <button className="chip" aria-pressed={city === 'all'} onClick={() => setCity('all')}>{t('Бардык шаарлар')}</button>
+                                {CITIES.map(c => <button key={c.id} className="chip" aria-pressed={city === c.id} onClick={() => setCity(c.id)}>{c.label}</button>)}
+                            </div>
+                        }
+                    />
                     <ol className="stagger">
                         {houses.map(({ h, rank, value, weeks }) => (
                             <li key={h.id} className="flex items-baseline gap-3 py-3">
                                 <span className="w-6 text-[0.75rem] tabular" style={{ color: 'var(--gold-dim)' }}>{rank ? pad2(rank) : '—'}</span>
                                 <span className="font-display text-[1.35rem] min-w-0 truncate" style={{ color: rank === 1 ? 'var(--gold)' : 'var(--text-primary)' }}>{h.name}</span>
-                                {showMovement && <Movement delta={movement(h.weeks, weekIndex)} />}
+                                {showHouseMovement && <Movement delta={movement(h.weeks, weekIndex)} />}
                                 <span className="leader" />
                                 {scope === 'season' && value !== null && <span className="text-[0.75rem] italic flex-shrink-0" style={{ color: 'var(--text-muted)' }}>{t('{0} апта', weeks)}</span>}
                                 <span className="font-display text-[1.45rem] tabular flex-shrink-0" style={{ color: value !== null ? (rank === 1 ? 'var(--gold)' : 'var(--text-primary)') : 'var(--text-muted)' }}>{value !== null ? fmt(value) : '—'}</span>

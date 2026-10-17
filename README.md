@@ -76,7 +76,8 @@ visual redesign.
   ("К-К +3 (+19.3)"), updated while typing.
 - **Overview filters**: this week or the whole season so far (average over
   the counted weeks; people need at least half of the weeks for a place),
-  and all cities, Budapest (Pannonia, Damjanich, Mester) or Debrecen.
+  and next to the house rating: all cities, Budapest (Pannonia, Damjanich,
+  Mester) or Debrecen.
 - **Compare** also says how many of the 8 metrics each side leads.
 - **Jamaat image**: the week's totals for the whole jamaat as a shareable
   picture (share window → "Жамаат", or the Жамаат tab).
