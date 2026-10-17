@@ -68,6 +68,9 @@ export interface TeamMember {
     photoUrl: string | null;
     actual: MetricValues;
     target: MetricValues;
+    /** Excused this week (sick, travelling): left out of the house average,
+     *  the ranking and streaks. Needs supabase/excused-weeks-2026-10.sql. */
+    excused?: boolean;
 }
 
 export interface Team {

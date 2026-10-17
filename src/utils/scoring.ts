@@ -1,16 +1,17 @@
 import type { MetricValues, TeamMember, Team } from '../types';
 
 // Scoring weights. A weight is the points earned at exactly 100% of target.
-// СВТ and ИСТГ are kept low on purpose: their targets are large counts that
-// are quick to reach. (They were 0.1, which made 100% worth almost nothing.)
-// Oct 2026: ТХЖ 20 → 40, ДТА 30 → 50, КТП 35 → 30.
+// СВТ and ИСТГ are the smallest: their targets are large counts that are
+// quick to multiply. They were 0.1, then 1; with the over-plan curve below
+// big counts can no longer run away, so they are 10 now.
+// Oct 2026: ТХЖ 20 → 30, ДТА 30 → 50, КТП 35 → 30, СВТ/ИСТГ 1 → 10.
 export const weights: MetricValues = {
     'К-К': 45.0,
-    'СВТ': 1.0,
+    'СВТ': 10.0,
     'КТП': 30.0,
-    'ТХЖ': 40.0,
+    'ТХЖ': 30.0,
     'ДТА': 50.0,
-    'ИСТГ': 1.0,
+    'ИСТГ': 10.0,
     'НФ': 20.0,
     'ТСП': 25.0
 };
@@ -94,10 +95,16 @@ export const calculateMiniCardBonus = (miniCard: Team['miniCard']): number => {
     return Math.round(total * 10) / 10;
 };
 
-export const calculateMemberAverage = (team: Team): number =>
-    team.members.length === 0
+// Excused members (sick, travelling) are left out of the average that week;
+// a house where everyone is excused (or nobody is on the roster) gets 0, never NaN.
+export const countedMembers = (team: Team) => team.members.filter(m => !m.excused);
+
+export const calculateMemberAverage = (team: Team): number => {
+    const counted = countedMembers(team);
+    return counted.length === 0
         ? 0
-        : Math.round((team.members.reduce((sum, m) => sum + calculateMemberScore(m), 0) / team.members.length) * 10) / 10;
+        : Math.round((counted.reduce((sum, m) => sum + calculateMemberScore(m), 0) / counted.length) * 10) / 10;
+};
 
 export const calculateHouseRating = (team: Team): number =>
     Math.round((calculateMemberAverage(team) + calculateMiniCardBonus(team.miniCard)) * 10) / 10;

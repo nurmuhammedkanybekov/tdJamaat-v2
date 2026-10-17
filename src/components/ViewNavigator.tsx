@@ -30,8 +30,8 @@ export const ViewNavigator: React.FC<ViewNavigatorProps> = ({ activeView, setAct
                             className="relative whitespace-nowrap px-3 py-4 text-[0.68rem] tracking-[0.26em] uppercase transition-colors hover:text-[var(--text-primary)]"
                             style={{ color: active ? 'var(--gold)' : 'var(--text-muted)' }}
                         >
-                            <span className="lg:hidden">{short}</span>
-                            <span className="hidden lg:inline">{label}</span>
+                            <span className="nav-short lg:hidden">{short}</span>
+                            <span className="nav-long hidden lg:inline">{label}</span>
                             <span className="absolute left-3 right-3 -bottom-px h-px transition-opacity" style={{ backgroundColor: 'var(--gold)', opacity: active ? 1 : 0 }} />
                         </button>
                     );
@@ -50,7 +50,7 @@ export const ViewNavigator: React.FC<ViewNavigatorProps> = ({ activeView, setAct
             }}
             aria-label="Бөлүмдөр"
         >
-            <div className="grid grid-cols-5" role="tablist">
+            <div className="grid" style={{ gridTemplateColumns: `repeat(${TABS.length}, minmax(0, 1fr))` }} role="tablist">
                 {TABS.map(({ key, short, icon: Icon }) => {
                     const active = activeView === key;
                     return (

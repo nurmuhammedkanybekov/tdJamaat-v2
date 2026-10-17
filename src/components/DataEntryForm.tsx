@@ -15,12 +15,15 @@ import {
     upsertHouseActivity,
     upsertMemberMetrics,
     uploadMemberPhoto,
+    excusedSupported,
     DEFAULT_MINICARD,
     DEFAULT_TARGETS
 } from '../services/dataService';
 import type { HouseHistory, SeasonSettings } from '../services/dataService';
 import { calculateMemberScore } from '../utils/scoring';
 import { ROLE_LABEL } from '../utils/insights';
+import { memberTypos, miniCardTypos, usualValues } from '../utils/typos';
+import type { TypoWarning } from '../utils/typos';
 import { Avatar } from './Avatar';
 import { NumberInput } from './NumberInput';
 import { requireActiveSession } from '../services/authService';
@@ -44,7 +47,7 @@ const ZERO_METRICS: MetricValues = {
     'К-К': 0, 'СВТ': 0, 'КТП': 0, 'ТХЖ': 0, 'ДТА': 0, 'ИСТГ': 0, 'НФ': 0, 'ТСП': 0
 };
 
-type MemberDraft = { actual: MetricValues; target: MetricValues };
+type MemberDraft = { actual: MetricValues; target: MetricValues; excused: boolean };
 
 // Unsaved typing is also kept on the phone, per house and week, until it is
 // saved. Phones (iPhone especially) reload a page that was in the
@@ -123,6 +126,8 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
     // Something was typed since the form was filled from the database.
     const dirty = useRef(false);
     const [restored, setRestored] = useState(false);
+    // Typo check: shown when "Сактоо" is pressed with suspicious numbers.
+    const [askTypos, setAskTypos] = useState(false);
 
     const latestWeek = weekNumbers.length ? Math.max(...weekNumbers) : 0;
     // Week numbers are stored continuously across seasons; show them per season.
@@ -197,7 +202,8 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
             const previous = rowsBefore(mine).find(r => r.target);
             nextDrafts[member.id] = {
                 actual: thisWeek?.actual ?? ZERO_METRICS,
-                target: thisWeek?.target ?? previous?.target ?? settings.roleTargets[member.role] ?? DEFAULT_TARGETS.member
+                target: thisWeek?.target ?? previous?.target ?? settings.roleTargets[member.role] ?? DEFAULT_TARGETS.member,
+                excused: thisWeek?.excused ?? false
             };
         });
 
@@ -210,7 +216,9 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
             for (const id of Object.keys(nextDrafts)) {
                 const d = stored.drafts[id];
                 if (!d?.actual) continue;
-                nextDrafts[id] = isAdmin && d.target ? d : { ...nextDrafts[id], actual: d.actual };
+                nextDrafts[id] = isAdmin && d.target
+                    ? { ...d, excused: d.excused === true }
+                    : { ...nextDrafts[id], actual: d.actual, excused: d.excused === true };
                 fromStore = true;
             }
             for (const key of Object.keys(nextCard) as Array<keyof MiniCard>) {
@@ -250,6 +258,13 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
     const handleMiniCardChange = (key: keyof MiniCard, field: 'actual' | 'target', value: number) => {
         dirty.current = true;
         setMiniCard(prev => ({ ...prev, [key]: { ...prev[key], [field]: value } }));
+    };
+
+    // Excused this week (sick, travelling): left out of the house average and
+    // the ranking. The typed numbers are kept, so switching it off restores them.
+    const handleExcusedChange = (memberId: string, excused: boolean) => {
+        dirty.current = true;
+        setDrafts(prev => ({ ...prev, [memberId]: { ...prev[memberId], excused } }));
     };
 
     const handleMemberChange = (memberId: string, field: 'actual' | 'target', metric: keyof MetricValues, value: number) => {
@@ -318,9 +333,40 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
         }
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    // What each person usually enters (their earlier weeks, not excused) —
+    // the baseline for the typo check.
+    const usualByMember = useMemo(() => {
+        const out: Record<string, ReturnType<typeof usualValues>> = {};
+        if (!history) return out;
+        members.forEach(m => {
+            const earlier = history.metrics
+                .filter(r => r.memberId === m.id && r.weekNumber < weekNumber && !r.excused)
+                .sort((a, b) => a.weekNumber - b.weekNumber)
+                .map(r => r.actual);
+            out[m.id] = usualValues(earlier);
+        });
+        return out;
+    }, [history, members, weekNumber]);
+
+    const typos: TypoWarning[] = useMemo(() => [
+        ...miniCardTypos(miniCard),
+        ...members.flatMap(m => {
+            const d = drafts[m.id];
+            return d && !d.excused ? memberTypos(m.id, d.actual, d.target, usualByMember[m.id] ?? {}) : [];
+        })
+    ], [miniCard, members, drafts, usualByMember]);
+    const typoKeys = useMemo(() => new Set(typos.map(t => `${t.owner}|${t.key}`)), [typos]);
+    // Any edit closes the question (the list could be out of date).
+    useEffect(() => { setAskTypos(false); }, [typos]);
+
+    const handleSubmit = async (e: React.FormEvent | null, typosConfirmed = false) => {
+        e?.preventDefault();
         setNotice(null);
+        if (typos.length > 0 && !typosConfirmed) {
+            setAskTypos(true);
+            return;
+        }
+        setAskTypos(false);
         if (!selectedHouseId) {
             setError('Үй тандалган жок');
             return;
@@ -341,7 +387,7 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
             await assertWeekExists(weekNumber);
             await upsertHouseActivity(selectedHouseId, weekNumber, miniCard);
             await Promise.all(
-                members.map(member => upsertMemberMetrics(member.id, weekNumber, drafts[member.id].actual, drafts[member.id].target))
+                members.map(member => upsertMemberMetrics(member.id, weekNumber, drafts[member.id].actual, drafts[member.id].target, drafts[member.id].excused))
             );
             clearDraft(selectedHouseId, weekNumber);
             dirty.current = false;
@@ -464,6 +510,7 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                                                     <label className="text-xs block" style={{ color: 'var(--text-muted)' }}>Факт</label>
                                                     <NumberInput
                                                         value={miniCard[key].actual}
+                                                        aria-invalid={typoKeys.has(`card|${key}`) || undefined}
                                                         onValueChange={v => handleMiniCardChange(key, 'actual', v)}
                                                         className="w-full text-center p-1.5 text-base sm:text-sm"
                                                         style={inputStyle}
@@ -560,17 +607,40 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                                                         </div>
                                                         <div className="text-right flex-shrink-0">
                                                             <div className="text-xs" style={{ color: 'var(--text-muted)' }}>Упай</div>
-                                                            <div className="font-serif font-semibold text-lg font-variant-tabular" style={{ color: 'var(--text-primary)' }}>
-                                                                {calculateMemberScore({ ...member, actual: draft.actual, target: draft.target }).toFixed(1)}
+                                                            <div className="font-serif font-semibold text-lg font-variant-tabular" style={{ color: draft.excused ? 'var(--text-muted)' : 'var(--text-primary)' }}>
+                                                                {draft.excused ? '—' : calculateMemberScore({ ...member, actual: draft.actual, target: draft.target }).toFixed(1)}
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <div className="grid grid-cols-4 md:grid-cols-8 gap-2">
+                                                    {excusedSupported() && (
+                                                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-3">
+                                                            <button
+                                                                type="button"
+                                                                role="switch"
+                                                                aria-checked={draft.excused}
+                                                                disabled={lockedForMe}
+                                                                onClick={() => handleExcusedChange(member.id, !draft.excused)}
+                                                                className="inline-flex items-center gap-2 text-sm disabled:opacity-60"
+                                                                style={{ color: draft.excused ? 'var(--gold)' : 'var(--text-secondary)' }}
+                                                            >
+                                                                <span className="relative inline-block w-8 h-[18px] rounded-full transition-colors flex-shrink-0" style={{ backgroundColor: draft.excused ? 'var(--gold)' : 'var(--border-strong)' }}>
+                                                                    <span className="absolute top-[2px] w-[14px] h-[14px] rounded-full transition-all" style={{ left: draft.excused ? '16px' : '2px', backgroundColor: 'var(--surface)' }} />
+                                                                </span>
+                                                                Себептүү (ооруп / сапарда)
+                                                            </button>
+                                                            {draft.excused && (
+                                                                <span className="text-xs italic" style={{ color: 'var(--text-muted)' }}>Бул апта үйдүн орточосуна жана рейтингге кирбейт. Сериялары үзүлбөйт.</span>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                    <div className="grid grid-cols-4 md:grid-cols-8 gap-2" style={draft.excused ? { opacity: 0.4 } : undefined} aria-disabled={draft.excused || undefined}>
                                                         {(Object.keys(ZERO_METRICS) as Array<keyof MetricValues>).map(metric => (
                                                             <div key={metric} className="text-center min-w-0">
                                                                 <div className="text-xs font-semibold mb-1" style={{ color: 'var(--text-secondary)' }}>{metric}</div>
                                                                 <NumberInput
                                                                     value={draft.actual[metric]}
+                                                                    readOnly={draft.excused}
+                                                                    aria-invalid={typoKeys.has(`${member.id}|${metric}`) || undefined}
                                                                     onValueChange={v => handleMemberChange(member.id, 'actual', metric, v)}
                                                                     className="w-full text-center px-0.5 py-1.5 mb-1 text-base sm:text-sm font-semibold"
                                                                     style={inputStyle}
@@ -614,6 +684,23 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                         <div role="status" className="px-3 py-2 mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm" style={{ borderLeft: '2px solid var(--gold)', color: 'var(--text-secondary)' }}>
                             <p className="min-w-0 flex-1">Мурда киргизилип, сакталбай калган сандар кайра коюлду. Текшерип, «Сактоо» басыңыз.</p>
                             <button type="button" onClick={discardDraft} className="underline underline-offset-2" style={{ color: 'var(--text-muted)' }}>Өчүрүү</button>
+                        </div>
+                    )}
+                    {askTypos && typos.length > 0 && !error && (
+                        <div role="alertdialog" aria-label="Сандарды текшериңиз" className="px-3 py-2.5 mb-3 text-sm" style={{ borderLeft: '2px solid var(--danger)', color: 'var(--text-secondary)' }}>
+                            <p className="font-semibold" style={{ color: 'var(--text-primary)' }}>Бул сандар туурабы? Адаттагыдан абдан көп:</p>
+                            <ul className="mt-1.5 space-y-0.5 max-h-28 overflow-y-auto">
+                                {typos.map(t => (
+                                    <li key={`${t.owner}|${t.key}`} className="tabular">
+                                        <b style={{ color: 'var(--text-primary)' }}>{t.owner === 'card' ? 'Мини-карта' : members.find(m => m.id === t.owner)?.name ?? ''}</b>
+                                        {' — '}{t.key} <b style={{ color: 'var(--danger)' }}>{t.value}</b> (план {t.target}{t.usual ? `, адатта ~${Math.round(t.usual)}` : ''}) — {Math.round(t.value / t.target)}× көп
+                                    </li>
+                                ))}
+                            </ul>
+                            <div className="flex flex-wrap gap-2 mt-2.5">
+                                <button type="button" onClick={() => setAskTypos(false)} className="px-3 py-2 text-sm font-semibold" style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--text-secondary)' }}>Оңдоо</button>
+                                <button type="button" onClick={() => handleSubmit(null, true)} className="px-3 py-2 text-sm font-semibold" style={{ border: '1px solid var(--danger)', borderRadius: 'var(--radius-sm)', color: 'var(--danger)' }}>Ооба, туура — сактоо</button>
+                            </div>
                         </div>
                     )}
                     {notice && !error && (

@@ -131,7 +131,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ data, weekIndex, ins
                                     </span>
                                     <Movement delta={movement(s.weeks, weekIndex)} />
                                     <span className="w-14 text-right font-display text-[1.3rem] tabular flex-shrink-0" style={{ color: w.submitted ? 'var(--text-primary)' : 'var(--text-muted)' }}>
-                                        {w.submitted ? fmt(w.score) : '—'}
+                                        {w.excused ? <span className="text-[0.8rem] italic" style={{ color: 'var(--text-muted)' }}>себептүү</span> : w.submitted ? fmt(w.score) : '—'}
                                     </span>
                                 </button>
                             </li>

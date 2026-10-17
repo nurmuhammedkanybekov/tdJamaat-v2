@@ -5,12 +5,32 @@
    OS setting. */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Typefaces (self-hosted in main.tsx, so they also work offline):
-   - Oranienbaum — display: a high-contrast didone, used for names and the
-     big numbers. Used sparingly; it carries the "engraved" voice.
-   - Spectral — text: light, literary, quiet. Both cover every Kyrgyz letter. */
+/* Typefaces (self-hosted, so they also work offline):
+   - Oranienbaum — the numbers and Latin letters (198.3, tdJamaat, Mester):
+     a high-contrast didone, the "engraved" voice. It has no Ң/Ө/Ү, so it is
+     limited with unicode-range to digits, Latin and basic punctuation.
+   - Prata — every Cyrillic letter in headings and names. The same didone
+     style, drawn for Cyrillic, with every Kyrgyz letter, so a word like
+     "Үйлөр" is never drawn in two typefaces.
+   - Spectral — text: light, literary, quiet. Covers every Kyrgyz letter. */
+@font-face {
+    font-family: 'Oranienbaum';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('../node_modules/@fontsource/oranienbaum/files/oranienbaum-latin-400-normal.woff2') format('woff2');
+    unicode-range: U+0020-007E, U+00A0, U+00B0, U+00B7, U+00D7, U+2013, U+2212;
+}
+@font-face {
+    font-family: 'Oranienbaum';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('../node_modules/@fontsource/oranienbaum/files/oranienbaum-latin-ext-400-normal.woff2') format('woff2');
+    unicode-range: U+00C0-00D6, U+00D8-00F6, U+00F8-024F;
+}
 @theme {
-    --font-display: 'Oranienbaum', 'Spectral', Georgia, serif;
+    --font-display: 'Oranienbaum', 'Prata', 'Spectral', Georgia, serif;
     --font-serif: 'Spectral', Georgia, 'Times New Roman', serif;
     --font-sans: 'Spectral', Georgia, 'Times New Roman', serif;
 }
@@ -359,6 +379,9 @@ html.screen .eyebrow { font-weight: 500; }
     html.screen .eyebrow { font-size: 0.74rem; letter-spacing: 0.22em; }
     html.screen .chip { font-size: 0.78rem; letter-spacing: 0.14em; }
 }
+/* Big type: the tabs use their short names so six of them always fit. */
+html.screen .nav-long { display: none !important; }
+html.screen .nav-short { display: inline !important; }
 html.screen .recharts-line-curve,
 html.screen .recharts-area-curve { stroke-width: 2.6px; }
 html.screen .recharts-cartesian-axis-tick text { font-size: 15px !important; font-weight: 500; }
@@ -369,3 +392,10 @@ html.screen .recharts-cartesian-grid line { stroke: var(--gridline); }
 html.screen .monument { padding-top: 0.25rem; padding-bottom: 1.25rem; }
 html.screen .monument > svg.draw-in { width: min(11rem, 50%); }
 html.screen .monument h1 { margin-top: 0.25rem; }
+
+/* Data entry: a number that looks like a typo (src/utils/typos.ts). */
+input[aria-invalid="true"] { border-color: var(--danger) !important; color: var(--danger) !important; box-shadow: 0 0 0 1px var(--danger); }
+
+/* "New version" bar: above the phone tab bar, near the bottom on bigger screens. */
+.update-bar { bottom: calc(4.4rem + env(safe-area-inset-bottom, 0px)); }
+@media (min-width: 768px) { .update-bar { bottom: 1.5rem; } }

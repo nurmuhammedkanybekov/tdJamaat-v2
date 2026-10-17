@@ -9,7 +9,7 @@ import { getInitialAuthUser, subscribeToAuthChanges, signOut } from './services/
 import type { AuthUser } from './services/authService';
 import { getStoredTheme, setScreen, setTheme as persistTheme } from './theme';
 import type { Theme } from './theme';
-import { useInstallPrompt } from './pwa';
+import { useInstallPrompt, useUpdateAvailable } from './pwa';
 import { buildInsights, weekOf } from './utils/insights';
 import { computeAwards } from './utils/badges';
 import { defaultSeasonId, seasonView } from './utils/seasons';
@@ -30,7 +30,7 @@ import { InstallSheet } from './components/InstallSheet';
 import { PrayerSheet } from './components/PrayerSheet';
 import { CompareSheet } from './components/CompareSheet';
 import type { CompareInit } from './components/CompareSheet';
-import { OverviewView, TeamsView, ProgressView, ReportsView, AwardsView } from './components/views';
+import { OverviewView, TeamsView, ProgressView, ReportsView, AwardsView, CommunityView } from './components/views';
 import { OrnamentDivider, SunMark } from './components/Ornament';
 import { LoadingScreen, StateCard } from './components/ui';
 
@@ -81,6 +81,8 @@ const TeamPerformanceTracker: React.FC = () => {
 
     const [authUser, setAuthUser] = useState<AuthUser | null>(null);
     const { mode: installMode, install } = useInstallPrompt();
+    const updateAvailable = useUpdateAvailable();
+    const [updateDismissed, setUpdateDismissed] = useState(false);
 
     // Keep state in sync with the URL (back/forward buttons, shared links).
     useEffect(() => {
@@ -259,7 +261,7 @@ const TeamPerformanceTracker: React.FC = () => {
                     onNext: () => setSelectedWeek(weekIndex + 1 >= data.weeks.length - 1 ? null : weekIndex + 1),
                     isLatest: weekIndex === data.weeks.length - 1
                 } : undefined}
-                seasonLabel={{ overview: undefined, teams: 'Үйлөр', progress: 'Апталык прогресс', reports: 'Отчёттор', awards: 'Сыйлыктар' }[activeView]}
+                seasonLabel={{ overview: undefined, teams: 'Үйлөр', progress: 'Апталык прогресс', reports: 'Отчёттор', awards: 'Сыйлыктар', community: 'Жамаат' }[activeView]}
                 monument={monument}
                 season={seasonPicker}
                 seasonName={season.name}
@@ -286,6 +288,7 @@ const TeamPerformanceTracker: React.FC = () => {
                     {activeView === 'progress' && <ProgressView data={data} insights={insights} onOpenProfile={openProfile} onCompare={kind => openCompare({ kind })} />}
                     {activeView === 'reports' && <ReportsView data={data} selectedPeriod={periodIndex} setSelectedPeriod={setSelectedPeriod} />}
                     {activeView === 'awards' && <AwardsView data={data} weekIndex={weekIndex} awards={awards} insights={insights} onOpenProfile={openProfile} />}
+                    {activeView === 'community' && <CommunityView data={data} allData={allData} insights={insights} awards={awards} seasonName={season.name} onOpenProfile={openProfile} />}
 
                     <footer className="mt-14">
                         <OrnamentDivider className="mb-5" />
@@ -317,6 +320,13 @@ const TeamPerformanceTracker: React.FC = () => {
                 <ShareSheet data={data} weekIndex={weekIndex} insights={insights} awards={awards} target={shareTarget} siteTheme={theme} seasonName={season.name} seasonFinished={seasonClosed} onClose={() => setModal(null)} />
             )}
             {modal === 'install' && <InstallSheet onClose={() => setModal(null)} />}
+            {updateAvailable && !updateDismissed && (
+                <div role="status" className="update-bar fixed left-1/2 -translate-x-1/2 z-[60] w-[calc(100%-2rem)] max-w-md flex items-center gap-3 px-4 py-3 animate-fade-up" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--gold)', borderRadius: 'var(--radius)', boxShadow: 'var(--shadow-lift)' }}>
+                    <span className="flex-1 text-[0.9rem]" style={{ color: 'var(--text-primary)' }}>Сайттын жаңы версиясы чыкты.</span>
+                    <button className="btn btn-primary" onClick={() => window.location.reload()}>Жаңылоо</button>
+                    <button onClick={() => setUpdateDismissed(true)} aria-label="Кийинчерээк" className="w-8 h-8 inline-flex items-center justify-center" style={{ color: 'var(--text-muted)' }}>×</button>
+                </div>
+            )}
             {modal === 'prayer' && <PrayerSheet onClose={() => setModal(null)} />}
             {modal === 'compare' && <CompareSheet data={data} insights={insights} awards={awards} weekIndex={weekIndex} init={compareInit} onClose={() => setModal(null)} />}
             {modal === 'history' && authUser && <HistorySheet authUser={authUser} data={allData} onClose={() => setModal(null)} />}

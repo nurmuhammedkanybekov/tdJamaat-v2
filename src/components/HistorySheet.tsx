@@ -107,6 +107,9 @@ export const HistorySheet: React.FC<HistorySheetProps> = ({ authUser, data, onCl
                             <ol className="card overflow-hidden">
                                 {g.items.map((e, i) => {
                                     const { actual, target } = describe(e);
+                                    // Excused flag (supabase/excused-weeks-2026-10.sql): show when it was set or removed.
+                                    const wasExcused = e.oldData?.excused === true, isExcused = e.newData?.excused === true;
+                                    const excusedChange = e.tableName === 'weekly_metrics' && wasExcused !== isExcused ? (isExcused ? 'on' : 'off') : null;
                                     const subject = e.tableName === 'weekly_metrics' ? memberName.get(e.memberId ?? '') ?? 'Белгисиз мүчө' : 'Мини-карта';
                                     const actorIsAdmin = e.actorRole === 'admin';
                                     const actor = actorIsAdmin ? 'Админ' : e.actorHouseId ? houseName.get(e.actorHouseId) ?? 'Үй жетекчиси' : 'База';
@@ -127,6 +130,13 @@ export const HistorySheet: React.FC<HistorySheetProps> = ({ authUser, data, onCl
                                                         <span className="inline-flex items-center gap-1">{actorIsAdmin ? <ShieldCheck className="w-3 h-3" /> : <Home className="w-3 h-3" />}{actor}</span>·
                                                         <span>{e.action === 'INSERT' ? 'биринчи жолу киргизилди' : e.action === 'DELETE' ? 'өчүрүлдү' : 'өзгөртүлдү'}</span>
                                                     </div>
+                                                    {excusedChange && (
+                                                        <div className="mt-2">
+                                                            <span className="inline-flex items-center text-[0.76rem] px-2 py-0.5 rounded-full" style={{ border: '1px solid var(--gold)', color: 'var(--gold)' }}>
+                                                                {excusedChange === 'on' ? 'Себептүү деп белгиленди (ооруп / сапарда)' : 'Себептүү алынып салынды'}
+                                                            </span>
+                                                        </div>
+                                                    )}
                                                     {e.action === 'UPDATE' && (actual.length > 0 || target.length > 0) && (
                                                         <div className="flex flex-wrap gap-1.5 mt-2">
                                                             {actual.map(c => (

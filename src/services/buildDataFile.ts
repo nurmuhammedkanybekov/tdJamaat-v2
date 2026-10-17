@@ -16,7 +16,7 @@ import type { DataFile, MetricValues, MiniCard, Role, Season, Team, TeamMember, 
 export type HouseRow = { id: string; name: string; display_order: number; active: boolean };
 export type MemberRow = { id: string; house_id: string; name: string; role: Role; photo_url: string | null; display_order: number; active: boolean };
 export type WeekRow = { week_number: number; start_date: string | null; end_date: string | null; locked?: boolean | null };
-export type MetricRow = { member_id: string; week_number: number; actual: unknown; target: unknown; house_id?: string | null; role?: Role | null };
+export type MetricRow = { member_id: string; week_number: number; actual: unknown; target: unknown; house_id?: string | null; role?: Role | null; excused?: boolean | null };
 export type ActivityRow = { house_id: string; week_number: number; activity: unknown };
 
 export interface BuildSettings {
@@ -105,7 +105,8 @@ export const buildDataFile = (
                         role,
                         photoUrl: member.photo_url,
                         actual: h.normalizeMetrics(row?.actual, h.zeroMetrics),
-                        target: row ? h.normalizeMetrics(row.target, roleTarget) : roleTarget
+                        target: row ? h.normalizeMetrics(row.target, roleTarget) : roleTarget,
+                        excused: row?.excused === true
                     };
                 });
 

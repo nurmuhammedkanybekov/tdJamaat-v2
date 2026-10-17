@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@fontsource/oranienbaum": "^5.3.0",
+    "@fontsource/prata": "^5.3.0",
     "@fontsource/spectral": "^5.3.0",
     "@supabase/supabase-js": "^2.95.3",
     "@tailwindcss/postcss": "^4.1.14",

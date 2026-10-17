@@ -38,8 +38,11 @@ export interface MemberWeek {
     pct: MetricValues;
     /** Every one of the 8 targets met (and every target actually set). */
     perfect: boolean;
-    /** The week counts for this person's house (see weekCounts): submitted, or locked by the admin. */
+    /** The week counts for this person: their house's week counts (see
+     *  weekCounts: submitted, or locked by the admin) and they weren't excused. */
     submitted: boolean;
+    /** Excused this week (sick, travelling): shown as "себептүү", not ranked, not averaged. */
+    excused: boolean;
 }
 
 export interface MemberSeries {
@@ -66,6 +69,8 @@ export interface HouseWeek {
     /** The week counts (see weekCounts): submitted, or locked by the admin (then as zeros). */
     submitted: boolean;
     memberCount: number;
+    /** Members excused this week (left out of the average). */
+    excusedCount: number;
     miniCardPct: number;
     miniCardComplete: boolean;
     allPerfect: boolean;
@@ -118,8 +123,8 @@ export const buildInsights = (data: DataFile): Insights => {
                 });
                 rows.push({
                     weekIndex, weekNumber: week.weekNumber, houseId: team.id, houseName: team.name, member,
-                    score: calculateMemberScore(member), rank: null, pct, perfect: perfect && team.submitted,
-                    submitted: counts
+                    score: calculateMemberScore(member), rank: null, pct, perfect: perfect && team.submitted && !member.excused,
+                    submitted: counts && !member.excused, excused: member.excused === true
                 });
             });
         });
@@ -149,8 +154,10 @@ export const buildInsights = (data: DataFile): Insights => {
             const cardPcts = keys.map(k => calculatePerformancePercentage(team.miniCard[k].actual, team.miniCard[k].target));
             const miniCardPct = cardPcts.length ? cardPcts.reduce((a, b) => a + Math.min(b, 100), 0) / cardPcts.length : 0;
             const miniCardComplete = team.submitted && keys.every(k => team.miniCard[k].target > 0 && team.miniCard[k].actual >= team.miniCard[k].target);
-            const allPerfect = team.submitted && team.members.length > 0 && rows.filter(r => r.houseId === team.id).every(r => r.perfect);
-            return { team, colorIndex, hw: { weekIndex, weekNumber: week.weekNumber, avg, memberAvg, cardBonus, rank: null as number | null, submitted: weekCounts(week, team), memberCount: team.members.length, miniCardPct, miniCardComplete, allPerfect } };
+            const present = rows.filter(r => r.houseId === team.id && !r.excused);
+            const allPerfect = team.submitted && present.length > 0 && present.every(r => r.perfect);
+            const excusedCount = team.members.filter(m => m.excused).length;
+            return { team, colorIndex, hw: { weekIndex, weekNumber: week.weekNumber, avg, memberAvg, cardBonus, rank: null as number | null, submitted: weekCounts(week, team), memberCount: team.members.length, excusedCount, miniCardPct, miniCardComplete, allPerfect } };
         });
         const hranked = rankBy(hrows.filter(h => h.hw.submitted), h => h.hw.avg);
         hrows.forEach(h => {
@@ -179,21 +186,27 @@ export const movement = <T extends { weekIndex: number; rank: number | null }>(w
     return before.rank - now.rank;
 };
 
-/** Consecutive weeks, ending at `weekIndex`, that satisfy `test`. */
+// An excused week (sick, travelling) is passed over by streaks: it neither
+// breaks a run nor adds to it.
+const isExcused = (w: object) => 'excused' in w && (w as { excused?: boolean }).excused === true;
+
+/** Consecutive weeks, ending at `weekIndex`, that satisfy `test` (excused weeks are passed over). */
 export const streakUntil = <T extends { weekIndex: number }>(weeks: T[], weekIndex: number, test: (w: T) => boolean): number => {
     let n = 0;
     for (let i = weekIndex; i >= 0; i--) {
         const w = weekOf(weeks, i);
+        if (w && isExcused(w)) continue;
         if (!w || !test(w)) break;
         n++;
     }
     return n;
 };
 
-/** Longest run of consecutive weeks satisfying `test`. */
+/** Longest run of consecutive weeks satisfying `test` (excused weeks are passed over). */
 export const longestStreak = <T extends { weekIndex: number }>(weeks: T[], test: (w: T) => boolean): number => {
     let best = 0, run = 0, last = -2;
     [...weeks].sort((a, b) => a.weekIndex - b.weekIndex).forEach(w => {
+        if (isExcused(w)) { if (w.weekIndex === last + 1) last = w.weekIndex; return; }
         if (test(w)) { run = w.weekIndex === last + 1 ? run + 1 : 1; best = Math.max(best, run); last = w.weekIndex; }
         else { run = 0; last = w.weekIndex; }
     });
@@ -201,7 +214,10 @@ export const longestStreak = <T extends { weekIndex: number }>(weeks: T[], test:
 };
 
 export interface SeasonSummary {
+    /** Weeks of the season so far, minus the person's excused weeks. */
     weeksTotal: number;
+    /** Weeks the person was excused (sick, travelling). */
+    excusedWeeks: number;
     weeksActive: number;
     /** Sum of weekly scores over the season. */
     total: number;
@@ -241,8 +257,10 @@ export const seasonSummary = (series: MemberSeries, insights: Insights, weeksTot
         growth = round1(avgOf(counted.slice(counted.length - half)) - avgOf(counted.slice(0, half)));
     }
 
+    const excusedWeeks = series.weeks.filter(w => w.excused).length;
     return {
-        weeksTotal,
+        weeksTotal: Math.max(0, weeksTotal - excusedWeeks),
+        excusedWeeks,
         weeksActive: counted.filter(w => w.score > 0).length,
         total: round1(counted.reduce((s, w) => s + w.score, 0)),
         average,

@@ -38,7 +38,8 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
                 return { s, w: weekOf(s.weeks, weekIndex)! };
             })
             .filter(x => x.s && x.w)
-            .sort((a, b) => b.w.score - a.w.score);
+            // Excused people (sick, travelling) go last, without a place.
+            .sort((a, b) => Number(a.w.excused) - Number(b.w.excused) || b.w.score - a.w.score);
     }, [team, insights, weekIndex]);
 
     if (!team) return null;
@@ -73,7 +74,7 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
                         </div>
                         <h2 className="font-display font-bold text-[2.2rem] sm:text-[2.6rem] leading-tight" style={{ color: 'var(--text-primary)' }}>{team.name}</h2>
                         <div className="flex items-center gap-3 mt-1 text-[0.82rem] flex-wrap" style={{ color: 'var(--text-muted)' }}>
-                            <span>{team.members.length} адам</span>
+                            <span>{team.members.length} адам{hw && hw.excusedCount > 0 ? ` · ${hw.excusedCount} себептүү` : ''}</span>
                             {team.submitted
                                 ? <span className="inline-flex items-center gap-1" style={{ color: 'var(--success)' }}><CheckCircle2 className="w-3.5 h-3.5" /> маалымат киргизилди</span>
                                 : <span className="inline-flex items-center gap-1"><Clock3 className="w-3.5 h-3.5" /> маалымат күтүлүүдө</span>}
@@ -156,7 +157,7 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
                         <tbody>
                             {members.map(({ s, w }, i) => (
                                 <tr key={s.id} className="row-link" onClick={() => onOpenProfile(s.id)}>
-                                    <td className="font-display font-bold text-[1.1rem] tabular" style={{ paddingLeft: '1.5rem', color: i < 3 ? 'var(--gold)' : 'var(--text-muted)' }}>{pad2(i + 1)}</td>
+                                    <td className="font-display font-bold text-[1.1rem] tabular" style={{ paddingLeft: '1.5rem', color: i < 3 && !w.excused ? 'var(--gold)' : 'var(--text-muted)' }}>{w.excused ? '—' : pad2(i + 1)}</td>
                                     <td>
                                         <div className="flex items-center gap-3">
                                             <Avatar name={s.name} role={s.role} photoUrl={w.member.photoUrl} size="sm" />
@@ -171,7 +172,7 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
                                             {Math.round(w.pct[m])}%
                                         </td>
                                     ))}
-                                    <td className="font-display font-bold text-[1.3rem] tabular" style={{ textAlign: 'right', paddingRight: '1.5rem', color: 'var(--text-primary)' }}>{fmt(w.score)}</td>
+                                    <td className="font-display font-bold text-[1.3rem] tabular" style={{ textAlign: 'right', paddingRight: '1.5rem', color: 'var(--text-primary)' }}>{w.excused ? <span className="text-[0.8rem] italic" style={{ color: 'var(--text-muted)' }}>себептүү</span> : fmt(w.score)}</td>
                                 </tr>
                             ))}
                         </tbody>
@@ -185,14 +186,14 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
 const MemberCard: React.FC<{ s: MemberSeries; w: MemberWeek; place: number; weekIndex: number; onOpen: () => void }> = ({ s, w, place, weekIndex, onOpen }) => (
     <button onClick={onOpen} className="card w-full text-left p-3.5 sm:p-4 transition-shadow hover:shadow-[var(--shadow-lift)]">
         <div className="flex items-center gap-3">
-            <span className="w-6 font-display font-bold text-[1.1rem] tabular" style={{ color: place <= 3 ? 'var(--gold)' : 'var(--text-muted)' }}>{pad2(place)}</span>
+            <span className="w-6 font-display font-bold text-[1.1rem] tabular" style={{ color: place <= 3 && !w.excused ? 'var(--gold)' : 'var(--text-muted)' }}>{w.excused ? '—' : pad2(place)}</span>
             <Avatar name={s.name} role={s.role} photoUrl={w.member.photoUrl} size="md" />
             <div className="flex-1 min-w-0">
                 <div className="font-bold truncate" style={{ color: 'var(--text-primary)' }}>{w.member.name}</div>
                 <div className="text-[0.75rem] italic" style={{ color: 'var(--text-muted)' }}>{ROLE_LABEL[s.role]}</div>
             </div>
             <div className="text-right">
-                <div className="font-display font-bold text-[1.5rem] leading-none tabular" style={{ color: 'var(--text-primary)' }}>{fmt(w.score)}</div>
+                <div className="font-display font-bold text-[1.5rem] leading-none tabular" style={{ color: 'var(--text-primary)' }}>{w.excused ? <span className="text-[0.8rem] italic" style={{ color: 'var(--text-muted)' }}>себептүү</span> : fmt(w.score)}</div>
                 <div className="mt-1 flex justify-end"><Movement delta={movement(s.weeks, weekIndex)} /></div>
             </div>
         </div>

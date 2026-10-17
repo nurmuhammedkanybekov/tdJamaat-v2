@@ -91,10 +91,23 @@ visual redesign.
   Hanafi Asr, computed on the device, works offline) lists today and the
   next 7 days. During Ramadan the header greets with "Рамазан мубарак" and
   shows iftar time, and the prayer page adds suhoor/iftar.
+- **Жамаат (community) section.** What the whole jamaat did together this
+  season — every metric and mini-card activity summed up — this week
+  compared with last week (only houses that entered both weeks), season
+  records, and a Hall of Fame for every season.
+- **Excused weeks.** A leader can mark someone as excused for a week
+  (sick, travelling): they are left out of the house average and the
+  ranking, and the week neither breaks nor extends their streaks.
+- **Typo warnings.** A number that is 10× the plan and 3× what the person
+  usually enters asks "are you sure?" before saving.
+- **"Чоң экран" (big screen) mode** for meetings on a monitor or projector:
+  larger, heavier type, stronger contrast, thicker chart lines
+  (menu, or `?ekran` in the address).
 - **Admin panel**: open/lock weeks, end the season, edit the roster
   (names, roles, houses), edit season targets, download a backup.
 - **Installable app (PWA)** with a home-screen icon; refreshes live every
-  couple of minutes while open.
+  couple of minutes while open, and offers a "new version" button after a
+  deploy (never reloads by itself, so nothing being typed is lost).
 - **Adapts to any screen**: phones get a bottom tab bar and card layouts,
   and the whole interface scales smoothly from a phone to a projector.
 - **Self-service member photos**, uploaded by a house's own leader
@@ -108,9 +121,10 @@ visual redesign.
 "Түн" (night): black and gold, one metal, a lot of air, with a light "Күн"
 (day) theme. Kyrgyz ornament — түндүк, тумар, ram's horn (кочкор мүйүз) —
 is drawn as single gold hairlines rather than filled patterns, and the
-award medals are drawn as struck coins with a reeded edge. Type is
-Oranienbaum (display) and Spectral (text), self-hosted so the app also
-works offline.
+award medals are drawn as struck coins with a reeded edge. Type, self-hosted
+so the app also works offline: Oranienbaum for numbers and Latin letters,
+Prata for Cyrillic headings and names (every Kyrgyz letter — Ң, Ө, Ү — in one
+typeface), Spectral for text.
 
 ## Stack
 
@@ -264,8 +278,8 @@ people can change houses between seasons without moving old results.
 Each of the 8 individual metrics (К-К, СВТ, КТП, ТХЖ, ДТА, ИСТГ, НФ, ТСП)
 is scored as `(actual / target) × weight` and summed into a member's
 score. A metric with no target set gives 0, never a free 100%. Weights:
-К-К 45, СВТ 1, КТП 30, ТХЖ 40, ДТА 50, ИСТГ 1, НФ 20, ТСП 25 (exactly 100% on
-everything = 212).
+К-К 45, СВТ 10, КТП 30, ТХЖ 30, ДТА 50, ИСТГ 10, НФ 20, ТСП 25 (exactly 100%
+on everything = 220).
 
 Going over the plan still earns more, with diminishing returns: up to 100%
 the percentage counts as it is; above it, the credited percentage is
@@ -343,6 +357,7 @@ supabase/              run in the SQL editor, in the order listed in SETUP.md
   add-babh-2026-09.sql, kitep-target-5-2026-10.sql   mid-season target changes
   history-and-locks-2026-10.sql   change history + admin week locking
   seasons-2026-10.sql  seasons, per-week house snapshot, end-of-season function
+  excused-weeks-2026-10.sql   excused weeks (weekly_metrics.excused)
   update-2026-09-names.sql   one-time fixup, already applied — don't re-run
 api/keepalive.js       daily Vercel cron so the free Supabase project never pauses
 public/

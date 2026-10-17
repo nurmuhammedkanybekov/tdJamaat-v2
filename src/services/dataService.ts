@@ -144,21 +144,37 @@ export const normalizeMiniCard = (value: unknown, fallback: MiniCard): MiniCard 
     return out;
 };
 
-type MetricRow = { member_id: string; week_number: number; actual: unknown; target: unknown };
+type MetricRow = { member_id: string; week_number: number; actual: unknown; target: unknown; excused?: boolean | null };
 
 // Everything one house has actually saved (not the placeholders the dashboard
 // shows for weeks a house hasn't submitted) — used by the data-entry form to
 // carry each member's target forward from their most recent real entry.
 export interface HouseHistory {
-    metrics: { memberId: string; weekNumber: number; actual: MetricValues; target: MetricValues | null }[];
+    metrics: { memberId: string; weekNumber: number; actual: MetricValues; target: MetricValues | null; excused: boolean }[];
     activity: { weekNumber: number; miniCard: MiniCard; hasTargets: boolean }[];
 }
 
+// Excused weeks need supabase/excused-weeks-2026-10.sql. Until it has been
+// run the column doesn't exist: the form hides the switch and saves never
+// send the field (sending an unknown column would make every save fail).
+let excusedColumn: boolean | null = null;
+export const excusedSupported = () => excusedColumn === true;
+
+const fetchMetricHistory = async (memberIds: string[]) => {
+    if (!memberIds.length) return { data: [] as MetricRow[], error: null };
+    if (excusedColumn !== false) {
+        const res = await supabase.from('weekly_metrics').select('member_id, week_number, actual, target, excused').in('member_id', memberIds).order('week_number');
+        if (!res.error) { excusedColumn = true; return { data: (res.data ?? []) as MetricRow[], error: null }; }
+        if (!isMissingSchema(res.error)) return { data: [] as MetricRow[], error: res.error };
+        excusedColumn = false;
+    }
+    const res = await supabase.from('weekly_metrics').select('member_id, week_number, actual, target').in('member_id', memberIds).order('week_number');
+    return { data: (res.data ?? []) as MetricRow[], error: res.error };
+};
+
 export const fetchHouseHistory = async (houseId: string, memberIds: string[]): Promise<HouseHistory> => {
     const [metricsRes, activityRes] = await Promise.all([
-        memberIds.length
-            ? supabase.from('weekly_metrics').select('member_id, week_number, actual, target').in('member_id', memberIds).order('week_number')
-            : Promise.resolve({ data: [], error: null }),
+        fetchMetricHistory(memberIds),
         supabase.from('house_activity').select('week_number, activity').eq('house_id', houseId).order('week_number')
     ]);
     if (metricsRes.error) fail(metricsRes.error);
@@ -168,7 +184,8 @@ export const fetchHouseHistory = async (houseId: string, memberIds: string[]): P
             memberId: r.member_id,
             weekNumber: r.week_number,
             actual: normalizeMetrics(r.actual, ZERO_METRICS),
-            target: r.target && typeof r.target === 'object' && Object.keys(r.target as object).length ? normalizeMetrics(r.target, ZERO_METRICS) : null
+            target: r.target && typeof r.target === 'object' && Object.keys(r.target as object).length ? normalizeMetrics(r.target, ZERO_METRICS) : null,
+            excused: r.excused === true
         })),
         activity: ((activityRes.data ?? []) as Array<{ week_number: number; activity: unknown }>).map(r => ({
             weekNumber: r.week_number,
@@ -258,13 +275,12 @@ export const exportBackup = async (): Promise<Blob> => {
     return new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
 };
 
-export const upsertMemberMetrics = async (memberId: string, weekNumber: number, actual: MetricValues, target: MetricValues) => {
+export const upsertMemberMetrics = async (memberId: string, weekNumber: number, actual: MetricValues, target: MetricValues, excused = false) => {
+    const row: Record<string, unknown> = { member_id: memberId, week_number: weekNumber, actual, target, updated_at: new Date().toISOString() };
+    if (excusedSupported()) row.excused = excused; // only once the column exists (see excusedColumn)
     const { error } = await supabase
         .from('weekly_metrics')
-        .upsert(
-            { member_id: memberId, week_number: weekNumber, actual, target, updated_at: new Date().toISOString() },
-            { onConflict: 'member_id,week_number' }
-        );
+        .upsert(row, { onConflict: 'member_id,week_number' });
     if (error) fail(error);
 };
 
@@ -396,8 +412,8 @@ export interface AuditEntry {
     action: 'INSERT' | 'UPDATE' | 'DELETE';
     actorRole: string | null;
     actorHouseId: string | null;
-    oldData: { actual?: Record<string, number>; activity?: Record<string, { actual?: number; target?: number }>; target?: Record<string, number> } | null;
-    newData: { actual?: Record<string, number>; activity?: Record<string, { actual?: number; target?: number }>; target?: Record<string, number> } | null;
+    oldData: { actual?: Record<string, number>; activity?: Record<string, { actual?: number; target?: number }>; target?: Record<string, number>; excused?: boolean } | null;
+    newData: { actual?: Record<string, number>; activity?: Record<string, { actual?: number; target?: number }>; target?: Record<string, number>; excused?: boolean } | null;
     changedAt: string;
 }
 

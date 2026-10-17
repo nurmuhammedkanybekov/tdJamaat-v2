@@ -1,6 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import '@fontsource/oranienbaum/400.css'
+import '@fontsource/prata/400.css'
 import '@fontsource/spectral/300.css'
 import '@fontsource/spectral/400.css'
 import '@fontsource/spectral/400-italic.css'

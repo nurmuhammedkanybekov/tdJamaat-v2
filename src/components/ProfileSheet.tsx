@@ -52,7 +52,7 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({ series, data, insigh
     const summary = useMemo(() => seasonSummary(series, insights, data.weeks.length), [series, insights, data.weeks.length]);
 
     const stats = [
-        { label: `${current.weekNumber}-апта`, value: current.submitted ? fmt(current.score) : '—', sub: current.rank ? `${current.rank}-орун` : 'маалымат жок', extra: <Movement delta={movement(series.weeks, current.weekIndex)} /> },
+        { label: `${current.weekNumber}-апта`, value: current.submitted ? fmt(current.score) : '—', sub: current.excused ? 'себептүү' : current.rank ? `${current.rank}-орун` : 'маалымат жок', extra: <Movement delta={movement(series.weeks, current.weekIndex)} /> },
         { label: 'Эң мыкты апта', value: best ? fmt(best.score) : '—', sub: best ? `${best.weekNumber}-апта` : '' },
         { label: 'Орточо', value: counted.length ? fmt(avg) : '—', sub: `${counted.length} апта` },
         { label: 'Толук план', value: String(perfectCount), sub: perfectNow > 1 ? `катары менен ${perfectNow} апта` : perfectBest > 1 ? `рекорд: ${perfectBest} апта` : 'жолу' }
@@ -147,6 +147,7 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({ series, data, insigh
                                 ))}
                             </div>
                             {summary.best && <p className="text-[0.82rem] italic text-center mt-3" style={{ color: 'var(--text-muted)' }}>Эң мыкты апта — {summary.best.weekNumber}-апта. Орун сезондогу орточо упай боюнча.</p>}
+                            {summary.excusedWeeks > 0 && <p className="text-[0.82rem] italic text-center mt-1" style={{ color: 'var(--text-muted)' }}>{summary.excusedWeeks} апта себептүү (ооруп / сапарда) — эсепке кирген жок.</p>}
                         </section>
 
                         {/* Targets */}
@@ -170,7 +171,7 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({ series, data, insigh
                                     })}
                                 </div>
                             ) : (
-                                <p className="italic" style={{ color: 'var(--text-muted)' }}>Бул апта үчүн маалымат азырынча киргизиле элек.</p>
+                                <p className="italic" style={{ color: 'var(--text-muted)' }}>{current.excused ? 'Бул апта себептүү деп белгиленген (ооруп же сапарда): эсепке кирбейт, сериялары үзүлбөйт.' : 'Бул апта үчүн маалымат азырынча киргизиле элек.'}</p>
                             )}
                         </section>
 
@@ -216,7 +217,7 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({ series, data, insigh
                                     <li key={w.weekIndex} className="flex items-baseline gap-3 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
                                         <span className="text-[0.95rem] w-24" style={{ color: w.weekIndex === current.weekIndex ? 'var(--gold)' : 'var(--text-primary)' }}>{w.weekNumber}-апта</span>
                                         <span className="text-[0.8rem] italic flex-1" style={{ color: 'var(--text-muted)' }}>
-                                            {w.rank ? `${w.rank}-орун` : 'маалымат жок'}{w.perfect ? ' · толук план' : ''}{w.weekIndex === latestWeekIndex ? ' · акыркы' : ''}
+                                            {w.excused ? 'себептүү (ооруп / сапарда)' : w.rank ? `${w.rank}-орун` : 'маалымат жок'}{w.perfect ? ' · толук план' : ''}{w.weekIndex === latestWeekIndex ? ' · акыркы' : ''}
                                         </span>
                                         <Movement delta={movement(series.weeks, w.weekIndex)} />
                                         <span className="font-display text-[1.3rem] w-14 text-right tabular" style={{ color: 'var(--text-primary)' }}>{w.submitted ? fmt(w.score) : '—'}</span>

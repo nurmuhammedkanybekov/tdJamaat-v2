@@ -19,14 +19,17 @@ const PALETTES = {
 };
 type Palette = typeof PALETTES.dark;
 
-const DISPLAY = '"Oranienbaum", Georgia, serif';
+// Same pairing as the site (index.css): Oranienbaum for numbers and Latin,
+// Prata for Cyrillic.
+const DISPLAY = '"Oranienbaum", "Prata", Georgia, serif';
 const TEXT = '"Spectral", Georgia, serif';
 const ROMAN = ['I', 'II', 'III'];
 const CORNER = ['M6 54 L6 24 C6 12 14 6 26 6 L54 6', 'M6 30 C6 20 12 16 20 16 C28 16 30 24 25 28 C21 31 16 28 18 24'];
 const fmt = (n: number) => (Math.round(n * 10) / 10).toString();
 
 const loadFonts = () => Promise.all([
-    document.fonts.load(`400 80px "Oranienbaum"`),
+    document.fonts.load(`400 80px "Oranienbaum"`, '0123456789.tdJamaat'),
+    document.fonts.load(`400 80px "Prata"`, 'Үйлөр Аптанын жылдызы'),
     document.fonts.load(`400 30px "Spectral"`),
     document.fonts.load(`italic 400 30px "Spectral"`)
 ]).catch(() => undefined);
@@ -204,7 +207,7 @@ export async function drawPersonWeekCard(canvas: HTMLCanvasElement, theme: CardT
     ctx.fillStyle = p.gold; ctx.font = `400 150px ${DISPLAY}`;
     ctx.fillText(w.submitted ? fmt(w.score) : '—', CARD_W / 2, 556);
     const mv = movement(series.weeks, w.weekIndex);
-    const place = w.rank ? `${w.rank}-орун · ${peopleCount} адамдан` : 'маалымат жок';
+    const place = w.excused ? 'себептүү (ооруп / сапарда)' : w.rank ? `${w.rank}-орун · ${peopleCount} адамдан` : 'маалымат жок';
     const arrow = mv === null || mv === 0 ? '' : mv > 0 ? `   ▲ ${mv}` : `   ▼ ${-mv}`;
     ctx.fillStyle = p.muted; ctx.font = `400 26px ${TEXT}`;
     ctx.fillText(place + arrow, CARD_W / 2, 602);

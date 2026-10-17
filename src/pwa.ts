@@ -61,3 +61,38 @@ export const useInstallPrompt = () => {
     };
     return { mode, install };
 };
+
+// "A new version is available". After a deploy, an app that stays open (or
+// is installed on the home screen and only resumed) keeps running the old
+// code. Every few minutes, and when the app comes back to the screen, ask
+// the server for the page and compare its main script file (its name
+// changes on every deploy) with the one running now. Never reloads by
+// itself — the person decides, so nothing they're typing is lost.
+const UPDATE_CHECK_MS = 5 * 60_000;
+
+const scriptName = (html: string): string | null => html.match(/\/assets\/index-[\w-]+\.js/)?.[0] ?? null;
+
+export const useUpdateAvailable = () => {
+    const [available, setAvailable] = useState(false);
+    useEffect(() => {
+        if (!import.meta.env.PROD) return;
+        const running = scriptName(document.documentElement.outerHTML);
+        if (!running) return;
+        let stopped = false;
+        let last = 0;
+        const check = async () => {
+            if (stopped || document.visibilityState !== 'visible' || Date.now() - last < 60_000) return;
+            last = Date.now();
+            try {
+                const res = await fetch(`/?v=${Date.now()}`, { cache: 'no-store' });
+                if (!res.ok) return;
+                const latest = scriptName(await res.text());
+                if (latest && latest !== running) setAvailable(true);
+            } catch { /* offline: try again later */ }
+        };
+        const id = window.setInterval(check, UPDATE_CHECK_MS);
+        document.addEventListener('visibilitychange', check);
+        return () => { stopped = true; window.clearInterval(id); document.removeEventListener('visibilitychange', check); };
+    }, []);
+    return available;
+};

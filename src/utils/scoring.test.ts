@@ -4,14 +4,14 @@ import { PLAN_SCORE } from './insights';
 import { card, house, person } from '../test/factory';
 
 describe('member score', () => {
-    it('weights match the season formula (Oct 2026: ТХЖ 40, ДТА 50, КТП 30)', () => {
-        expect(weights).toEqual({ 'К-К': 45, 'СВТ': 1, 'КТП': 30, 'ТХЖ': 40, 'ДТА': 50, 'ИСТГ': 1, 'НФ': 20, 'ТСП': 25 });
+    it('weights match the season formula (Oct 2026: ТХЖ 30, ДТА 50, КТП 30, СВТ/ИСТГ 10)', () => {
+        expect(weights).toEqual({ 'К-К': 45, 'СВТ': 10, 'КТП': 30, 'ТХЖ': 30, 'ДТА': 50, 'ИСТГ': 10, 'НФ': 20, 'ТСП': 25 });
     });
 
     it('exactly 100% of every target earns the plan score (sum of weights)', () => {
-        expect(PLAN_SCORE).toBe(212);
+        expect(PLAN_SCORE).toBe(220);
         for (const role of ['imam', 'zam', 'member'] as const) {
-            expect(calculateMemberScore(person('a', role, 1))).toBe(212);
+            expect(calculateMemberScore(person('a', role, 1))).toBe(220);
         }
     });
 
@@ -49,7 +49,7 @@ describe('member score', () => {
         m.target['К-К'] = 0;
         m.actual['К-К'] = 50;
         expect(calculatePerformancePercentage(50, 0)).toBe(0);
-        expect(calculateMemberScore(m)).toBe(212 - 45);
+        expect(calculateMemberScore(m)).toBe(220 - 45);
     });
 
     it('rounds to one decimal', () => {
@@ -79,8 +79,8 @@ describe('house rating', () => {
 
     it('rating = member average + mini-card bonus', () => {
         const h = house('A', [person('a', 'member', 1), person('b', 'member', 0)], { miniCard: card(1) });
-        expect(calculateMemberAverage(h)).toBe(106);
-        expect(calculateHouseRating(h)).toBe(141);
+        expect(calculateMemberAverage(h)).toBe(110);
+        expect(calculateHouseRating(h)).toBe(145);
     });
 
     it('a house with no members never produces NaN', () => {

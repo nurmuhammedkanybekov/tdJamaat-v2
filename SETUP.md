@@ -37,6 +37,9 @@ In the Supabase dashboard, open **SQL Editor** and run, in order:
    "2026–27", every saved row remembers the house and role it was saved
    under, targets carry forward within a season only, and the admin's
    "end the season" button. Safe to re-run.
+9. `supabase/excused-weeks-2026-10.sql` — excused weeks: leaders can mark
+   someone as excused (sick, travelling) for a week. Until this runs the
+   site hides the switch and saves exactly as before. Safe to re-run.
 
 ## 3. Configure the app's environment
 

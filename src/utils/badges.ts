@@ -180,7 +180,9 @@ export const computeAwards = (data: DataFile, insights: Insights, opts: { season
         const label = opts.seasonName ? `«${opts.seasonName}» сезону` : 'Сезон';
         const total = data.weeks.length;
         people.forEach(p => {
-            const strong = data.weeks.every((_, i) => { const w = weekOf(p.weeks, i); return !!w && strongWeek(w); });
+            // Excused weeks (sick, travelling) are passed over, but at least one strong week is needed.
+            const strong = data.weeks.every((_, i) => { const w = weekOf(p.weeks, i); return !!w && (w.excused || strongWeek(w)); })
+                && p.weeks.some(strongWeek);
             if (strong) give('full-season', p.id, p.name, p.houseName, last, `${label}: ${total} аптанын баары күчтүү апта болду.`);
         });
         const season = houses.map(h => {
