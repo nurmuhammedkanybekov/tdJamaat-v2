@@ -65,7 +65,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
         }
     };
 
-    const tabs: Array<[Tab, string]> = [['weeks', t('Апталар')], ['season', t('Сезон')], ['roster', t('Курам')], ['targets', t('Максаттар')], ['backup', t('Камдык көчүрмө')]];
+    const tabs: Array<[Tab, string]> = [['weeks', t('Апталар')], ['season', t('Сезон')], ['roster', t('Курам')], ['targets', t('Пландар')], ['backup', t('Камдык көчүрмө')]];
 
     return (
         <Sheet title={t('Админ панели')} onClose={onClose} width="50rem">
@@ -100,7 +100,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
                     </div>
 
                     <p className="text-[0.8rem] mb-3" style={{ color: 'var(--text-muted)' }}>
-                        <Lock className="w-3.5 h-3.5 inline -mt-0.5" />  {t('Кулпуланган аптаны үй жетекчилери өзгөртө албайт (админ гана өзгөртө алат). Каалаган убакта ачып койсо болот.')}
+                        <Lock className="w-3.5 h-3.5 inline -mt-0.5" />  {t('Кулпуланган аптаны үй жетекчилери өзгөртө алышпайт (админ гана өзгөртө алат). Аны каалаган убакта кайра ачса болот.')}
                     </p>
                     <ol className="card overflow-hidden">
                         {[...data.weeks].reverse().map((w, i) => {
@@ -117,7 +117,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
                                         onClick={() => run(`lock${w.globalWeek}`, async () => {
                                             await setWeekLocked(w.globalWeek, !w.locked);
                                             onChanged();
-                                            return w.locked ? t('{0} ачылды — жетекчилер кайра өзгөртө алат.', label(w.globalWeek)) : t('{0} кулпуланды.', label(w.globalWeek));
+                                            return w.locked ? t('{0} ачылды — жетекчилер кайра өзгөртө алышат.', label(w.globalWeek)) : t('{0} кулпуланды.', label(w.globalWeek));
                                         })}
                                     >
                                         {busy === `lock${w.globalWeek}` ? <Loader2 className="w-4 h-4 animate-spin" /> : w.locked ? <Lock className="w-4 h-4" /> : <LockOpen className="w-4 h-4" />}
@@ -141,7 +141,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
                         <>
                             <p className="text-[0.84rem] mb-4" style={{ color: 'var(--text-secondary)' }}>
                                 
-                                {t('Сезондун минималдуу пландары. Жаңы мүчөлөр жана жаңы апталар ушулардан башталат.')}
+                                {t('Сезондун минималдуу пландары. Жаңы мүчөлөр жана жаңы апталар ушул пландардан башталат.')}
                             </p>
                             <h3 className="font-display font-bold text-[1.3rem] mb-2" style={{ color: 'var(--text-primary)' }}>{t('Ролдор боюнча (жеке)')}</h3>
                             <div className="card overflow-x-auto mb-6">
@@ -187,7 +187,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
                                 <input type="checkbox" checked={applyExisting} onChange={e => setApplyExisting(e.target.checked)} className="mt-1 w-4 h-4 accent-[var(--accent)]" />
                                 <span className="text-[0.85rem]" style={{ color: 'var(--text-secondary)' }}>
                                     <b style={{ color: 'var(--text-primary)' }}>{t('Мурда сакталган апталарга да колдонуу')}</b><br />
-                                    {t('Пландар аптадан аптага өтөт, ошондуктан бул белгиленбесе, жаңы план мурдатан бар мүчөлөргө таасир этпейт.')}
+                                    {t('Пландар аптадан аптага өтөт. Ошондуктан бул белгиленбесе, жаңы план учурдагы мүчөлөргө таасир этпейт.')}
                                     {applyExisting && (
                                         <span className="flex items-center gap-2 mt-2">
                                             <select value={applyFrom} onChange={e => setApplyFrom(Number(e.target.value))} className="px-2 py-1.5" style={inputStyle} onClick={e => e.stopPropagation()}>
@@ -208,7 +208,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
                                     let msg = t('Пландар сакталды.');
                                     if (applyExisting) {
                                         const r = await applyTargetsFromWeek(applyFrom, roleTargets, cardTargets);
-                                        msg += t(' {0} жана андан кийин: {1} жеке жана {2} мини-карта жазуусу жаңырды.', label(applyFrom), r.metricRows, r.activityRows);
+                                        msg += t(' {0} жана андан кийинки апталар: {1} жеке жана {2} мини-карта жазуусу жаңыртылды.', label(applyFrom), r.metricRows, r.activityRows);
                                     }
                                     onChanged();
                                     return msg;
@@ -229,7 +229,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
                     <div className="card card-pad">
                         <p className="text-[0.88rem] mb-4" style={{ color: 'var(--text-secondary)' }}>
                             
-                            {t('Бүт базанын (үйлөр, мүчөлөр, апталар, жыйынтыктар, пландар) толук көчүрмөсү бир JSON файл катары. Ар аптадан кийин сактап коюу сунушталат.')}
+                            {t('Бүт базанын (үйлөр, мүчөлөр, апталар, жыйынтыктар, пландар) толук көчүрмөсү — бир JSON файл. Ар бир аптадан кийин сактап коюңуз.')}
                         </p>
                         <button
                             className="btn btn-primary"
@@ -247,7 +247,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
                                 return t('Камдык көчүрмө жүктөлдү — аны сактап коюңуз.');
                             })}
                         >
-                            {busy === 'backup' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />} {t('Камдык көчүрмөнү жүктөө')}
+                            {busy === 'backup' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />} {t('Камдык көчүрмөнү жүктөп алуу')}
                         </button>
                     </div>
                 </div>

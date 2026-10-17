@@ -50,5 +50,5 @@ export const nextPrayer = (city: City, now: Date): { key: PrayerKey; at: Date } 
 export const untilText = (ms: number) => {
     const m = Math.max(0, Math.round(ms / 60000));
     const h = Math.floor(m / 60);
-    return h > 0 ? t('{0} с {1} мүн', h, m % 60) : t('{0} мүн', m);
+    return h > 0 ? t('{0} саат {1} мүн', h, m % 60) : t('{0} мүн', m);
 };

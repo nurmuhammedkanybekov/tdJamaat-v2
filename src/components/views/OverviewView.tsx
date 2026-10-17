@@ -94,7 +94,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ data, weekIndex, ins
                     <button className="chip" aria-pressed={scope === 'season'} onClick={() => setScope('season')}>{t('Бүт сезон')}</button>
                 </div>
                 <div className="flex flex-wrap" role="group" aria-label={t('Шаар')}>
-                    <button className="chip" aria-pressed={city === 'all'} onClick={() => setCity('all')}>{t('Бардык шаар')}</button>
+                    <button className="chip" aria-pressed={city === 'all'} onClick={() => setCity('all')}>{t('Бардык шаарлар')}</button>
                     {CITIES.map(c => <button key={c.id} className="chip" aria-pressed={city === c.id} onClick={() => setCity(c.id)}>{c.label}</button>)}
                 </div>
             </div>
@@ -134,7 +134,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ data, weekIndex, ins
                         }
                     />
                     {scope === 'season' && (
-                        <p className="text-[0.82rem] italic -mt-3 mb-4" style={{ color: 'var(--text-muted)' }}>{t('Орточо упай. Орун алуу үчүн жок дегенде {0} апта катышуу керек.', minWeeks)}</p>
+                        <p className="text-[0.82rem] italic -mt-3 mb-4" style={{ color: 'var(--text-muted)' }}>{t('Орточо упай. Орун алуу үчүн жок дегенде {0} аптага катышуу керек.', minWeeks)}</p>
                     )}
                     <ol>
                         {filtered.map(({ s, rank, value, weeks, week: w, excused }) => (

@@ -46,9 +46,9 @@ export const PointsBreakdown: React.FC<{
                 <span className="font-display text-[1.4rem] tabular" style={{ color: 'var(--gold)' }}>{fmt(breakdown.total)}</span>
                 <span className="text-[0.8rem] tabular" style={{ color: 'var(--text-muted)' }}>{t('/ {0} (план)', planTotal)}</span>
             </p>
-            {breakdown.top && <p>{t('Эң көп упай: {0} — {1}.', metricName(breakdown.top.metric), fmt(breakdown.top.points))}</p>}
+            {breakdown.top && <p>{t('Эң көп упай берген: {0} — {1}.', metricName(breakdown.top.metric), fmt(breakdown.top.points))}</p>}
             {breakdown.missed
-                ? <p>{t('Эң көп жетпегени: {0} — планга чейин дагы {1} упай.', metricName(breakdown.missed.row.metric), fmt(breakdown.missed.missing))}{missedNote && <> {missedNote}</>}</p>
+                ? <p>{t('Эң көп жетпеген: {0} — планга жетүү үчүн дагы {1} упай керек.', metricName(breakdown.missed.row.metric), fmt(breakdown.missed.missing))}{missedNote && <> {missedNote}</>}</p>
                 : <p>{t('Бардык көрсөткүч боюнча толук упай алынды.')}</p>}
         </div>
     </>

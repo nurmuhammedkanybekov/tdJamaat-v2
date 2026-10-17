@@ -8,7 +8,7 @@ export const TABS: { key: ActiveView; label: string; short: string; icon: React.
     { key: 'overview', label: t('Жалпы көрүнүш'), short: t('Жалпы'), icon: LayoutDashboard },
     { key: 'teams', label: t('Үй ичиндеги рейтинг'), short: t('Үйлөр'), icon: Home },
     { key: 'progress', label: t('Апталык прогресс'), short: t('Прогресс'), icon: TrendingUp },
-    { key: 'reports', label: t('Отчёттор'), short: t('Отчёт'), icon: BarChart3 },
+    { key: 'reports', label: t('Отчеттор'), short: t('Отчет'), icon: BarChart3 },
     { key: 'awards', label: t('Сыйлыктар'), short: t('Сыйлык'), icon: Award },
     { key: 'community', label: t('Жамаат'), short: t('Жамаат'), icon: Users }
 ];

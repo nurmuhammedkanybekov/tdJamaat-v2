@@ -143,7 +143,7 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({ series, data, insigh
                                     [t('Орун'), summary.rank ? `${summary.rank} / ${summary.of}` : '—'],
                                     [t('Орточо упай'), fmt(summary.average)],
                                     [t('Эң мыкты апта'), summary.best ? `${fmt(summary.best.score)}` : '—'],
-                                    [t('Активдүү апта'), `${summary.weeksActive} / ${summary.weeksTotal}`],
+                                    [t('Катышкан апта'), `${summary.weeksActive} / ${summary.weeksTotal}`],
                                     [t('Толук план'), String(summary.perfectWeeks)],
                                     [t('Өсүш'), summary.growth === null ? '—' : `${summary.growth > 0 ? '+' : ''}${fmt(summary.growth)}`]
                                 ].map(([label, value], i) => (
@@ -204,7 +204,7 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({ series, data, insigh
                         <section>
                             <H3>{t('Сыйлыктар')}</H3>
                             {grouped.length === 0 ? (
-                                <p className="italic" style={{ color: 'var(--text-muted)' }}>{t('Азырынча сыйлык жок — биринчиси жакында болот.')}</p>
+                                <p className="italic" style={{ color: 'var(--text-muted)' }}>{t('Азырынча сыйлык жок — биринчиси алдыда.')}</p>
                             ) : (
                                 <>
                                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-8">

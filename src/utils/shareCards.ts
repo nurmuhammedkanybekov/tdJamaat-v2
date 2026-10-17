@@ -210,7 +210,7 @@ export async function drawPersonWeekCard(canvas: HTMLCanvasElement, theme: CardT
     ctx.fillStyle = p.gold; ctx.font = `400 150px ${DISPLAY}`;
     ctx.fillText(w.submitted ? fmt(w.score) : '—', CARD_W / 2, 556);
     const mv = movement(series.weeks, w.weekIndex);
-    const place = w.excused ? t('себептүү (ооруп / сапарда)') : w.rank ? t('{0}-орун · {1} адамдан', w.rank, peopleCount) : t('маалымат жок');
+    const place = w.excused ? t('себептүү (ооруп / сапарда)') : w.rank ? t('{0}-орун · {1} адамдын ичинен', w.rank, peopleCount) : t('маалымат жок');
     const arrow = mv === null || mv === 0 ? '' : mv > 0 ? `   ▲ ${mv}` : `   ▼ ${-mv}`;
     ctx.fillStyle = p.muted; ctx.font = `400 26px ${TEXT}`;
     ctx.fillText(place + arrow, CARD_W / 2, 602);
@@ -264,7 +264,7 @@ export async function drawSeasonCard(canvas: HTMLCanvasElement, theme: CardTheme
     const cells: Array<[string, string]> = [
         [t('Орточо упай'), fmt(summary.average)],
         [t('Эң мыкты апта'), summary.best ? `${fmt(summary.best.score)}` : '—'],
-        [t('Активдүү апта'), `${summary.weeksActive} / ${summary.weeksTotal}`],
+        [t('Катышкан апта'), `${summary.weeksActive} / ${summary.weeksTotal}`],
         [t('Толук план'), `${summary.perfectWeeks}`],
         [t('Өсүш'), summary.growth === null ? '—' : `${summary.growth > 0 ? '+' : ''}${fmt(summary.growth)}`],
         [t('Сыйлыктар'), `${awards.length}`]
@@ -307,7 +307,7 @@ export async function drawJamaatWeekCard(canvas: HTMLCanvasElement, theme: CardT
     const houses = week.teams.filter(team => weekOf(insights.houses.get(team.id)?.weeks ?? [], weekIndex)?.submitted).length;
 
     ctx.fillStyle = p.gold; ctx.font = `400 22px ${TEXT}`;
-    spaced(ctx, t('{0}-АПТА · ЖАМААТ БИРГЕ', week.weekNumber), CARD_W / 2, 280, 6, 'center');
+    spaced(ctx, t('{0}-АПТА · БҮТ ЖАМААТ', week.weekNumber), CARD_W / 2, 280, 6, 'center');
     ctx.textAlign = 'center';
     ctx.fillStyle = p.ink; ctx.font = `400 74px ${DISPLAY}`;
     ctx.fillText(t('Жамааттын жыйынтыгы'), CARD_W / 2, 368, CARD_W - 240);
@@ -332,7 +332,7 @@ export async function drawJamaatWeekCard(canvas: HTMLCanvasElement, theme: CardT
         ctx.strokeStyle = p.line; ctx.lineWidth = 1.2;
         ctx.beginPath(); ctx.moveTo(150, y - 30); ctx.lineTo(CARD_W - 150, y - 30); ctx.stroke();
         ctx.fillStyle = p.goldDim; ctx.font = `400 18px ${TEXT}`;
-        spaced(ctx, t('МИНИ-КАРТА · ҮЙЛӨР БИРГЕ'), CARD_W / 2, y, 8, 'center');
+        spaced(ctx, t('МИНИ-КАРТА · БАРДЫК ҮЙЛӨР'), CARD_W / 2, y, 8, 'center');
         y += 24;
         [keys.slice(0, 4), keys.slice(4)].forEach((row, r) => {
             const w = (CARD_W - 300) / row.length;

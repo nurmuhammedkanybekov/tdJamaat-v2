@@ -62,7 +62,7 @@ export const CommunityView: React.FC<CommunityViewProps> = ({ data, allData, ins
         <div className="space-y-16 sm:space-y-20">
             {/* Season totals */}
             <section>
-                <SectionHeader eyebrow={t('Сезон {0} · {1} апта', seasonName, data.weeks.length)} title={t('Бул сезондо жамаат бирге')} sub={t('{0} адам-апта эсептелди. Себептүү жана киргизиле элек апталар кирген жок.', totals.personWeeks)} />
+                <SectionHeader eyebrow={t('Сезон {0} · {1} апта', seasonName, data.weeks.length)} title={t('Жамааттын бул сезондогу жыйынтыгы')} sub={t('{0} адам-апта эсептелди. Себептүү жана киргизиле элек апталар кирген жок.', totals.personWeeks)} />
                 {/* 1px gaps over a border-coloured background = hairlines between cells at any column count. */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-px" style={{ backgroundColor: 'var(--border)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}>
                     {METRICS.map((m, i) => (
@@ -74,7 +74,7 @@ export const CommunityView: React.FC<CommunityViewProps> = ({ data, allData, ins
                     ))}
                 </div>
 
-                <h3 className="font-display text-[1.4rem] mt-12 mb-1" style={{ color: 'var(--text-primary)' }}>{t('Үйлөр бирге — мини-карта')}</h3>
+                <h3 className="font-display text-[1.4rem] mt-12 mb-1" style={{ color: 'var(--text-primary)' }}>{t('Мини-карта: бардык үйлөр бирге')}</h3>
                 <p className="text-[0.85rem] mb-4" style={{ color: 'var(--text-muted)' }}>{t('{0} үй-апта эсептелди.', totals.houseWeeks)}</p>
                 <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-12">
                     {(Object.keys(totals.card) as Array<keyof MiniCard>).map(k => (
@@ -93,9 +93,9 @@ export const CommunityView: React.FC<CommunityViewProps> = ({ data, allData, ins
                 <section>
                     <SectionHeader
                         eyebrow={t('{0}-апта{1}', latestWeek.weekNumber, last > 0 ? t(' · {0}-аптага караганда', data.weeks[last - 1].weekNumber) : '')}
-                        title={t('Бул апта жамаат')}
+                        title={t('Жамааттын бул аптасы')}
                         action={onShareWeek && <button className="btn btn-ghost" onClick={() => onShareWeek(last)}><Share2 className="w-3.5 h-3.5" />  {t('Бөлүшүү')}</button>}
-                        sub={t('{0} үй эки аптада тең салыштырылды{1}.', wow.houses, submittedNow < latestWeek.teams.length ? t(' · {0} / {1} үй бул аптаны киргизди, калгандары киргизгенде кошулат', submittedNow, latestWeek.teams.length) : '')}
+                        sub={t('Эки аптаны тең киргизген {0} үй салыштырылды{1}.', wow.houses, submittedNow < latestWeek.teams.length ? t(' · {0} / {1} үй бул аптаны киргизди, калгандары киргизгенде кошулат', submittedNow, latestWeek.teams.length) : '')}
                     />
                     <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-12">
                         {METRICS.map(m => (
@@ -134,7 +134,7 @@ export const CommunityView: React.FC<CommunityViewProps> = ({ data, allData, ins
 
             {/* Hall of Fame */}
             <section>
-                <SectionHeader eyebrow={t('Ар бир сезон')} title={t('Даңк залы')} sub={t('Сезондун эң мыктылары. Жеке орун үчүн сезондун жок дегенде жарымында катышуу керек.')} />
+                <SectionHeader eyebrow={t('Ар бир сезон')} title={t('Даңк залы')} sub={t('Сезондун эң мыктылары. Жеке орун алуу үчүн сезондун жок дегенде жарымына катышуу керек.')} />
                 <div className="space-y-10">
                     {halls.map(h => (
                         <article key={h.seasonId} className="relative card card-pad overflow-hidden">

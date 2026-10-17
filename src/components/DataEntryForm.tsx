@@ -115,7 +115,7 @@ const GoalHintLine: React.FC<{ actual: MetricValues; target: MetricValues }> = (
     const total = hints.reduce((s, h) => s + h.gain, 0);
     return (
         <div className="mt-2.5 text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-            <span>{t('Планга чейин:')}</span>{' '}
+            <span>{t('Планга жетиш үчүн:')}</span>{' '}
             {hints.map((h, i) => (
                 <React.Fragment key={h.metric}>
                     {i > 0 && ' · '}
@@ -124,7 +124,7 @@ const GoalHintLine: React.FC<{ actual: MetricValues; target: MetricValues }> = (
                     </span>
                 </React.Fragment>
             ))}
-            {hints.length > 1 && <span className="whitespace-nowrap"> · {t('баары: +{0} упай', fmtPoints(total))}</span>}
+            {hints.length > 1 && <span className="whitespace-nowrap"> · {t('баарын аткарса: +{0} упай', fmtPoints(total))}</span>}
         </div>
     );
 };
@@ -437,7 +437,7 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                 <div className="p-8 max-w-sm w-full text-center" style={{ backgroundColor: 'var(--surface)', borderRadius: 'var(--radius)' }}>
                     <CheckCircle className="w-12 h-12 mx-auto mb-4" style={{ color: 'var(--success)' }} />
                     <h2 className="font-display text-[2rem] font-bold mb-2" style={{ color: 'var(--text-primary)' }}>{t('Ийгиликтүү сакталды!')}</h2>
-                    <p style={{ color: 'var(--text-secondary)' }}>{t('{0} үчүн маалымат жаңырды.', label(weekNumber))}</p>
+                    <p style={{ color: 'var(--text-secondary)' }}>{t('{0} үчүн маалымат жаңыртылды.', label(weekNumber))}</p>
                 </div>
             </div>
         );
@@ -601,7 +601,7 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                                                     <div className="flex items-center gap-3 mb-3">
                                                         <label
                                                             className="relative flex-shrink-0 cursor-pointer group"
-                                                            title={t('Сүрөт жүктөө / өзгөртүү')}
+                                                            title={t('Сүрөт коюу / өзгөртүү')}
                                                         >
                                                             <Avatar name={member.name} role={member.role} photoUrl={newPhotos[member.id] ?? member.photoUrl} />
                                                             <span

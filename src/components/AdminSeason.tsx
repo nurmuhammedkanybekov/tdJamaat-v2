@@ -115,7 +115,7 @@ export const SeasonTab: React.FC<{ data: DataFile; busy: string | null; run: Run
                             <div className="font-display text-[1.4rem] mb-3" style={{ color: 'var(--text-primary)' }}>{t('Жаңы сезонго даярдык')}</div>
                             <ol className="space-y-2 text-[0.92rem]" style={{ color: 'var(--text-secondary)' }}>
                                 <li><span style={{ color: 'var(--gold)' }}>1.</span>  {t('«Курам» бөлүмүндө адамдарды жаңы үйлөрүнө которуңуз, ролдорун текшериңиз.')}</li>
-                                <li><span style={{ color: 'var(--gold)' }}>2.</span>  {t('«Максаттар» бөлүмүндө пландарды текшериңиз.')}</li>
+                                <li><span style={{ color: 'var(--gold)' }}>2.</span>  {t('«Пландар» бөлүмүндө пландарды текшериңиз.')}</li>
                                 <li><span style={{ color: 'var(--gold)' }}>3.</span>  {t('«Апталар» бөлүмүндө жаңы сезондун 1-аптасын ачыңыз.')}</li>
                             </ol>
                         </div>
@@ -177,7 +177,7 @@ export const RosterTab: React.FC<{ busy: string | null; run: Run; onChanged: () 
                     title={m.active ? t('Курамдан чыгаруу (тарыхы сакталат)') : t('Кайра кошуу')}
                     aria-label={m.active ? t('Курамдан чыгаруу') : t('Кайра кошуу')}
                     disabled={busy === `a${m.id}`}
-                    onClick={() => run(`a${m.id}`, async () => { await updateMember(m.id, { active: !m.active }); await reload(); onChanged(); return m.active ? t('{0} курамдан чыкты (тарыхы сакталды).', m.name) : t('{0} кайра кошулду.', m.name); })}
+                    onClick={() => run(`a${m.id}`, async () => { await updateMember(m.id, { active: !m.active }); await reload(); onChanged(); return m.active ? t('{0} курамдан чыгарылды (тарыхы сакталды).', m.name) : t('{0} кайра кошулду.', m.name); })}
                 >
                     {m.active ? <UserMinus className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}
                 </button>

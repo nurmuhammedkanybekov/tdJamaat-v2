@@ -127,7 +127,7 @@ const TeamPerformanceTracker: React.FC = () => {
             setHouses(houseList);
             setError(null);
         } catch (err) {
-            if (!silent) setError(t('Маалыматтарды жүктөөдө ката кетти. Сураныч, интернет байланышын текшериңиз же кийинчерээк кайра аракет кылыңыз.'));
+            if (!silent) setError(t('Маалыматты жүктөөдө ката кетти. Интернет байланышын текшерип, бир аздан кийин кайра аракет кылыңыз.'));
             console.error('Error loading data:', err);
         } finally {
             setLoading(false);
@@ -180,7 +180,7 @@ const TeamPerformanceTracker: React.FC = () => {
         return (
             <StateCard
                 title={error ? t('Ката') : t('Маалымат жок')}
-                text={error || t('Учурда маалымат базасы бош. Жаңы маалыматтарды киргизиңиз.')}
+                text={error || t('Азырынча база бош. Маалымат киргизиңиз.')}
                 action={error ? <button className="btn btn-primary" onClick={() => loadData()}>{t('Кайра аракет кылуу')}</button> : undefined}
             />
         );
@@ -198,7 +198,7 @@ const TeamPerformanceTracker: React.FC = () => {
             <div className="min-h-screen" style={{ backgroundColor: 'var(--page-plane)' }}>
                 <StateCard
                     title={t('Сезон {0}', season.name)}
-                    text={t('Жаңы сезон даярдалууда. Админ биринчи аптаны ачканда жыйынтыктар ушул жерде чыгат.')}
+                    text={t('Жаңы сезон даярдалууда. Админ биринчи аптаны ачканда, жыйынтыктар ушул жерде чыгат.')}
                     action={
                         <div className="flex flex-wrap gap-2 justify-center">
                             {previous && <button className="btn btn-ghost" onClick={() => chooseSeason(previous.id)}>{t('Сезон {0}', previous.name)}</button>}
@@ -262,7 +262,7 @@ const TeamPerformanceTracker: React.FC = () => {
                     onNext: () => setSelectedWeek(weekIndex + 1 >= data.weeks.length - 1 ? null : weekIndex + 1),
                     isLatest: weekIndex === data.weeks.length - 1
                 } : undefined}
-                seasonLabel={{ overview: undefined, teams: t('Үйлөр'), progress: t('Апталык прогресс'), reports: t('Отчёттор'), awards: t('Сыйлыктар'), community: t('Жамаат') }[activeView]}
+                seasonLabel={{ overview: undefined, teams: t('Үйлөр'), progress: t('Апталык прогресс'), reports: t('Отчеттор'), awards: t('Сыйлыктар'), community: t('Жамаат') }[activeView]}
                 monument={monument}
                 season={seasonPicker}
                 seasonName={season.name}
@@ -324,7 +324,7 @@ const TeamPerformanceTracker: React.FC = () => {
             {updateAvailable && !updateDismissed && (
                 <div role="status" className="update-bar fixed left-1/2 -translate-x-1/2 z-[60] w-[calc(100%-2rem)] max-w-md flex items-center gap-3 px-4 py-3 animate-fade-up" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--gold)', borderRadius: 'var(--radius)', boxShadow: 'var(--shadow-lift)' }}>
                     <span className="flex-1 text-[0.9rem]" style={{ color: 'var(--text-primary)' }}>{t('Сайттын жаңы версиясы чыкты.')}</span>
-                    <button className="btn btn-primary" onClick={() => window.location.reload()}>{t('Жаңылоо')}</button>
+                    <button className="btn btn-primary" onClick={() => window.location.reload()}>{t('Жаңыртуу')}</button>
                     <button onClick={() => setUpdateDismissed(true)} aria-label={t('Кийинчерээк')} className="w-8 h-8 inline-flex items-center justify-center" style={{ color: 'var(--text-muted)' }}>×</button>
                 </div>
             )}

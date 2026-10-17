@@ -61,19 +61,19 @@ export const strongWeek = (w: MemberWeek) => w.submitted && metricsAtPlan(w) >= 
 export const BADGES: Record<string, BadgeDef> = {
     'week-star': { id: 'week-star', scope: 'person', name: t('Апта жылдызы'), tier: 'gold', icon: 'star', rule: t('Аптанын эң жогорку жеке упайы — бардык катышуучулардын ичинен 1-орун.') },
     'podium': { id: 'podium', scope: 'person', name: t('Сыйлык тепкичи'), tier: 'silver', icon: 'podium', rule: t('Аптанын жеке рейтингинде 2- же 3-орун.') },
-    'perfect': { id: 'perfect', scope: 'person', name: t('Толук план'), tier: 'bronze', icon: 'target', rule: t('Бир аптада 8 көрсөткүчтүн баарында планды аткаруу.') },
+    'perfect': { id: 'perfect', scope: 'person', name: t('Толук план'), tier: 'bronze', icon: 'target', rule: t('Бир аптада 8 көрсөткүчтүн баары боюнча планды аткаруу.') },
     'iron-3': { id: 'iron-3', scope: 'person', name: t('Темир тартип'), tier: 'silver', icon: 'flame', rule: t('Толук планды катары менен 3 апта аткаруу.') },
     'iron-5': { id: 'iron-5', scope: 'person', name: t('Болот тартип'), tier: 'gold', icon: 'chain5', rule: t('Толук планды катары менен 5 апта аткаруу.') },
-    'double': { id: 'double', scope: 'person', name: t('Эки эсе'), tier: 'bronze', icon: 'zap', rule: t('Бир көрсөткүч боюнча планды эки эсе ашыра аткаруу (СВТ жана ИСТГ эсепке кирбейт — алардын максаты чоң сан, тез көбөйөт).') },
+    'double': { id: 'double', scope: 'person', name: t('Эки эсе'), tier: 'bronze', icon: 'zap', rule: t('Бир көрсөткүч боюнча планды эки эсе аткаруу (СВТ жана ИСТГ эсепке кирбейт — алардын планы чоң сан болгондуктан, тез көбөйөт).') },
     'leap': { id: 'leap', scope: 'person', name: t('Чоң секирик'), tier: 'silver', icon: 'leap', rule: t('Аптанын эң чоң өсүшү: мурунку аптага караганда эң көп упай кошкон адам (кеминде +10).') },
     'rising': { id: 'rising', scope: 'person', name: t('Өсүү жолу'), tier: 'bronze', icon: 'rising', rule: t('Упай катары менен 3 апта өстү: ар бир апта кеминде +{0}, жалпысынан кеминде +{1}.', RISING_STEP, RISING_TOTAL) },
-    'steady-4': { id: 'steady-4', scope: 'person', name: t('Туруктуу'), tier: 'bronze', icon: 'steady', rule: t('Катары менен 4 күчтүү апта: ар бир аптада 8 көрсөткүчтүн кеминде {0}ында план аткарылды.', STRONG_METRICS) },
-    'steady-8': { id: 'steady-8', scope: 'person', name: t('Ишенимдүү'), tier: 'silver', icon: 'steady', rule: t('Катары менен 8 күчтүү апта (кеминде {0}/8 көрсөткүч планда).', STRONG_METRICS) },
-    'steady-16': { id: 'steady-16', scope: 'person', name: t('Ак ниет'), tier: 'gold', icon: 'steady', rule: t('Катары менен 16 күчтүү апта (кеминде {0}/8 көрсөткүч планда).', STRONG_METRICS) },
-    'full-season': { id: 'full-season', scope: 'person', name: t('Толук сезон'), tier: 'seal', icon: 'tunduk', rule: t('Сезон аяктаганда берилет: сезондун ар бир аптасы күчтүү болгон адамга (кеминде {0}/8 көрсөткүч планда).', STRONG_METRICS) },
+    'steady-4': { id: 'steady-4', scope: 'person', name: t('Туруктуу'), tier: 'bronze', icon: 'steady', rule: t('Катары менен 4 күчтүү апта: ар бир аптада кеминде {0}/8 көрсөткүч боюнча план аткарылган.', STRONG_METRICS) },
+    'steady-8': { id: 'steady-8', scope: 'person', name: t('Ишенимдүү'), tier: 'silver', icon: 'steady', rule: t('Катары менен 8 күчтүү апта (кеминде {0}/8 көрсөткүч боюнча план аткарылган).', STRONG_METRICS) },
+    'steady-16': { id: 'steady-16', scope: 'person', name: t('Ак ниет'), tier: 'gold', icon: 'steady', rule: t('Катары менен 16 күчтүү апта (кеминде {0}/8 көрсөткүч боюнча план аткарылган).', STRONG_METRICS) },
+    'full-season': { id: 'full-season', scope: 'person', name: t('Толук сезон'), tier: 'seal', icon: 'tunduk', rule: t('Сезон аяктаганда берилет: сезондун ар бир аптасы күчтүү болгон адамга (кеминде {0}/8 көрсөткүч боюнча план аткарылган).', STRONG_METRICS) },
 
     'house-week': { id: 'house-week', scope: 'house', name: t('Аптанын үйү'), tier: 'gold', icon: 'crown', rule: t('Аптанын үйлөр рейтингинде 1-орун.') },
-    'house-month': { id: 'house-month', scope: 'house', name: t('Айдын үйү'), tier: 'seal', icon: 'moon', rule: t('Бүткөн 4-апталык мезгилде эң жогорку орточо рейтинг.') },
+    'house-month': { id: 'house-month', scope: 'house', name: t('Айдын үйү'), tier: 'seal', icon: 'moon', rule: t('Аяктаган 4 апталык мезгилдеги эң жогорку орточо рейтинг.') },
     'house-unity': { id: 'house-unity', scope: 'house', name: t('Бир жүрөк'), tier: 'gold', icon: 'unity', rule: t('Бир аптада үйдүн ар бир мүчөсү толук планды аткарды.') },
     'house-card': { id: 'house-card', scope: 'house', name: t('Мини-карта устаты'), tier: 'silver', icon: 'card', rule: t('Бир аптада мини-картанын 7 ишинин баарында план аткарылды.') },
     'house-season': { id: 'house-season', scope: 'house', name: t('Сезондун үйү'), tier: 'seal', icon: 'medallion', rule: t('Сезон аяктаганда берилет: бүт сезондогу эң жогорку орточо рейтинг.') },
@@ -118,7 +118,7 @@ export const computeAwards = (data: DataFile, insights: Insights, opts: { season
             }
 
             const strongRun = streakUntil(p.weeks, weekIndex, strongWeek);
-            if (strongRun === 4) give('steady-4', p.id, p.name, w.houseName, w, t('{0}–{1}-апталар: катары менен 4 күчтүү апта (ар биринде кеминде {2}/8 көрсөткүч планда).', n - 3, n, STRONG_METRICS));
+            if (strongRun === 4) give('steady-4', p.id, p.name, w.houseName, w, t('{0}–{1}-апталар: катары менен 4 күчтүү апта (ар биринде кеминде {2}/8 көрсөткүч боюнча план аткарылган).', n - 3, n, STRONG_METRICS));
             if (strongRun === 8) give('steady-8', p.id, p.name, w.houseName, w, t('{0}–{1}-апталар: катары менен 8 күчтүү апта.', n - 7, n));
             if (strongRun === 16) give('steady-16', p.id, p.name, w.houseName, w, t('{0}–{1}-апталар: катары менен 16 күчтүү апта.', n - 15, n));
 

@@ -42,8 +42,8 @@ export const PrayerSheet: React.FC<{ onClose: () => void; onCityChange?: (c: Cit
                 {ramadan && (
                     <div className="grid grid-cols-2 text-center py-4" style={{ borderTop: '1px solid var(--gold)', borderBottom: '1px solid var(--gold)' }}>
                         <div>
-                            <div className="eyebrow">{t('Сахар')}</div>
-                            <div className="text-[0.75rem] italic mt-0.5" style={{ color: 'var(--text-muted)' }}>{t('оозун бекитүү')}</div>
+                            <div className="eyebrow">{t('Саар')}</div>
+                            <div className="text-[0.75rem] italic mt-0.5" style={{ color: 'var(--text-muted)' }}>{t('ооз бекитүү')}</div>
                             <div className="font-display text-[2.4rem] leading-none mt-2 tabular" style={{ color: 'var(--gold)' }}>{clock(times.fajr, city.tz)}</div>
                         </div>
                         <div style={{ borderLeft: '1px solid var(--border)' }}>

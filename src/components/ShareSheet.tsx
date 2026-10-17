@@ -99,7 +99,7 @@ export const ShareSheet: React.FC<ShareSheetProps> = ({ data, weekIndex: selecte
             footer={
                 <div className="flex gap-2">
                     {canShareFile && <button className="btn btn-primary flex-1" onClick={share} disabled={!file}><Share2 className="w-4 h-4" />  {t('Бөлүшүү')}</button>}
-                    <button className={`btn ${canShareFile ? 'btn-ghost' : 'btn-primary'} flex-1`} onClick={download} disabled={!url}><Download className="w-4 h-4" />  {t('Сүрөттү жүктөө')}</button>
+                    <button className={`btn ${canShareFile ? 'btn-ghost' : 'btn-primary'} flex-1`} onClick={download} disabled={!url}><Download className="w-4 h-4" />  {t('Сүрөттү жүктөп алуу')}</button>
                 </div>
             }
         >

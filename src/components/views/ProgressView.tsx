@@ -148,7 +148,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ data, insights, onOp
                                 <div className="flex items-start justify-between gap-3">
                                     <div className="min-w-0">
                                         <h3 className="font-display text-[1.45rem] truncate flex items-center gap-2.5" style={{ color: 'var(--text-primary)' }}><span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />{h.name}</h3>
-                                        <div className="text-[0.75rem]" style={{ color: 'var(--text-muted)' }}>{t('{0} апта катышты', counted.length)}</div>
+                                        <div className="text-[0.75rem]" style={{ color: 'var(--text-muted)' }}>{t('{0} аптага катышты', counted.length)}</div>
                                     </div>
                                     <Sparkline values={counted.map(w => w.avg)} color={color} width={80} height={30} />
                                 </div>

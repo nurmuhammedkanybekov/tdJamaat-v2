@@ -198,8 +198,8 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
                             note={m => {
                                 const a = breakdown.atPlan[m];
                                 return a.below.length === 0
-                                    ? <span style={{ color: 'var(--success)' }}>{t('Баары планда ({0}/{1})', a.met, breakdown.people)}</span>
-                                    : <span>{t('Планда: {0}/{1}', a.met, breakdown.people)}</span>;
+                                    ? <span style={{ color: 'var(--success)' }}>{t('Баары планды аткарды ({0}/{1})', a.met, breakdown.people)}</span>
+                                    : <span>{t('Планды аткаргандар: {0}/{1}', a.met, breakdown.people)}</span>;
                             }}
                             missedNote={breakdown.missed && breakdown.atPlan[breakdown.missed.row.metric].below.length > 0
                                 ? t('Планга жетпегендер: {0}.', breakdown.atPlan[breakdown.missed.row.metric].below.join(', '))

@@ -22,7 +22,7 @@ const TOTAL_FROM_WEEK = 5;
 
 const TREND: Record<Trend, { label: string; icon: React.ComponentType<{ className?: string }>; color: string }> = {
     up: { label: t('Өсүш'), icon: TrendingUp, color: 'var(--success)' },
-    down: { label: t('Төмөндөш'), icon: TrendingDown, color: 'var(--danger)' },
+    down: { label: t('Төмөндөө'), icon: TrendingDown, color: 'var(--danger)' },
     stable: { label: t('Туруктуу'), icon: Minus, color: 'var(--accent)' }
 };
 
@@ -31,7 +31,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ data, selectedPeriod, 
     return (
         <div className="space-y-6">
             <div className="flex w-full sm:inline-flex sm:w-auto p-1 rounded-full" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }} role="tablist">
-                {([['period', t('4-апталык отчёт')], ['total', t('Жалпы рейтинг')]] as const).map(([k, label]) => (
+                {([['period', t('4 апталык отчет')], ['total', t('Жалпы рейтинг')]] as const).map(([k, label]) => (
                     <button key={k} role="tab" aria-selected={mode === k} onClick={() => setMode(k)} className={`chip flex-1 sm:flex-none justify-center whitespace-nowrap ${mode === k ? 'is-active' : ''}`} style={{ border: 'none', padding: '0.5rem 0.6rem', letterSpacing: '0.12em' }}>{label}</button>
                 ))}
             </div>
@@ -76,7 +76,7 @@ const PeriodReport: React.FC<ReportsViewProps> = ({ data, selectedPeriod, setSel
             <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-3 stagger">
                 {[
                     { label: t('Эң мыкты үй'), value: rows[0]?.name ?? '—', sub: rows[0] ? t('Рейтинг: {0}', rows[0].average) : '' },
-                    { label: t('Эң тез өсүү'), value: rising?.name ?? '—', sub: rising ? `${rising.scores[0]} → ${rising.scores.at(-1)}` : t('Өсүш тенденциясы жок') },
+                    { label: t('Эң тез өсүү'), value: rising?.name ?? '—', sub: rising ? `${rising.scores[0]} → ${rising.scores.at(-1)}` : t('Өсүү байкалган жок') },
                     { label: t('Мезгил'), value: t('{0} апта', weeks.length), sub: t('{0} үй катышты', rows.length) }
                 ].map(s => (
                     <div key={s.label} className="card card-pad">

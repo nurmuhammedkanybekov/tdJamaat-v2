@@ -25,12 +25,12 @@ const Step: React.FC<{ n: number; title: string; children: React.ReactNode }> = 
 export const FormulaSheet: React.FC<{ onClose: () => void }> = ({ onClose }) => (
     <Sheet title={t('Упай эсептөө формуласы')} onClose={onClose} width="40rem">
         <div className="px-4 sm:px-6 pb-6 text-[0.9rem]" style={{ color: 'var(--text-secondary)' }}>
-            <Step n={1} title={t('Ар бир көрсөткүч үчүн ишке ашыруу пайызы')}>
-                <Formula>{t('Ишке ашыруу % = Факт ÷ План × 100')}</Formula>
+            <Step n={1} title={t('Ар бир көрсөткүч боюнча аткаруу пайызы')}>
+                <Formula>{t('Аткаруу % = Факт ÷ План × 100')}</Formula>
                 <p className="text-[0.82rem] mt-2" style={{ color: 'var(--text-muted)' }}>{t('План коюлбаса (0), ал көрсөткүч 0% болот.')}</p>
             </Step>
             <Step n={2} title={t('Пландан ашканы: ар бир кошумча 100% азыраак упай берет')}>
-                <Formula>{t('100%га чейин: эсептелет = аткарылганы')}<br />{t('100%дан ашса: эсептелет = 100% × (1 + ln(аткарылганы ÷ 100%))')}</Formula>
+                <Formula>{t('100%га чейин: эсептелген % = аткарылган %')}<br />{t('100%дан ашса: эсептелген % = 100% × (1 + ln(аткарылган % ÷ 100%))')}</Formula>
                 <p className="text-[0.82rem] mt-2" style={{ color: 'var(--text-muted)' }}>{t('Көп аткаруу дайыма көбүрөөк упай берет, бирок бир эле көрсөткүчтү 8 эсе ашыруу бүт аптаны көтөрүп кетпейт. Эмгек эки эсе көбөйгөн сайын +69% кошулат:')}</p>
                 <div className="grid grid-cols-5 mt-2 text-center tabular" style={{ border: '1px solid var(--border)' }}>
                     {[100, 200, 400, 800, 1600].map((x, i) => (
@@ -41,7 +41,7 @@ export const FormulaSheet: React.FC<{ onClose: () => void }> = ({ onClose }) => 
                     ))}
                 </div>
             </Step>
-            <Step n={3} title={t('Ар бир көрсөткүч үчүн упай')}>
+            <Step n={3} title={t('Ар бир көрсөткүч боюнча упай')}>
                 <Formula>{t('Көрсөткүч упайы = (Эсептелген % ÷ 100) × Салмак')}</Formula>
                 <p className="text-[0.82rem] mt-2" style={{ color: 'var(--text-muted)' }}>{t('Ар кимдин планы ролуна жараша — ошондуктан упай адилеттүү.')}</p>
             </Step>
@@ -71,7 +71,7 @@ export const FormulaSheet: React.FC<{ onClose: () => void }> = ({ onClose }) => 
                 <div className="space-y-1.5 pl-3" style={{ borderLeft: '2px solid var(--gold)' }}>
                     <p><b>{t('Капитан:')}</b> {t('{0}: план 20, факт 15 → 75% → 0.75 × {1} =', metricLabel('К-К'), weights['К-К'])} <b>{t('{0} упай', Math.round(0.75 * weights['К-К'] * 100) / 100)}</b></p>
                     <p><b>{t('Мүчө:')}</b> {t('{0}: план 7, факт 7 → 100% → 1.0 × {1} =', metricLabel('К-К'), weights['К-К'])} <b>{t('{0} упай', weights['К-К'])}</b></p>
-                    <p><b>{t('Мүчө:')}</b> {t('{0}: план 7, факт 28 → 400% → эсептелет {1}% → {2} × {3} =', metricLabel('К-К'), Math.round(creditedPercentage(400)), (creditedPercentage(400) / 100).toFixed(2), weights['К-К'])} <b>{t('{0} упай', Math.round(creditedPercentage(400) / 100 * weights['К-К'] * 10) / 10)}</b> {t('(мурда {0} болчу)', 4 * weights['К-К'])}</p>
+                    <p><b>{t('Мүчө:')}</b> {t('{0}: план 7, факт 28 → 400% → эсептелгени {1}% → {2} × {3} =', metricLabel('К-К'), Math.round(creditedPercentage(400)), (creditedPercentage(400) / 100).toFixed(2), weights['К-К'])} <b>{t('{0} упай', Math.round(creditedPercentage(400) / 100 * weights['К-К'] * 10) / 10)}</b> {t('(мурда {0} болчу)', 4 * weights['К-К'])}</p>
                 </div>
             </section>
         </div>

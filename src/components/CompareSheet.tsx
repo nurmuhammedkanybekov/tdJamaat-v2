@@ -150,7 +150,7 @@ export const CompareSheet: React.FC<CompareSheetProps> = ({ data, insights, awar
             onClose={onClose}
             width="44rem"
             headerExtra={
-                <div className="flex" role="group" aria-label={t('Эмнени салыштыруу')}>
+                <div className="flex" role="group" aria-label={t('Эмнени салыштырабыз')}>
                     <button className={`chip ${kind === 'person' ? 'is-active' : ''}`} onClick={() => setKind('person')}>{t('Адамдар')}</button>
                     <button className={`chip ${kind === 'house' ? 'is-active' : ''}`} onClick={() => setKind('house')}>{t('Үйлөр')}</button>
                 </div>
@@ -185,13 +185,13 @@ export const CompareSheet: React.FC<CompareSheetProps> = ({ data, insights, awar
                     {/* Head to head */}
                     {h2h && h2h.a + h2h.b + h2h.draws > 0 && (
                         <div className="text-center">
-                            <div className="eyebrow">{t('Бет маңдай · ким көп апта жеңди')}</div>
+                            <div className="eyebrow">{t('Бетме-бет · ким көп аптада утту')}</div>
                             <div className="flex items-baseline justify-center gap-4 mt-3">
                                 <span className="font-display text-[3rem] leading-none tabular" style={{ color: COLOR_A }}>{h2h.a}</span>
                                 <span className="font-display text-[1.5rem]" style={{ color: 'var(--text-muted)' }}>:</span>
                                 <span className="font-display text-[3rem] leading-none tabular" style={{ color: COLOR_B }}>{h2h.b}</span>
                             </div>
-                            {h2h.draws > 0 && <div className="text-[0.8rem] italic mt-1" style={{ color: 'var(--text-muted)' }}>{t('{0} апта тең', h2h.draws)}</div>}
+                            {h2h.draws > 0 && <div className="text-[0.8rem] italic mt-1" style={{ color: 'var(--text-muted)' }}>{t('{0} апта тең чыкты', h2h.draws)}</div>}
                         </div>
                     )}
 
@@ -202,13 +202,13 @@ export const CompareSheet: React.FC<CompareSheetProps> = ({ data, insights, awar
                     {metrics && (
                         <section>
                             <h3 className="font-display text-[1.4rem] mb-1" style={{ color: 'var(--text-primary)' }}>{t('Көрсөткүчтөр')}</h3>
-                            <p className="text-[0.8rem] italic mb-3" style={{ color: 'var(--text-muted)' }}>{t('Сезон бою планды орточо канча пайыз аткарды. Ар кимдин планы ролуна жараша.')}</p>
+                            <p className="text-[0.8rem] italic mb-3" style={{ color: 'var(--text-muted)' }}>{t('Сезон бою план орточо канча пайызга аткарылды. Ар кимдин планы ролуна жараша.')}</p>
                             {(() => {
                                 const lead = metricLeads(metrics.a, metrics.b);
                                 return (
                                     <p className="text-[0.92rem] mb-3 flex flex-wrap gap-x-4 gap-y-1">
-                                        <span><b style={{ color: COLOR_A }}>{nameA}</b> {t('{0}/8 көрсөткүчтө алдыда', lead.a)}</span>
-                                        <span><b style={{ color: COLOR_B }}>{nameB}</b> {t('{0}/8 көрсөткүчтө алдыда', lead.b)}</span>
+                                        <span><b style={{ color: COLOR_A }}>{nameA}</b> {t('{0}/8 көрсөткүч боюнча алдыда', lead.a)}</span>
+                                        <span><b style={{ color: COLOR_B }}>{nameB}</b> {t('{0}/8 көрсөткүч боюнча алдыда', lead.b)}</span>
                                         {lead.draws > 0 && <span style={{ color: 'var(--text-muted)' }}>{t('тең: {0}', lead.draws)}</span>}
                                     </p>
                                 );

@@ -98,7 +98,7 @@ export const seasonRecords = (insights: Insights, awards: Award[]): SeasonRecord
 
     const streak = people.map(s => ({ s, n: longestStreak(s.weeks, strongWeek) })).sort((a, b) => b.n - a.n)[0];
     if (streak && streak.n >= 2)
-        out.push({ label: t('Эң узун күчтүү серия'), value: t('{0} апта', streak.n), who: streak.s.name, detail: t('катары менен, кеминде 6/8 көрсөткүч планда'), memberId: streak.s.id });
+        out.push({ label: t('Эң узун күчтүү серия'), value: t('{0} апта', streak.n), who: streak.s.name, detail: t('катары менен, кеминде 6/8 көрсөткүч боюнча план аткарылган'), memberId: streak.s.id });
 
     const medals = new Map<string, number>();
     awards.filter(a => a.def.scope === 'person').forEach(a => medals.set(a.holderId, (medals.get(a.holderId) ?? 0) + 1));

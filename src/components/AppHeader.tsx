@@ -126,7 +126,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         { key: 'formula', label: t('Упай формуласы'), icon: Info, onClick: onFormula },
         { key: 'share', label: t('Жыйынтыкты бөлүшүү'), icon: Share2, onClick: onShare },
         ...(installMode !== 'none' ? [{ key: 'install', label: t('Телефонго орнотуу'), icon: Download, onClick: onInstall }] : []),
-        { key: 'tasbih', label: t('Санарип тасбихат'), icon: ExternalLink, href: 'https://addua.vercel.app/' },
+        { key: 'tasbih', label: t('Санарип тасбих'), icon: ExternalLink, href: 'https://addua.vercel.app/' },
         authUser
             ? { key: 'logout', label: t('Чыгуу'), icon: LogOut, onClick: onLogout, tone: 'danger' as const }
             : { key: 'login', label: t('Кирүү'), icon: LogIn, onClick: onLogin }
