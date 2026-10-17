@@ -33,10 +33,11 @@ import type { CompareInit } from './components/CompareSheet';
 import { OverviewView, TeamsView, ProgressView, ReportsView, AwardsView, CommunityView } from './components/views';
 import { OrnamentDivider, SunMark } from './components/Ornament';
 import { LoadingScreen, StateCard } from './components/ui';
+import { t } from './i18n';
 
 type Modal = null | 'login' | 'entry' | 'formula' | 'share' | 'admin' | 'history' | 'install' | 'prayer' | 'compare';
 
-const VIEW_KEYS = TABS.map(t => t.key);
+const VIEW_KEYS = TABS.map(it => it.key);
 const parseHash = (): { view: ActiveView; memberId: string | null } => {
     const raw = window.location.hash.replace(/^#\/?/, '');
     const [path, query] = raw.split('?');
@@ -126,7 +127,7 @@ const TeamPerformanceTracker: React.FC = () => {
             setHouses(houseList);
             setError(null);
         } catch (err) {
-            if (!silent) setError('Маалыматтарды жүктөөдө ката кетти. Сураныч, интернет байланышын текшериңиз же кийинчерээк кайра аракет кылыңыз.');
+            if (!silent) setError(t('Маалыматтарды жүктөөдө ката кетти. Сураныч, интернет байланышын текшериңиз же кийинчерээк кайра аракет кылыңыз.'));
             console.error('Error loading data:', err);
         } finally {
             setLoading(false);
@@ -178,9 +179,9 @@ const TeamPerformanceTracker: React.FC = () => {
     if (error || !allData || !data || !insights || allData.weeks.length === 0) {
         return (
             <StateCard
-                title={error ? 'Ката' : 'Маалымат жок'}
-                text={error || 'Учурда маалымат базасы бош. Жаңы маалыматтарды киргизиңиз.'}
-                action={error ? <button className="btn btn-primary" onClick={() => loadData()}>Кайра аракет кылуу</button> : undefined}
+                title={error ? t('Ката') : t('Маалымат жок')}
+                text={error || t('Учурда маалымат базасы бош. Жаңы маалыматтарды киргизиңиз.')}
+                action={error ? <button className="btn btn-primary" onClick={() => loadData()}>{t('Кайра аракет кылуу')}</button> : undefined}
             />
         );
     }
@@ -196,13 +197,13 @@ const TeamPerformanceTracker: React.FC = () => {
         return (
             <div className="min-h-screen" style={{ backgroundColor: 'var(--page-plane)' }}>
                 <StateCard
-                    title={`Сезон ${season.name}`}
-                    text="Жаңы сезон даярдалууда. Админ биринчи аптаны ачканда жыйынтыктар ушул жерде чыгат."
+                    title={t('Сезон {0}', season.name)}
+                    text={t('Жаңы сезон даярдалууда. Админ биринчи аптаны ачканда жыйынтыктар ушул жерде чыгат.')}
                     action={
                         <div className="flex flex-wrap gap-2 justify-center">
-                            {previous && <button className="btn btn-ghost" onClick={() => chooseSeason(previous.id)}>Сезон {previous.name}</button>}
-                            {authUser?.role === 'admin' && <button className="btn btn-primary" onClick={() => setModal('admin')}>Админ панели</button>}
-                            {!authUser && <button className="btn btn-ghost" onClick={() => setModal('login')}>Кирүү</button>}
+                            {previous && <button className="btn btn-ghost" onClick={() => chooseSeason(previous.id)}>{t('Сезон {0}', previous.name)}</button>}
+                            {authUser?.role === 'admin' && <button className="btn btn-primary" onClick={() => setModal('admin')}>{t('Админ панели')}</button>}
+                            {!authUser && <button className="btn btn-ghost" onClick={() => setModal('login')}>{t('Кирүү')}</button>}
                         </div>
                     }
                 />
@@ -221,12 +222,12 @@ const TeamPerformanceTracker: React.FC = () => {
     const leader = [...insights.houses.values()].find(h => weekOf(h.weeks, weekIndex)?.rank === 1);
     const leaderWeek = leader ? weekOf(leader.weeks, weekIndex) : undefined;
     const weekPeople = [...insights.members.values()].map(m => weekOf(m.weeks, weekIndex)).filter(w => w && w.submitted);
-    const submittedHouses = currentWeekData.teams.filter(t => t.submitted).length;
+    const submittedHouses = currentWeekData.teams.filter(it => it.submitted).length;
     const monument = activeView === 'overview' ? {
-        kicker: `${currentWeekData.weekNumber}-апта · аптанын үйү`,
-        title: leader?.name ?? 'Маалымат күтүлүүдө',
+        kicker: t('{0}-апта · аптанын үйү', currentWeekData.weekNumber),
+        title: leader?.name ?? t('Маалымат күтүлүүдө'),
         value: leaderWeek ? fmt(leaderWeek.avg) : '—',
-        sub: `үй рейтинги · ${weekPeople.length} адам · ${submittedHouses}/${currentWeekData.teams.length} үй киргизди`
+        sub: t('үй рейтинги · {0} адам · {1}/{2} үй киргизди', weekPeople.length, submittedHouses, currentWeekData.teams.length)
     } : undefined;
 
     const profileSeries = route.memberId ? insights.members.get(route.memberId) : undefined;
@@ -261,7 +262,7 @@ const TeamPerformanceTracker: React.FC = () => {
                     onNext: () => setSelectedWeek(weekIndex + 1 >= data.weeks.length - 1 ? null : weekIndex + 1),
                     isLatest: weekIndex === data.weeks.length - 1
                 } : undefined}
-                seasonLabel={{ overview: undefined, teams: 'Үйлөр', progress: 'Апталык прогресс', reports: 'Отчёттор', awards: 'Сыйлыктар', community: 'Жамаат' }[activeView]}
+                seasonLabel={{ overview: undefined, teams: t('Үйлөр'), progress: t('Апталык прогресс'), reports: t('Отчёттор'), awards: t('Сыйлыктар'), community: t('Жамаат') }[activeView]}
                 monument={monument}
                 season={seasonPicker}
                 seasonName={season.name}
@@ -322,9 +323,9 @@ const TeamPerformanceTracker: React.FC = () => {
             {modal === 'install' && <InstallSheet onClose={() => setModal(null)} />}
             {updateAvailable && !updateDismissed && (
                 <div role="status" className="update-bar fixed left-1/2 -translate-x-1/2 z-[60] w-[calc(100%-2rem)] max-w-md flex items-center gap-3 px-4 py-3 animate-fade-up" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--gold)', borderRadius: 'var(--radius)', boxShadow: 'var(--shadow-lift)' }}>
-                    <span className="flex-1 text-[0.9rem]" style={{ color: 'var(--text-primary)' }}>Сайттын жаңы версиясы чыкты.</span>
-                    <button className="btn btn-primary" onClick={() => window.location.reload()}>Жаңылоо</button>
-                    <button onClick={() => setUpdateDismissed(true)} aria-label="Кийинчерээк" className="w-8 h-8 inline-flex items-center justify-center" style={{ color: 'var(--text-muted)' }}>×</button>
+                    <span className="flex-1 text-[0.9rem]" style={{ color: 'var(--text-primary)' }}>{t('Сайттын жаңы версиясы чыкты.')}</span>
+                    <button className="btn btn-primary" onClick={() => window.location.reload()}>{t('Жаңылоо')}</button>
+                    <button onClick={() => setUpdateDismissed(true)} aria-label={t('Кийинчерээк')} className="w-8 h-8 inline-flex items-center justify-center" style={{ color: 'var(--text-muted)' }}>×</button>
                 </div>
             )}
             {modal === 'prayer' && <PrayerSheet onClose={() => setModal(null)} />}

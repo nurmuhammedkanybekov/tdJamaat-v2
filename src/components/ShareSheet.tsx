@@ -7,6 +7,7 @@ import type { Award } from '../utils/badges';
 import type { CardTheme } from '../utils/shareCards';
 import { CARD_H, CARD_W, drawPersonWeekCard, drawSeasonCard, drawWeekCard } from '../utils/shareCards';
 import { Sheet } from './ui';
+import { t } from '../i18n';
 
 export type ShareTarget = { type: 'week' } | { type: 'person'; memberId: string; card?: 'week' | 'season' };
 
@@ -36,8 +37,8 @@ export const ShareSheet: React.FC<ShareSheetProps> = ({ data, weekIndex, insight
     const weekNumber = data.weeks[weekIndex]?.weekNumber;
     const personWeek = series ? weekOf(series.weeks, weekIndex) ?? series.weeks[series.weeks.length - 1] : undefined;
     const title = target.type === 'week'
-        ? `${weekNumber}-аптанын жыйынтыгы`
-        : card === 'week' ? `${series?.name ?? ''}: ${personWeek?.weekNumber}-апта` : `${series?.name ?? ''}: сезон`;
+        ? t('{0}-аптанын жыйынтыгы', weekNumber)
+        : card === 'week' ? t('{0}: {1}-апта', series?.name ?? '', personWeek?.weekNumber) : t('{0}: сезон', series?.name ?? '');
     const fileName = target.type === 'week' ? `tdjamaat-${weekNumber}-apta.png` : `tdjamaat-${(series?.name ?? 'adam').split(' ')[0]}-${card === 'week' ? `${personWeek?.weekNumber}-apta` : 'sezon'}.png`;
 
     useEffect(() => {
@@ -75,7 +76,7 @@ export const ShareSheet: React.FC<ShareSheetProps> = ({ data, weekIndex, insight
         try {
             await navigator.share({ files: [file], title: `tdJamaat — ${title}` });
         } catch (err) {
-            if ((err as Error)?.name !== 'AbortError') setStatus('Бөлүшүү мүмкүн болгон жок — сүрөттү жүктөп алып, кол менен жибериңиз.');
+            if ((err as Error)?.name !== 'AbortError') setStatus(t('Бөлүшүү мүмкүн болгон жок — сүрөттү жүктөп алып, кол менен жибериңиз.'));
         }
     };
     const download = () => {
@@ -92,8 +93,8 @@ export const ShareSheet: React.FC<ShareSheetProps> = ({ data, weekIndex, insight
             width="34rem"
             footer={
                 <div className="flex gap-2">
-                    {canShareFile && <button className="btn btn-primary flex-1" onClick={share} disabled={!file}><Share2 className="w-4 h-4" /> Бөлүшүү</button>}
-                    <button className={`btn ${canShareFile ? 'btn-ghost' : 'btn-primary'} flex-1`} onClick={download} disabled={!url}><Download className="w-4 h-4" /> Сүрөттү жүктөө</button>
+                    {canShareFile && <button className="btn btn-primary flex-1" onClick={share} disabled={!file}><Share2 className="w-4 h-4" />  {t('Бөлүшүү')}</button>}
+                    <button className={`btn ${canShareFile ? 'btn-ghost' : 'btn-primary'} flex-1`} onClick={download} disabled={!url}><Download className="w-4 h-4" />  {t('Сүрөттү жүктөө')}</button>
                 </div>
             }
         >
@@ -101,13 +102,13 @@ export const ShareSheet: React.FC<ShareSheetProps> = ({ data, weekIndex, insight
                 <div className="flex flex-wrap items-center justify-between gap-y-2 mb-4">
                     {target.type === 'person' ? (
                         <div className="flex">
-                            <button className={`chip ${card === 'week' ? 'is-active' : ''}`} onClick={() => setCard('week')}>Апта</button>
-                            <button className={`chip ${card === 'season' ? 'is-active' : ''}`} onClick={() => setCard('season')}>Сезон</button>
+                            <button className={`chip ${card === 'week' ? 'is-active' : ''}`} onClick={() => setCard('week')}>{t('Апта')}</button>
+                            <button className={`chip ${card === 'season' ? 'is-active' : ''}`} onClick={() => setCard('season')}>{t('Сезон')}</button>
                         </div>
-                    ) : <span className="text-[0.85rem] italic" style={{ color: 'var(--text-muted)' }}>WhatsApp же Telegram үчүн даяр сүрөт</span>}
-                    <div className="flex" role="group" aria-label="Сүрөттүн түсү">
-                        <button className={`chip ${theme === 'dark' ? 'is-active' : ''}`} onClick={() => setTheme('dark')}>Түн</button>
-                        <button className={`chip ${theme === 'light' ? 'is-active' : ''}`} onClick={() => setTheme('light')} style={{ marginRight: 0 }}>Күн</button>
+                    ) : <span className="text-[0.85rem] italic" style={{ color: 'var(--text-muted)' }}>{t('WhatsApp же Telegram үчүн даяр сүрөт')}</span>}
+                    <div className="flex" role="group" aria-label={t('Сүрөттүн түсү')}>
+                        <button className={`chip ${theme === 'dark' ? 'is-active' : ''}`} onClick={() => setTheme('dark')}>{t('Түн')}</button>
+                        <button className={`chip ${theme === 'light' ? 'is-active' : ''}`} onClick={() => setTheme('light')} style={{ marginRight: 0 }}>{t('Күн')}</button>
                     </div>
                 </div>
                 <canvas ref={canvasRef} className="hidden" />
@@ -115,7 +116,7 @@ export const ShareSheet: React.FC<ShareSheetProps> = ({ data, weekIndex, insight
                     <img src={url} alt={title} className="w-full" style={{ boxShadow: 'var(--shadow-lift)', aspectRatio: `${CARD_W} / ${CARD_H}`, border: '1px solid var(--border)' }} />
                 ) : (
                     <div className="w-full flex items-center justify-center gap-2" style={{ aspectRatio: `${CARD_W} / ${CARD_H}`, backgroundColor: 'var(--surface-2)', color: 'var(--text-muted)' }}>
-                        <Loader2 className="w-5 h-5 animate-spin" /> Даярдалууда…
+                        <Loader2 className="w-5 h-5 animate-spin" />  {t('Даярдалууда…')}
                     </div>
                 )}
                 {status && <p className="text-[0.82rem] mt-3" style={{ color: 'var(--danger)' }}>{status}</p>}

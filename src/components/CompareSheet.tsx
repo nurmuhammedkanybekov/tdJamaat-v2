@@ -11,6 +11,8 @@ import { Avatar } from './Avatar';
 import { Medallion } from './Ornament';
 import { ChartTooltip, Sheet } from './ui';
 import { axisTick, scoreDomain } from '../utils/style';
+import { t } from '../i18n';
+import { metricLabel } from '../utils/metrics';
 
 export interface CompareInit {
     kind: CompareKind;
@@ -31,7 +33,7 @@ const COLOR_A = 'var(--gold)';
 const COLOR_B = 'var(--text-primary)';
 
 const show = (row: CompareRow, v: number | null) =>
-    v === null ? '—' : row.format === 'rank' ? `${v}-орун` : row.format === 'pct' ? `${v}%` : String(v);
+    v === null ? '—' : row.format === 'rank' ? t('{0}-орун', v) : row.format === 'pct' ? `${v}%` : String(v);
 
 /** The chosen name in display type, with a transparent native select on top
  *  (keeps the phone's own picker, and the name can wrap instead of being cut). */
@@ -131,7 +133,7 @@ export const CompareSheet: React.FC<CompareSheetProps> = ({ data, insights, awar
             if (kind === 'person') { const mw = weekOf(insights.members.get(id)?.weeks ?? [], i); return mw?.submitted ? Math.round(mw.score * 10) / 10 : null; }
             const hw = weekOf(insights.houses.get(id)?.weeks ?? [], i); return hw?.submitted ? hw.avg : null;
         };
-        return { week: `${w.weekNumber}-апта`, a: val(aId), b: val(bId) };
+        return { week: t('{0}-апта', w.weekNumber), a: val(aId), b: val(bId) };
     });
     const chartPoints = chartData.filter(p => p.a !== null || p.b !== null).length;
 
@@ -144,18 +146,18 @@ export const CompareSheet: React.FC<CompareSheetProps> = ({ data, insights, awar
 
     return (
         <Sheet
-            title="Салыштыруу"
+            title={t('Салыштыруу')}
             onClose={onClose}
             width="44rem"
             headerExtra={
-                <div className="flex" role="group" aria-label="Эмнени салыштыруу">
-                    <button className={`chip ${kind === 'person' ? 'is-active' : ''}`} onClick={() => setKind('person')}>Адамдар</button>
-                    <button className={`chip ${kind === 'house' ? 'is-active' : ''}`} onClick={() => setKind('house')}>Үйлөр</button>
+                <div className="flex" role="group" aria-label={t('Эмнени салыштыруу')}>
+                    <button className={`chip ${kind === 'person' ? 'is-active' : ''}`} onClick={() => setKind('person')}>{t('Адамдар')}</button>
+                    <button className={`chip ${kind === 'house' ? 'is-active' : ''}`} onClick={() => setKind('house')}>{t('Үйлөр')}</button>
                 </div>
             }
         >
             {!enough ? (
-                <p className="px-5 sm:px-7 py-10 italic text-center" style={{ color: 'var(--text-muted)' }}>Салыштыруу үчүн жок дегенде экөө керек.</p>
+                <p className="px-5 sm:px-7 py-10 italic text-center" style={{ color: 'var(--text-muted)' }}>{t('Салыштыруу үчүн жок дегенде экөө керек.')}</p>
             ) : (
                 <div className="px-5 sm:px-7 py-7 space-y-10">
                     {/* The two sides */}
@@ -163,7 +165,7 @@ export const CompareSheet: React.FC<CompareSheetProps> = ({ data, insights, awar
                         <div className="min-w-0 flex flex-col items-end text-right">
                             {kind === 'person' && pa && <Avatar name={pa.name} role={pa.role} photoUrl={pa.photoUrl} size="lg" />}
                             <div className="mt-2 max-w-full">
-                                <Picker value={aId} onChange={v => setSide(0, v)} text={nameA ?? ''} label="Биринчиси" color={COLOR_A} align="right">{kind === 'person' ? personOptions : houseOptions}</Picker>
+                                <Picker value={aId} onChange={v => setSide(0, v)} text={nameA ?? ''} label={t('Биринчиси')} color={COLOR_A} align="right">{kind === 'person' ? personOptions : houseOptions}</Picker>
                             </div>
                             {kind === 'person' && pa && <div className="eyebrow mt-1 max-w-full">{ROLE_LABEL[pa.role]} · {pa.houseName}</div>}
                         </div>
@@ -174,7 +176,7 @@ export const CompareSheet: React.FC<CompareSheetProps> = ({ data, insights, awar
                         <div className="min-w-0 flex flex-col items-start text-left">
                             {kind === 'person' && pb && <Avatar name={pb.name} role={pb.role} photoUrl={pb.photoUrl} size="lg" />}
                             <div className="mt-2 max-w-full">
-                                <Picker value={bId} onChange={v => setSide(1, v)} text={nameB ?? ''} label="Экинчиси" color={COLOR_B} align="left">{kind === 'person' ? personOptions : houseOptions}</Picker>
+                                <Picker value={bId} onChange={v => setSide(1, v)} text={nameB ?? ''} label={t('Экинчиси')} color={COLOR_B} align="left">{kind === 'person' ? personOptions : houseOptions}</Picker>
                             </div>
                             {kind === 'person' && pb && <div className="eyebrow mt-1 max-w-full">{ROLE_LABEL[pb.role]} · {pb.houseName}</div>}
                         </div>
@@ -183,13 +185,13 @@ export const CompareSheet: React.FC<CompareSheetProps> = ({ data, insights, awar
                     {/* Head to head */}
                     {h2h && h2h.a + h2h.b + h2h.draws > 0 && (
                         <div className="text-center">
-                            <div className="eyebrow">Бет маңдай · ким көп апта жеңди</div>
+                            <div className="eyebrow">{t('Бет маңдай · ким көп апта жеңди')}</div>
                             <div className="flex items-baseline justify-center gap-4 mt-3">
                                 <span className="font-display text-[3rem] leading-none tabular" style={{ color: COLOR_A }}>{h2h.a}</span>
                                 <span className="font-display text-[1.5rem]" style={{ color: 'var(--text-muted)' }}>:</span>
                                 <span className="font-display text-[3rem] leading-none tabular" style={{ color: COLOR_B }}>{h2h.b}</span>
                             </div>
-                            {h2h.draws > 0 && <div className="text-[0.8rem] italic mt-1" style={{ color: 'var(--text-muted)' }}>{h2h.draws} апта тең</div>}
+                            {h2h.draws > 0 && <div className="text-[0.8rem] italic mt-1" style={{ color: 'var(--text-muted)' }}>{t('{0} апта тең', h2h.draws)}</div>}
                         </div>
                     )}
 
@@ -199,15 +201,15 @@ export const CompareSheet: React.FC<CompareSheetProps> = ({ data, insights, awar
                     {/* Per-metric, people only */}
                     {metrics && (
                         <section>
-                            <h3 className="font-display text-[1.4rem] mb-1" style={{ color: 'var(--text-primary)' }}>Көрсөткүчтөр</h3>
-                            <p className="text-[0.8rem] italic mb-3" style={{ color: 'var(--text-muted)' }}>Сезон бою планды орточо канча пайыз аткарды. Ар кимдин планы ролуна жараша.</p>
-                            {METRICS.map(m => <Row key={m} row={{ label: m, a: metrics.a[m], b: metrics.b[m], format: 'pct' }} />)}
+                            <h3 className="font-display text-[1.4rem] mb-1" style={{ color: 'var(--text-primary)' }}>{t('Көрсөткүчтөр')}</h3>
+                            <p className="text-[0.8rem] italic mb-3" style={{ color: 'var(--text-muted)' }}>{t('Сезон бою планды орточо канча пайыз аткарды. Ар кимдин планы ролуна жараша.')}</p>
+                            {METRICS.map(m => <Row key={m} row={{ label: metricLabel(m), a: metrics.a[m], b: metrics.b[m], format: 'pct' }} />)}
                         </section>
                     )}
 
                     {/* Trend */}
                     <section>
-                        <h3 className="font-display text-[1.4rem] mb-1" style={{ color: 'var(--text-primary)' }}>Апта сайын</h3>
+                        <h3 className="font-display text-[1.4rem] mb-1" style={{ color: 'var(--text-primary)' }}>{t('Апта сайын')}</h3>
                         <div className="flex flex-wrap gap-4 text-[0.8rem] mb-3" style={{ color: 'var(--text-muted)' }}>
                             <span className="inline-flex items-center gap-2"><span className="w-5 h-px" style={{ backgroundColor: COLOR_A }} />{nameA}</span>
                             <span className="inline-flex items-center gap-2"><span className="w-5 border-t border-dashed" style={{ borderColor: COLOR_B }} />{nameB}</span>
@@ -226,7 +228,7 @@ export const CompareSheet: React.FC<CompareSheetProps> = ({ data, insights, awar
                                 </ResponsiveContainer>
                             </div>
                         ) : (
-                            <p className="italic" style={{ color: 'var(--text-muted)' }}>Динамика эки аптадан кийин көрүнөт.</p>
+                            <p className="italic" style={{ color: 'var(--text-muted)' }}>{t('Динамика эки аптадан кийин көрүнөт.')}</p>
                         )}
                     </section>
                 </div>

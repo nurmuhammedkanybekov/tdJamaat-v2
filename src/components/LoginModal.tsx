@@ -4,6 +4,7 @@ import { LogIn, X, Home, ShieldCheck } from 'lucide-react';
 import { fetchHouses } from '../services/dataService';
 import { signInAsHouse, signInAsAdmin } from '../services/authService';
 import type { House } from '../types';
+import { t } from '../i18n';
 
 interface LoginModalProps {
     onSuccess: () => void;
@@ -39,7 +40,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onSuccess, onClose }) =>
                 await signInAsAdmin(password);
             } else {
                 if (!selectedHouseSlug) {
-                    setError('Үйдү тандаңыз');
+                    setError(t('Үйдү тандаңыз'));
                     setLoading(false);
                     return;
                 }
@@ -52,8 +53,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onSuccess, onClose }) =>
             // sent people retyping a password that was actually correct.
             const message = err instanceof Error ? err.message : '';
             setError(/invalid login credentials/i.test(message)
-                ? 'Туура эмес сыр сөз'
-                : `Кирүү мүмкүн болгон жок: ${message || 'интернетти текшериңиз'}`);
+                ? t('Туура эмес сыр сөз')
+                : t('Кирүү мүмкүн болгон жок: {0}', message || t('интернетти текшериңиз')));
         } finally {
             setLoading(false);
         }
@@ -72,7 +73,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onSuccess, onClose }) =>
             <div className="p-6 sm:p-8 relative" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '14px' }}>
                 <button
                     onClick={onClose}
-                    aria-label="Жабуу"
+                    aria-label={t('Жабуу')}
                     className="absolute top-3 right-3 sm:top-5 sm:right-5 p-2 transition-colors"
                     style={{ color: 'var(--text-muted)' }}
                 >
@@ -81,9 +82,10 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onSuccess, onClose }) =>
 
                 <div className="flex flex-col items-center mb-7">
                     <img src="/favicon.svg" alt="" className="w-14 h-14 mb-3 rounded-[14px]" style={{ boxShadow: 'var(--shadow-card)' }} />
-                    <h2 className="font-display text-[2rem] font-bold" style={{ color: 'var(--text-primary)' }}>Кирүү</h2>
+                    <h2 className="font-display text-[2rem] font-bold" style={{ color: 'var(--text-primary)' }}>{t('Кирүү')}</h2>
                     <p className="text-center mt-1.5 text-sm" style={{ color: 'var(--text-muted)' }}>
-                        Маалымат киргизүү үчүн сыр сөзүңүздү жазыңыз
+                        
+                        {t('Маалымат киргизүү үчүн сыр сөзүңүздү жазыңыз')}
                     </p>
                 </div>
 
@@ -99,7 +101,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onSuccess, onClose }) =>
                             marginBottom: '-1px'
                         }}
                     >
-                        <Home className="w-3.5 h-3.5" /> Үй жетекчиси
+                        <Home className="w-3.5 h-3.5" />  {t('Үй жетекчиси')}
                     </button>
                     <button
                         type="button"
@@ -112,14 +114,14 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onSuccess, onClose }) =>
                             marginBottom: '-1px'
                         }}
                     >
-                        <ShieldCheck className="w-3.5 h-3.5" /> Админ
+                        <ShieldCheck className="w-3.5 h-3.5" />  {t('Админ')}
                     </button>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {mode === 'leader' && (
                         <div>
-                            <label className="block text-xs font-semibold uppercase tracking-wide mb-1.5" style={{ color: 'var(--text-muted)' }}>Үй</label>
+                            <label className="block text-xs font-semibold uppercase tracking-wide mb-1.5" style={{ color: 'var(--text-muted)' }}>{t('Үй')}</label>
                             <select
                                 value={selectedHouseSlug}
                                 onChange={e => setSelectedHouseSlug(e.target.value)}
@@ -134,7 +136,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onSuccess, onClose }) =>
                     )}
 
                     <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wide mb-1.5" style={{ color: 'var(--text-muted)' }}>Сыр сөз</label>
+                        <label className="block text-xs font-semibold uppercase tracking-wide mb-1.5" style={{ color: 'var(--text-muted)' }}>{t('Сыр сөз')}</label>
                         <input
                             type="password"
                             autoComplete="current-password"
@@ -142,7 +144,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onSuccess, onClose }) =>
                             onChange={e => setPassword(e.target.value)}
                             className="w-full px-4 py-2.5 outline-none transition-all text-base"
                             style={inputStyle}
-                            placeholder="Сыр сөз"
+                            placeholder={t('Сыр сөз')}
                             // Don't pop the phone keyboard over the house picker on open.
                             autoFocus={!window.matchMedia('(pointer: coarse)').matches}
                         />
@@ -161,7 +163,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onSuccess, onClose }) =>
                         style={{ backgroundColor: 'var(--accent)', color: 'var(--surface)', borderRadius: 'var(--radius-sm)', letterSpacing: '0.02em', fontSize: '13px' }}
                     >
                         <LogIn className="w-4 h-4" />
-                        {loading ? 'Кирүүдө…' : 'Кирүү'}
+                        {loading ? t('Кирүүдө…') : t('Кирүү')}
                     </button>
                 </form>
             </div>

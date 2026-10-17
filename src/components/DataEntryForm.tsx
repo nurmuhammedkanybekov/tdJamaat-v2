@@ -28,6 +28,8 @@ import { Avatar } from './Avatar';
 import { NumberInput } from './NumberInput';
 import { requireActiveSession } from '../services/authService';
 import type { AuthUser } from '../services/authService';
+import { t } from '../i18n';
+import { cardLabel, cardName, metricLabel, metricName } from '../utils/metrics';
 
 interface DataEntryFormProps {
     authUser: AuthUser;
@@ -82,13 +84,13 @@ const fieldLabel: React.CSSProperties = { fontSize: '11px', fontWeight: 600, tex
 const describeSaveError = (err: unknown): string => {
     const code = (err as { code?: string } | null)?.code;
     if (code === '42501') {
-        return 'Базага жазууга уруксат жок: бул үйгө же бул аптага маалымат киргизүү укугуңуз жок. Админге кайрылыңыз.';
+        return t('Базага жазууга уруксат жок: бул үйгө же бул аптага маалымат киргизүү укугуңуз жок. Админге кайрылыңыз.');
     }
     if (code === '23503') {
-        return 'Бул апта базада жок — админ аны ачышы керек.';
+        return t('Бул апта базада жок — админ аны ачышы керек.');
     }
-    if (err instanceof Error && err.message) return `Сакталган жок: ${err.message}`;
-    return 'Сакталган жок: белгисиз ката. Интернетти текшерип, кайра аракет кылыңыз.';
+    if (err instanceof Error && err.message) return t('Сакталган жок: {0}', err.message);
+    return t('Сакталган жок: белгисиз ката. Интернетти текшерип, кайра аракет кылыңыз.');
 };
 
 
@@ -131,7 +133,7 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
 
     const latestWeek = weekNumbers.length ? Math.max(...weekNumbers) : 0;
     // Week numbers are stored continuously across seasons; show them per season.
-    const label = (n: number) => (data ? weekLabel(data, n) : `${n}-апта`);
+    const label = (n: number) => (data ? weekLabel(data, n) : t('{0}-апта', n));
     const weekLocked = lockedWeeks.includes(weekNumber);
     const lockedForMe = weekLocked && !isAdmin;
 
@@ -147,7 +149,7 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
             if (!weeks.includes(defaultWeekNumber) && weeks.length) setWeekNumber(Math.max(...weeks));
             if (isAdmin && !selectedHouseId && houseList.length > 0) setSelectedHouseId(houseList[0].id);
         }).catch(err => {
-            setError(`Маалымат жүктөлгөн жок: ${err instanceof Error ? err.message : String(err)}`);
+            setError(t('Маалымат жүктөлгөн жок: {0}', err instanceof Error ? err.message : String(err)));
         }).finally(() => setLoading(false));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -163,7 +165,7 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                 const hist = await fetchHouseHistory(selectedHouseId, roster.map(m => m.id));
                 if (!cancelled) { setMembers(roster); setHistory(hist); }
             })
-            .catch(err => { if (!cancelled) setError(`Мүчөлөр жүктөлгөн жок: ${err instanceof Error ? err.message : String(err)}`); });
+            .catch(err => { if (!cancelled) setError(t('Мүчөлөр жүктөлгөн жок: {0}', err instanceof Error ? err.message : String(err))); });
         return () => { cancelled = true; };
     }, [selectedHouseId]);
 
@@ -283,7 +285,7 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
             const photoUrl = await uploadMemberPhoto(selectedHouseId, memberId, file);
             setNewPhotos(prev => ({ ...prev, [memberId]: photoUrl }));
         } catch (err) {
-            setPhotoError(err instanceof Error ? err.message : 'Сүрөт жүктөлбөй калды');
+            setPhotoError(err instanceof Error ? err.message : t('Сүрөт жүктөлбөй калды'));
         } finally {
             setUploadingPhotoFor(null);
         }
@@ -301,7 +303,7 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
             const weeks = await fetchWeekNumbers();
             setWeekNumbers(weeks);
             setWeekNumber(next);
-            setNotice(`${label(next)} ачылды. Эми үй жетекчилери маалымат киргизе алышат.`);
+            setNotice(t('{0} ачылды. Эми үй жетекчилери маалымат киргизе алышат.', label(next)));
             onWeeksChanged?.();
         } catch (err) {
             setError(describeSaveError(err));
@@ -325,7 +327,7 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
             a.click();
             a.remove();
             setTimeout(() => URL.revokeObjectURL(url), 1000);
-            setNotice('Камдык көчүрмө жүктөлдү — аны сактап коюңуз.');
+            setNotice(t('Камдык көчүрмө жүктөлдү — аны сактап коюңуз.'));
         } catch (err) {
             setError(describeSaveError(err));
         } finally {
@@ -355,7 +357,7 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
             return d && !d.excused ? memberTypos(m.id, d.actual, d.target, usualByMember[m.id] ?? {}) : [];
         })
     ], [miniCard, members, drafts, usualByMember]);
-    const typoKeys = useMemo(() => new Set(typos.map(t => `${t.owner}|${t.key}`)), [typos]);
+    const typoKeys = useMemo(() => new Set(typos.map(it => `${it.owner}|${it.key}`)), [typos]);
     // Any edit closes the question (the list could be out of date).
     useEffect(() => { setAskTypos(false); }, [typos]);
 
@@ -368,15 +370,15 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
         }
         setAskTypos(false);
         if (!selectedHouseId) {
-            setError('Үй тандалган жок');
+            setError(t('Үй тандалган жок'));
             return;
         }
         if (members.length === 0) {
-            setError('Бул үйдө азырынча мүчө жок — админ аркылуу кошуу керек');
+            setError(t('Бул үйдө азырынча мүчө жок — админ аркылуу кошуу керек'));
             return;
         }
         if (!weekNumbers.includes(weekNumber)) {
-            setError(`${label(weekNumber)} али ачыла элек — админ ачышы керек.`);
+            setError(t('{0} али ачыла элек — админ ачышы керек.', label(weekNumber)));
             return;
         }
 
@@ -405,8 +407,8 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
             <div className="fixed inset-0 flex items-center justify-center z-50 p-6" style={{ backgroundColor: 'color-mix(in oklab, var(--text-primary) 50%, transparent)' }}>
                 <div className="p-8 max-w-sm w-full text-center" style={{ backgroundColor: 'var(--surface)', borderRadius: 'var(--radius)' }}>
                     <CheckCircle className="w-12 h-12 mx-auto mb-4" style={{ color: 'var(--success)' }} />
-                    <h2 className="font-display text-[2rem] font-bold mb-2" style={{ color: 'var(--text-primary)' }}>Ийгиликтүү сакталды!</h2>
-                    <p style={{ color: 'var(--text-secondary)' }}>{label(weekNumber)} үчүн маалымат жаңырды.</p>
+                    <h2 className="font-display text-[2rem] font-bold mb-2" style={{ color: 'var(--text-primary)' }}>{t('Ийгиликтүү сакталды!')}</h2>
+                    <p style={{ color: 'var(--text-secondary)' }}>{t('{0} үчүн маалымат жаңырды.', label(weekNumber))}</p>
                 </div>
             </div>
         );
@@ -431,21 +433,21 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                     style={{ borderBottom: '1px solid var(--border)', paddingTop: 'max(1rem, env(safe-area-inset-top, 0px))' }}
                 >
                     <h2 className="font-display text-[1.5rem] sm:text-[1.7rem] font-bold truncate" style={{ color: 'var(--text-primary)' }}>
-                        {selectedHouseName ? `${selectedHouseName} — маалымат` : 'Маалымат кошуу'}
+                        {selectedHouseName ? t('{0} — маалымат', selectedHouseName) : t('Маалымат кошуу')}
                     </h2>
-                    <button onClick={onClose} aria-label="Жабуу" className="p-2 -mr-2 flex-shrink-0" style={{ color: 'var(--text-muted)' }}>
+                    <button onClick={onClose} aria-label={t('Жабуу')} className="p-2 -mr-2 flex-shrink-0" style={{ color: 'var(--text-muted)' }}>
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
                 <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 sm:px-6 py-5 sm:py-6">
                     {loading ? (
-                        <div className="text-center py-12 font-serif" style={{ color: 'var(--text-muted)' }}>Жүктөлүүдө…</div>
+                        <div className="text-center py-12 font-serif" style={{ color: 'var(--text-muted)' }}>{t('Жүктөлүүдө…')}</div>
                     ) : (
                         <>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-8">
                                 <div>
-                                    <label className="block mb-1.5" style={fieldLabel} htmlFor="week-select">Апта</label>
+                                    <label className="block mb-1.5" style={fieldLabel} htmlFor="week-select">{t('Апта')}</label>
                                     {/* Only weeks the admin has opened — no free-typed number, so
                                         nobody can save into a week that doesn't exist or mistype one. */}
                                     <div className="flex gap-2">
@@ -457,9 +459,9 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                                             style={inputStyle}
                                         >
                                             {[...weekNumbers].sort((a, b) => b - a).map(n => (
-                                                <option key={n} value={n}>{label(n)}{n === latestWeek ? ' (акыркы)' : ''}</option>
+                                                <option key={n} value={n}>{label(n)}{n === latestWeek ? t(' (акыркы)') : ''}</option>
                                             ))}
-                                            {weekNumbers.length === 0 && <option value={weekNumber}>Ачык апта жок</option>}
+                                            {weekNumbers.length === 0 && <option value={weekNumber}>{t('Ачык апта жок')}</option>}
                                         </select>
                                         {isAdmin && (
                                             <button
@@ -472,14 +474,14 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                                                     : { border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--text-secondary)' }}
                                             >
                                                 <Plus className="w-4 h-4" />
-                                                {openingWeek ? 'Ачылууда…' : confirmOpenWeek ? `${label(latestWeek + 1)}: ачууну ырастаңыз` : 'Жаңы апта'}
+                                                {openingWeek ? t('Ачылууда…') : confirmOpenWeek ? t('{0}: ачууну ырастаңыз', label(latestWeek + 1)) : t('Жаңы апта')}
                                             </button>
                                         )}
                                     </div>
                                 </div>
                                 {authUser.role === 'admin' && (
                                     <div>
-                                        <label className="block mb-1.5" style={fieldLabel}>Үй</label>
+                                        <label className="block mb-1.5" style={fieldLabel}>{t('Үй')}</label>
                                         <select
                                             value={selectedHouseId}
                                             onChange={e => setSelectedHouseId(e.target.value)}
@@ -495,30 +497,30 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                             {weekLocked && (
                                 <div className="mb-6 px-4 py-3 rounded-[8px] flex items-start gap-2.5 text-sm" style={{ backgroundColor: 'var(--gold-soft)', border: '1px solid color-mix(in oklab, var(--gold) 35%, transparent)', color: 'var(--text-secondary)' }}>
                                     <Lock className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: 'var(--gold)' }} />
-                                    <p>{isAdmin ? `${label(weekNumber)} кулпуланган: жетекчилер өзгөртө албайт, бирок админ катары сиз өзгөртө аласыз.` : `${label(weekNumber)} кулпуланган — өзгөртүү үчүн админге кайрылыңыз.`}</p>
+                                    <p>{isAdmin ? t('{0} кулпуланган: жетекчилер өзгөртө албайт, бирок админ катары сиз өзгөртө аласыз.', label(weekNumber)) : t('{0} кулпуланган — өзгөртүү үчүн админге кайрылыңыз.', label(weekNumber))}</p>
                                 </div>
                             )}
 
                             <div className="mb-8">
-                                <h3 className="font-display text-[1.35rem] font-bold mb-4 pb-2" style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border)' }}>Мини-карта (командалык)</h3>
+                                <h3 className="font-display text-[1.35rem] font-bold mb-4 pb-2" style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border)' }}>{t('Мини-карта (командалык)')}</h3>
                                 <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
                                     {(Object.keys(DEFAULT_MINICARD) as Array<keyof MiniCard>).map(key => (
                                         <div key={key} className="p-3" style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)' }}>
-                                            <div className="text-center text-xs font-semibold mb-2" style={{ color: 'var(--text-muted)' }}>{key}</div>
+                                            <div className="text-center text-xs font-semibold mb-2" style={{ color: 'var(--text-muted)' }} title={cardName(key)}>{cardLabel(key)}</div>
                                             <div className="flex flex-col gap-2">
                                                 <div>
-                                                    <label className="text-xs block" style={{ color: 'var(--text-muted)' }}>Факт</label>
+                                                    <label className="text-xs block" style={{ color: 'var(--text-muted)' }}>{t('Факт')}</label>
                                                     <NumberInput
                                                         value={miniCard[key].actual}
                                                         aria-invalid={typoKeys.has(`card|${key}`) || undefined}
                                                         onValueChange={v => handleMiniCardChange(key, 'actual', v)}
                                                         className="w-full text-center p-1.5 text-base sm:text-sm"
                                                         style={inputStyle}
-                                                        aria-label={`${key} — Факт`}
+                                                        aria-label={t('{0} — Факт', cardName(key))}
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="text-xs block" style={{ color: 'var(--text-muted)' }}>План</label>
+                                                    <label className="text-xs block" style={{ color: 'var(--text-muted)' }}>{t('План')}</label>
                                                     <NumberInput
                                                         value={miniCard[key].target}
                                                         readOnly={!isAdmin}
@@ -526,7 +528,7 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                                                         onValueChange={v => handleMiniCardChange(key, 'target', v)}
                                                         className={`w-full text-center p-1.5 text-base sm:text-sm ${isAdmin ? '' : 'cursor-default'}`}
                                                         style={isAdmin ? inputMutedStyle : { ...inputMutedStyle, borderStyle: 'dashed' }}
-                                                        aria-label={`${key} — План`}
+                                                        aria-label={t('{0} — План', cardName(key))}
                                                     />
                                                 </div>
                                             </div>
@@ -537,16 +539,16 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
 
                             <div>
                                 <div className="flex items-baseline justify-between mb-2 flex-wrap gap-2">
-                                    <h3 className="font-display text-[1.35rem] font-bold" style={{ color: 'var(--text-primary)' }}>Мүчөлөр</h3>
-                                    <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Сүрөттү өзгөртүү үчүн адамдын сүрөтүн басыңыз</p>
+                                    <h3 className="font-display text-[1.35rem] font-bold" style={{ color: 'var(--text-primary)' }}>{t('Мүчөлөр')}</h3>
+                                    <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{t('Сүрөттү өзгөртүү үчүн адамдын сүрөтүн басыңыз')}</p>
                                 </div>
                                 {/* The actual/target pairs had no visible label (only a
                                     hover tooltip, which doesn't exist on a phone). */}
                                 <p className="text-xs mb-3 flex items-center gap-3 flex-wrap" style={{ color: 'var(--text-muted)' }}>
-                                    <span className="inline-flex items-center gap-1.5"><span className="inline-block w-3 h-3" style={{ ...inputStyle, borderRadius: 2 }} /> үстүндө — Факт</span>
-                                    <span className="inline-flex items-center gap-1.5"><span className="inline-block w-3 h-3" style={{ ...inputMutedStyle, borderRadius: 2, borderStyle: isAdmin ? 'solid' : 'dashed' }} /> астында — План</span>
+                                    <span className="inline-flex items-center gap-1.5"><span className="inline-block w-3 h-3" style={{ ...inputStyle, borderRadius: 2 }} />  {t('үстүндө — Факт')}</span>
+                                    <span className="inline-flex items-center gap-1.5"><span className="inline-block w-3 h-3" style={{ ...inputMutedStyle, borderRadius: 2, borderStyle: isAdmin ? 'solid' : 'dashed' }} />  {t('астында — План')}</span>
                                     {!isAdmin && (
-                                        <span className="inline-flex items-center gap-1"><Lock className="w-3 h-3" /> Планды админ гана өзгөртөт</span>
+                                        <span className="inline-flex items-center gap-1"><Lock className="w-3 h-3" />  {t('Планды админ гана өзгөртөт')}</span>
                                     )}
                                 </p>
                                 {photoError && (
@@ -557,7 +559,8 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                                 )}
                                 {members.length === 0 ? (
                                     <p className="text-sm p-4" style={{ color: 'var(--text-muted)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)' }}>
-                                        Бул үйдө азырынча мүчө катталган эмес. Мүчө кошуу үчүн админ панелин колдонуңуз.
+                                        
+                                        {t('Бул үйдө азырынча мүчө катталган эмес. Мүчө кошуу үчүн админ панелин колдонуңуз.')}
                                     </p>
                                 ) : (
                                     <div>
@@ -569,7 +572,7 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                                                     <div className="flex items-center gap-3 mb-3">
                                                         <label
                                                             className="relative flex-shrink-0 cursor-pointer group"
-                                                            title="Сүрөт жүктөө / өзгөртүү"
+                                                            title={t('Сүрөт жүктөө / өзгөртүү')}
                                                         >
                                                             <Avatar name={member.name} role={member.role} photoUrl={newPhotos[member.id] ?? member.photoUrl} />
                                                             <span
@@ -606,7 +609,7 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                                                             </div>
                                                         </div>
                                                         <div className="text-right flex-shrink-0">
-                                                            <div className="text-xs" style={{ color: 'var(--text-muted)' }}>Упай</div>
+                                                            <div className="text-xs" style={{ color: 'var(--text-muted)' }}>{t('Упай')}</div>
                                                             <div className="font-serif font-semibold text-lg font-variant-tabular" style={{ color: draft.excused ? 'var(--text-muted)' : 'var(--text-primary)' }}>
                                                                 {draft.excused ? '—' : calculateMemberScore({ ...member, actual: draft.actual, target: draft.target }).toFixed(1)}
                                                             </div>
@@ -626,17 +629,18 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                                                                 <span className="relative inline-block w-8 h-[18px] rounded-full transition-colors flex-shrink-0" style={{ backgroundColor: draft.excused ? 'var(--gold)' : 'var(--border-strong)' }}>
                                                                     <span className="absolute top-[2px] w-[14px] h-[14px] rounded-full transition-all" style={{ left: draft.excused ? '16px' : '2px', backgroundColor: 'var(--surface)' }} />
                                                                 </span>
-                                                                Себептүү (ооруп / сапарда)
+                                                                
+                                                                {t('Себептүү (ооруп / сапарда)')}
                                                             </button>
                                                             {draft.excused && (
-                                                                <span className="text-xs italic" style={{ color: 'var(--text-muted)' }}>Бул апта үйдүн орточосуна жана рейтингге кирбейт. Сериялары үзүлбөйт.</span>
+                                                                <span className="text-xs italic" style={{ color: 'var(--text-muted)' }}>{t('Бул апта үйдүн орточосуна жана рейтингге кирбейт. Сериялары үзүлбөйт.')}</span>
                                                             )}
                                                         </div>
                                                     )}
                                                     <div className="grid grid-cols-4 md:grid-cols-8 gap-2" style={draft.excused ? { opacity: 0.4 } : undefined} aria-disabled={draft.excused || undefined}>
                                                         {(Object.keys(ZERO_METRICS) as Array<keyof MetricValues>).map(metric => (
                                                             <div key={metric} className="text-center min-w-0">
-                                                                <div className="text-xs font-semibold mb-1" style={{ color: 'var(--text-secondary)' }}>{metric}</div>
+                                                                <div className="text-xs font-semibold mb-1" style={{ color: 'var(--text-secondary)' }} title={metricName(metric)}>{metricLabel(metric)}</div>
                                                                 <NumberInput
                                                                     value={draft.actual[metric]}
                                                                     readOnly={draft.excused}
@@ -644,8 +648,8 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                                                                     onValueChange={v => handleMemberChange(member.id, 'actual', metric, v)}
                                                                     className="w-full text-center px-0.5 py-1.5 mb-1 text-base sm:text-sm font-semibold"
                                                                     style={inputStyle}
-                                                                    aria-label={`${member.name} — ${metric} — Факт`}
-                                                                    title="Факт"
+                                                                    aria-label={t('{0} — {1} — Факт', member.name, metricName(metric))}
+                                                                    title={t('Факт')}
                                                                 />
                                                                 <NumberInput
                                                                     value={draft.target[metric]}
@@ -654,8 +658,8 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                                                                     onValueChange={v => handleMemberChange(member.id, 'target', metric, v)}
                                                                     className={`w-full text-center px-0.5 py-1 text-sm sm:text-xs ${isAdmin ? '' : 'cursor-default'}`}
                                                                     style={isAdmin ? inputMutedStyle : { ...inputMutedStyle, borderStyle: 'dashed' }}
-                                                                    aria-label={`${member.name} — ${metric} — План`}
-                                                                    title="План"
+                                                                    aria-label={t('{0} — {1} — План', member.name, metricName(metric))}
+                                                                    title={t('План')}
                                                                 />
                                                             </div>
                                                         ))}
@@ -682,24 +686,26 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                     )}
                     {restored && !error && (
                         <div role="status" className="px-3 py-2 mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm" style={{ borderLeft: '2px solid var(--gold)', color: 'var(--text-secondary)' }}>
-                            <p className="min-w-0 flex-1">Мурда киргизилип, сакталбай калган сандар кайра коюлду. Текшерип, «Сактоо» басыңыз.</p>
-                            <button type="button" onClick={discardDraft} className="underline underline-offset-2" style={{ color: 'var(--text-muted)' }}>Өчүрүү</button>
+                            <p className="min-w-0 flex-1">{t('Мурда киргизилип, сакталбай калган сандар кайра коюлду. Текшерип, «Сактоо» басыңыз.')}</p>
+                            <button type="button" onClick={discardDraft} className="underline underline-offset-2" style={{ color: 'var(--text-muted)' }}>{t('Өчүрүү')}</button>
                         </div>
                     )}
                     {askTypos && typos.length > 0 && !error && (
-                        <div role="alertdialog" aria-label="Сандарды текшериңиз" className="px-3 py-2.5 mb-3 text-sm" style={{ borderLeft: '2px solid var(--danger)', color: 'var(--text-secondary)' }}>
-                            <p className="font-semibold" style={{ color: 'var(--text-primary)' }}>Бул сандар туурабы? Адаттагыдан абдан көп:</p>
+                        <div role="alertdialog" aria-label={t('Сандарды текшериңиз')} className="px-3 py-2.5 mb-3 text-sm" style={{ borderLeft: '2px solid var(--danger)', color: 'var(--text-secondary)' }}>
+                            <p className="font-semibold" style={{ color: 'var(--text-primary)' }}>{t('Бул сандар туурабы? Адаттагыдан абдан көп:')}</p>
                             <ul className="mt-1.5 space-y-0.5 max-h-28 overflow-y-auto">
-                                {typos.map(t => (
-                                    <li key={`${t.owner}|${t.key}`} className="tabular">
-                                        <b style={{ color: 'var(--text-primary)' }}>{t.owner === 'card' ? 'Мини-карта' : members.find(m => m.id === t.owner)?.name ?? ''}</b>
-                                        {' — '}{t.key} <b style={{ color: 'var(--danger)' }}>{t.value}</b> (план {t.target}{t.usual ? `, адатта ~${Math.round(t.usual)}` : ''}) — {Math.round(t.value / t.target)}× көп
+                                {typos.map(it => (
+                                    <li key={`${it.owner}|${it.key}`} className="tabular">
+                                        <b style={{ color: 'var(--text-primary)' }}>{it.owner === 'card' ? t('Мини-карта') : members.find(m => m.id === it.owner)?.name ?? ''}</b>
+                                        {' — '}{it.owner === 'card' ? cardLabel(it.key as keyof MiniCard) : metricLabel(it.key as keyof MetricValues)} <b style={{ color: 'var(--danger)' }}>{it.value}</b>{' '}{it.usual
+                                            ? t('(план {0}, адатта ~{1}) — {2}× көп', it.target, Math.round(it.usual), Math.round(it.value / it.target))
+                                            : t('(план {0}) — {1}× көп', it.target, Math.round(it.value / it.target))}
                                     </li>
                                 ))}
                             </ul>
                             <div className="flex flex-wrap gap-2 mt-2.5">
-                                <button type="button" onClick={() => setAskTypos(false)} className="px-3 py-2 text-sm font-semibold" style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--text-secondary)' }}>Оңдоо</button>
-                                <button type="button" onClick={() => handleSubmit(null, true)} className="px-3 py-2 text-sm font-semibold" style={{ border: '1px solid var(--danger)', borderRadius: 'var(--radius-sm)', color: 'var(--danger)' }}>Ооба, туура — сактоо</button>
+                                <button type="button" onClick={() => setAskTypos(false)} className="px-3 py-2 text-sm font-semibold" style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--text-secondary)' }}>{t('Оңдоо')}</button>
+                                <button type="button" onClick={() => handleSubmit(null, true)} className="px-3 py-2 text-sm font-semibold" style={{ border: '1px solid var(--danger)', borderRadius: 'var(--radius-sm)', color: 'var(--danger)' }}>{t('Ооба, туура — сактоо')}</button>
                             </div>
                         </div>
                     )}
@@ -715,12 +721,12 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                                 type="button"
                                 onClick={handleBackup}
                                 disabled={exporting}
-                                title="Бүт базанын камдык көчүрмөсүн (JSON) жүктөп алуу"
+                                title={t('Бүт базанын камдык көчүрмөсүн (JSON) жүктөп алуу')}
                                 className="mr-auto inline-flex items-center justify-center gap-1.5 px-3 py-3 sm:py-2.5 font-semibold text-sm disabled:opacity-60"
                                 style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--text-secondary)' }}
                             >
                                 <Download className="w-4 h-4" />
-                                <span className="hidden sm:inline">{exporting ? 'Даярдалууда…' : 'Камдык көчүрмө'}</span>
+                                <span className="hidden sm:inline">{exporting ? t('Даярдалууда…') : t('Камдык көчүрмө')}</span>
                             </button>
                         )}
                         <button
@@ -729,7 +735,8 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                             className="flex-1 sm:flex-none px-5 py-3 sm:py-2.5 font-semibold text-sm"
                             style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--text-secondary)' }}
                         >
-                            Жабуу
+                            
+                            {t('Жабуу')}
                         </button>
                         <button
                             type="button"
@@ -738,7 +745,7 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                             className="flex-1 sm:flex-none px-5 py-3 sm:py-2.5 font-semibold flex items-center justify-center gap-2 disabled:opacity-60 text-sm"
                             style={{ backgroundColor: 'var(--accent)', color: 'var(--surface)', borderRadius: 'var(--radius-sm)' }}
                         >
-                            {saving ? 'Сакталууда…' : (<><Save className="w-4 h-4" /> Сактоо</>)}
+                            {saving ? t('Сакталууда…') : (<><Save className="w-4 h-4" />  {t('Сактоо')}</>)}
                         </button>
                     </div>
                 </div>

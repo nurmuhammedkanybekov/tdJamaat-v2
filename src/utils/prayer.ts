@@ -6,19 +6,20 @@
 // If the local mosque's timetable differs by a minute or two, adjust
 // ADJUST below (minutes per prayer) — that's the only place to change.
 import { CalculationMethod, Coordinates, HighLatitudeRule, Madhab, PrayerTimes } from 'adhan';
+import { t } from '../i18n';
 
 export interface City { id: string; name: string; lat: number; lng: number; tz: string }
 
 export const CITIES: City[] = [
-    { id: 'budapest', name: 'Будапешт', lat: 47.4979, lng: 19.0402, tz: 'Europe/Budapest' },
-    { id: 'debrecen', name: 'Дебрецен', lat: 47.5316, lng: 21.6273, tz: 'Europe/Budapest' }
+    { id: 'budapest', name: t('Будапешт'), lat: 47.4979, lng: 19.0402, tz: 'Europe/Budapest' },
+    { id: 'debrecen', name: t('Дебрецен'), lat: 47.5316, lng: 21.6273, tz: 'Europe/Budapest' }
 ];
 
 const ADJUST = { fajr: 0, sunrise: 0, dhuhr: 0, asr: 0, maghrib: 0, isha: 0 };
 
 export type PrayerKey = 'fajr' | 'sunrise' | 'dhuhr' | 'asr' | 'maghrib' | 'isha';
 export const PRAYER_NAMES: Record<PrayerKey, string> = {
-    fajr: 'Багымдат', sunrise: 'Күн чыгыш', dhuhr: 'Бешим', asr: 'Аср', maghrib: 'Шам', isha: 'Куптан'
+    fajr: t('Багымдат'), sunrise: t('Күн чыгыш'), dhuhr: t('Бешим'), asr: t('Аср'), maghrib: t('Шам'), isha: t('Куптан')
 };
 export const PRAYER_ORDER: PrayerKey[] = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
 
@@ -49,5 +50,5 @@ export const nextPrayer = (city: City, now: Date): { key: PrayerKey; at: Date } 
 export const untilText = (ms: number) => {
     const m = Math.max(0, Math.round(ms / 60000));
     const h = Math.floor(m / 60);
-    return h > 0 ? `${h} с ${m % 60} мүн` : `${m} мүн`;
+    return h > 0 ? t('{0} с {1} мүн', h, m % 60) : t('{0} мүн', m);
 };

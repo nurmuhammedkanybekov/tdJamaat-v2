@@ -2,6 +2,7 @@ import { supabase } from '../lib/supabase';
 import type { DataFile, House, Member, MetricValues, MiniCard, Role, Season } from '../types';
 import { buildDataFile } from './buildDataFile';
 import type { ActivityRow, HouseRow, MemberRow, MetricRow as FullMetricRow, WeekRow } from './buildDataFile';
+import { t } from '../i18n';
 
 const ZERO_METRICS: MetricValues = {
     'К-К': 0, 'СВТ': 0, 'КТП': 0, 'ТХЖ': 0, 'ДТА': 0, 'ИСТГ': 0, 'НФ': 0, 'ТСП': 0
@@ -244,7 +245,7 @@ export const assertWeekExists = async (weekNumber: number) => {
         .eq('week_number', weekNumber)
         .maybeSingle();
     if (error) fail(error);
-    if (!data) throw new Error(`${weekNumber}-апта али ачыла элек — админ ачышы керек.`);
+    if (!data) throw new Error(t('{0}-апта али ачыла элек — админ ачышы керек.', weekNumber));
 };
 
 // Admin: open the next week. INSERT … ON CONFLICT DO NOTHING — never touches
@@ -393,7 +394,7 @@ export const uploadMemberPhoto = async (houseId: string, memberId: string, file:
 
 export class NotSetUpError extends Error {
     constructor() {
-        super('Бул функция үчүн базаны жаңыртуу керек: supabase/history-and-locks-2026-10.sql файлын Supabase SQL Editor аркылуу бир жолу иштетиңиз.');
+        super(t('Бул функция үчүн базаны жаңыртуу керек: supabase/history-and-locks-2026-10.sql файлын Supabase SQL Editor аркылуу бир жолу иштетиңиз.'));
         this.name = 'NotSetUpError';
     }
 }
@@ -497,7 +498,7 @@ export const applyTargetsFromWeek = async (
 export const startNewSeason = async (name: string, lockFinished: boolean) => {
     const { error } = await supabase.rpc('start_new_season', { new_name: name, lock_finished: lockFinished });
     if (error) {
-        if (isMissingSchema(error) || error.code === 'PGRST202') throw new Error('Сезондор үчүн базаны жаңыртуу керек: supabase/seasons-2026-10.sql файлын Supabase SQL Editor аркылуу бир жолу иштетиңиз.');
+        if (isMissingSchema(error) || error.code === 'PGRST202') throw new Error(t('Сезондор үчүн базаны жаңыртуу керек: supabase/seasons-2026-10.sql файлын Supabase SQL Editor аркылуу бир жолу иштетиңиз.'));
         fail(error);
     }
 };

@@ -9,6 +9,8 @@ import { NumberInput } from './NumberInput';
 import { Sheet } from './ui';
 import { RosterTab, SeasonTab } from './AdminSeason';
 import { weekLabel } from '../utils/seasons';
+import { t } from '../i18n';
+import { cardLabel, cardName, metricLabel, metricName } from '../utils/metrics';
 
 interface AdminPanelProps {
     data: DataFile;
@@ -63,10 +65,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
         }
     };
 
-    const tabs: Array<[Tab, string]> = [['weeks', 'Апталар'], ['season', 'Сезон'], ['roster', 'Курам'], ['targets', 'Максаттар'], ['backup', 'Камдык көчүрмө']];
+    const tabs: Array<[Tab, string]> = [['weeks', t('Апталар')], ['season', t('Сезон')], ['roster', t('Курам')], ['targets', t('Максаттар')], ['backup', t('Камдык көчүрмө')]];
 
     return (
-        <Sheet title="Админ панели" onClose={onClose} width="50rem">
+        <Sheet title={t('Админ панели')} onClose={onClose} width="50rem">
             <div className="px-4 sm:px-6 pt-4">
                 <div className="inline-flex p-1 rounded-full mb-5 max-w-full overflow-x-auto scroll-row" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }} role="tablist">
                     {tabs.map(([k, label]) => (
@@ -81,33 +83,33 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
                 <div className="px-4 sm:px-6 pb-6">
                     <div className="card card-pad mb-5 flex flex-col sm:flex-row sm:items-center gap-3">
                         <div className="flex-1">
-                            <div className="font-bold" style={{ color: 'var(--text-primary)' }}>Жаңы апта ачуу</div>
-                            <p className="text-[0.8rem]" style={{ color: 'var(--text-muted)' }}>Ачылгандан кийин үй жетекчилери {label(latestWeek + 1)} үчүн маалымат киргизе алышат.</p>
+                            <div className="font-bold" style={{ color: 'var(--text-primary)' }}>{t('Жаңы апта ачуу')}</div>
+                            <p className="text-[0.8rem]" style={{ color: 'var(--text-muted)' }}>{t('Ачылгандан кийин үй жетекчилери {0} үчүн маалымат киргизе алышат.', label(latestWeek + 1))}</p>
                         </div>
                         <button
                             className={`btn ${confirmOpen ? 'btn-gold' : 'btn-primary'}`}
                             disabled={busy === 'open'}
                             onClick={() => {
                                 if (!confirmOpen) { setConfirmOpen(true); return; }
-                                run('open', async () => { await openWeek(latestWeek + 1); setConfirmOpen(false); onChanged(); return `${label(latestWeek + 1)} ачылды.`; });
+                                run('open', async () => { await openWeek(latestWeek + 1); setConfirmOpen(false); onChanged(); return t('{0} ачылды.', label(latestWeek + 1)); });
                             }}
                         >
                             {busy === 'open' ? <Loader2 className="w-4 h-4 animate-spin" /> : <CalendarPlus className="w-4 h-4" />}
-                            {confirmOpen ? `${label(latestWeek + 1)}: ачууну ырастаңыз` : `Ачуу: ${label(latestWeek + 1)}`}
+                            {confirmOpen ? t('{0}: ачууну ырастаңыз', label(latestWeek + 1)) : t('Ачуу: {0}', label(latestWeek + 1))}
                         </button>
                     </div>
 
                     <p className="text-[0.8rem] mb-3" style={{ color: 'var(--text-muted)' }}>
-                        <Lock className="w-3.5 h-3.5 inline -mt-0.5" /> Кулпуланган аптаны үй жетекчилери өзгөртө албайт (админ гана өзгөртө алат). Каалаган убакта ачып койсо болот.
+                        <Lock className="w-3.5 h-3.5 inline -mt-0.5" />  {t('Кулпуланган аптаны үй жетекчилери өзгөртө албайт (админ гана өзгөртө алат). Каалаган убакта ачып койсо болот.')}
                     </p>
                     <ol className="card overflow-hidden">
                         {[...data.weeks].reverse().map((w, i) => {
-                            const submitted = w.teams.filter(t => t.submitted).length;
+                            const submitted = w.teams.filter(it => it.submitted).length;
                             return (
                                 <li key={w.globalWeek} className="flex items-center gap-3 px-4 py-3" style={{ borderTop: i ? '1px solid var(--border)' : undefined }}>
                                     <div className="flex-1 min-w-0">
                                         <div className="font-display font-bold text-[1.2rem]" style={{ color: 'var(--text-primary)' }}>{label(w.globalWeek)}</div>
-                                        <div className="text-[0.76rem]" style={{ color: submitted === w.teams.length ? 'var(--success)' : 'var(--text-muted)' }}>{submitted} / {w.teams.length} үй киргизди</div>
+                                        <div className="text-[0.76rem]" style={{ color: submitted === w.teams.length ? 'var(--success)' : 'var(--text-muted)' }}>{t('{0} / {1} үй киргизди', submitted, w.teams.length)}</div>
                                     </div>
                                     <button
                                         className={`btn ${w.locked ? 'btn-gold' : 'btn-ghost'}`}
@@ -115,11 +117,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
                                         onClick={() => run(`lock${w.globalWeek}`, async () => {
                                             await setWeekLocked(w.globalWeek, !w.locked);
                                             onChanged();
-                                            return w.locked ? `${label(w.globalWeek)} ачылды — жетекчилер кайра өзгөртө алат.` : `${label(w.globalWeek)} кулпуланды.`;
+                                            return w.locked ? t('{0} ачылды — жетекчилер кайра өзгөртө алат.', label(w.globalWeek)) : t('{0} кулпуланды.', label(w.globalWeek));
                                         })}
                                     >
                                         {busy === `lock${w.globalWeek}` ? <Loader2 className="w-4 h-4 animate-spin" /> : w.locked ? <Lock className="w-4 h-4" /> : <LockOpen className="w-4 h-4" />}
-                                        {w.locked ? 'Кулпуланган' : 'Ачык'}
+                                        {w.locked ? t('Кулпуланган') : t('Ачык')}
                                     </button>
                                 </li>
                             );
@@ -134,19 +136,20 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
             {tab === 'targets' && (
                 <div className="px-4 sm:px-6 pb-6">
                     {!settings ? (
-                        <div className="flex items-center justify-center gap-2 py-12" style={{ color: 'var(--text-muted)' }}><Loader2 className="w-5 h-5 animate-spin" /> Жүктөлүүдө…</div>
+                        <div className="flex items-center justify-center gap-2 py-12" style={{ color: 'var(--text-muted)' }}><Loader2 className="w-5 h-5 animate-spin" />  {t('Жүктөлүүдө…')}</div>
                     ) : (
                         <>
                             <p className="text-[0.84rem] mb-4" style={{ color: 'var(--text-secondary)' }}>
-                                Сезондун минималдуу пландары. Жаңы мүчөлөр жана жаңы апталар ушулардан башталат.
+                                
+                                {t('Сезондун минималдуу пландары. Жаңы мүчөлөр жана жаңы апталар ушулардан башталат.')}
                             </p>
-                            <h3 className="font-display font-bold text-[1.3rem] mb-2" style={{ color: 'var(--text-primary)' }}>Ролдор боюнча (жеке)</h3>
+                            <h3 className="font-display font-bold text-[1.3rem] mb-2" style={{ color: 'var(--text-primary)' }}>{t('Ролдор боюнча (жеке)')}</h3>
                             <div className="card overflow-x-auto mb-6">
                                 <table className="data-table" style={{ minWidth: 560 }}>
                                     <thead>
                                         <tr>
-                                            <th style={{ paddingTop: '0.8rem', paddingLeft: '1rem' }}>Ролу</th>
-                                            {METRICS.map(m => <th key={m} style={{ paddingTop: '0.8rem', textAlign: 'center' }}>{m}</th>)}
+                                            <th style={{ paddingTop: '0.8rem', paddingLeft: '1rem' }}>{t('Ролу')}</th>
+                                            {METRICS.map(m => <th key={m} style={{ paddingTop: '0.8rem', textAlign: 'center' }} title={metricName(m)}>{metricLabel(m)}</th>)}
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -160,7 +163,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
                                                             onValueChange={v => setRoleTargets(prev => ({ ...prev, [role]: { ...prev[role], [m]: v } }))}
                                                             className="w-full min-w-[3.4rem] text-center py-1.5 text-[0.9rem] font-bold"
                                                             style={inputStyle}
-                                                            aria-label={`${ROLE_LABEL[role]} — ${m}`}
+                                                            aria-label={`${ROLE_LABEL[role]} — ${metricName(m)}`}
                                                         />
                                                     </td>
                                                 ))}
@@ -170,12 +173,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
                                 </table>
                             </div>
 
-                            <h3 className="font-display font-bold text-[1.3rem] mb-2" style={{ color: 'var(--text-primary)' }}>Мини-карта (үй)</h3>
+                            <h3 className="font-display font-bold text-[1.3rem] mb-2" style={{ color: 'var(--text-primary)' }}>{t('Мини-карта (үй)')}</h3>
                             <div className="grid grid-cols-2 min-[460px]:grid-cols-4 sm:grid-cols-7 gap-2 mb-6">
                                 {(Object.keys(cardTargets) as Array<keyof MiniCard>).map(k => (
                                     <label key={k} className="card p-2.5 text-center">
-                                        <span className="block text-[0.74rem] font-bold mb-1" style={{ color: 'var(--text-muted)' }}>{k}</span>
-                                        <NumberInput value={cardTargets[k]} onValueChange={v => setCardTargets(prev => ({ ...prev, [k]: v }))} className="w-full text-center py-1.5 text-[0.95rem] font-bold" style={inputStyle} aria-label={`${k} — план`} />
+                                        <span className="block text-[0.74rem] font-bold mb-1" style={{ color: 'var(--text-muted)' }} title={cardName(k)}>{cardLabel(k)}</span>
+                                        <NumberInput value={cardTargets[k]} onValueChange={v => setCardTargets(prev => ({ ...prev, [k]: v }))} className="w-full text-center py-1.5 text-[0.95rem] font-bold" style={inputStyle} aria-label={t('{0} — план', cardName(k))} />
                                     </label>
                                 ))}
                             </div>
@@ -183,14 +186,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
                             <label className="card card-pad flex items-start gap-3 mb-5 cursor-pointer">
                                 <input type="checkbox" checked={applyExisting} onChange={e => setApplyExisting(e.target.checked)} className="mt-1 w-4 h-4 accent-[var(--accent)]" />
                                 <span className="text-[0.85rem]" style={{ color: 'var(--text-secondary)' }}>
-                                    <b style={{ color: 'var(--text-primary)' }}>Мурда сакталган апталарга да колдонуу</b><br />
-                                    Пландар аптадан аптага өтөт, ошондуктан бул белгиленбесе, жаңы план мурдатан бар мүчөлөргө таасир этпейт.
+                                    <b style={{ color: 'var(--text-primary)' }}>{t('Мурда сакталган апталарга да колдонуу')}</b><br />
+                                    {t('Пландар аптадан аптага өтөт, ошондуктан бул белгиленбесе, жаңы план мурдатан бар мүчөлөргө таасир этпейт.')}
                                     {applyExisting && (
                                         <span className="flex items-center gap-2 mt-2">
                                             <select value={applyFrom} onChange={e => setApplyFrom(Number(e.target.value))} className="px-2 py-1.5" style={inputStyle} onClick={e => e.stopPropagation()}>
                                                 {data.weeks.map(w => <option key={w.globalWeek} value={w.globalWeek}>{label(w.globalWeek)}</option>)}
                                             </select>
-                                            жана андан кийинки бардык апталар (жеке ыңгайлаштырылган пландар да алмашат)
+                                            
+                                            {t('жана андан кийинки бардык апталар (жеке ыңгайлаштырылган пландар да алмашат)')}
                                         </span>
                                     )}
                                 </span>
@@ -201,19 +205,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
                                 disabled={busy === 'targets'}
                                 onClick={() => run('targets', async () => {
                                     await saveSeasonSettings(roleTargets, cardTargets);
-                                    let msg = 'Пландар сакталды.';
+                                    let msg = t('Пландар сакталды.');
                                     if (applyExisting) {
                                         const r = await applyTargetsFromWeek(applyFrom, roleTargets, cardTargets);
-                                        msg += ` ${label(applyFrom)} жана андан кийин: ${r.metricRows} жеке жана ${r.activityRows} мини-карта жазуусу жаңырды.`;
+                                        msg += t(' {0} жана андан кийин: {1} жеке жана {2} мини-карта жазуусу жаңырды.', label(applyFrom), r.metricRows, r.activityRows);
                                     }
                                     onChanged();
                                     return msg;
                                 })}
                             >
-                                {busy === 'targets' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Пландарды сактоо
+                                {busy === 'targets' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} {t('Пландарды сактоо')}
                             </button>
                             <p className="text-[0.75rem] mt-3 flex items-start gap-1.5" style={{ color: 'var(--text-muted)' }}>
-                                <Target className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" /> Бир адамдын жеке планын өзгөртүү үчүн «Маалымат кошуу» терезесинде анын План талаасын түзөтүңүз.
+                                <Target className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />  {t('Бир адамдын жеке планын өзгөртүү үчүн «Маалымат кошуу» терезесинде анын План талаасын түзөтүңүз.')}
                             </p>
                         </>
                     )}
@@ -224,7 +228,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
                 <div className="px-4 sm:px-6 pb-6">
                     <div className="card card-pad">
                         <p className="text-[0.88rem] mb-4" style={{ color: 'var(--text-secondary)' }}>
-                            Бүт базанын (үйлөр, мүчөлөр, апталар, жыйынтыктар, пландар) толук көчүрмөсү бир JSON файл катары. Ар аптадан кийин сактап коюу сунушталат.
+                            
+                            {t('Бүт базанын (үйлөр, мүчөлөр, апталар, жыйынтыктар, пландар) толук көчүрмөсү бир JSON файл катары. Ар аптадан кийин сактап коюу сунушталат.')}
                         </p>
                         <button
                             className="btn btn-primary"
@@ -239,10 +244,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
                                 a.click();
                                 a.remove();
                                 setTimeout(() => URL.revokeObjectURL(url), 1000);
-                                return 'Камдык көчүрмө жүктөлдү — аны сактап коюңуз.';
+                                return t('Камдык көчүрмө жүктөлдү — аны сактап коюңуз.');
                             })}
                         >
-                            {busy === 'backup' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />} Камдык көчүрмөнү жүктөө
+                            {busy === 'backup' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />} {t('Камдык көчүрмөнү жүктөө')}
                         </button>
                     </div>
                 </div>

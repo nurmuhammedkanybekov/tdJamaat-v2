@@ -1,6 +1,7 @@
 import React from 'react';
 import { TABS } from './navigation';
 import type { ActiveView } from './navigation';
+import { t } from '../i18n';
 
 interface ViewNavigatorProps {
     activeView: ActiveView;
@@ -15,7 +16,7 @@ export const ViewNavigator: React.FC<ViewNavigatorProps> = ({ activeView, setAct
         <nav
             className="hidden md:block sticky top-0 z-30 page-gutter"
             style={{ backgroundColor: 'color-mix(in oklab, var(--page-plane) 90%, transparent)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}
-            aria-label="Бөлүмдөр"
+            aria-label={t('Бөлүмдөр')}
         >
             <div className="app-container flex justify-center gap-2 lg:gap-6" role="tablist">
                 {TABS.map(({ key, label, short }) => {
@@ -48,7 +49,7 @@ export const ViewNavigator: React.FC<ViewNavigatorProps> = ({ activeView, setAct
                 paddingBottom: 'env(safe-area-inset-bottom, 0px)',
                 paddingLeft: 'env(safe-area-inset-left, 0px)', paddingRight: 'env(safe-area-inset-right, 0px)'
             }}
-            aria-label="Бөлүмдөр"
+            aria-label={t('Бөлүмдөр')}
         >
             <div className="grid" style={{ gridTemplateColumns: `repeat(${TABS.length}, minmax(0, 1fr))` }} role="tablist">
                 {TABS.map(({ key, short, icon: Icon }) => {
@@ -64,7 +65,7 @@ export const ViewNavigator: React.FC<ViewNavigatorProps> = ({ activeView, setAct
                             style={{ color: active ? 'var(--gold)' : 'var(--text-muted)' }}
                         >
                             <Icon className="w-[1.2rem] h-[1.2rem]" strokeWidth={1.3} />
-                            <span className="text-[0.58rem] tracking-[0.14em] uppercase leading-none">{short}</span>
+                            <span className="text-[0.54rem] min-[360px]:text-[0.58rem] tracking-[0.02em] min-[360px]:tracking-[0.08em] min-[400px]:tracking-[0.14em] uppercase leading-none max-w-full truncate">{short}</span>
                         </button>
                     );
                 })}

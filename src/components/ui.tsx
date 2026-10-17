@@ -4,6 +4,7 @@ import { ArrowDown, ArrowUp, Minus, X } from 'lucide-react';
 import { useModal } from '../hooks/useModal';
 import { perfColor } from '../utils/style';
 import { Crown, Mark } from './Ornament';
+import { t } from '../i18n';
 
 /** ▲2 / ▼1 / — : places gained since last week. */
 export const Movement: React.FC<{ delta: number | null; size?: 'sm' | 'md'; onDark?: boolean }> = ({ delta, size = 'sm', onDark }) => {
@@ -11,7 +12,7 @@ export const Movement: React.FC<{ delta: number | null; size?: 'sm' | 'md'; onDa
     if (delta === null) return <span aria-hidden="true" style={{ width: '2.1em', display: 'inline-block' }} />;
     if (delta === 0) {
         return (
-            <span className="inline-flex items-center justify-center tabular" title="Орду өзгөргөн жок" aria-label="Орду өзгөргөн жок"
+            <span className="inline-flex items-center justify-center tabular" title={t('Орду өзгөргөн жок')} aria-label={t('Орду өзгөргөн жок')}
                 style={{ fontSize: fs, color: onDark ? 'var(--hero-muted)' : 'var(--text-muted)', minWidth: '2.1em' }}>
                 <Minus style={{ width: '0.9em', height: '0.9em' }} />
             </span>
@@ -19,7 +20,7 @@ export const Movement: React.FC<{ delta: number | null; size?: 'sm' | 'md'; onDa
     }
     const up = delta > 0;
     const color = up ? 'var(--success)' : 'var(--danger)';
-    const label = up ? `${delta} орунга көтөрүлдү` : `${-delta} орунга түштү`;
+    const label = up ? t('{0} орунга көтөрүлдү', delta) : t('{0} орунга түштү', -delta);
     return (
         <span className="inline-flex items-center gap-[1px] tabular" title={label} aria-label={label}
             style={{ fontSize: fs, color: onDark ? (up ? '#7fe0b4' : '#ff9d8f') : color, minWidth: '2.1em' }}>
@@ -39,7 +40,7 @@ export const Sparkline: React.FC<{ values: number[]; color?: string; width?: num
     const d = pts.map((p, i) => `${i ? 'L' : 'M'}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
     const last = pts[pts.length - 1];
     return (
-        <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} role="img" aria-label={label ?? 'Тренд'} style={{ overflow: 'visible', flexShrink: 0 }}>
+        <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} role="img" aria-label={label ?? t('Тренд')} style={{ overflow: 'visible', flexShrink: 0 }}>
             <path d={d} fill="none" stroke={color} strokeWidth={1} strokeLinejoin="round" strokeLinecap="round" />
             <circle cx={last[0]} cy={last[1]} r={1.8} fill={color} />
         </svg>
@@ -75,7 +76,8 @@ export const ChartTooltip: React.FC<{
     active?: boolean;
     payload?: Array<{ name?: string; value?: number | string; color?: string; dataKey?: string | number; payload?: Record<string, unknown> }>;
     label?: string | number;
-    unit?: string;
+    /** Text after each value, or a function of the value (e.g. a place suffix). */
+    unit?: string | ((value: number) => string);
 }> = ({ active, payload, label, unit }) => {
     if (!active || !payload?.length) return null;
     const rows = [...payload].filter(p => p.value !== null && p.value !== undefined).sort((a, b) => Number(b.value) - Number(a.value));
@@ -88,7 +90,7 @@ export const ChartTooltip: React.FC<{
                         <span className="inline-block w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: p.color }} />
                         <span className="truncate">{p.name}</span>
                     </span>
-                    <span className="font-display text-[1rem] tabular" style={{ color: 'var(--text-primary)' }}>{typeof p.value === 'number' ? Math.round(p.value * 10) / 10 : p.value}{unit ?? ''}</span>
+                    <span className="font-display text-[1rem] tabular" style={{ color: 'var(--text-primary)' }}>{typeof p.value === 'number' ? Math.round(p.value * 10) / 10 : p.value}{typeof unit === 'function' ? (typeof p.value === 'number' ? unit(p.value) : '') : unit ?? ''}</span>
                 </div>
             ))}
         </div>
@@ -126,7 +128,7 @@ export const Sheet: React.FC<{
                     <div className="relative flex-shrink-0 flex items-center gap-3 px-5 sm:px-7 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
                         <h2 className="font-display text-[1.35rem] sm:text-[1.6rem] leading-tight truncate flex-1 min-w-0" style={{ color: 'var(--text-primary)' }}>{title}</h2>
                         {headerExtra}
-                        <button onClick={onClose} aria-label="Жабуу" className="w-10 h-10 inline-flex items-center justify-center flex-shrink-0 -mr-2 transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}>
+                        <button onClick={onClose} aria-label={t('Жабуу')} className="w-10 h-10 inline-flex items-center justify-center flex-shrink-0 -mr-2 transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}>
                             <X className="w-5 h-5" strokeWidth={1.3} />
                         </button>
                     </div>
@@ -146,11 +148,11 @@ export const Sheet: React.FC<{
 
 /** Loading: the crown draws itself while data arrives. */
 export const LoadingScreen: React.FC = () => (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-6" style={{ backgroundColor: 'var(--page-plane)' }} aria-busy="true" aria-label="Жүктөлүүдө">
+    <div className="min-h-screen flex flex-col items-center justify-center gap-6" style={{ backgroundColor: 'var(--page-plane)' }} aria-busy="true" aria-label={t('Жүктөлүүдө')}>
         <Mark size={72} className="animate-fade-in" style={{ color: 'var(--gold)' }} />
         <Crown className="draw-in w-[min(16rem,64%)] h-auto -mt-2" style={{ color: 'var(--gold-dim)' }} />
         <div className="font-display text-[1.6rem]" style={{ color: 'var(--text-primary)' }}>tdJamaat</div>
-        <div className="eyebrow">Жүктөлүүдө</div>
+        <div className="eyebrow">{t('Жүктөлүүдө')}</div>
     </div>
 );
 

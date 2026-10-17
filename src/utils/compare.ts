@@ -5,6 +5,7 @@ import type { MetricValues } from '../types';
 import type { Award } from './badges';
 import type { HouseSeries, Insights, MemberSeries } from './insights';
 import { METRICS, seasonSummary, weekOf } from './insights';
+import { t } from '../i18n';
 
 export type CompareKind = 'person' | 'house';
 
@@ -54,13 +55,13 @@ export const personRows = (a: MemberSeries, b: MemberSeries, insights: Insights,
     const wa = weekOf(a.weeks, weekIndex), wb = weekOf(b.weeks, weekIndex);
     const medals = (id: string) => awards.filter(x => x.holderId === id).length;
     return [
-        { label: 'Ушул апта', a: wa?.submitted ? round1(wa.score) : null, b: wb?.submitted ? round1(wb.score) : null, format: 'score' },
-        { label: 'Аптадагы орун', a: wa?.rank ?? null, b: wb?.rank ?? null, format: 'rank', lowerBetter: true },
-        { label: 'Сезондогу орточо', a: sa.rank !== null ? sa.average : null, b: sb.rank !== null ? sb.average : null, format: 'score' },
-        { label: 'Сезондогу орун', a: sa.rank, b: sb.rank, format: 'rank', lowerBetter: true },
-        { label: 'Эң мыкты апта', a: sa.best ? round1(sa.best.score) : null, b: sb.best ? round1(sb.best.score) : null, format: 'score' },
-        { label: 'Толук план', a: sa.perfectWeeks, b: sb.perfectWeeks, format: 'count' },
-        { label: 'Медалдар', a: medals(a.id), b: medals(b.id), format: 'count' }
+        { label: t('Ушул апта'), a: wa?.submitted ? round1(wa.score) : null, b: wb?.submitted ? round1(wb.score) : null, format: 'score' },
+        { label: t('Аптадагы орун'), a: wa?.rank ?? null, b: wb?.rank ?? null, format: 'rank', lowerBetter: true },
+        { label: t('Сезондогу орточо'), a: sa.rank !== null ? sa.average : null, b: sb.rank !== null ? sb.average : null, format: 'score' },
+        { label: t('Сезондогу орун'), a: sa.rank, b: sb.rank, format: 'rank', lowerBetter: true },
+        { label: t('Эң мыкты апта'), a: sa.best ? round1(sa.best.score) : null, b: sb.best ? round1(sb.best.score) : null, format: 'score' },
+        { label: t('Толук план'), a: sa.perfectWeeks, b: sb.perfectWeeks, format: 'count' },
+        { label: t('Медалдар'), a: medals(a.id), b: medals(b.id), format: 'count' }
     ];
 };
 
@@ -83,15 +84,15 @@ export const houseRows = (a: HouseSeries, b: HouseSeries, insights: Insights, aw
     const best = (h: HouseSeries) => (counted(h).length ? round1(Math.max(...counted(h).map(w => w.avg))) : null);
     const medals = (id: string) => awards.filter(x => x.def.scope === 'house' && x.holderId === id).length;
     return [
-        { label: 'Ушул апта', a: wa?.submitted ? round1(wa.avg) : null, b: wb?.submitted ? round1(wb.avg) : null, format: 'score' },
-        { label: 'Аптадагы орун', a: wa?.rank ?? null, b: wb?.rank ?? null, format: 'rank', lowerBetter: true },
-        { label: 'Сезондогу орточо', a: seasonAvg(a, w => w.avg), b: seasonAvg(b, w => w.avg), format: 'score' },
-        { label: 'Сезондогу орун', a: ranks.get(a.id) ?? null, b: ranks.get(b.id) ?? null, format: 'rank', lowerBetter: true },
-        { label: 'Мүчөлөрдүн орточосу', a: seasonAvg(a, w => w.memberAvg), b: seasonAvg(b, w => w.memberAvg), format: 'score' },
-        { label: 'Мини-карта (орточо)', a: seasonAvg(a, w => w.cardBonus), b: seasonAvg(b, w => w.cardBonus), format: 'score' },
-        { label: 'Эң мыкты апта', a: best(a), b: best(b), format: 'score' },
-        { label: '1-орундагы апталар', a: a.weeks.filter(w => w.rank === 1).length, b: b.weeks.filter(w => w.rank === 1).length, format: 'count' },
-        { label: 'Медалдар', a: medals(a.id), b: medals(b.id), format: 'count' }
+        { label: t('Ушул апта'), a: wa?.submitted ? round1(wa.avg) : null, b: wb?.submitted ? round1(wb.avg) : null, format: 'score' },
+        { label: t('Аптадагы орун'), a: wa?.rank ?? null, b: wb?.rank ?? null, format: 'rank', lowerBetter: true },
+        { label: t('Сезондогу орточо'), a: seasonAvg(a, w => w.avg), b: seasonAvg(b, w => w.avg), format: 'score' },
+        { label: t('Сезондогу орун'), a: ranks.get(a.id) ?? null, b: ranks.get(b.id) ?? null, format: 'rank', lowerBetter: true },
+        { label: t('Мүчөлөрдүн орточосу'), a: seasonAvg(a, w => w.memberAvg), b: seasonAvg(b, w => w.memberAvg), format: 'score' },
+        { label: t('Мини-карта (орточо)'), a: seasonAvg(a, w => w.cardBonus), b: seasonAvg(b, w => w.cardBonus), format: 'score' },
+        { label: t('Эң мыкты апта'), a: best(a), b: best(b), format: 'score' },
+        { label: t('1-орундагы апталар'), a: a.weeks.filter(w => w.rank === 1).length, b: b.weeks.filter(w => w.rank === 1).length, format: 'count' },
+        { label: t('Медалдар'), a: medals(a.id), b: medals(b.id), format: 'count' }
     ];
 };
 

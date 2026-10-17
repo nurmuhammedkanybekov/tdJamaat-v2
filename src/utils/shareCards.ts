@@ -9,6 +9,8 @@ import type { Insights, MemberSeries, SeasonSummary } from './insights';
 import { METRICS, ROLE_LABEL, movement, weekOf } from './insights';
 import type { Award } from './badges';
 import { HORN_PATHS } from './ornament';
+import { placeSuffix, t } from '../i18n';
+import { metricLabel } from './metrics';
 
 export type CardTheme = 'dark' | 'light';
 export const CARD_W = 1080, CARD_H = 1350;
@@ -29,7 +31,7 @@ const fmt = (n: number) => (Math.round(n * 10) / 10).toString();
 
 const loadFonts = () => Promise.all([
     document.fonts.load(`400 80px "Oranienbaum"`, '0123456789.tdJamaat'),
-    document.fonts.load(`400 80px "Prata"`, 'Үйлөр Аптанын жылдызы'),
+    document.fonts.load(`400 80px "Prata"`, t('Үйлөр Аптанын жылдызы')),
     document.fonts.load(`400 30px "Spectral"`),
     document.fonts.load(`italic 400 30px "Spectral"`)
 ]).catch(() => undefined);
@@ -145,18 +147,18 @@ export async function drawWeekCard(canvas: HTMLCanvasElement, theme: CardTheme, 
     const lead = houses.find(x => x.w!.rank === 1);
 
     ctx.fillStyle = p.gold; ctx.font = `400 22px ${TEXT}`;
-    spaced(ctx, `${week.weekNumber}-АПТА · АПТАНЫН ҮЙҮ`, CARD_W / 2, 280, 6, 'center');
+    spaced(ctx, t('{0}-АПТА · АПТАНЫН ҮЙҮ', week.weekNumber), CARD_W / 2, 280, 6, 'center');
     ctx.textAlign = 'center';
     ctx.fillStyle = p.ink; ctx.font = `400 74px ${DISPLAY}`;
     ctx.fillText(lead ? fit(ctx, lead.h.name, CARD_W - 240) : '—', CARD_W / 2, 370);
     ctx.fillStyle = p.gold; ctx.font = `400 168px ${DISPLAY}`;
     ctx.fillText(lead ? fmt(lead.w!.avg) : '—', CARD_W / 2, 525);
     ctx.fillStyle = p.muted; ctx.font = `italic 400 24px ${TEXT}`;
-    ctx.fillText('үй рейтинги', CARD_W / 2, 570);
+    ctx.fillText(t('үй рейтинги'), CARD_W / 2, 570);
 
     let y = 650;
     ctx.fillStyle = p.goldDim; ctx.font = `400 18px ${TEXT}`;
-    spaced(ctx, 'ҮЙЛӨР', CARD_W / 2, y, 8, 'center');
+    spaced(ctx, t('ҮЙЛӨР'), CARD_W / 2, y, 8, 'center');
     y += 46;
     const rowH = Math.min(42, 260 / Math.max(1, houses.length));
     houses.forEach(({ h, w }) => {
@@ -173,7 +175,7 @@ export async function drawWeekCard(canvas: HTMLCanvasElement, theme: CardTheme, 
     if (top.length) {
         y += 26;
         ctx.fillStyle = p.goldDim; ctx.font = `400 18px ${TEXT}`;
-        spaced(ctx, 'АПТАНЫН ҮЧ МЫКТЫСЫ', CARD_W / 2, y, 8, 'center');
+        spaced(ctx, t('АПТАНЫН ҮЧ МЫКТЫСЫ'), CARD_W / 2, y, 8, 'center');
         const colW = (CARD_W - 240) / 3;
         top.forEach(({ m, w }, i) => {
             const cx = 120 + colW * i + colW / 2, cy = y + 66;
@@ -198,7 +200,7 @@ export async function drawPersonWeekCard(canvas: HTMLCanvasElement, theme: CardT
     const w = weekOf(series.weeks, weekIndex) ?? series.weeks[series.weeks.length - 1];
 
     ctx.fillStyle = p.gold; ctx.font = `400 22px ${TEXT}`;
-    spaced(ctx, `${w.weekNumber}-АПТА · ${w.houseName.toUpperCase()}`, CARD_W / 2, 278, 6, 'center');
+    spaced(ctx, t('{0}-АПТА · {1}', w.weekNumber, w.houseName.toUpperCase()), CARD_W / 2, 278, 6, 'center');
     ctx.textAlign = 'center';
     ctx.fillStyle = p.ink; ctx.font = `400 76px ${DISPLAY}`;
     ctx.fillText(fit(ctx, series.name, CARD_W - 220), CARD_W / 2, 368);
@@ -207,18 +209,18 @@ export async function drawPersonWeekCard(canvas: HTMLCanvasElement, theme: CardT
     ctx.fillStyle = p.gold; ctx.font = `400 150px ${DISPLAY}`;
     ctx.fillText(w.submitted ? fmt(w.score) : '—', CARD_W / 2, 556);
     const mv = movement(series.weeks, w.weekIndex);
-    const place = w.excused ? 'себептүү (ооруп / сапарда)' : w.rank ? `${w.rank}-орун · ${peopleCount} адамдан` : 'маалымат жок';
+    const place = w.excused ? t('себептүү (ооруп / сапарда)') : w.rank ? t('{0}-орун · {1} адамдан', w.rank, peopleCount) : t('маалымат жок');
     const arrow = mv === null || mv === 0 ? '' : mv > 0 ? `   ▲ ${mv}` : `   ▼ ${-mv}`;
     ctx.fillStyle = p.muted; ctx.font = `400 26px ${TEXT}`;
     ctx.fillText(place + arrow, CARD_W / 2, 602);
 
     let y = 690;
     ctx.fillStyle = p.goldDim; ctx.font = `400 18px ${TEXT}`;
-    spaced(ctx, 'ПЛАНГА КАРАТА', CARD_W / 2, y, 8, 'center');
+    spaced(ctx, t('ПЛАНГА КАРАТА'), CARD_W / 2, y, 8, 'center');
     y += 48;
     METRICS.forEach(m => {
         const pct = Math.round(w.pct[m]);
-        leaderRow(ctx, p, y, { text: m }, `${w.member.actual[m]} / ${w.member.target[m]}   ${pct}%`, pct >= 100);
+        leaderRow(ctx, p, y, { text: metricLabel(m) }, `${w.member.actual[m]} / ${w.member.target[m]}   ${pct}%`, pct >= 100);
         y += 44;
     });
 
@@ -227,7 +229,7 @@ export async function drawPersonWeekCard(canvas: HTMLCanvasElement, theme: CardT
         y += 18;
         ctx.textAlign = 'center';
         ctx.fillStyle = p.gold; ctx.font = `italic 400 26px ${TEXT}`;
-        ctx.fillText(fit(ctx, `Сыйлыктар: ${mine.join(' · ')}`, CARD_W - 240), CARD_W / 2, y);
+        ctx.fillText(fit(ctx, t('Сыйлыктар: {0}', mine.join(' · ')), CARD_W - 240), CARD_W / 2, y);
     }
     footer(ctx, p);
 }
@@ -235,36 +237,36 @@ export async function drawPersonWeekCard(canvas: HTMLCanvasElement, theme: CardT
 export async function drawSeasonCard(canvas: HTMLCanvasElement, theme: CardTheme, series: MemberSeries, summary: SeasonSummary, awards: Award[], seasonName: string, finished: boolean) {
     const { ctx, p } = await prepare(canvas, theme);
     ctx.fillStyle = p.gold; ctx.font = `400 22px ${TEXT}`;
-    spaced(ctx, `СЕЗОН ${seasonName} · ${finished ? 'ЖЫЙЫНТЫК' : 'АЗЫРЫНЧА'}`, CARD_W / 2, 278, 6, 'center');
+    spaced(ctx, t('СЕЗОН {0} · {1}', seasonName, finished ? t('ЖЫЙЫНТЫК') : t('АЗЫРЫНЧА')), CARD_W / 2, 278, 6, 'center');
     ctx.textAlign = 'center';
     ctx.fillStyle = p.ink; ctx.font = `400 78px ${DISPLAY}`;
     ctx.fillText(fit(ctx, series.name, CARD_W - 220), CARD_W / 2, 370);
     ctx.fillStyle = p.muted; ctx.font = `italic 400 24px ${TEXT}`;
     ctx.fillText(`${series.houseName} · ${ROLE_LABEL[series.role].toLowerCase()}`, CARD_W / 2, 410);
 
-    // "2-орун" as one unit: big gold numeral, smaller "-орун" beside it.
+    // "2-орун" ("2nd") as one unit: big gold numeral, smaller suffix beside it.
     const num = summary.rank ? String(summary.rank) : '—';
     ctx.font = `400 160px ${DISPLAY}`;
     const numW = ctx.measureText(num).width;
     ctx.font = `400 64px ${DISPLAY}`;
-    const sufW = summary.rank ? ctx.measureText('-орун').width : 0;
+    const sufW = summary.rank ? ctx.measureText(placeSuffix(summary.rank)).width : 0;
     const startX = CARD_W / 2 - (numW + sufW) / 2;
     ctx.textAlign = 'left';
     ctx.fillStyle = p.gold; ctx.font = `400 160px ${DISPLAY}`;
     ctx.fillText(num, startX, 570);
-    if (summary.rank) { ctx.fillStyle = p.muted; ctx.font = `400 64px ${DISPLAY}`; ctx.fillText('-орун', startX + numW, 570); }
+    if (summary.rank) { ctx.fillStyle = p.muted; ctx.font = `400 64px ${DISPLAY}`; ctx.fillText(placeSuffix(summary.rank), startX + numW, 570); }
     ctx.textAlign = 'center';
     ctx.fillStyle = p.muted; ctx.font = `italic 400 25px ${TEXT}`;
-    ctx.fillText(summary.rank ? `${summary.of} адамдын ичинен · сезондогу орточо упай боюнча` : 'сезондо маалымат жок', CARD_W / 2, 616);
+    ctx.fillText(summary.rank ? t('{0} адамдын ичинен · сезондогу орточо упай боюнча', summary.of) : t('сезондо маалымат жок'), CARD_W / 2, 616);
 
     // 2 × 3 grid of figures with hairlines
     const cells: Array<[string, string]> = [
-        ['Орточо упай', fmt(summary.average)],
-        ['Эң мыкты апта', summary.best ? `${fmt(summary.best.score)}` : '—'],
-        ['Активдүү апта', `${summary.weeksActive} / ${summary.weeksTotal}`],
-        ['Толук план', `${summary.perfectWeeks}`],
-        ['Өсүш', summary.growth === null ? '—' : `${summary.growth > 0 ? '+' : ''}${fmt(summary.growth)}`],
-        ['Сыйлыктар', `${awards.length}`]
+        [t('Орточо упай'), fmt(summary.average)],
+        [t('Эң мыкты апта'), summary.best ? `${fmt(summary.best.score)}` : '—'],
+        [t('Активдүү апта'), `${summary.weeksActive} / ${summary.weeksTotal}`],
+        [t('Толук план'), `${summary.perfectWeeks}`],
+        [t('Өсүш'), summary.growth === null ? '—' : `${summary.growth > 0 ? '+' : ''}${fmt(summary.growth)}`],
+        [t('Сыйлыктар'), `${awards.length}`]
     ];
     const top = 680, cw = (CARD_W - 300) / 2, ch = 128;
     ctx.strokeStyle = p.line; ctx.lineWidth = 1;
@@ -284,7 +286,7 @@ export async function drawSeasonCard(canvas: HTMLCanvasElement, theme: CardTheme
     if (summary.best) {
         ctx.textAlign = 'center';
         ctx.fillStyle = p.muted; ctx.font = `italic 400 23px ${TEXT}`;
-        ctx.fillText(`эң мыкты апта — ${summary.best.weekNumber}-апта`, CARD_W / 2, top + 3 * ch + 44);
+        ctx.fillText(t('эң мыкты апта — {0}-апта', summary.best.weekNumber), CARD_W / 2, top + 3 * ch + 44);
     }
     const names = [...new Set(awards.map(a => a.def.name))];
     if (names.length) {

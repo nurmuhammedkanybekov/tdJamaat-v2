@@ -1,6 +1,7 @@
 // Season helpers. The database numbers weeks continuously across seasons;
 // people see each season starting again at "1-апта".
 import type { DataFile, Season } from '../types';
+import { t } from '../i18n';
 
 export const runningSeason = (seasons: Season[]): Season | undefined => seasons.find(s => s.lastWeek === null);
 
@@ -27,11 +28,11 @@ export const weekLabel = (data: DataFile, globalWeek: number): string => {
     const running = runningSeason(data.seasons);
     if (w) {
         const season = data.seasons.find(s => s.id === w.seasonId);
-        return season && running && season.id !== running.id ? `${season.name} · ${w.seasonWeek}-апта` : `${w.seasonWeek}-апта`;
+        return season && running && season.id !== running.id ? t('{0} · {1}-апта', season.name, w.seasonWeek) : t('{0}-апта', w.seasonWeek);
     }
     // A week not opened yet (e.g. the next one) belongs to the running season.
-    if (running && globalWeek >= running.firstWeek) return `${globalWeek - running.firstWeek + 1}-апта`;
-    return `${globalWeek}-апта`;
+    if (running && globalWeek >= running.firstWeek) return t('{0}-апта', globalWeek - running.firstWeek + 1);
+    return t('{0}-апта', globalWeek);
 };
 
 /** First database week of the season a week belongs to (for carrying targets forward within a season). */

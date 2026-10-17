@@ -1,6 +1,7 @@
 import React, { useId } from 'react';
 import type { BadgeIcon, Tier } from '../utils/badges';
 import { HORN_PATHS } from '../utils/ornament';
+import { t } from '../i18n';
 
 // An award, drawn like a struck medal: a reeded edge, the badge's name
 // engraved around the rim, and an emblem built from Kyrgyz ornament at the
@@ -141,7 +142,7 @@ export const BadgeMedal: React.FC<BadgeMedalProps> = ({ icon, tier, size = 64, c
             {engrave && (
                 <g fill="currentColor" fontFamily="Spectral, Georgia, serif" fontSize="7" letterSpacing="1.6">
                     <text><textPath href={`#t${uid}`} startOffset="50%" textAnchor="middle">{label!.toUpperCase()}</textPath></text>
-                    <text fontSize="6.2" letterSpacing="2"><textPath href={`#b${uid}`} startOffset="50%" textAnchor="middle">{count && count > 1 ? `${count} ЖОЛУ` : '· TDJAMAAT ·'}</textPath></text>
+                    <text fontSize="6.2" letterSpacing="2"><textPath href={`#b${uid}`} startOffset="50%" textAnchor="middle">{count && count > 1 ? t('{0} ЖОЛУ', count) : '· TDJAMAAT ·'}</textPath></text>
                     <path d="M20 60 h3 M97 60 h3" stroke="currentColor" strokeWidth={0.8} />
                 </g>
             )}

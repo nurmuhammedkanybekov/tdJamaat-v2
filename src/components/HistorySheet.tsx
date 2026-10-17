@@ -1,11 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { AlertCircle, ArrowRight, Loader2, PlusCircle, ShieldCheck, Home, Pencil } from 'lucide-react';
-import type { DataFile } from '../types';
+import type { DataFile, MetricValues, MiniCard } from '../types';
 import type { AuthUser } from '../services/authService';
 import type { AuditEntry } from '../services/dataService';
 import { fetchAuditLog } from '../services/dataService';
 import { Sheet } from './ui';
 import { weekLabel } from '../utils/seasons';
+import { isEnglish, t } from '../i18n';
+import { cardLabel, metricLabel } from '../utils/metrics';
 
 interface HistorySheetProps {
     authUser: AuthUser;
@@ -34,12 +36,12 @@ const describe = (e: AuditEntry): { actual: Change[]; target: Change[] } => {
     return { actual: diff(flat(e.oldData, 'actual'), flat(e.newData, 'actual')), target: diff(flat(e.oldData, 'target'), flat(e.newData, 'target')) };
 };
 
-// Kyrgyz dates written out by hand — not every browser ships Kyrgyz locale data.
-const MONTHS = ['январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'];
-const WEEKDAYS = ['жекшемби', 'дүйшөмбү', 'шейшемби', 'шаршемби', 'бейшемби', 'жума', 'ишемби'];
+// Dates written out by hand — not every browser ships Kyrgyz locale data.
+const MONTHS = [t('январь'), t('февраль'), t('март'), t('апрель'), t('май'), t('июнь'), t('июль'), t('август'), t('сентябрь'), t('октябрь'), t('ноябрь'), t('декабрь')];
+const WEEKDAYS = [t('жекшемби'), t('дүйшөмбү'), t('шейшемби'), t('шаршемби'), t('бейшемби'), t('жума'), t('ишемби')];
 const dayLabel = (iso: string) => {
     const d = new Date(iso);
-    return `${d.getDate()}-${MONTHS[d.getMonth()]}, ${WEEKDAYS[d.getDay()]}`;
+    return isEnglish() ? `${WEEKDAYS[d.getDay()]}, ${d.getDate()} ${MONTHS[d.getMonth()]}` : `${d.getDate()}-${MONTHS[d.getMonth()]}, ${WEEKDAYS[d.getDay()]}`;
 };
 const timeLabel = (iso: string) => {
     const d = new Date(iso);
@@ -55,7 +57,7 @@ export const HistorySheet: React.FC<HistorySheetProps> = ({ authUser, data, onCl
     // Names for ids, from every week (so people who left still have a name).
     const { memberName, houseName, houses } = useMemo(() => {
         const m = new Map<string, string>(), h = new Map<string, string>();
-        data.weeks.forEach(w => w.teams.forEach(t => { h.set(t.id, t.name); t.members.forEach(x => m.set(x.id, x.name)); }));
+        data.weeks.forEach(w => w.teams.forEach(it => { h.set(it.id, it.name); it.members.forEach(x => m.set(x.id, x.name)); }));
         return { memberName: m, houseName: h, houses: [...h.entries()] };
     }, [data]);
 
@@ -74,15 +76,15 @@ export const HistorySheet: React.FC<HistorySheetProps> = ({ authUser, data, onCl
     });
 
     return (
-        <Sheet title="Өзгөртүүлөр тарыхы" onClose={onClose} width="46rem">
+        <Sheet title={t('Өзгөртүүлөр тарыхы')} onClose={onClose} width="46rem">
             <div className="px-4 sm:px-6 py-5">
                 <p className="text-[0.84rem] mb-4" style={{ color: 'var(--text-muted)' }}>
-                    {isAdmin ? 'Бардык үйлөрдүн ар бир сакталышы: ким, качан, эмнени өзгөрттү.' : 'Сиздин үйүңүздүн ар бир сакталышы: качан жана эмне өзгөрдү.'}
+                    {isAdmin ? t('Бардык үйлөрдүн ар бир сакталышы: ким, качан, эмнени өзгөрттү.') : t('Сиздин үйүңүздүн ар бир сакталышы: качан жана эмне өзгөрдү.')}
                 </p>
 
                 {isAdmin && houses.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 mb-5">
-                        <button className="chip" aria-pressed={houseFilter === 'all'} onClick={() => setHouseFilter('all')}>Бардыгы</button>
+                        <button className="chip" aria-pressed={houseFilter === 'all'} onClick={() => setHouseFilter('all')}>{t('Бардыгы')}</button>
                         {houses.map(([id, name]) => <button key={id} className="chip" aria-pressed={houseFilter === id} onClick={() => setHouseFilter(id)}>{name}</button>)}
                     </div>
                 )}
@@ -94,10 +96,10 @@ export const HistorySheet: React.FC<HistorySheetProps> = ({ authUser, data, onCl
                     </div>
                 )}
                 {!error && entries === null && (
-                    <div className="flex items-center justify-center gap-2 py-12" style={{ color: 'var(--text-muted)' }}><Loader2 className="w-5 h-5 animate-spin" /> Жүктөлүүдө…</div>
+                    <div className="flex items-center justify-center gap-2 py-12" style={{ color: 'var(--text-muted)' }}><Loader2 className="w-5 h-5 animate-spin" />  {t('Жүктөлүүдө…')}</div>
                 )}
                 {!error && entries && shown.length === 0 && (
-                    <p className="text-center py-12 font-display text-[1.25rem]" style={{ color: 'var(--text-muted)' }}>Азырынча өзгөртүү жок.</p>
+                    <p className="text-center py-12 font-display text-[1.25rem]" style={{ color: 'var(--text-muted)' }}>{t('Азырынча өзгөртүү жок.')}</p>
                 )}
 
                 <div className="space-y-6">
@@ -110,9 +112,9 @@ export const HistorySheet: React.FC<HistorySheetProps> = ({ authUser, data, onCl
                                     // Excused flag (supabase/excused-weeks-2026-10.sql): show when it was set or removed.
                                     const wasExcused = e.oldData?.excused === true, isExcused = e.newData?.excused === true;
                                     const excusedChange = e.tableName === 'weekly_metrics' && wasExcused !== isExcused ? (isExcused ? 'on' : 'off') : null;
-                                    const subject = e.tableName === 'weekly_metrics' ? memberName.get(e.memberId ?? '') ?? 'Белгисиз мүчө' : 'Мини-карта';
+                                    const subject = e.tableName === 'weekly_metrics' ? memberName.get(e.memberId ?? '') ?? t('Белгисиз мүчө') : t('Мини-карта');
                                     const actorIsAdmin = e.actorRole === 'admin';
-                                    const actor = actorIsAdmin ? 'Админ' : e.actorHouseId ? houseName.get(e.actorHouseId) ?? 'Үй жетекчиси' : 'База';
+                                    const actor = actorIsAdmin ? t('Админ') : e.actorHouseId ? houseName.get(e.actorHouseId) ?? t('Үй жетекчиси') : t('База');
                                     return (
                                         <li key={e.id} className="px-4 py-3" style={{ borderTop: i ? '1px solid var(--border)' : undefined }}>
                                             <div className="flex items-start gap-3">
@@ -128,12 +130,12 @@ export const HistorySheet: React.FC<HistorySheetProps> = ({ authUser, data, onCl
                                                         <span>{weekLabel(data, e.weekNumber)}</span>·
                                                         {e.tableName === 'house_activity' && <><span>{houseName.get(e.houseId ?? '') ?? ''}</span>·</>}
                                                         <span className="inline-flex items-center gap-1">{actorIsAdmin ? <ShieldCheck className="w-3 h-3" /> : <Home className="w-3 h-3" />}{actor}</span>·
-                                                        <span>{e.action === 'INSERT' ? 'биринчи жолу киргизилди' : e.action === 'DELETE' ? 'өчүрүлдү' : 'өзгөртүлдү'}</span>
+                                                        <span>{e.action === 'INSERT' ? t('биринчи жолу киргизилди') : e.action === 'DELETE' ? t('өчүрүлдү') : t('өзгөртүлдү')}</span>
                                                     </div>
                                                     {excusedChange && (
                                                         <div className="mt-2">
                                                             <span className="inline-flex items-center text-[0.76rem] px-2 py-0.5 rounded-full" style={{ border: '1px solid var(--gold)', color: 'var(--gold)' }}>
-                                                                {excusedChange === 'on' ? 'Себептүү деп белгиленди (ооруп / сапарда)' : 'Себептүү алынып салынды'}
+                                                                {excusedChange === 'on' ? t('Себептүү деп белгиленди (ооруп / сапарда)') : t('Себептүү алынып салынды')}
                                                             </span>
                                                         </div>
                                                     )}
@@ -141,12 +143,12 @@ export const HistorySheet: React.FC<HistorySheetProps> = ({ authUser, data, onCl
                                                         <div className="flex flex-wrap gap-1.5 mt-2">
                                                             {actual.map(c => (
                                                                 <span key={`a${c.key}`} className="inline-flex items-center gap-1 text-[0.76rem] px-2 py-0.5 rounded-full tabular" style={{ backgroundColor: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
-                                                                    <b style={{ color: 'var(--text-primary)' }}>{c.key}</b> {c.from ?? '—'} <ArrowRight className="w-3 h-3" /> <b style={{ color: (c.to ?? 0) > (c.from ?? 0) ? 'var(--success)' : 'var(--danger)' }}>{c.to ?? '—'}</b>
+                                                                    <b style={{ color: 'var(--text-primary)' }}>{e.tableName === 'house_activity' ? cardLabel(c.key as keyof MiniCard) : metricLabel(c.key as keyof MetricValues)}</b> {c.from ?? '—'} <ArrowRight className="w-3 h-3" /> <b style={{ color: (c.to ?? 0) > (c.from ?? 0) ? 'var(--success)' : 'var(--danger)' }}>{c.to ?? '—'}</b>
                                                                 </span>
                                                             ))}
                                                             {target.map(c => (
                                                                 <span key={`t${c.key}`} className="inline-flex items-center gap-1 text-[0.76rem] px-2 py-0.5 rounded-full tabular" style={{ border: '1px dashed var(--border-strong)', color: 'var(--text-muted)' }}>
-                                                                    План {c.key}: {c.from ?? '—'} <ArrowRight className="w-3 h-3" /> {c.to ?? '—'}
+                                                                    {t('План {0}:', e.tableName === 'house_activity' ? cardLabel(c.key as keyof MiniCard) : metricLabel(c.key as keyof MetricValues))} {c.from ?? '—'} <ArrowRight className="w-3 h-3" /> {c.to ?? '—'}
                                                                 </span>
                                                             ))}
                                                         </div>

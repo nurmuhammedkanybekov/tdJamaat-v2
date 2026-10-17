@@ -8,6 +8,7 @@ import { houseWeekRating, reportRows } from '../../utils/reports';
 import type { Trend } from '../../utils/reports';
 import { ChartTooltip, SectionHeader } from '../ui';
 import { axisTick, scoreDomain } from '../../utils/style';
+import { t } from '../../i18n';
 
 interface ReportsViewProps {
     data: DataFile;
@@ -20,9 +21,9 @@ const pad2 = (n: number) => String(n).padStart(2, '0');
 const TOTAL_FROM_WEEK = 5;
 
 const TREND: Record<Trend, { label: string; icon: React.ComponentType<{ className?: string }>; color: string }> = {
-    up: { label: 'Өсүш', icon: TrendingUp, color: 'var(--success)' },
-    down: { label: 'Төмөндөш', icon: TrendingDown, color: 'var(--danger)' },
-    stable: { label: 'Туруктуу', icon: Minus, color: 'var(--accent)' }
+    up: { label: t('Өсүш'), icon: TrendingUp, color: 'var(--success)' },
+    down: { label: t('Төмөндөш'), icon: TrendingDown, color: 'var(--danger)' },
+    stable: { label: t('Туруктуу'), icon: Minus, color: 'var(--accent)' }
 };
 
 export const ReportsView: React.FC<ReportsViewProps> = ({ data, selectedPeriod, setSelectedPeriod }) => {
@@ -30,7 +31,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ data, selectedPeriod, 
     return (
         <div className="space-y-6">
             <div className="flex w-full sm:inline-flex sm:w-auto p-1 rounded-full" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }} role="tablist">
-                {([['period', '4-апталык отчёт'], ['total', 'Жалпы рейтинг']] as const).map(([k, label]) => (
+                {([['period', t('4-апталык отчёт')], ['total', t('Жалпы рейтинг')]] as const).map(([k, label]) => (
                     <button key={k} role="tab" aria-selected={mode === k} onClick={() => setMode(k)} className={`chip flex-1 sm:flex-none justify-center whitespace-nowrap ${mode === k ? 'is-active' : ''}`} style={{ border: 'none', padding: '0.5rem 0.6rem', letterSpacing: '0.12em' }}>{label}</button>
                 ))}
             </div>
@@ -52,31 +53,31 @@ const PeriodReport: React.FC<ReportsViewProps> = ({ data, selectedPeriod, setSel
 
     const rising = rows.filter(r => r.trend === 'up').sort((a, b) => (b.change ?? 0) - (a.change ?? 0))[0];
     const chartData = weeks.map(w => {
-        const p: Record<string, number | string | null> = { week: `${w.weekNumber}-апта` };
-        w.teams.forEach(t => { p[t.id] = houseWeekRating(w, t.id); });
+        const p: Record<string, number | string | null> = { week: t('{0}-апта', w.weekNumber) };
+        w.teams.forEach(it => { p[it.id] = houseWeekRating(w, it.id); });
         return p;
     });
 
     return (
         <div className="space-y-6 sm:space-y-8">
             <div className="card px-4 sm:px-5 py-3 flex items-center justify-between gap-3">
-                <button className="btn btn-ghost btn-icon rounded-full" onClick={() => setSelectedPeriod(Math.max(0, period - 1))} disabled={period === 0} aria-label="Мурунку мезгил" style={{ opacity: period === 0 ? 0.35 : 1 }}>
+                <button className="btn btn-ghost btn-icon rounded-full" onClick={() => setSelectedPeriod(Math.max(0, period - 1))} disabled={period === 0} aria-label={t('Мурунку мезгил')} style={{ opacity: period === 0 ? 0.35 : 1 }}>
                     <ChevronLeft className="w-5 h-5" />
                 </button>
                 <div className="text-center">
-                    <div className="eyebrow">{period + 1}-мезгил / {totalPeriods}</div>
-                    <div className="font-display font-bold text-[1.6rem] tabular" style={{ color: 'var(--text-primary)' }}>{first}–{last}-апталар</div>
+                    <div className="eyebrow">{t('{0}-мезгил / {1}', period + 1, totalPeriods)}</div>
+                    <div className="font-display font-bold text-[1.6rem] tabular" style={{ color: 'var(--text-primary)' }}>{t('{0}–{1}-апталар', first, last)}</div>
                 </div>
-                <button className="btn btn-ghost btn-icon rounded-full" onClick={() => setSelectedPeriod(Math.min(totalPeriods - 1, period + 1))} disabled={period >= totalPeriods - 1} aria-label="Кийинки мезгил" style={{ opacity: period >= totalPeriods - 1 ? 0.35 : 1 }}>
+                <button className="btn btn-ghost btn-icon rounded-full" onClick={() => setSelectedPeriod(Math.min(totalPeriods - 1, period + 1))} disabled={period >= totalPeriods - 1} aria-label={t('Кийинки мезгил')} style={{ opacity: period >= totalPeriods - 1 ? 0.35 : 1 }}>
                     <ChevronRight className="w-5 h-5" />
                 </button>
             </div>
 
             <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-3 stagger">
                 {[
-                    { label: 'Эң мыкты үй', value: rows[0]?.name ?? '—', sub: rows[0] ? `Рейтинг: ${rows[0].average}` : '' },
-                    { label: 'Эң тез өсүү', value: rising?.name ?? '—', sub: rising ? `${rising.scores[0]} → ${rising.scores.at(-1)}` : 'Өсүш тенденциясы жок' },
-                    { label: 'Мезгил', value: `${weeks.length} апта`, sub: `${rows.length} үй катышты` }
+                    { label: t('Эң мыкты үй'), value: rows[0]?.name ?? '—', sub: rows[0] ? t('Рейтинг: {0}', rows[0].average) : '' },
+                    { label: t('Эң тез өсүү'), value: rising?.name ?? '—', sub: rising ? `${rising.scores[0]} → ${rising.scores.at(-1)}` : t('Өсүш тенденциясы жок') },
+                    { label: t('Мезгил'), value: t('{0} апта', weeks.length), sub: t('{0} үй катышты', rows.length) }
                 ].map(s => (
                     <div key={s.label} className="card card-pad">
                         <div className="eyebrow">{s.label}</div>
@@ -87,18 +88,18 @@ const PeriodReport: React.FC<ReportsViewProps> = ({ data, selectedPeriod, setSel
             </div>
 
             <section className="card overflow-hidden">
-                <div className="card-pad pb-0 sm:pb-0"><SectionHeader eyebrow="Үй рейтинги боюнча" title="Мезгилдин рейтинги" /></div>
+                <div className="card-pad pb-0 sm:pb-0"><SectionHeader eyebrow={t('Үй рейтинги боюнча')} title={t('Мезгилдин рейтинги')} /></div>
                 <div className="overflow-x-auto">
                     <table className="data-table">
                         <thead>
                             <tr>
                                 <th style={{ paddingLeft: '1.25rem' }}>#</th>
-                                <th>Үй</th>
-                                {weeks.map(w => <th key={w.weekNumber} className="hidden md:table-cell" style={{ textAlign: 'center' }}>{w.weekNumber}-апта</th>)}
-                                <th style={{ textAlign: 'right' }}>Рейтинг</th>
-                                <th className="hidden sm:table-cell" style={{ textAlign: 'right' }}>Эң жакшы</th>
-                                <th className="hidden sm:table-cell" style={{ textAlign: 'right' }}>Эң начар</th>
-                                <th style={{ textAlign: 'right', paddingRight: '1.25rem' }} title="Мезгилдин акыркы эсептелген аптасы биринчисине салыштырмалуу">Мезгил ичинде</th>
+                                <th>{t('Үй')}</th>
+                                {weeks.map(w => <th key={w.weekNumber} className="hidden md:table-cell" style={{ textAlign: 'center' }}>{t('{0}-апта', w.weekNumber)}</th>)}
+                                <th style={{ textAlign: 'right' }}>{t('Рейтинг')}</th>
+                                <th className="hidden sm:table-cell" style={{ textAlign: 'right' }}>{t('Эң жакшы')}</th>
+                                <th className="hidden sm:table-cell" style={{ textAlign: 'right' }}>{t('Эң начар')}</th>
+                                <th style={{ textAlign: 'right', paddingRight: '1.25rem' }} title={t('Мезгилдин акыркы эсептелген аптасы биринчисине салыштырмалуу')}>{t('Мезгил ичинде')}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -129,7 +130,7 @@ const PeriodReport: React.FC<ReportsViewProps> = ({ data, selectedPeriod, setSel
 
             {weeks.length > 1 && (
                 <section className="card card-pad">
-                    <SectionHeader title={`${first}–${last}-апталар боюнча график`} />
+                    <SectionHeader title={t('{0}–{1}-апталар боюнча график', first, last)} />
                     <div className="-ml-3 sm:ml-0">
                         <ResponsiveContainer width="100%" height={isPhone ? 260 : 340}>
                             <LineChart data={chartData} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
@@ -152,22 +153,22 @@ const PeriodReport: React.FC<ReportsViewProps> = ({ data, selectedPeriod, setSel
 const TotalReport: React.FC<{ data: DataFile }> = ({ data }) => {
     const relevant = data.weeks.filter(w => w.weekNumber >= TOTAL_FROM_WEEK);
     const teams = data.weeks[0]?.teams ?? [];
-    const rows = teams.map((t, colorIndex) => {
-        const scores = relevant.map(w => houseWeekRating(w, t.id)).filter((x): x is number => x !== null);
+    const rows = teams.map((it, colorIndex) => {
+        const scores = relevant.map(w => houseWeekRating(w, it.id)).filter((x): x is number => x !== null);
         const total = round1(scores.reduce((a, b) => a + b, 0));
-        return { id: t.id, name: t.name, colorIndex, weeks: scores.length, total, average: scores.length ? round1(total / scores.length) : 0 };
+        return { id: it.id, name: it.name, colorIndex, weeks: scores.length, total, average: scores.length ? round1(total / scores.length) : 0 };
     }).sort((a, b) => b.total - a.total);
     const max = Math.max(1, ...rows.map(r => r.total));
 
     return (
         <section className="card card-pad">
             <SectionHeader
-                eyebrow="Сезондун жыйынтыгы"
-                title={`Жалпы рейтинг (${TOTAL_FROM_WEEK}-аптадан)`}
-                sub={`${TOTAL_FROM_WEEK}-аптадан баштап акыркы аптага чейинки апталык рейтингдердин суммасы.`}
+                eyebrow={t('Сезондун жыйынтыгы')}
+                title={t('Жалпы рейтинг ({0}-аптадан)', TOTAL_FROM_WEEK)}
+                sub={t('{0}-аптадан баштап акыркы аптага чейинки апталык рейтингдердин суммасы.', TOTAL_FROM_WEEK)}
             />
             {relevant.length === 0 ? (
-                <p className="text-center py-10 font-display text-[1.3rem]" style={{ color: 'var(--text-muted)' }}>{TOTAL_FROM_WEEK}-аптадан баштап маалымат азырынча жок.</p>
+                <p className="text-center py-10 font-display text-[1.3rem]" style={{ color: 'var(--text-muted)' }}>{t('{0}-аптадан баштап маалымат азырынча жок.', TOTAL_FROM_WEEK)}</p>
             ) : (
                 <ol className="stagger">
                     {rows.map((r, i) => (
@@ -176,7 +177,7 @@ const TotalReport: React.FC<{ data: DataFile }> = ({ data }) => {
                                 <span className="w-7 font-display font-bold text-[1.2rem] tabular" style={{ color: i === 0 ? 'var(--gold)' : 'var(--text-muted)' }}>{pad2(i + 1)}</span>
                                 <span className="flex-1 min-w-0">
                                     <span className="block font-bold truncate" style={{ color: 'var(--text-primary)' }}>{r.name}</span>
-                                    <span className="block text-[0.75rem]" style={{ color: 'var(--text-muted)' }}>{r.weeks} апта · орточо {r.average}</span>
+                                    <span className="block text-[0.75rem]" style={{ color: 'var(--text-muted)' }}>{t('{0} апта · орточо {1}', r.weeks, r.average)}</span>
                                 </span>
                                 <span className="font-display font-bold text-[1.5rem] tabular" style={{ color: 'var(--text-primary)' }}>{r.total}</span>
                             </div>

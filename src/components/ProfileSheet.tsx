@@ -12,6 +12,8 @@ import { BadgeMedal } from './BadgeMedal';
 import { Corners } from './Ornament';
 import { ChartTooltip, Movement, ProgressBar } from './ui';
 import { axisTick, perfColor } from '../utils/style';
+import { t } from '../i18n';
+import { metricLabel, metricName } from '../utils/metrics';
 
 const fmt = (n: number) => (Math.round(n * 10) / 10).toString();
 
@@ -52,10 +54,10 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({ series, data, insigh
     const summary = useMemo(() => seasonSummary(series, insights, data.weeks.length), [series, insights, data.weeks.length]);
 
     const stats = [
-        { label: `${current.weekNumber}-апта`, value: current.submitted ? fmt(current.score) : '—', sub: current.excused ? 'себептүү' : current.rank ? `${current.rank}-орун` : 'маалымат жок', extra: <Movement delta={movement(series.weeks, current.weekIndex)} /> },
-        { label: 'Эң мыкты апта', value: best ? fmt(best.score) : '—', sub: best ? `${best.weekNumber}-апта` : '' },
-        { label: 'Орточо', value: counted.length ? fmt(avg) : '—', sub: `${counted.length} апта` },
-        { label: 'Толук план', value: String(perfectCount), sub: perfectNow > 1 ? `катары менен ${perfectNow} апта` : perfectBest > 1 ? `рекорд: ${perfectBest} апта` : 'жолу' }
+        { label: t('{0}-апта', current.weekNumber), value: current.submitted ? fmt(current.score) : '—', sub: current.excused ? t('себептүү') : current.rank ? t('{0}-орун', current.rank) : t('маалымат жок'), extra: <Movement delta={movement(series.weeks, current.weekIndex)} /> },
+        { label: t('Эң мыкты апта'), value: best ? fmt(best.score) : '—', sub: best ? t('{0}-апта', best.weekNumber) : '' },
+        { label: t('Орточо'), value: counted.length ? fmt(avg) : '—', sub: t('{0} апта', counted.length) },
+        { label: t('Толук план'), value: String(perfectCount), sub: perfectNow > 1 ? t('катары менен {0} апта', perfectNow) : perfectBest > 1 ? t('рекорд: {0} апта', perfectBest) : t('жолу') }
     ];
 
     return (
@@ -72,7 +74,7 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({ series, data, insigh
                     {/* Portrait */}
                     <div className="relative px-6 sm:px-12 pt-10 sm:pt-12 pb-10 text-center">
                         <Corners inset={14} size={30} />
-                        <button onClick={onClose} aria-label="Жабуу" className="absolute top-4 right-4 sm:top-5 sm:right-5 w-10 h-10 inline-flex items-center justify-center z-10 transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}>
+                        <button onClick={onClose} aria-label={t('Жабуу')} className="absolute top-4 right-4 sm:top-5 sm:right-5 w-10 h-10 inline-flex items-center justify-center z-10 transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}>
                             <X className="w-5 h-5" strokeWidth={1.3} />
                         </button>
                         <div className="inline-block rounded-full p-[6px]" style={{ border: '1px solid var(--gold)' }}>
@@ -94,16 +96,16 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({ series, data, insigh
                             ))}
                         </dl>
                         <div className="flex flex-wrap justify-center gap-2 mt-7">
-                            <button className="btn btn-ghost" onClick={() => onShare('week')}><Share2 className="w-3.5 h-3.5" /> Аптаны бөлүшүү</button>
-                            <button className="btn btn-ghost" onClick={() => onShare('season')}><Share2 className="w-3.5 h-3.5" /> Сезонду бөлүшүү</button>
-                            <button className="btn btn-ghost" onClick={onCompare}><Columns2 className="w-3.5 h-3.5" /> Салыштыруу</button>
+                            <button className="btn btn-ghost" onClick={() => onShare('week')}><Share2 className="w-3.5 h-3.5" />  {t('Аптаны бөлүшүү')}</button>
+                            <button className="btn btn-ghost" onClick={() => onShare('season')}><Share2 className="w-3.5 h-3.5" />  {t('Сезонду бөлүшүү')}</button>
+                            <button className="btn btn-ghost" onClick={onCompare}><Columns2 className="w-3.5 h-3.5" />  {t('Салыштыруу')}</button>
                         </div>
                     </div>
 
                     <div className="px-6 sm:px-12 pb-12 space-y-14">
                         {/* Trend */}
                         <section>
-                            <H3 aside={<span className="text-[0.78rem] italic" style={{ color: 'var(--text-muted)' }}>пунктир — план 100% ({PLAN_SCORE})</span>}>Упай динамикасы</H3>
+                            <H3 aside={<span className="text-[0.78rem] italic" style={{ color: 'var(--text-muted)' }}>{t('пунктир — план 100% ({0})', PLAN_SCORE)}</span>}>{t('Упай динамикасы')}</H3>
                             {chartData.length >= 2 ? (
                                 <div className="-ml-3">
                                     <ResponsiveContainer width="100%" height={210}>
@@ -115,30 +117,30 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({ series, data, insigh
                                                 </linearGradient>
                                             </defs>
                                             <CartesianGrid stroke="var(--gridline)" vertical={false} />
-                                            <XAxis dataKey="week" tick={axisTick} axisLine={false} tickLine={false} tickFormatter={v => `${v}-апта`} />
+                                            <XAxis dataKey="week" tick={axisTick} axisLine={false} tickLine={false} tickFormatter={v => t('{0}-апта', v)} />
                                             <YAxis tick={axisTick} axisLine={false} tickLine={false} width={40} />
                                             <ReferenceLine y={PLAN_SCORE} stroke="var(--gold-dim)" strokeDasharray="2 5" />
-                                            <Tooltip content={<ChartTooltip />} cursor={{ stroke: 'var(--border-strong)' }} labelFormatter={v => `${v}-апта`} />
-                                            <Area type="monotone" dataKey="score" name="Упай" stroke="var(--gold)" strokeWidth={1.4} fill="url(#profileArea)" dot={{ r: 2.5, fill: 'var(--page-plane)', stroke: 'var(--gold)', strokeWidth: 1.2 }} activeDot={{ r: 4 }} />
+                                            <Tooltip content={<ChartTooltip />} cursor={{ stroke: 'var(--border-strong)' }} labelFormatter={v => t('{0}-апта', v)} />
+                                            <Area type="monotone" dataKey="score" name={t('Упай')} stroke="var(--gold)" strokeWidth={1.4} fill="url(#profileArea)" dot={{ r: 2.5, fill: 'var(--page-plane)', stroke: 'var(--gold)', strokeWidth: 1.2 }} activeDot={{ r: 4 }} />
                                         </AreaChart>
                                     </ResponsiveContainer>
                                 </div>
                             ) : (
-                                <p className="italic" style={{ color: 'var(--text-muted)' }}>Динамика эки аптадан кийин көрүнөт.</p>
+                                <p className="italic" style={{ color: 'var(--text-muted)' }}>{t('Динамика эки аптадан кийин көрүнөт.')}</p>
                             )}
                         </section>
 
                         {/* Season so far — "Wrapped" */}
                         <section>
-                            <H3 aside={<span className="text-[0.78rem] italic" style={{ color: 'var(--text-muted)' }}>{seasonFinished ? 'сезон аяктады' : 'азырынча'}</span>}>Сезон {seasonName}</H3>
+                            <H3 aside={<span className="text-[0.78rem] italic" style={{ color: 'var(--text-muted)' }}>{seasonFinished ? t('сезон аяктады') : t('азырынча')}</span>}>{t('Сезон {0}', seasonName)}</H3>
                             <div className="grid grid-cols-2 sm:grid-cols-3">
                                 {[
-                                    ['Орун', summary.rank ? `${summary.rank} / ${summary.of}` : '—'],
-                                    ['Орточо упай', fmt(summary.average)],
-                                    ['Эң мыкты апта', summary.best ? `${fmt(summary.best.score)}` : '—'],
-                                    ['Активдүү апта', `${summary.weeksActive} / ${summary.weeksTotal}`],
-                                    ['Толук план', String(summary.perfectWeeks)],
-                                    ['Өсүш', summary.growth === null ? '—' : `${summary.growth > 0 ? '+' : ''}${fmt(summary.growth)}`]
+                                    [t('Орун'), summary.rank ? `${summary.rank} / ${summary.of}` : '—'],
+                                    [t('Орточо упай'), fmt(summary.average)],
+                                    [t('Эң мыкты апта'), summary.best ? `${fmt(summary.best.score)}` : '—'],
+                                    [t('Активдүү апта'), `${summary.weeksActive} / ${summary.weeksTotal}`],
+                                    [t('Толук план'), String(summary.perfectWeeks)],
+                                    [t('Өсүш'), summary.growth === null ? '—' : `${summary.growth > 0 ? '+' : ''}${fmt(summary.growth)}`]
                                 ].map(([label, value], i) => (
                                     <div key={label} className="py-4 px-3 text-center" style={{ borderTop: i >= 2 ? '1px solid var(--border)' : undefined, borderLeft: i % 2 === 1 ? '1px solid var(--border)' : undefined }}>
                                         <div className="eyebrow">{label}</div>
@@ -146,13 +148,13 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({ series, data, insigh
                                     </div>
                                 ))}
                             </div>
-                            {summary.best && <p className="text-[0.82rem] italic text-center mt-3" style={{ color: 'var(--text-muted)' }}>Эң мыкты апта — {summary.best.weekNumber}-апта. Орун сезондогу орточо упай боюнча.</p>}
-                            {summary.excusedWeeks > 0 && <p className="text-[0.82rem] italic text-center mt-1" style={{ color: 'var(--text-muted)' }}>{summary.excusedWeeks} апта себептүү (ооруп / сапарда) — эсепке кирген жок.</p>}
+                            {summary.best && <p className="text-[0.82rem] italic text-center mt-3" style={{ color: 'var(--text-muted)' }}>{t('Эң мыкты апта — {0}-апта. Орун сезондогу орточо упай боюнча.', summary.best.weekNumber)}</p>}
+                            {summary.excusedWeeks > 0 && <p className="text-[0.82rem] italic text-center mt-1" style={{ color: 'var(--text-muted)' }}>{t('{0} апта себептүү (ооруп / сапарда) — эсепке кирген жок.', summary.excusedWeeks)}</p>}
                         </section>
 
                         {/* Targets */}
                         <section>
-                            <H3 aside={<span className="text-[0.78rem] italic" style={{ color: 'var(--text-muted)' }}>{current.perfect ? 'бардык план аткарылды' : 'факт / план'}</span>}>{current.weekNumber}-апта: планга карата</H3>
+                            <H3 aside={<span className="text-[0.78rem] italic" style={{ color: 'var(--text-muted)' }}>{current.perfect ? t('бардык план аткарылды') : t('факт / план')}</span>}>{t('{0}-апта: планга карата', current.weekNumber)}</H3>
                             {current.submitted ? (
                                 <div className="grid grid-cols-1 gap-x-12 gap-y-5 sm:grid-cols-2">
                                     {METRICS.map(m => {
@@ -160,7 +162,7 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({ series, data, insigh
                                         return (
                                             <div key={m}>
                                                 <div className="flex items-baseline gap-3 mb-2">
-                                                    <span className="text-[0.95rem]" style={{ color: 'var(--text-primary)' }}>{m}</span>
+                                                    <span className="text-[0.95rem]" style={{ color: 'var(--text-primary)' }} title={metricName(m)}>{metricLabel(m)}</span>
                                                     <span className="leader" />
                                                     <span className="text-[0.85rem] tabular" style={{ color: 'var(--text-muted)' }}>{current.member.actual[m]} / {current.member.target[m]}</span>
                                                     <span className="font-display text-[1.05rem] w-12 text-right tabular" style={{ color: perfColor(pct) }}>{Math.round(pct)}%</span>
@@ -171,15 +173,15 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({ series, data, insigh
                                     })}
                                 </div>
                             ) : (
-                                <p className="italic" style={{ color: 'var(--text-muted)' }}>{current.excused ? 'Бул апта себептүү деп белгиленген (ооруп же сапарда): эсепке кирбейт, сериялары үзүлбөйт.' : 'Бул апта үчүн маалымат азырынча киргизиле элек.'}</p>
+                                <p className="italic" style={{ color: 'var(--text-muted)' }}>{current.excused ? t('Бул апта себептүү деп белгиленген (ооруп же сапарда): эсепке кирбейт, сериялары үзүлбөйт.') : t('Бул апта үчүн маалымат азырынча киргизиле элек.')}</p>
                             )}
                         </section>
 
                         {/* Medals */}
                         <section>
-                            <H3>Сыйлыктар</H3>
+                            <H3>{t('Сыйлыктар')}</H3>
                             {grouped.length === 0 ? (
-                                <p className="italic" style={{ color: 'var(--text-muted)' }}>Азырынча сыйлык жок — биринчиси жакында болот.</p>
+                                <p className="italic" style={{ color: 'var(--text-muted)' }}>{t('Азырынча сыйлык жок — биринчиси жакында болот.')}</p>
                             ) : (
                                 <>
                                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-8">
@@ -211,13 +213,13 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({ series, data, insigh
 
                         {/* History */}
                         <section>
-                            <H3 aside={perfectBest >= 2 ? <span className="text-[0.78rem] italic" style={{ color: 'var(--text-muted)' }}>эң узун серия: {perfectBest} апта</span> : undefined}>Апталар</H3>
+                            <H3 aside={perfectBest >= 2 ? <span className="text-[0.78rem] italic" style={{ color: 'var(--text-muted)' }}>{t('эң узун серия: {0} апта', perfectBest)}</span> : undefined}>{t('Апталар')}</H3>
                             <ol>
                                 {[...series.weeks].reverse().map(w => (
                                     <li key={w.weekIndex} className="flex items-baseline gap-3 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
-                                        <span className="text-[0.95rem] w-24" style={{ color: w.weekIndex === current.weekIndex ? 'var(--gold)' : 'var(--text-primary)' }}>{w.weekNumber}-апта</span>
+                                        <span className="text-[0.95rem] w-24" style={{ color: w.weekIndex === current.weekIndex ? 'var(--gold)' : 'var(--text-primary)' }}>{t('{0}-апта', w.weekNumber)}</span>
                                         <span className="text-[0.8rem] italic flex-1" style={{ color: 'var(--text-muted)' }}>
-                                            {w.excused ? 'себептүү (ооруп / сапарда)' : w.rank ? `${w.rank}-орун` : 'маалымат жок'}{w.perfect ? ' · толук план' : ''}{w.weekIndex === latestWeekIndex ? ' · акыркы' : ''}
+                                            {w.excused ? t('себептүү (ооруп / сапарда)') : w.rank ? t('{0}-орун', w.rank) : t('маалымат жок')}{w.perfect ? t(' · толук план') : ''}{w.weekIndex === latestWeekIndex ? t(' · акыркы') : ''}
                                         </span>
                                         <Movement delta={movement(series.weeks, w.weekIndex)} />
                                         <span className="font-display text-[1.3rem] w-14 text-right tabular" style={{ color: 'var(--text-primary)' }}>{w.submitted ? fmt(w.score) : '—'}</span>

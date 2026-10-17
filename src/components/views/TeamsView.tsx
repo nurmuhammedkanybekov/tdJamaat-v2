@@ -7,6 +7,8 @@ import { MINI_CARD_POINTS, TEAM_COLORS, calculatePerformancePercentage } from '.
 import { Avatar } from '../Avatar';
 import { Movement, ProgressBar, SectionHeader, Sparkline } from '../ui';
 import { perfColor } from '../../utils/style';
+import { t } from '../../i18n';
+import { cardLabel, cardName, metricLabel, metricName } from '../../utils/metrics';
 
 interface TeamsViewProps {
     data: DataFile;
@@ -23,8 +25,8 @@ const pad2 = (n: number) => String(n).padStart(2, '0');
 
 export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights, initialHouseId, canEditHouse, onEditHouse, onOpenProfile }) => {
     const week = data.weeks[weekIndex];
-    const [houseId, setHouseId] = useState<string>(() => (initialHouseId && week.teams.some(t => t.id === initialHouseId) ? initialHouseId : week.teams[0]?.id ?? ''));
-    const team = week.teams.find(t => t.id === houseId) ?? week.teams[0];
+    const [houseId, setHouseId] = useState<string>(() => (initialHouseId && week.teams.some(it => it.id === initialHouseId) ? initialHouseId : week.teams[0]?.id ?? ''));
+    const team = week.teams.find(it => it.id === houseId) ?? week.teams[0];
     const series = team ? insights.houses.get(team.id) : undefined;
     const hw = series ? weekOf(series.weeks, weekIndex) : undefined;
     const color = TEAM_COLORS[(series?.colorIndex ?? 0) % TEAM_COLORS.length];
@@ -50,15 +52,15 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
         <div className="space-y-6 sm:space-y-8">
             {/* House switcher */}
             <div className="-mx-4 sm:mx-0">
-                <div className="scroll-row scroll-fade flex gap-2 px-4 sm:px-0 sm:flex-wrap pb-1" role="tablist" aria-label="Үйлөр">
-                    {week.teams.map(t => {
-                        const hs = insights.houses.get(t.id);
+                <div className="scroll-row scroll-fade flex gap-2 px-4 sm:px-0 sm:flex-wrap pb-1" role="tablist" aria-label={t('Үйлөр')}>
+                    {week.teams.map(it => {
+                        const hs = insights.houses.get(it.id);
                         const c = TEAM_COLORS[(hs?.colorIndex ?? 0) % TEAM_COLORS.length];
-                        const active = t.id === team.id;
+                        const active = it.id === team.id;
                         return (
-                            <button key={t.id} role="tab" aria-selected={active} onClick={() => setHouseId(t.id)} className={`chip ${active ? 'is-active' : ''}`} style={{ padding: '0.5rem 0.95rem', fontSize: '0.85rem' }}>
+                            <button key={it.id} role="tab" aria-selected={active} onClick={() => setHouseId(it.id)} className={`chip ${active ? 'is-active' : ''}`} style={{ padding: '0.5rem 0.95rem', fontSize: '0.85rem' }}>
                                 <span className="w-2 h-2 rounded-full" style={{ backgroundColor: active ? '#fff' : c }} />
-                                {t.name}
+                                {it.name}
                             </button>
                         );
                     })}
@@ -69,35 +71,31 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
             <section className="card overflow-hidden">
                 <div className="card-pad flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
                     <div className="flex-1 min-w-0">
-                        <div className="eyebrow flex items-center gap-2" style={{ color: 'var(--gold)' }}>
-                            {hw?.rank ? `${hw.rank}-орун` : 'Рейтингде жок'} · {week.weekNumber}-апта
-                        </div>
+                        <div className="eyebrow flex items-center gap-2" style={{ color: 'var(--gold)' }}>{t('{0} · {1}-апта', hw?.rank ? t('{0}-орун', hw.rank) : t('Рейтингде жок'), week.weekNumber)}</div>
                         <h2 className="font-display font-bold text-[2.2rem] sm:text-[2.6rem] leading-tight" style={{ color: 'var(--text-primary)' }}>{team.name}</h2>
                         <div className="flex items-center gap-3 mt-1 text-[0.82rem] flex-wrap" style={{ color: 'var(--text-muted)' }}>
-                            <span>{team.members.length} адам{hw && hw.excusedCount > 0 ? ` · ${hw.excusedCount} себептүү` : ''}</span>
+                            <span>{t('{0} адам{1}', team.members.length, hw && hw.excusedCount > 0 ? t(' · {0} себептүү', hw.excusedCount) : '')}</span>
                             {team.submitted
-                                ? <span className="inline-flex items-center gap-1" style={{ color: 'var(--success)' }}><CheckCircle2 className="w-3.5 h-3.5" /> маалымат киргизилди</span>
-                                : <span className="inline-flex items-center gap-1"><Clock3 className="w-3.5 h-3.5" /> маалымат күтүлүүдө</span>}
+                                ? <span className="inline-flex items-center gap-1" style={{ color: 'var(--success)' }}><CheckCircle2 className="w-3.5 h-3.5" />  {t('маалымат киргизилди')}</span>
+                                : <span className="inline-flex items-center gap-1"><Clock3 className="w-3.5 h-3.5" />  {t('маалымат күтүлүүдө')}</span>}
                         </div>
                     </div>
                     <div className="flex items-center gap-5 sm:gap-7">
                         <div>
-                            <div className="eyebrow">Үй рейтинги</div>
+                            <div className="eyebrow">{t('Үй рейтинги')}</div>
                             <div className="flex items-baseline gap-2 mt-1">
                                 <span className="font-display text-[2.6rem] leading-none tabular" style={{ color: 'var(--gold)' }}>{hw?.submitted ? fmt(hw.avg) : '—'}</span>
                                 {series && <Movement delta={movement(series.weeks, weekIndex)} size="md" />}
                             </div>
                             {hw?.submitted && (
-                                <div className="text-[0.78rem] italic mt-1.5 tabular" style={{ color: 'var(--text-muted)' }}>
-                                    орточо {fmt(hw.memberAvg)} + мини-карта {fmt(hw.cardBonus)}
-                                </div>
+                                <div className="text-[0.78rem] italic mt-1.5 tabular" style={{ color: 'var(--text-muted)' }}>{t('орточо {0} + мини-карта {1}', fmt(hw.memberAvg), fmt(hw.cardBonus))}</div>
                             )}
                         </div>
                         {series && <Sparkline values={series.weeks.filter(w => w.weekIndex <= weekIndex && w.submitted).map(w => w.avg)} color={color} width={110} height={40} />}
                     </div>
                     {canEditHouse(team.id) && (
                         <button onClick={() => onEditHouse(team.id)} className="btn btn-primary self-start sm:self-center">
-                            <PenLine className="w-4 h-4" /> Өзгөртүү
+                            <PenLine className="w-4 h-4" />  {t('Өзгөртүү')}
                         </button>
                     )}
                 </div>
@@ -105,7 +103,7 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
 
             {/* Mini card */}
             <section>
-                <SectionHeader eyebrow="Командалык иштер" title="Мини-карта" sub={`Ар бир иш 100% аткарылса ${MINI_CARD_POINTS} упай кошулат (эң көп ${MINI_CARD_POINTS * 7}). Ашыкчасы эсептелбейт.`} />
+                <SectionHeader eyebrow={t('Командалык иштер')} title={t('Мини-карта')} sub={t('Ар бир иш 100% аткарылса {0} упай кошулат (эң көп {1}). Ашыкчасы эсептелбейт.', MINI_CARD_POINTS, MINI_CARD_POINTS * 7)} />
                 <div className="grid grid-cols-2 min-[460px]:grid-cols-3 md:grid-cols-4 xl:grid-cols-7 gap-3 stagger">
                     {cardKeys.map(key => {
                         const v = team.miniCard[key];
@@ -113,7 +111,7 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
                         return (
                             <div key={key} className="card p-3.5">
                                 <div className="flex items-center justify-between">
-                                    <span className="text-[0.78rem] font-bold" style={{ color: 'var(--text-muted)' }}>{key}</span>
+                                    <span className="text-[0.78rem] font-bold" style={{ color: 'var(--text-muted)' }} title={cardName(key)}>{cardLabel(key)}</span>
                                     {pct >= 100 && <CheckCircle2 className="w-4 h-4" style={{ color: 'var(--success)' }} />}
                                 </div>
                                 <div className="font-display font-bold text-[1.7rem] tabular leading-none mt-2" style={{ color: 'var(--text-primary)' }}>
@@ -131,7 +129,7 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
             <section>
                 <SectionHeader
                     eyebrow={team.name}
-                    title="Мүчөлөрдүн рейтинги"
+                    title={t('Мүчөлөрдүн рейтинги')}
                 />
 
                 {/* Phone & tablet: cards */}
@@ -149,9 +147,9 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
                         <thead>
                             <tr>
                                 <th style={{ paddingTop: '1rem', paddingLeft: '1.5rem' }}>#</th>
-                                <th style={{ paddingTop: '1rem' }}>Аты</th>
-                                {METRICS.map(m => <th key={m} style={{ paddingTop: '1rem', textAlign: 'right' }}>{m}</th>)}
-                                <th style={{ paddingTop: '1rem', textAlign: 'right', paddingRight: '1.5rem' }}>Упай</th>
+                                <th style={{ paddingTop: '1rem' }}>{t('Аты')}</th>
+                                {METRICS.map(m => <th key={m} style={{ paddingTop: '1rem', textAlign: 'right' }} title={metricName(m)}>{metricLabel(m)}</th>)}
+                                <th style={{ paddingTop: '1rem', textAlign: 'right', paddingRight: '1.5rem' }}>{t('Упай')}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -172,7 +170,7 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
                                             {Math.round(w.pct[m])}%
                                         </td>
                                     ))}
-                                    <td className="font-display font-bold text-[1.3rem] tabular" style={{ textAlign: 'right', paddingRight: '1.5rem', color: 'var(--text-primary)' }}>{w.excused ? <span className="text-[0.8rem] italic" style={{ color: 'var(--text-muted)' }}>себептүү</span> : fmt(w.score)}</td>
+                                    <td className="font-display font-bold text-[1.3rem] tabular" style={{ textAlign: 'right', paddingRight: '1.5rem', color: 'var(--text-primary)' }}>{w.excused ? <span className="text-[0.8rem] italic" style={{ color: 'var(--text-muted)' }}>{t('себептүү')}</span> : fmt(w.score)}</td>
                                 </tr>
                             ))}
                         </tbody>
@@ -193,7 +191,7 @@ const MemberCard: React.FC<{ s: MemberSeries; w: MemberWeek; place: number; week
                 <div className="text-[0.75rem] italic" style={{ color: 'var(--text-muted)' }}>{ROLE_LABEL[s.role]}</div>
             </div>
             <div className="text-right">
-                <div className="font-display font-bold text-[1.5rem] leading-none tabular" style={{ color: 'var(--text-primary)' }}>{w.excused ? <span className="text-[0.8rem] italic" style={{ color: 'var(--text-muted)' }}>себептүү</span> : fmt(w.score)}</div>
+                <div className="font-display font-bold text-[1.5rem] leading-none tabular" style={{ color: 'var(--text-primary)' }}>{w.excused ? <span className="text-[0.8rem] italic" style={{ color: 'var(--text-muted)' }}>{t('себептүү')}</span> : fmt(w.score)}</div>
                 <div className="mt-1 flex justify-end"><Movement delta={movement(s.weeks, weekIndex)} /></div>
             </div>
         </div>
@@ -201,7 +199,7 @@ const MemberCard: React.FC<{ s: MemberSeries; w: MemberWeek; place: number; week
             {METRICS.map(m => (
                 <div key={m} className="min-w-0">
                     <div className="flex items-baseline justify-between gap-1 text-[0.72rem]">
-                        <span style={{ color: 'var(--text-muted)' }}>{m}</span>
+                        <span style={{ color: 'var(--text-muted)' }} title={metricName(m)}>{metricLabel(m)}</span>
                         <span className="font-bold tabular" style={{ color: perfColor(w.pct[m]) }}>{Math.round(w.pct[m])}%</span>
                     </div>
                     <div className="mt-1"><ProgressBar pct={w.pct[m]} height={3} /></div>

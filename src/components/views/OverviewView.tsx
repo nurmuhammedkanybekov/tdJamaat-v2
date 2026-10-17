@@ -4,8 +4,9 @@ import type { Insights, MemberSeries, MemberWeek } from '../../utils/insights';
 import { movement, ROLE_LABEL, weekOf } from '../../utils/insights';
 import { Avatar } from '../Avatar';
 import { Movement, SectionHeader } from '../ui';
+import { t } from '../../i18n';
 
-const ROLE_FILTER_LABEL: Record<'all' | Role, string> = { all: 'Бардыгы', imam: 'Капитандар', zam: 'Орун басарлар', member: 'Мүчөлөр' };
+const ROLE_FILTER_LABEL: Record<'all' | Role, string> = { all: t('Бардыгы'), imam: t('Капитандар'), zam: t('Орун басарлар'), member: t('Мүчөлөр') };
 const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
 const pad2 = (n: number) => String(n).padStart(2, '0');
 const fmt = (n: number) => (Math.round(n * 10) / 10).toString();
@@ -60,8 +61,8 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ data, weekIndex, ins
     return (
         <div className="space-y-16 sm:space-y-20">
             {top.length > 0 && (
-                <section aria-label="Аптанын үч мыктысы">
-                    <div className="eyebrow text-center mb-6">Аптанын үч мыктысы</div>
+                <section aria-label={t('Аптанын үч мыктысы')}>
+                    <div className="eyebrow text-center mb-6">{t('Аптанын үч мыктысы')}</div>
                     <div className="grid grid-cols-1 sm:grid-cols-3 sm:gap-6 divide-y divide-[var(--border)] sm:divide-y-0">
                         {top.map(({ s, w }) => <Laureate key={s.id} s={s} w={w} weekIndex={weekIndex} onOpen={() => onOpenProfile(s.id)} />)}
                     </div>
@@ -69,13 +70,13 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ data, weekIndex, ins
             )}
 
             {showSubmission && (
-                <section className="text-center" aria-label="Маалымат киргизүү абалы">
-                    <div className="eyebrow mb-3">Бул апта · {week.teams.filter(t => t.submitted).length} / {week.teams.length} үй киргизди</div>
+                <section className="text-center" aria-label={t('Маалымат киргизүү абалы')}>
+                    <div className="eyebrow mb-3">{t('Бул апта · {0} / {1} үй киргизди', week.teams.filter(it => it.submitted).length, week.teams.length)}</div>
                     <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-[0.92rem]">
-                        {week.teams.map(t => (
-                            <span key={t.id} className="inline-flex items-center gap-2" style={{ color: t.submitted ? 'var(--text-primary)' : 'var(--text-muted)' }}>
-                                <span className="w-1.5 h-1.5 rounded-full" style={t.submitted ? { backgroundColor: 'var(--gold)' } : { border: '1px solid var(--text-muted)' }} />
-                                {t.name}{!t.submitted && <i className="text-[0.8rem]"> — {week.locked ? 'киргизилген жок (0)' : 'күтүлүүдө'}</i>}
+                        {week.teams.map(it => (
+                            <span key={it.id} className="inline-flex items-center gap-2" style={{ color: it.submitted ? 'var(--text-primary)' : 'var(--text-muted)' }}>
+                                <span className="w-1.5 h-1.5 rounded-full" style={it.submitted ? { backgroundColor: 'var(--gold)' } : { border: '1px solid var(--text-muted)' }} />
+                                {it.name}{!it.submitted && <i className="text-[0.8rem]"> — {week.locked ? t('киргизилген жок (0)') : t('күтүлүүдө')}</i>}
                             </span>
                         ))}
                     </div>
@@ -85,7 +86,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ data, weekIndex, ins
             <div className="grid grid-cols-1 gap-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] lg:gap-20 items-start">
                 {/* Houses */}
                 <section>
-                    <SectionHeader eyebrow="Үй рейтинги" title="Үйлөр" />
+                    <SectionHeader eyebrow={t('Үй рейтинги')} title={t('Үйлөр')} />
                     <ol className="stagger">
                         {houses.map(({ h, w }) => (
                             <li key={h.id} className="flex items-baseline gap-3 py-3">
@@ -98,17 +99,18 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ data, weekIndex, ins
                         ))}
                     </ol>
                     <p className="text-[0.82rem] italic mt-5 max-w-[42ch]" style={{ color: 'var(--text-muted)' }}>
-                        Рейтинг = мүчөлөрдүн орточо упайы + мини-карта (ар бир иш 100% аткарылса 5 упай, эң көп 35).
+                        
+                        {t('Рейтинг = мүчөлөрдүн орточо упайы + мини-карта (ар бир иш 100% аткарылса 5 упай, эң көп 35).')}
                     </p>
                 </section>
 
                 {/* Everyone */}
                 <section>
                     <SectionHeader
-                        eyebrow={`${week.weekNumber}-апта`}
-                        title="Бардык катышуучулар"
+                        eyebrow={t('{0}-апта', week.weekNumber)}
+                        title={t('Бардык катышуучулар')}
                         action={
-                            <div className="flex flex-wrap" role="group" aria-label="Ролу боюнча">
+                            <div className="flex flex-wrap" role="group" aria-label={t('Ролу боюнча')}>
                                 {(['all', 'imam', 'zam', 'member'] as const).map(r => (
                                     <button key={r} className="chip" aria-pressed={roleFilter === r} onClick={() => setRoleFilter(r)}>{ROLE_FILTER_LABEL[r]}</button>
                                 ))}
@@ -131,7 +133,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ data, weekIndex, ins
                                     </span>
                                     <Movement delta={movement(s.weeks, weekIndex)} />
                                     <span className="w-14 text-right font-display text-[1.3rem] tabular flex-shrink-0" style={{ color: w.submitted ? 'var(--text-primary)' : 'var(--text-muted)' }}>
-                                        {w.excused ? <span className="text-[0.8rem] italic" style={{ color: 'var(--text-muted)' }}>себептүү</span> : w.submitted ? fmt(w.score) : '—'}
+                                        {w.excused ? <span className="text-[0.8rem] italic" style={{ color: 'var(--text-muted)' }}>{t('себептүү')}</span> : w.submitted ? fmt(w.score) : '—'}
                                     </span>
                                 </button>
                             </li>

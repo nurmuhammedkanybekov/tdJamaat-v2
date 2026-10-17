@@ -1,13 +1,14 @@
 import type React from 'react';
 import { Award, BarChart3, Home, LayoutDashboard, TrendingUp, Users } from 'lucide-react';
+import { t } from '../i18n';
 
 export type ActiveView = 'overview' | 'teams' | 'progress' | 'reports' | 'awards' | 'community';
 
 export const TABS: { key: ActiveView; label: string; short: string; icon: React.ComponentType<{ className?: string; strokeWidth?: number }> }[] = [
-    { key: 'overview', label: 'Жалпы көрүнүш', short: 'Жалпы', icon: LayoutDashboard },
-    { key: 'teams', label: 'Үй ичиндеги рейтинг', short: 'Үйлөр', icon: Home },
-    { key: 'progress', label: 'Апталык прогресс', short: 'Прогресс', icon: TrendingUp },
-    { key: 'reports', label: 'Отчёттор', short: 'Отчёт', icon: BarChart3 },
-    { key: 'awards', label: 'Сыйлыктар', short: 'Сыйлык', icon: Award },
-    { key: 'community', label: 'Жамаат', short: 'Жамаат', icon: Users }
+    { key: 'overview', label: t('Жалпы көрүнүш'), short: t('Жалпы'), icon: LayoutDashboard },
+    { key: 'teams', label: t('Үй ичиндеги рейтинг'), short: t('Үйлөр'), icon: Home },
+    { key: 'progress', label: t('Апталык прогресс'), short: t('Прогресс'), icon: TrendingUp },
+    { key: 'reports', label: t('Отчёттор'), short: t('Отчёт'), icon: BarChart3 },
+    { key: 'awards', label: t('Сыйлыктар'), short: t('Сыйлык'), icon: Award },
+    { key: 'community', label: t('Жамаат'), short: t('Жамаат'), icon: Users }
 ];

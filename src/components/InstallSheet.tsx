@@ -2,6 +2,7 @@ import React from 'react';
 import { MoreHorizontal, MoreVertical, Share } from 'lucide-react';
 import { isIos } from '../pwa';
 import { Sheet } from './ui';
+import { t } from '../i18n';
 
 // Shown where the browser has no install button of its own. On iPhone/iPad
 // Apple lets no website install itself: the only way is the browser's own
@@ -29,34 +30,36 @@ export const InstallSheet: React.FC<{ onClose: () => void }> = ({ onClose }) => 
     const ios = isIos();
     const steps: React.ReactNode[] = ios
         ? [
-            <><Name>{otherIosBrowser() ? 'Дарек сабындагы' : 'Төмөнкү'}</Name> <Key icon={MoreHorizontal} /> же <Key icon={Share} /> баскычын басыңыз.<Alt>Эски iPhone'дордо Бөлүшүү <Share className="inline w-3 h-3" /> баскычы түз эле төмөндө турат.</Alt></>,
-            <>Тизмеден <Name>«Бөлүшүү»</Name>, андан кийин <Name>«Экранга кошуу»</Name> тандаңыз.<Alt>Add to Home Screen · На экран «Домой» · Főképernyőhöz adás</Alt></>,
-            <>Жогорку оң бурчтагы <Name>«Кошуу»</Name> баскычын басыңыз.<Alt>Add · Добавить · Hozzáadás</Alt></>
+            <><Name>{otherIosBrowser() ? t('Дарек сабындагы') : t('Төмөнкү')}</Name> <Key icon={MoreHorizontal} />  {t('же')} <Key icon={Share} />  {t('баскычын басыңыз.')}<Alt>{t('Эски iPhone\'дордо Бөлүшүү')} <Share className="inline w-3 h-3" />  {t('баскычы түз эле төмөндө турат.')}</Alt></>,
+            <>{t('Тизмеден')} <Name>{t('«Бөлүшүү»')}</Name>{t(', андан кийин')} <Name>{t('«Экранга кошуу»')}</Name>  {t('тандаңыз.')}<Alt>{t('Add to Home Screen · На экран «Домой» · Főképernyőhöz adás')}</Alt></>,
+            <>{t('Жогорку оң бурчтагы')} <Name>{t('«Кошуу»')}</Name>  {t('баскычын басыңыз.')}<Alt>{t('Add · Добавить · Hozzáadás')}</Alt></>
         ]
         : [
-            <>Браузердин менюсун ачыңыз <Key icon={MoreVertical} />.</>,
-            <><Name>«Тиркемени орнотуу»</Name> же <Name>«Башкы экранга кошуу»</Name> тандаңыз.<Alt>Install app · Add to Home screen · Установить приложение</Alt></>,
-            <>tdJamaat иконкасы телефондун экранында пайда болот.</>
+            <>{t('Браузердин менюсун ачыңыз')} <Key icon={MoreVertical} />.</>,
+            <>{t('Тизмеден')} <Name>{t('«Тиркемени орнотуу»')}</Name>  {t('же')} <Name>{t('«Башкы экранга кошуу»')}</Name>  {t('тандаңыз.')}<Alt>{t('Install app · Add to Home screen · Установить приложение')}</Alt></>,
+            <>{t('tdJamaat иконкасы телефондун экранында пайда болот.')}</>
         ];
 
     return (
-        <Sheet title="Телефонго орнотуу" onClose={onClose} width="30rem">
+        <Sheet title={t('Телефонго орнотуу')} onClose={onClose} width="30rem">
             <div className="px-5 sm:px-7 py-7">
                 <div className="flex items-center gap-4">
                     <img src="/apple-touch-icon.png" alt="" className="flex-shrink-0 w-16 h-16 rounded-[16px]" style={{ border: '1px solid var(--border-strong)' }} />
                     <p className="text-[0.92rem]" style={{ color: 'var(--text-secondary)' }}>
-                        tdJamaat экраныңызда кадимки тиркеме сыяктуу турат: бир басуу менен, толук экранда ачылат.
+                        
+                        {t('tdJamaat экраныңызда кадимки тиркеме сыяктуу турат: бир басуу менен, толук экранда ачылат.')}
                     </p>
                 </div>
 
                 {ios && (
                     <p className="text-[0.85rem] italic mt-6 pl-3" style={{ color: 'var(--text-muted)', borderLeft: '1px solid var(--gold)' }}>
-                        iPhone'до сайттар өзүн-өзү орното албайт — Apple уруксат бербейт. Ошондуктан бул үч кадам колго жасалат, бир мүнөт да кетпейт.
+                        
+                        {t('iPhone\'до сайттар өзүн-өзү орното албайт — Apple уруксат бербейт. Ошондуктан бул үч кадам колго жасалат, бир мүнөт да кетпейт.')}
                     </p>
                 )}
                 {inAppBrowser() && (
                     <p className="text-[0.85rem] mt-4 pl-3" style={{ color: 'var(--text-secondary)', borderLeft: '1px solid var(--danger)' }}>
-                        Шилтеме Telegram, WhatsApp же Instagram'дын ичинде ачылып турат. Адегенде аны <Name>{ios ? 'Safari' : 'Chrome'}</Name>'де ачыңыз (меню → «{ios ? 'Open in Safari' : 'Open in Chrome'}»).
+                        {t('Шилтеме Telegram, WhatsApp же Instagram\'дын ичинде ачылып турат. Адегенде аны {0}\'де ачыңыз (меню → «{1}»).', ios ? 'Safari' : 'Chrome', ios ? 'Open in Safari' : 'Open in Chrome')}
                     </p>
                 )}
 

@@ -6,6 +6,7 @@ import { BADGES, TIER_LABEL } from '../../utils/badges';
 import { BadgeMedal } from '../BadgeMedal';
 import { Medallion } from '../Ornament';
 import { SectionHeader } from '../ui';
+import { t } from '../../i18n';
 
 interface AwardsViewProps {
     data: DataFile;
@@ -21,10 +22,10 @@ const METAL: Record<Tier, string> = { gold: 'var(--metal-gold)', silver: 'var(--
 // Small struck-coin dots for medal counts in the leader lists.
 const Coins: React.FC<{ tiers: Record<Tier, number> }> = ({ tiers }) => (
     <span className="flex items-center gap-3 text-[0.85rem] tabular" style={{ color: 'var(--text-secondary)' }}>
-        {(['seal', 'gold', 'silver', 'bronze'] as const).map(t => tiers[t] > 0 && (
-            <span key={t} className="inline-flex items-center gap-1.5" title={TIER_LABEL[t]}>
-                <span className="w-2.5 h-2.5 rounded-full" style={{ border: `1px solid ${METAL[t]}`, backgroundColor: t === 'seal' ? METAL[t] : 'transparent' }} />
-                {tiers[t]}
+        {(['seal', 'gold', 'silver', 'bronze'] as const).map(it => tiers[it] > 0 && (
+            <span key={it} className="inline-flex items-center gap-1.5" title={TIER_LABEL[it]}>
+                <span className="w-2.5 h-2.5 rounded-full" style={{ border: `1px solid ${METAL[it]}`, backgroundColor: it === 'seal' ? METAL[it] : 'transparent' }} />
+                {tiers[it]}
             </span>
         ))}
     </span>
@@ -56,7 +57,7 @@ export const AwardsView: React.FC<AwardsViewProps> = ({ data, weekIndex, awards,
         <div className="space-y-20">
             {/* This week's citations */}
             <section>
-                <SectionHeader eyebrow={`${week.weekNumber}-апта`} title="Аптанын сыйлыктары" sub={thisWeek.length ? undefined : 'Бул аптанын маалыматы толгондо сыйлыктар ушул жерде чыгат.'} />
+                <SectionHeader eyebrow={t('{0}-апта', week.weekNumber)} title={t('Аптанын сыйлыктары')} sub={thisWeek.length ? undefined : t('Бул аптанын маалыматы толгондо сыйлыктар ушул жерде чыгат.')} />
                 {thisWeek.length > 0 && (
                     <div className="grid grid-cols-1 md:grid-cols-2 md:gap-x-16">
                         {thisWeek.map((a, i) => {
@@ -89,8 +90,8 @@ export const AwardsView: React.FC<AwardsViewProps> = ({ data, weekIndex, awards,
             {/* Season leaders */}
             <div className="grid grid-cols-1 gap-16 lg:grid-cols-2 lg:gap-20">
                 <section>
-                    <SectionHeader eyebrow="Сезон" title="Эң көп сыйлык алгандар" />
-                    {personLeaders.length === 0 ? <p className="italic" style={{ color: 'var(--text-muted)' }}>Азырынча жок.</p> : (
+                    <SectionHeader eyebrow={t('Сезон')} title={t('Эң көп сыйлык алгандар')} />
+                    {personLeaders.length === 0 ? <p className="italic" style={{ color: 'var(--text-muted)' }}>{t('Азырынча жок.')}</p> : (
                         <ol>
                             {personLeaders.map((l, i) => (
                                 <li key={l.id}>
@@ -107,8 +108,8 @@ export const AwardsView: React.FC<AwardsViewProps> = ({ data, weekIndex, awards,
                     )}
                 </section>
                 <section>
-                    <SectionHeader eyebrow="Сезон" title="Үйлөрдүн сыйлыктары" />
-                    {houseLeaders.length === 0 ? <p className="italic" style={{ color: 'var(--text-muted)' }}>Азырынча жок.</p> : (
+                    <SectionHeader eyebrow={t('Сезон')} title={t('Үйлөрдүн сыйлыктары')} />
+                    {houseLeaders.length === 0 ? <p className="italic" style={{ color: 'var(--text-muted)' }}>{t('Азырынча жок.')}</p> : (
                         <ol>
                             {houseLeaders.map((l, i) => (
                                 <li key={l.id} className="flex items-baseline gap-3 py-3">
@@ -126,13 +127,13 @@ export const AwardsView: React.FC<AwardsViewProps> = ({ data, weekIndex, awards,
             {/* The collection */}
             <section>
                 <SectionHeader
-                    eyebrow="Бардык сыйлыктар"
-                    title="Коллекция"
-                    sub="Ар бир сыйлык апталык жыйынтыктан өзү берилет. Медалды басып, шартын жана кимдер алганын көрүңүз."
+                    eyebrow={t('Бардык сыйлыктар')}
+                    title={t('Коллекция')}
+                    sub={t('Ар бир сыйлык апталык жыйынтыктан өзү берилет. Медалды басып, шартын жана кимдер алганын көрүңүз.')}
                     action={
                         <div className="flex">
-                            <button className={`chip ${scope === 'person' ? 'is-active' : ''}`} onClick={() => { setScope('person'); setOpenDef(null); }}>Адамдар</button>
-                            <button className={`chip ${scope === 'house' ? 'is-active' : ''}`} onClick={() => { setScope('house'); setOpenDef(null); }}>Үйлөр</button>
+                            <button className={`chip ${scope === 'person' ? 'is-active' : ''}`} onClick={() => { setScope('person'); setOpenDef(null); }}>{t('Адамдар')}</button>
+                            <button className={`chip ${scope === 'house' ? 'is-active' : ''}`} onClick={() => { setScope('house'); setOpenDef(null); }}>{t('Үйлөр')}</button>
                         </div>
                     }
                 />
@@ -158,7 +159,7 @@ export const AwardsView: React.FC<AwardsViewProps> = ({ data, weekIndex, awards,
                     const holders = [...new Map(got.map(a => [a.holderId, a])).values()];
                     return (
                         <div className="mt-12 pt-8 animate-fade-up" style={{ borderTop: '1px solid var(--border)' }}>
-                            <div className="eyebrow mb-4">{d.name} · {got.length ? `${got.length} жолу берилди` : 'азырынча эч ким алган жок'}</div>
+                            <div className="eyebrow mb-4">{d.name} · {got.length ? t('{0} жолу берилди', got.length) : t('азырынча эч ким алган жок')}</div>
                             <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-16">
                                 {holders.map(h => {
                                     const times = got.filter(a => a.holderId === h.holderId);

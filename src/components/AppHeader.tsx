@@ -11,6 +11,7 @@ import { loadCity } from '../utils/city';
 import { useNow } from '../hooks/useNow';
 import { formatHijri, isRamadan, toHijri } from '../utils/hijri';
 import { PRAYER_NAMES, clock, nextPrayer, prayerTimes } from '../utils/prayer';
+import { isEnglish, setLang, t } from '../i18n';
 
 interface AppHeaderProps {
     authUser: AuthUser | null;
@@ -104,7 +105,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     installMode, onInstall, week, monument, seasonLabel, seasonName, season
 }) => {
     const isAdmin = authUser?.role === 'admin';
-    const who = isAdmin ? 'Админ' : houseName ?? 'Үй жетекчиси';
+    const who = isAdmin ? t('Админ') : houseName ?? t('Үй жетекчиси');
     const ThemeIcon = theme === 'dark' ? Sun : Moon;
     const now = useNow();
     const city = loadCity();
@@ -115,20 +116,20 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
     const items: MenuItem[] = [
         ...(authUser ? [
-            { key: 'entry', label: 'Маалымат кошуу', icon: PenLine, onClick: onDataEntry },
-            { key: 'history', label: 'Өзгөртүүлөр тарыхы', icon: History, onClick: onHistory },
-            ...(isAdmin ? [{ key: 'admin', label: 'Админ панели', icon: Settings2, onClick: onAdmin }] : [])
+            { key: 'entry', label: t('Маалымат кошуу'), icon: PenLine, onClick: onDataEntry },
+            { key: 'history', label: t('Өзгөртүүлөр тарыхы'), icon: History, onClick: onHistory },
+            ...(isAdmin ? [{ key: 'admin', label: t('Админ панели'), icon: Settings2, onClick: onAdmin }] : [])
         ] : []),
-        { key: 'compare', label: 'Салыштыруу', icon: Columns2, onClick: onCompare },
-        { key: 'prayer', label: 'Намаз убактылары', icon: Clock3, onClick: onPrayer },
-        { key: 'screen', label: screen ? 'Чоң экран: өчүрүү' : 'Чоң экран (жыйын үчүн)', icon: Monitor, onClick: onToggleScreen },
-        { key: 'formula', label: 'Упай формуласы', icon: Info, onClick: onFormula },
-        { key: 'share', label: 'Жыйынтыкты бөлүшүү', icon: Share2, onClick: onShare },
-        ...(installMode !== 'none' ? [{ key: 'install', label: 'Телефонго орнотуу', icon: Download, onClick: onInstall }] : []),
-        { key: 'tasbih', label: 'Санарип тасбихат', icon: ExternalLink, href: 'https://addua.vercel.app/' },
+        { key: 'compare', label: t('Салыштыруу'), icon: Columns2, onClick: onCompare },
+        { key: 'prayer', label: t('Намаз убактылары'), icon: Clock3, onClick: onPrayer },
+        { key: 'screen', label: screen ? t('Чоң экран: өчүрүү') : t('Чоң экран (жыйын үчүн)'), icon: Monitor, onClick: onToggleScreen },
+        { key: 'formula', label: t('Упай формуласы'), icon: Info, onClick: onFormula },
+        { key: 'share', label: t('Жыйынтыкты бөлүшүү'), icon: Share2, onClick: onShare },
+        ...(installMode !== 'none' ? [{ key: 'install', label: t('Телефонго орнотуу'), icon: Download, onClick: onInstall }] : []),
+        { key: 'tasbih', label: t('Санарип тасбихат'), icon: ExternalLink, href: 'https://addua.vercel.app/' },
         authUser
-            ? { key: 'logout', label: 'Чыгуу', icon: LogOut, onClick: onLogout, tone: 'danger' as const }
-            : { key: 'login', label: 'Кирүү', icon: LogIn, onClick: onLogin }
+            ? { key: 'logout', label: t('Чыгуу'), icon: LogOut, onClick: onLogout, tone: 'danger' as const }
+            : { key: 'login', label: t('Кирүү'), icon: LogIn, onClick: onLogin }
     ];
 
     return (
@@ -142,21 +143,36 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                     </div>
                     <div className="flex items-center">
                         {authUser && (
-                            <button onClick={onDataEntry} className="btn btn-ghost hidden sm:inline-flex mr-2">
-                                <PenLine className="w-3.5 h-3.5" /> Маалымат кошуу
-                            </button>
+                            // The wrapper does the hiding: .btn sets display itself and would override Tailwind's `hidden`.
+                            <span className="hidden sm:inline-flex mr-2">
+                                <button onClick={onDataEntry} className="btn btn-ghost">
+                                    <PenLine className="w-3.5 h-3.5" />  {t('Маалымат кошуу')}
+                                </button>
+                            </span>
                         )}
                         {!authUser && (
                             <button onClick={onLogin} className="hidden sm:inline-flex mr-1 px-3 h-10 items-center text-[0.7rem] tracking-[0.22em] uppercase transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-secondary)' }}>
-                                Кирүү
+                                
+                                {t('Кирүү')}
                             </button>
                         )}
-                        <IconButton label={theme === 'dark' ? 'Жарык тема' : 'Караңгы тема'} onClick={onToggleTheme}><ThemeIcon className="w-[1.1rem] h-[1.1rem]" strokeWidth={1.5} /></IconButton>
+                        {/* Language: each option is named in its own language, so it is never translated. */}
+                        <button
+                            onClick={() => setLang(isEnglish() ? 'ky' : 'en')}
+                            lang={isEnglish() ? 'ky' : 'en'}
+                            aria-label={isEnglish() ? 'Кыргызча' : 'English'}
+                            title={isEnglish() ? 'Кыргызча' : 'English'}
+                            className="h-10 min-w-10 px-1.5 inline-flex items-center justify-center text-[0.72rem] font-semibold tracking-[0.16em] transition-colors hover:text-[var(--gold)]"
+                            style={{ color: 'var(--text-secondary)' }}
+                        >
+                            {isEnglish() ? 'КЫР' : 'EN'}
+                        </button>
+                        <IconButton label={theme === 'dark' ? t('Жарык тема') : t('Караңгы тема')} onClick={onToggleTheme}><ThemeIcon className="w-[1.1rem] h-[1.1rem]" strokeWidth={1.5} /></IconButton>
                         <Dropdown
                             items={items}
-                            header={authUser ? <div className="text-[0.8rem]" style={{ color: 'var(--text-muted)' }}>Кирген: <span style={{ color: 'var(--gold)' }}>{who}</span></div> : undefined}
+                            header={authUser ? <div className="text-[0.8rem]" style={{ color: 'var(--text-muted)' }}>{t('Кирген:')} <span style={{ color: 'var(--gold)' }}>{who}</span></div> : undefined}
                             button={(open, toggle) => (
-                                <IconButton label="Меню" onClick={toggle} expanded={open}><Menu className="w-[1.2rem] h-[1.2rem]" strokeWidth={1.5} /></IconButton>
+                                <IconButton label={t('Меню')} onClick={toggle} expanded={open}><Menu className="w-[1.2rem] h-[1.2rem]" strokeWidth={1.5} /></IconButton>
                             )}
                         />
                     </div>
@@ -165,20 +181,21 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                 {/* Monument */}
                 <div className="monument flex flex-col items-center text-center pt-6 sm:pt-10 pb-10 sm:pb-14">
                     {ramadan && (
-                        <div className="flex flex-col items-center mb-2 animate-fade-in" aria-label="Рамазан">
+                        <div className="flex flex-col items-center mb-2 animate-fade-in" aria-label={t('Рамазан')}>
                             <svg width="34" height="34" viewBox="0 0 40 40" aria-hidden="true"><defs><mask id="ramadan-m"><rect width="40" height="40" fill="#fff" /><circle cx="25" cy="16" r="12" fill="#000" /></mask></defs><circle cx="20" cy="20" r="14" fill="var(--gold)" mask="url(#ramadan-m)" /></svg>
-                            <div className="eyebrow mt-1" style={{ color: 'var(--gold)' }}>Рамазан мубарак</div>
+                            <div className="eyebrow mt-1" style={{ color: 'var(--gold)' }}>{t('Рамазан мубарак')}</div>
                         </div>
                     )}
                     <Crown className="draw-in w-[min(19rem,78%)] h-auto" style={{ color: 'var(--gold)' }} />
 
                     {season && (
                         <label className="relative mt-3 inline-flex items-center gap-2 eyebrow cursor-pointer" style={{ color: 'var(--text-muted)' }}>
-                            Сезон
+                            
+                            {t('Сезон')}
                             <select
                                 value={season.selectedId}
                                 onChange={e => season.onChange(Number(e.target.value))}
-                                aria-label="Сезонду тандоо"
+                                aria-label={t('Сезонду тандоо')}
                                 className="appearance-none bg-transparent pr-4 outline-none cursor-pointer"
                                 style={{ color: 'var(--gold)', letterSpacing: 'inherit', textTransform: 'inherit', font: 'inherit' }}
                             >
@@ -190,19 +207,19 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
                     {week ? (
                         <div className="flex items-center gap-4 mt-3">
-                            <button onClick={week.onPrev} disabled={!week.canPrev} aria-label="Мурунку апта" className="w-9 h-9 inline-flex items-center justify-center rounded-full transition-colors disabled:opacity-20 hover:text-[var(--gold)]" style={{ border: '1px solid var(--border-strong)', color: 'var(--text-secondary)' }}>
+                            <button onClick={week.onPrev} disabled={!week.canPrev} aria-label={t('Мурунку апта')} className="w-9 h-9 inline-flex items-center justify-center rounded-full transition-colors disabled:opacity-20 hover:text-[var(--gold)]" style={{ border: '1px solid var(--border-strong)', color: 'var(--text-secondary)' }}>
                                 <ChevronLeft className="w-4 h-4" strokeWidth={1.5} />
                             </button>
                             <div className="eyebrow inline-flex items-center gap-2" style={{ color: 'var(--gold)' }} aria-live="polite">
-                                {monument?.kicker ?? `${week.number}-апта`}
-                                {week.locked && <Lock className="w-3 h-3" aria-label="кулпуланган" />}
+                                {monument?.kicker ?? t('{0}-апта', week.number)}
+                                {week.locked && <Lock className="w-3 h-3" aria-label={t('кулпуланган')} />}
                             </div>
-                            <button onClick={week.onNext} disabled={!week.canNext} aria-label="Кийинки апта" className="w-9 h-9 inline-flex items-center justify-center rounded-full transition-colors disabled:opacity-20 hover:text-[var(--gold)]" style={{ border: '1px solid var(--border-strong)', color: 'var(--text-secondary)' }}>
+                            <button onClick={week.onNext} disabled={!week.canNext} aria-label={t('Кийинки апта')} className="w-9 h-9 inline-flex items-center justify-center rounded-full transition-colors disabled:opacity-20 hover:text-[var(--gold)]" style={{ border: '1px solid var(--border-strong)', color: 'var(--text-secondary)' }}>
                                 <ChevronRight className="w-4 h-4" strokeWidth={1.5} />
                             </button>
                         </div>
                     ) : (
-                        !season && <div className="eyebrow mt-3" style={{ color: 'var(--gold)' }}>Сезон {seasonName ?? ''}</div>
+                        !season && <div className="eyebrow mt-3" style={{ color: 'var(--gold)' }}>{t('Сезон {0}', seasonName ?? '')}</div>
                     )}
 
                     {monument ? (
@@ -213,14 +230,14 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                         </>
                     ) : (
                         <h1 className="font-display leading-none mt-5 text-[2.6rem] sm:text-[3.4rem] lg:text-[4rem]" style={{ color: 'var(--text-primary)' }}>
-                            {seasonLabel ?? (week ? `${week.number}-апта` : '')}
+                            {seasonLabel ?? (week ? t('{0}-апта', week.number) : '')}
                         </h1>
                     )}
                     {week?.date && !monument && <p className="mt-3 text-[0.9rem]" style={{ color: 'var(--text-muted)' }}>{week.date.replace(' -- ', ' — ')}</p>}
                     <button onClick={onPrayer} className="mt-5 inline-flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[0.82rem] transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}>
                         {hijri && <span className="italic">{formatHijri(hijri)}</span>}
                         {hijri && <span aria-hidden="true" style={{ color: 'var(--gold-dim)' }}>·</span>}
-                        <span>{ramadan ? 'Ифтар' : PRAYER_NAMES[next.key]} <span className="tabular" style={{ color: 'var(--gold)' }}>{clock(ramadan ? todayTimes.maghrib : next.at, city.tz)}</span></span>
+                        <span>{ramadan ? t('Ифтар') : PRAYER_NAMES[next.key]} <span className="tabular" style={{ color: 'var(--gold)' }}>{clock(ramadan ? todayTimes.maghrib : next.at, city.tz)}</span></span>
                     </button>
                 </div>
             </div>

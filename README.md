@@ -103,6 +103,10 @@ visual redesign.
 - **"Чоң экран" (big screen) mode** for meetings on a monitor or projector:
   larger, heavier type, stronger contrast, thicker chart lines
   (menu, or `?ekran` in the address).
+- **Kyrgyz or English.** Kyrgyz is the default; the "EN" / "КЫР" button in
+  the header switches the whole site (metric codes too: К-К becomes QUR,
+  БГМДТ becomes FAJR) and each device remembers its choice. Names and the
+  stored data stay as they are.
 - **Admin panel**: open/lock weeks, end the season, edit the roster
   (names, roles, houses), edit season targets, download a backup.
 - **Installable app (PWA)** with a home-screen icon; refreshes live every
@@ -341,10 +345,12 @@ src/
   components/          shared UI (AppHeader, ProfileSheet, CompareSheet, ShareSheet,
                        PrayerSheet, AdminPanel, AdminSeason, HistorySheet, DataEntryForm,
                        BadgeMedal, Ornament, ui.tsx, …)
-  components/views/    one component per section (Overview, Teams, Progress, Reports, Awards)
+  components/views/    one component per section (Overview, Teams, Progress, Reports, Awards, Community)
   services/            Supabase reads/writes (dataService.ts, buildDataFile.ts) and auth
   utils/               scoring formula, season insights, badges, seasons, compare,
                        share-card drawing, Hijri date, prayer times
+  i18n/                Kyrgyz/English: t() and the English texts (en.ts), keyed by
+                       the Kyrgyz text; a test checks every t() text has a translation
   hooks/               useModal (scroll lock + Escape), useMediaQuery, useNow
   test/                test data builders
   pwa.ts               service worker registration + install prompt

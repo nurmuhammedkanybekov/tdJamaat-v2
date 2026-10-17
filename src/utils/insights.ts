@@ -4,6 +4,7 @@
 // number on a profile page always matches the number in the tables.
 import type { DataFile, MetricValues, Role, Team, TeamMember, WeekData } from '../types';
 import { calculateMemberAverage, calculateMemberScore, calculateMiniCardBonus, calculatePerformancePercentage, weights } from './scoring';
+import { t } from '../i18n';
 
 export const METRICS = Object.keys(weights) as Array<keyof MetricValues>;
 
@@ -12,7 +13,7 @@ export const PLAN_SCORE = Math.round(METRICS.reduce((s, m) => s + weights[m], 0)
 
 // Shown on the site. The stored role key stays 'imam' (database, logins);
 // only the word people see is "Капитан".
-export const ROLE_LABEL: Record<Role, string> = { imam: 'Капитан', zam: 'Орун басар', member: 'Мүчө' };
+export const ROLE_LABEL: Record<Role, string> = { imam: t('Капитан'), zam: t('Орун басар'), member: t('Мүчө') };
 
 /**
  * Does a house's week count (in averages, ranks, trends, reports)?

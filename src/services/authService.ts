@@ -1,5 +1,6 @@
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
+import { t } from '../i18n';
 
 // Leaders and the admin never see or type an email — the app builds a fixed,
 // non-deliverable email internally just because Supabase Auth requires one.
@@ -39,7 +40,7 @@ export const signInAsAdmin = async (password: string) => {
 export const requireActiveSession = async () => {
     const { data, error } = await supabase.auth.getSession();
     if (error || !data.session) {
-        throw new Error('Кирүү мөөнөтү бүттү — чыгып, кайра кириңиз.');
+        throw new Error(t('Кирүү мөөнөтү бүттү — чыгып, кайра кириңиз.'));
     }
     return data.session;
 };

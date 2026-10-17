@@ -5,11 +5,12 @@ import { formatHijri, isRamadan, toHijri } from '../utils/hijri';
 import { Sheet } from './ui';
 import { loadCity, saveCity } from '../utils/city';
 import { useNow } from '../hooks/useNow';
+import { t } from '../i18n';
 
 
-const WEEKDAYS = ['Жш', 'Дш', 'Шш', 'Шр', 'Бш', 'Жм', 'Иш'];
+const WEEKDAYS = [t('Жш'), t('Дш'), t('Шш'), t('Шр'), t('Бш'), t('Жм'), t('Иш')];
 // Short column heads so the week table fits a phone without scrolling.
-const SHORT: Record<string, string> = { fajr: 'Баг.', sunrise: 'Күн ч.', dhuhr: 'Беш.', asr: 'Аср', maghrib: 'Шам', isha: 'Куп.' };
+const SHORT: Record<string, string> = { fajr: t('Баг.'), sunrise: t('Күн ч.'), dhuhr: t('Беш.'), asr: t('Аср'), maghrib: t('Шам'), isha: t('Куп.') };
 const CELL: React.CSSProperties = { paddingLeft: '0.3rem', paddingRight: '0.3rem', textAlign: 'right' };
 
 export const PrayerSheet: React.FC<{ onClose: () => void; onCityChange?: (c: City) => void }> = ({ onClose, onCityChange }) => {
@@ -26,14 +27,14 @@ export const PrayerSheet: React.FC<{ onClose: () => void; onCityChange?: (c: Cit
     const pick = (c: City) => { setCity(c); saveCity(c); onCityChange?.(c); };
 
     return (
-        <Sheet title="Намаз убактылары" onClose={onClose} width="36rem">
+        <Sheet title={t('Намаз убактылары')} onClose={onClose} width="36rem">
             <div className="px-5 sm:px-7 py-6 space-y-8">
                 <div className="flex flex-wrap items-baseline justify-between gap-3">
                     <div>
                         <div className="eyebrow">{hijri ? formatHijri(hijri) : ''}</div>
                         <div className="font-display text-[1.5rem] mt-1" style={{ color: 'var(--text-primary)' }}>{city.name}</div>
                     </div>
-                    <div className="flex" role="group" aria-label="Шаар">
+                    <div className="flex" role="group" aria-label={t('Шаар')}>
                         {CITIES.map(c => <button key={c.id} className={`chip ${c.id === city.id ? 'is-active' : ''}`} onClick={() => pick(c)}>{c.name}</button>)}
                     </div>
                 </div>
@@ -41,22 +42,22 @@ export const PrayerSheet: React.FC<{ onClose: () => void; onCityChange?: (c: Cit
                 {ramadan && (
                     <div className="grid grid-cols-2 text-center py-4" style={{ borderTop: '1px solid var(--gold)', borderBottom: '1px solid var(--gold)' }}>
                         <div>
-                            <div className="eyebrow">Сахар</div>
-                            <div className="text-[0.75rem] italic mt-0.5" style={{ color: 'var(--text-muted)' }}>оозун бекитүү</div>
+                            <div className="eyebrow">{t('Сахар')}</div>
+                            <div className="text-[0.75rem] italic mt-0.5" style={{ color: 'var(--text-muted)' }}>{t('оозун бекитүү')}</div>
                             <div className="font-display text-[2.4rem] leading-none mt-2 tabular" style={{ color: 'var(--gold)' }}>{clock(times.fajr, city.tz)}</div>
                         </div>
                         <div style={{ borderLeft: '1px solid var(--border)' }}>
-                            <div className="eyebrow">Ифтар</div>
-                            <div className="text-[0.75rem] italic mt-0.5" style={{ color: 'var(--text-muted)' }}>ооз ачуу</div>
+                            <div className="eyebrow">{t('Ифтар')}</div>
+                            <div className="text-[0.75rem] italic mt-0.5" style={{ color: 'var(--text-muted)' }}>{t('ооз ачуу')}</div>
                             <div className="font-display text-[2.4rem] leading-none mt-2 tabular" style={{ color: 'var(--gold)' }}>{clock(times.maghrib, city.tz)}</div>
                         </div>
                     </div>
                 )}
 
                 <div className="text-center">
-                    <div className="eyebrow">Кийинки намаз</div>
+                    <div className="eyebrow">{t('Кийинки намаз')}</div>
                     <div className="font-display text-[2.6rem] leading-none mt-2" style={{ color: 'var(--text-primary)' }}>{PRAYER_NAMES[next.key]} <span className="tabular" style={{ color: 'var(--gold)' }}>{clock(next.at, city.tz)}</span></div>
-                    <div className="text-[0.9rem] italic mt-2" style={{ color: 'var(--text-muted)' }}>{untilText(next.at.getTime() - now.getTime())} калды</div>
+                    <div className="text-[0.9rem] italic mt-2" style={{ color: 'var(--text-muted)' }}>{t('{0} калды', untilText(next.at.getTime() - now.getTime()))}</div>
                 </div>
 
                 <ol>
@@ -76,7 +77,7 @@ export const PrayerSheet: React.FC<{ onClose: () => void; onCityChange?: (c: Cit
                     <table className="data-table w-full" style={{ minWidth: 330 }}>
                         <thead>
                             <tr>
-                                <th style={{ paddingLeft: "0.3rem" }}><span className="sr-only">Күн</span></th>
+                                <th style={{ paddingLeft: "0.3rem" }}><span className="sr-only">{t('Күн')}</span></th>
                                 {PRAYER_ORDER.map(k => <th key={k} style={{ ...CELL, letterSpacing: '0.06em' }} title={PRAYER_NAMES[k]} aria-label={PRAYER_NAMES[k]}>{SHORT[k] ?? PRAYER_NAMES[k]}</th>)}
                             </tr>
                         </thead>
@@ -92,7 +93,8 @@ export const PrayerSheet: React.FC<{ onClose: () => void; onCityChange?: (c: Cit
                 </div>
 
                 <p className="text-[0.8rem] italic" style={{ color: 'var(--text-muted)' }}>
-                    Убакыттар телефондун өзүндө эсептелет (Дүйнөлүк мусулман лигасы, Ханафи мазхабы, интернетсиз да иштейт). Жергиликтүү мечиттин жадыбалынан 1–2 мүнөткө айырмаланышы мүмкүн. Хижрий датасы Умм аль-Кура календары боюнча.
+                    
+                    {t('Убакыттар телефондун өзүндө эсептелет (Дүйнөлүк мусулман лигасы, Ханафи мазхабы, интернетсиз да иштейт). Жергиликтүү мечиттин жадыбалынан 1–2 мүнөткө айырмаланышы мүмкүн. Хижрий датасы Умм аль-Кура календары боюнча.')}
                 </p>
             </div>
         </Sheet>

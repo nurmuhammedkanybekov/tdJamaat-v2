@@ -6,6 +6,7 @@ import type { Award } from './badges';
 import { strongWeek } from './badges';
 import type { Insights, MemberSeries } from './insights';
 import { METRICS, longestStreak, weekOf } from './insights';
+import { t } from '../i18n';
 
 const round1 = (n: number) => Math.round(n * 10) / 10;
 const CARD_KEYS = (card: MiniCard) => Object.keys(card) as Array<keyof MiniCard>;
@@ -88,23 +89,23 @@ export const seasonRecords = (insights: Insights, awards: Award[]): SeasonRecord
     const bestWeek = people.flatMap(s => s.weeks.filter(w => w.submitted).map(w => ({ s, w })))
         .sort((a, b) => b.w.score - a.w.score)[0];
     if (bestWeek && bestWeek.w.score > 0)
-        out.push({ label: 'Эң жогорку жеке апта', value: fmt(bestWeek.w.score), who: bestWeek.s.name, detail: `${bestWeek.w.weekNumber}-апта · ${bestWeek.w.houseName}`, memberId: bestWeek.s.id });
+        out.push({ label: t('Эң жогорку жеке апта'), value: fmt(bestWeek.w.score), who: bestWeek.s.name, detail: t('{0}-апта · {1}', bestWeek.w.weekNumber, bestWeek.w.houseName), memberId: bestWeek.s.id });
 
     const bestHouse = [...insights.houses.values()].flatMap(h => h.weeks.filter(w => w.submitted).map(w => ({ h, w })))
         .sort((a, b) => b.w.avg - a.w.avg)[0];
     if (bestHouse && bestHouse.w.avg > 0)
-        out.push({ label: 'Эң жогорку үй рейтинги', value: fmt(bestHouse.w.avg), who: bestHouse.h.name, detail: `${bestHouse.w.weekNumber}-апта` });
+        out.push({ label: t('Эң жогорку үй рейтинги'), value: fmt(bestHouse.w.avg), who: bestHouse.h.name, detail: t('{0}-апта', bestHouse.w.weekNumber) });
 
     const streak = people.map(s => ({ s, n: longestStreak(s.weeks, strongWeek) })).sort((a, b) => b.n - a.n)[0];
     if (streak && streak.n >= 2)
-        out.push({ label: 'Эң узун күчтүү серия', value: `${streak.n} апта`, who: streak.s.name, detail: 'катары менен, кеминде 6/8 көрсөткүч планда', memberId: streak.s.id });
+        out.push({ label: t('Эң узун күчтүү серия'), value: t('{0} апта', streak.n), who: streak.s.name, detail: t('катары менен, кеминде 6/8 көрсөткүч планда'), memberId: streak.s.id });
 
     const medals = new Map<string, number>();
     awards.filter(a => a.def.scope === 'person').forEach(a => medals.set(a.holderId, (medals.get(a.holderId) ?? 0) + 1));
     const topMedals = [...medals.entries()].sort((a, b) => b[1] - a[1])[0];
     if (topMedals) {
         const s = insights.members.get(topMedals[0]);
-        if (s) out.push({ label: 'Эң көп медаль', value: String(topMedals[1]), who: s.name, detail: s.houseName, memberId: s.id });
+        if (s) out.push({ label: t('Эң көп медаль'), value: String(topMedals[1]), who: s.name, detail: s.houseName, memberId: s.id });
     }
 
     const leap = people.flatMap(s => s.weeks.filter(w => w.submitted).map(w => {
@@ -112,7 +113,7 @@ export const seasonRecords = (insights: Insights, awards: Award[]): SeasonRecord
         return prev && prev.submitted ? { s, w, d: w.score - prev.score } : null;
     })).filter((x): x is NonNullable<typeof x> => !!x).sort((a, b) => b.d - a.d)[0];
     if (leap && leap.d > 0)
-        out.push({ label: 'Эң чоң секирик', value: `+${fmt(leap.d)}`, who: leap.s.name, detail: `${leap.w.weekNumber}-апта`, memberId: leap.s.id });
+        out.push({ label: t('Эң чоң секирик'), value: `+${fmt(leap.d)}`, who: leap.s.name, detail: t('{0}-апта', leap.w.weekNumber), memberId: leap.s.id });
 
     return out;
 };
