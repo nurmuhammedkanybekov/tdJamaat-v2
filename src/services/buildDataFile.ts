@@ -12,6 +12,7 @@
 //  - not submitted, finished season → the people who were in that house
 //    during that season, at zero (never today's roster).
 import type { DataFile, MetricValues, MiniCard, Role, Season, Team, TeamMember, WeekData } from '../types';
+import { houseDisplayName } from '../utils/houseName';
 
 export type HouseRow = { id: string; name: string; display_order: number; active: boolean };
 export type MemberRow = { id: string; house_id: string; name: string; role: Role; photo_url: string | null; display_order: number; active: boolean };
@@ -113,7 +114,7 @@ export const buildDataFile = (
             const activityRow = activityByKey.get(`${house.id}|${week.week_number}`);
             return {
                 id: house.id,
-                name: house.name,
+                name: houseDisplayName(house.name),
                 miniCard: h.normalizeMiniCard(activityRow?.activity, settings.miniCard),
                 members: teamMembers,
                 submitted: submittedRows.length > 0 || !!activityRow

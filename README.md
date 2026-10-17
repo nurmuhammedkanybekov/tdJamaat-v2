@@ -105,8 +105,10 @@ visual redesign.
   (menu, or `?ekran` in the address).
 - **Kyrgyz or English.** Kyrgyz is the default; the "EN" / "КЫР" button in
   the header switches the whole site (metric codes too: К-К becomes QUR,
-  БГМДТ becomes FAJR) and each device remembers its choice. Names and the
-  stored data stay as they are.
+  БГМДТ becomes FAJR) and each device remembers its choice. People's names
+  and the stored data stay as they are. House names are always shown in
+  Latin letters, in both languages (a name stored in Cyrillic is shown in
+  its Hungarian spelling, e.g. Дамянич → Damjanich).
 - **Admin panel**: open/lock weeks, end the season, edit the roster
   (names, roles, houses), edit season targets, download a backup.
 - **Installable app (PWA)** with a home-screen icon; refreshes live every

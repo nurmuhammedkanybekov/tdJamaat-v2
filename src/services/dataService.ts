@@ -3,6 +3,7 @@ import type { DataFile, House, Member, MetricValues, MiniCard, Role, Season } fr
 import { buildDataFile } from './buildDataFile';
 import type { ActivityRow, HouseRow, MemberRow, MetricRow as FullMetricRow, WeekRow } from './buildDataFile';
 import { t } from '../i18n';
+import { houseDisplayName } from '../utils/houseName';
 
 const ZERO_METRICS: MetricValues = {
     'К-К': 0, 'СВТ': 0, 'КТП': 0, 'ТХЖ': 0, 'ДТА': 0, 'ИСТГ': 0, 'НФ': 0, 'ТСП': 0
@@ -65,7 +66,7 @@ export const fetchHouses = async (includeInactive = false): Promise<House[]> => 
     const { data, error } = await query;
     if (error) fail(error);
     return (data ?? []).map(h => ({
-        id: h.id, name: h.name, slug: h.slug, displayOrder: h.display_order, active: h.active
+        id: h.id, name: houseDisplayName(h.name), slug: h.slug, displayOrder: h.display_order, active: h.active
     }));
 };
 
