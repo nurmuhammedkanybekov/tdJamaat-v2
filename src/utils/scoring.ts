@@ -56,8 +56,10 @@ export const calculatePerformancePercentage = (actual: number, target: number): 
     return (actual / target) * 100;
 };
 
-export const calculateMemberScore = (member: TeamMember): number => {
-    let totalScore = 0;
+/** Points earned per metric (unrounded). calculateMemberScore is their sum,
+ *  so a breakdown built from this always adds up to the total. */
+export const metricPoints = (member: TeamMember): MetricValues => {
+    const out = {} as MetricValues;
     const metrics = Object.keys(weights) as Array<keyof MetricValues>;
 
     metrics.forEach(metric => {
@@ -72,10 +74,15 @@ export const calculateMemberScore = (member: TeamMember): number => {
         // (accidental or not) to make a small "actual" count for far more
         // than it should.
         const performancePercentage = calculatePerformancePercentage(actual, target);
-        const metricScore = (creditedPercentage(performancePercentage) / 100) * weights[metric];
-        totalScore += metricScore;
+        out[metric] = (creditedPercentage(performancePercentage) / 100) * weights[metric];
     });
 
+    return out;
+};
+
+export const calculateMemberScore = (member: TeamMember): number => {
+    const points = metricPoints(member);
+    const totalScore = (Object.keys(weights) as Array<keyof MetricValues>).reduce((sum, m) => sum + points[m], 0);
     return Math.round(totalScore * 10) / 10;
 };
 

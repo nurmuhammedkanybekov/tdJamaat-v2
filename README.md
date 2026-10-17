@@ -66,6 +66,10 @@ visual redesign.
 - **Personal profile pages.** Tap anyone to see their score trend, how
   close they are to each target this week, best week, perfect-week streak,
   badges and full week-by-week history.
+- **Where the points came from.** Each profile splits the score by metric
+  (points earned / points for 100% of the plan), for the selected week or
+  as the season average, and names the strongest metric and the one
+  furthest from its plan.
 - **Awards.** Strava-style badges for people and houses (star of the week,
   perfect plan, streaks, biggest leap, house of the month, …), each earned
   automatically from the real numbers and shown with the exact reason.
