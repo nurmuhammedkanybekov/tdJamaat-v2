@@ -30,14 +30,14 @@
     --surface-2: #efece5;
     --text-primary: #141413;
     --text-secondary: #4a4740;
-    --text-muted: #8a857a;
+    --text-muted: #6f6a60; /* was #8a857a: too faint on a projector (3.3:1 → 4.8:1) */
     --border: #e1ddd3;
     --border-strong: #cdc7ba;
     --gridline: #e6e2d9;
 
     --gold: #9a7836;
     --gold-bright: #b48f45;
-    --gold-dim: #a8925f;
+    --gold-dim: #8c7642; /* was #a8925f (2.7:1 → 3.9:1) */
     --gold-soft: #9a78361a;
     --gold-ink: #fbfaf7;
     --accent: var(--gold);
@@ -326,3 +326,46 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 }
 
 .recharts-wrapper:focus, .recharts-surface:focus, .recharts-wrapper *:focus { outline: none; }
+
+/* -----------------------------------------------------------------------
+   "Чоң экран" — big-screen mode for meetings (menu → Чоң экран, or ?ekran
+   in the address). Same design, tuned for reading from across a room:
+   bigger type, one step heavier, quiet greys pulled toward ink, thicker
+   chart lines. Toggled by the .screen class on <html> (src/theme.ts).
+   ------------------------------------------------------------------------ */
+html.screen:not(.dark) {
+    --text-secondary: #262521;
+    --text-muted: #4a4740;
+    --gold-dim: #7d6129;
+    --border: #cdc7ba;
+    --gridline: #d9d4c8;
+}
+html.screen.dark {
+    --text-secondary: #e2ddd1;
+    --text-muted: #b7b1a4;
+    --gold-dim: #c9a961;
+    --border: #3a3935;
+    --gridline: #2c2c30;
+}
+html.screen .eyebrow { font-weight: 500; }
+/* Bigger, heavier type only where there is room for it: monitors, projectors,
+   laptops. (A phone in this mode keeps its size and gets the contrast.) */
+@media (min-width: 1280px) {
+    /* Proportional to the screen width, so the layout keeps its proportions
+       (22px at 1280, 25px at 1440, 28px from 1630 up). */
+    html.screen { font-size: clamp(18px, 1.72vw, 28px); }
+    html.screen body { font-weight: 500; }
+    html.screen .font-bold, html.screen .font-semibold, html.screen b, html.screen strong { font-weight: 600; }
+    html.screen .eyebrow { font-size: 0.74rem; letter-spacing: 0.22em; }
+    html.screen .chip { font-size: 0.78rem; letter-spacing: 0.14em; }
+}
+html.screen .recharts-line-curve,
+html.screen .recharts-area-curve { stroke-width: 2.6px; }
+html.screen .recharts-cartesian-axis-tick text { font-size: 15px !important; font-weight: 500; }
+html.screen .recharts-cartesian-grid line { stroke: var(--gridline); }
+
+/* The header is all air and ornament; in a meeting the rankings matter, so it
+   gets compact and the first screen shows the content. */
+html.screen .monument { padding-top: 0.25rem; padding-bottom: 1.25rem; }
+html.screen .monument > svg.draw-in { width: min(11rem, 50%); }
+html.screen .monument h1 { margin-top: 0.25rem; }

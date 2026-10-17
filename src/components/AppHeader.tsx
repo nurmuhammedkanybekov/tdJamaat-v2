@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
     ChevronLeft, ChevronRight, Clock3, Columns2, Download, ExternalLink, History, Info, Lock, LogIn, LogOut,
-    Menu, Moon, PenLine, Settings2, Share2, Sun
+    Menu, Monitor, Moon, PenLine, Settings2, Share2, Sun
 } from 'lucide-react';
 import type { AuthUser } from '../services/authService';
 import type { Theme } from '../theme';
@@ -17,6 +17,9 @@ interface AppHeaderProps {
     houseName: string | null;
     theme: Theme;
     onToggleTheme: () => void;
+    /** Big-screen mode (meetings, projector). */
+    screen: boolean;
+    onToggleScreen: () => void;
     onLogin: () => void;
     onLogout: () => void;
     onDataEntry: () => void;
@@ -97,7 +100,7 @@ const IconButton: React.FC<{ label: string; onClick: () => void; children: React
 );
 
 export const AppHeader: React.FC<AppHeaderProps> = ({
-    authUser, houseName, theme, onToggleTheme, onLogin, onLogout, onDataEntry, onFormula, onAdmin, onHistory, onShare, onPrayer, onCompare,
+    authUser, houseName, theme, onToggleTheme, screen, onToggleScreen, onLogin, onLogout, onDataEntry, onFormula, onAdmin, onHistory, onShare, onPrayer, onCompare,
     installMode, onInstall, week, monument, seasonLabel, seasonName, season
 }) => {
     const isAdmin = authUser?.role === 'admin';
@@ -118,6 +121,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         ] : []),
         { key: 'compare', label: 'Салыштыруу', icon: Columns2, onClick: onCompare },
         { key: 'prayer', label: 'Намаз убактылары', icon: Clock3, onClick: onPrayer },
+        { key: 'screen', label: screen ? 'Чоң экран: өчүрүү' : 'Чоң экран (жыйын үчүн)', icon: Monitor, onClick: onToggleScreen },
         { key: 'formula', label: 'Упай формуласы', icon: Info, onClick: onFormula },
         { key: 'share', label: 'Жыйынтыкты бөлүшүү', icon: Share2, onClick: onShare },
         ...(installMode !== 'none' ? [{ key: 'install', label: 'Телефонго орнотуу', icon: Download, onClick: onInstall }] : []),
@@ -159,7 +163,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                 </div>
 
                 {/* Monument */}
-                <div className="flex flex-col items-center text-center pt-6 sm:pt-10 pb-10 sm:pb-14">
+                <div className="monument flex flex-col items-center text-center pt-6 sm:pt-10 pb-10 sm:pb-14">
                     {ramadan && (
                         <div className="flex flex-col items-center mb-2 animate-fade-in" aria-label="Рамазан">
                             <svg width="34" height="34" viewBox="0 0 40 40" aria-hidden="true"><defs><mask id="ramadan-m"><rect width="40" height="40" fill="#fff" /><circle cx="25" cy="16" r="12" fill="#000" /></mask></defs><circle cx="20" cy="20" r="14" fill="var(--gold)" mask="url(#ramadan-m)" /></svg>

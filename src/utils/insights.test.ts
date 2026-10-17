@@ -24,7 +24,7 @@ describe('insights', () => {
 
     it('ranks houses by rating, so the mini-card can decide the winner', () => {
         const data = dataFile(week(1, [
-            house('A', [person('a', 'member', 1)], { miniCard: card(0) }),                  // 177 + 0
+            house('A', [person('a', 'member', 1)], { miniCard: card(0) }),                  // 212 + 0
             house('B', [person('b', 'member', 1, { 'ТСП': 6 })], { miniCard: card(1) })   // ~173 + 35
         ]));
         const ins = buildInsights(data);

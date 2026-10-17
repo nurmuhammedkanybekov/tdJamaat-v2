@@ -55,7 +55,7 @@ visual redesign.
   only write that house's own weekly numbers; a separate admin login
   manages the roster and can edit anything. Enforced by Postgres row-level
   security, not just hidden in the UI.
-- **Role-scaled targets.** An imam, a zam (deputy), and a regular member
+- **Role-scaled targets.** A captain (капитан), a deputy (орун басар), and a regular member
   have different expected minimums for each metric — the app seeds new
   weekly entries with the right target for that person's role instead of
   one flat number for everyone.
@@ -219,7 +219,7 @@ erDiagram
         uuid id PK
         uuid house_id FK
         text name
-        text role "imam | zam | member"
+        text role "imam (shown as Капитан) | zam | member"
         text photo_url
         int display_order
         boolean active
@@ -271,7 +271,7 @@ The weights are the same for everyone; what changes by role is the
 
 | | К-К | СВТ | КТП | ТХЖ | ДТА | ИСТГ | НФ | ТСП |
 |---|---|---|---|---|---|---|---|---|
-| Имам | 20 | 2100 | 70 | 2 | 1 | 700 | 7 | 10 |
+| Капитан | 20 | 2100 | 70 | 2 | 1 | 700 | 7 | 10 |
 | Орун басар | 10 | 1400 | 40 | 1 | 1 | 350 | 7 | 7 |
 | Мүчө | 7 | 700 | 30 | 1 | 1 | 200 | 7 | 7 |
 

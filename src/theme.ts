@@ -35,3 +35,31 @@ export const setTheme = (theme: Theme) => {
         // Non-fatal — theme just won't persist across visits.
     }
 };
+
+// "Чоң экран" (big screen) mode, for showing the site on a monitor or a
+// projector in meetings: bigger and heavier text, stronger contrast, thicker
+// chart lines. A `.screen` class on <html> (styles in index.css), remembered
+// per device. `?ekran` in the address turns it on, `?ekran=0` turns it off,
+// so the meeting computer can open it straight from a bookmark.
+const SCREEN_KEY = 'tdjamaat-screen';
+
+export const applyScreen = (on: boolean) => {
+    document.documentElement.classList.toggle('screen', on);
+};
+
+export const setScreen = (on: boolean) => {
+    applyScreen(on);
+    try { localStorage.setItem(SCREEN_KEY, on ? '1' : '0'); } catch { /* not critical */ }
+};
+
+export const initScreen = (): boolean => {
+    let on = false;
+    try { on = localStorage.getItem(SCREEN_KEY) === '1'; } catch { /* not critical */ }
+    const param = new URLSearchParams(window.location.search).get('ekran');
+    if (param !== null) {
+        on = param !== '0';
+        try { localStorage.setItem(SCREEN_KEY, on ? '1' : '0'); } catch { /* not critical */ }
+    }
+    applyScreen(on);
+    return on;
+};

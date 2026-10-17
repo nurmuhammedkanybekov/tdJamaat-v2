@@ -5,7 +5,7 @@ import { movement, ROLE_LABEL, weekOf } from '../../utils/insights';
 import { Avatar } from '../Avatar';
 import { Movement, SectionHeader } from '../ui';
 
-const ROLE_FILTER_LABEL: Record<'all' | Role, string> = { all: 'Бардыгы', imam: 'Имамдар', zam: 'Орун басарлар', member: 'Мүчөлөр' };
+const ROLE_FILTER_LABEL: Record<'all' | Role, string> = { all: 'Бардыгы', imam: 'Капитандар', zam: 'Орун басарлар', member: 'Мүчөлөр' };
 const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
 const pad2 = (n: number) => String(n).padStart(2, '0');
 const fmt = (n: number) => (Math.round(n * 10) / 10).toString();

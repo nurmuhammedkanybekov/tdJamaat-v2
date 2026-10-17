@@ -2,19 +2,32 @@ import type { MetricValues, TeamMember, Team } from '../types';
 
 // Scoring weights. A weight is the points earned at exactly 100% of target.
 // СВТ and ИСТГ are kept low on purpose: their targets are large counts that
-// are quick to reach, so even with no cap on the percentage they can't
-// outweigh the other metrics. (They were 0.1, which made 100% worth almost
-// nothing.)
+// are quick to reach. (They were 0.1, which made 100% worth almost nothing.)
+// Oct 2026: ТХЖ 20 → 40, ДТА 30 → 50, КТП 35 → 30.
 export const weights: MetricValues = {
     'К-К': 45.0,
     'СВТ': 1.0,
-    'КТП': 35.0,
-    'ТХЖ': 20.0,
-    'ДТА': 30.0,
+    'КТП': 30.0,
+    'ТХЖ': 40.0,
+    'ДТА': 50.0,
     'ИСТГ': 1.0,
     'НФ': 20.0,
     'ТСП': 25.0
 };
+
+// Going over the plan still earns more, but each extra 100% earns less than
+// the one before ("diminishing returns"), so one metric done 8× can't carry
+// a whole week:
+//
+//   up to 100%:   credited = done              (100% → 100%)
+//   above 100%:   credited = 100% × (1 + ln(done ÷ 100%))
+//
+// Every doubling of the work adds the same +69% of plan:
+//   100% → 100%,  200% → 169%,  400% → 239%,  800% → 308%,  1600% → 377%.
+// The curve joins the straight part smoothly at 100% (no sudden jump), and it
+// never goes down: doing more always earns a little more.
+export const creditedPercentage = (pct: number): number =>
+    pct <= 100 ? Math.max(pct, 0) : 100 * (1 + Math.log(pct / 100));
 
 // Role and team colors are read from CSS custom properties (src/index.css)
 // so they swap automatically with the light/dark theme toggle — both sets
@@ -58,7 +71,7 @@ export const calculateMemberScore = (member: TeamMember): number => {
         // (accidental or not) to make a small "actual" count for far more
         // than it should.
         const performancePercentage = calculatePerformancePercentage(actual, target);
-        const metricScore = (performancePercentage / 100) * weights[metric];
+        const metricScore = (creditedPercentage(performancePercentage) / 100) * weights[metric];
         totalScore += metricScore;
     });
 

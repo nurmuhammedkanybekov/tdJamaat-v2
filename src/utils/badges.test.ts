@@ -96,14 +96,31 @@ describe('season finale awards', () => {
         expect(season(false).filter(a => a.def.id === 'full-season' || a.def.id === 'house-season')).toHaveLength(0);
     });
 
-    it('"full season" goes to people active in every week, whatever the season length', () => {
+    it('"full season" goes only to people with a strong week every week, whatever the season length', () => {
         const full = season(true).filter(a => a.def.id === 'full-season').map(a => a.holderId);
-        expect(full.sort()).toEqual(['b', 'steady']); // 'gap' missed week 2
+        expect(full).toEqual(['steady']); // 'gap' had a 0 week; 'b' was active but at 60%, never at plan
     });
 
     it('"house of the season" goes to the best average rating', () => {
         const hs = season(true).filter(a => a.def.id === 'house-season');
         expect(hs.map(a => a.holderId)).toEqual(['A']);
         expect(hs[0].reason).toMatch(/2026–27/);
+    });
+});
+
+describe('consistency medals (Туруктуу, Ишенимдүү)', () => {
+    const run = (fraction: number, overrides = {}) => {
+        const weeks = [1, 2, 3, 4].map(n => week(n, [house('A', [person('p', 'member', fraction, overrides)])]));
+        return computeAwards(dataFile(...weeks), buildInsights(dataFile(...weeks))).filter(a => a.def.id === 'steady-4');
+    };
+
+    it('are not given for merely "some score" each week', () => {
+        expect(run(0.6)).toHaveLength(0);
+    });
+
+    it('need at least 6 of the 8 metrics at plan, 4 weeks running', () => {
+        expect(run(1)).toHaveLength(1);
+        expect(run(1, { 'НФ': 0, 'ТСП': 0 })).toHaveLength(1);           // 6/8 → strong
+        expect(run(1, { 'НФ': 0, 'ТСП': 0, 'ТХЖ': 0 })).toHaveLength(0); // 5/8 → not
     });
 });

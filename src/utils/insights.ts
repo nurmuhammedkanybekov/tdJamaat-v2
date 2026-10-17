@@ -10,7 +10,9 @@ export const METRICS = Object.keys(weights) as Array<keyof MetricValues>;
 /** Score a person earns at exactly 100% on every metric (sum of weights). */
 export const PLAN_SCORE = Math.round(METRICS.reduce((s, m) => s + weights[m], 0) * 10) / 10;
 
-export const ROLE_LABEL: Record<Role, string> = { imam: 'Имам', zam: 'Орун басар', member: 'Мүчө' };
+// Shown on the site. The stored role key stays 'imam' (database, logins);
+// only the word people see is "Капитан".
+export const ROLE_LABEL: Record<Role, string> = { imam: 'Капитан', zam: 'Орун басар', member: 'Мүчө' };
 
 /**
  * Does a house's week count (in averages, ranks, trends, reports)?

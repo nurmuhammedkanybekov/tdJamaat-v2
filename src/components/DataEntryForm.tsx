@@ -20,6 +20,7 @@ import {
 } from '../services/dataService';
 import type { HouseHistory, SeasonSettings } from '../services/dataService';
 import { calculateMemberScore } from '../utils/scoring';
+import { ROLE_LABEL } from '../utils/insights';
 import { Avatar } from './Avatar';
 import { NumberInput } from './NumberInput';
 import { requireActiveSession } from '../services/authService';
@@ -554,7 +555,7 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                                                         <div className="flex-1 min-w-0">
                                                             <div className="font-semibold truncate" style={{ color: 'var(--text-primary)' }}>{member.name}</div>
                                                             <div className="text-xs italic" style={{ color: 'var(--text-muted)' }}>
-                                                                {member.role === 'imam' ? 'Имам' : member.role === 'zam' ? 'Орун басар' : 'Мүчө'}
+                                                                {ROLE_LABEL[member.role]}
                                                             </div>
                                                         </div>
                                                         <div className="text-right flex-shrink-0">

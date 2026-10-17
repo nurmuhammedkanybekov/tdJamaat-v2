@@ -1,17 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { calculateHouseRating, calculateMemberAverage, calculateMemberScore, calculateMiniCardBonus, calculatePerformancePercentage, MINI_CARD_POINTS, weights } from './scoring';
+import { calculateHouseRating, calculateMemberAverage, calculateMemberScore, calculateMiniCardBonus, calculatePerformancePercentage, creditedPercentage, MINI_CARD_POINTS, weights } from './scoring';
 import { PLAN_SCORE } from './insights';
 import { card, house, person } from '../test/factory';
 
 describe('member score', () => {
-    it('weights match the season formula (СВТ and ИСТГ are 1)', () => {
-        expect(weights).toEqual({ 'К-К': 45, 'СВТ': 1, 'КТП': 35, 'ТХЖ': 20, 'ДТА': 30, 'ИСТГ': 1, 'НФ': 20, 'ТСП': 25 });
+    it('weights match the season formula (Oct 2026: ТХЖ 40, ДТА 50, КТП 30)', () => {
+        expect(weights).toEqual({ 'К-К': 45, 'СВТ': 1, 'КТП': 30, 'ТХЖ': 40, 'ДТА': 50, 'ИСТГ': 1, 'НФ': 20, 'ТСП': 25 });
     });
 
     it('exactly 100% of every target earns the plan score (sum of weights)', () => {
-        expect(PLAN_SCORE).toBe(177);
+        expect(PLAN_SCORE).toBe(212);
         for (const role of ['imam', 'zam', 'member'] as const) {
-            expect(calculateMemberScore(person('a', role, 1))).toBe(177);
+            expect(calculateMemberScore(person('a', role, 1))).toBe(212);
         }
     });
 
@@ -19,10 +19,29 @@ describe('member score', () => {
         expect(calculateMemberScore(person('a', 'member', 0))).toBe(0);
     });
 
-    it('is not capped: double the К-К target doubles К-К points', () => {
-        const base = person('a', 'member', 1);
-        const extra = person('a', 'member', 1, { 'К-К': 14 });
-        expect(calculateMemberScore(extra) - calculateMemberScore(base)).toBe(45);
+    it('over the plan: diminishing returns, every doubling adds +69% of plan', () => {
+        expect(creditedPercentage(50)).toBe(50);
+        expect(creditedPercentage(100)).toBe(100);
+        expect(creditedPercentage(200)).toBeCloseTo(169.3, 1);
+        expect(creditedPercentage(400)).toBeCloseTo(238.6, 1);
+        expect(creditedPercentage(800)).toBeCloseTo(307.9, 1);
+        expect(creditedPercentage(-10)).toBe(0);
+    });
+
+    it('over the plan: always a little more, never a jump at 100%', () => {
+        let prev = 0;
+        for (let x = 0; x <= 2000; x += 5) {
+            const c = creditedPercentage(x);
+            expect(c).toBeGreaterThanOrEqual(prev);
+            prev = c;
+        }
+        expect(creditedPercentage(100.5) - creditedPercentage(100)).toBeCloseTo(0.5, 1);
+    });
+
+    it('double the К-К target earns 76 К-К points, not 90 (8× earns 139, not 360)', () => {
+        const base = calculateMemberScore(person('a', 'member', 1));
+        expect(calculateMemberScore(person('a', 'member', 1, { 'К-К': 14 })) - base).toBeCloseTo(31.2, 1);
+        expect(calculateMemberScore(person('a', 'member', 1, { 'К-К': 56 })) - base).toBeCloseTo(93.6, 1);
     });
 
     it('a missing target (0) earns 0% for that metric, never inflated', () => {
@@ -30,7 +49,7 @@ describe('member score', () => {
         m.target['К-К'] = 0;
         m.actual['К-К'] = 50;
         expect(calculatePerformancePercentage(50, 0)).toBe(0);
-        expect(calculateMemberScore(m)).toBe(177 - 45);
+        expect(calculateMemberScore(m)).toBe(212 - 45);
     });
 
     it('rounds to one decimal', () => {
@@ -60,8 +79,8 @@ describe('house rating', () => {
 
     it('rating = member average + mini-card bonus', () => {
         const h = house('A', [person('a', 'member', 1), person('b', 'member', 0)], { miniCard: card(1) });
-        expect(calculateMemberAverage(h)).toBe(88.5);
-        expect(calculateHouseRating(h)).toBe(123.5);
+        expect(calculateMemberAverage(h)).toBe(106);
+        expect(calculateHouseRating(h)).toBe(141);
     });
 
     it('a house with no members never produces NaN', () => {

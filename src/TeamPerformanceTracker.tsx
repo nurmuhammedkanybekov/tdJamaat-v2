@@ -7,7 +7,7 @@ import type { DataFile, House } from './types';
 import { fetchDataFile, fetchHouses } from './services/dataService';
 import { getInitialAuthUser, subscribeToAuthChanges, signOut } from './services/authService';
 import type { AuthUser } from './services/authService';
-import { getStoredTheme, setTheme as persistTheme } from './theme';
+import { getStoredTheme, setScreen, setTheme as persistTheme } from './theme';
 import type { Theme } from './theme';
 import { useInstallPrompt } from './pwa';
 import { buildInsights, weekOf } from './utils/insights';
@@ -71,6 +71,8 @@ const TeamPerformanceTracker: React.FC = () => {
     const pushedProfile = useRef(false);
 
     const [theme, setThemeState] = useState<Theme>(() => getStoredTheme() ?? (document.documentElement.classList.contains('dark') ? 'dark' : 'light'));
+    const [screen, setScreenState] = useState(() => document.documentElement.classList.contains('screen'));
+    const toggleScreen = () => { setScreen(!screen); setScreenState(!screen); };
     const toggleTheme = () => {
         const next: Theme = theme === 'dark' ? 'light' : 'dark';
         persistTheme(next);
@@ -234,6 +236,8 @@ const TeamPerformanceTracker: React.FC = () => {
                 houseName={authHouseName}
                 theme={theme}
                 onToggleTheme={toggleTheme}
+                screen={screen}
+                onToggleScreen={toggleScreen}
                 onLogin={() => setModal('login')}
                 onLogout={() => signOut()}
                 onDataEntry={() => { setDataEntryHouseId(null); setModal('entry'); }}

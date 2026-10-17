@@ -43,6 +43,15 @@ export interface Award {
 const DOUBLE_MIN_TARGET = 5;
 const DOUBLE_EXCLUDED: Array<keyof MetricValues> = ['СВТ', 'ИСТГ'];
 
+// A "strong week" (for the consistency medals): the house's week counts and
+// at least STRONG_METRICS of the 8 metrics reached their plan. Before Oct 2026
+// these medals only needed "some score", which nearly everyone has every week,
+// so the whole jamaat got them at once and they meant nothing.
+export const STRONG_METRICS = 6;
+export const metricsAtPlan = (w: MemberWeek) =>
+    METRICS.filter(m => (w.member.target[m] || 0) > 0 && w.pct[m] >= 100).length;
+export const strongWeek = (w: MemberWeek) => w.submitted && metricsAtPlan(w) >= STRONG_METRICS;
+
 export const BADGES: Record<string, BadgeDef> = {
     'week-star': { id: 'week-star', scope: 'person', name: 'Апта жылдызы', tier: 'gold', icon: 'star', rule: 'Аптанын эң жогорку жеке упайы — бардык катышуучулардын ичинен 1-орун.' },
     'podium': { id: 'podium', scope: 'person', name: 'Сыйлык тепкичи', tier: 'silver', icon: 'podium', rule: 'Аптанын жеке рейтингинде 2- же 3-орун.' },
@@ -52,10 +61,10 @@ export const BADGES: Record<string, BadgeDef> = {
     'double': { id: 'double', scope: 'person', name: 'Эки эсе', tier: 'bronze', icon: 'zap', rule: 'Бир көрсөткүч боюнча планды эки эсе ашыра аткаруу (СВТ жана ИСТГ эсепке кирбейт — алардын максаты чоң сан, тез көбөйөт).' },
     'leap': { id: 'leap', scope: 'person', name: 'Чоң секирик', tier: 'silver', icon: 'leap', rule: 'Аптанын эң чоң өсүшү: мурунку аптага караганда эң көп упай кошкон адам (кеминде +10).' },
     'rising': { id: 'rising', scope: 'person', name: 'Өсүү жолу', tier: 'bronze', icon: 'rising', rule: 'Упай катары менен 3 апта өстү.' },
-    'steady-4': { id: 'steady-4', scope: 'person', name: 'Туруктуу', tier: 'bronze', icon: 'steady', rule: 'Катары менен 4 апта активдүү (ар бир аптада упай бар).' },
-    'steady-8': { id: 'steady-8', scope: 'person', name: 'Ишенимдүү', tier: 'silver', icon: 'steady', rule: 'Катары менен 8 апта активдүү.' },
-    'steady-16': { id: 'steady-16', scope: 'person', name: 'Ак ниет', tier: 'gold', icon: 'steady', rule: 'Катары менен 16 апта активдүү.' },
-    'full-season': { id: 'full-season', scope: 'person', name: 'Толук сезон', tier: 'seal', icon: 'tunduk', rule: 'Сезон аяктаганда берилет: сезондун ар бир аптасында активдүү болгон адамга.' },
+    'steady-4': { id: 'steady-4', scope: 'person', name: 'Туруктуу', tier: 'bronze', icon: 'steady', rule: `Катары менен 4 күчтүү апта: ар бир аптада 8 көрсөткүчтүн кеминде ${STRONG_METRICS}ында план аткарылды.` },
+    'steady-8': { id: 'steady-8', scope: 'person', name: 'Ишенимдүү', tier: 'silver', icon: 'steady', rule: `Катары менен 8 күчтүү апта (кеминде ${STRONG_METRICS}/8 көрсөткүч планда).` },
+    'steady-16': { id: 'steady-16', scope: 'person', name: 'Ак ниет', tier: 'gold', icon: 'steady', rule: `Катары менен 16 күчтүү апта (кеминде ${STRONG_METRICS}/8 көрсөткүч планда).` },
+    'full-season': { id: 'full-season', scope: 'person', name: 'Толук сезон', tier: 'seal', icon: 'tunduk', rule: `Сезон аяктаганда берилет: сезондун ар бир аптасы күчтүү болгон адамга (кеминде ${STRONG_METRICS}/8 көрсөткүч планда).` },
 
     'house-week': { id: 'house-week', scope: 'house', name: 'Аптанын үйү', tier: 'gold', icon: 'crown', rule: 'Аптанын үйлөр рейтингинде 1-орун.' },
     'house-month': { id: 'house-month', scope: 'house', name: 'Айдын үйү', tier: 'seal', icon: 'moon', rule: 'Бүткөн 4-апталык мезгилде эң жогорку орточо рейтинг.' },
@@ -102,10 +111,10 @@ export const computeAwards = (data: DataFile, insights: Insights, opts: { season
                 give('double', p.id, p.name, w.houseName, w, `${n}-апта: ${m} боюнча ${w.member.actual[m]} / ${w.member.target[m]} — планды ${fmt(w.pct[m] / 100)} эсе аткарды.`);
             }
 
-            const activeRun = streakUntil(p.weeks, weekIndex, x => x.submitted && x.score > 0);
-            if (activeRun === 4) give('steady-4', p.id, p.name, w.houseName, w, `${n - 3}–${n}-апталар: 4 апта катары менен активдүү.`);
-            if (activeRun === 8) give('steady-8', p.id, p.name, w.houseName, w, `${n - 7}–${n}-апталар: 8 апта катары менен активдүү.`);
-            if (activeRun === 16) give('steady-16', p.id, p.name, w.houseName, w, `${n - 15}–${n}-апталар: 16 апта катары менен активдүү.`);
+            const strongRun = streakUntil(p.weeks, weekIndex, strongWeek);
+            if (strongRun === 4) give('steady-4', p.id, p.name, w.houseName, w, `${n - 3}–${n}-апталар: катары менен 4 күчтүү апта (ар биринде кеминде ${STRONG_METRICS}/8 көрсөткүч планда).`);
+            if (strongRun === 8) give('steady-8', p.id, p.name, w.houseName, w, `${n - 7}–${n}-апталар: катары менен 8 күчтүү апта.`);
+            if (strongRun === 16) give('steady-16', p.id, p.name, w.houseName, w, `${n - 15}–${n}-апталар: катары менен 16 күчтүү апта.`);
 
             // Rising: score up three weeks running (4 consecutive submitted weeks, each higher)
             const last4 = [3, 2, 1, 0].map(k => weekOf(p.weeks, weekIndex - k));
@@ -171,8 +180,8 @@ export const computeAwards = (data: DataFile, insights: Insights, opts: { season
         const label = opts.seasonName ? `«${opts.seasonName}» сезону` : 'Сезон';
         const total = data.weeks.length;
         people.forEach(p => {
-            const active = data.weeks.every((_, i) => { const w = weekOf(p.weeks, i); return !!w && w.submitted && w.score > 0; });
-            if (active) give('full-season', p.id, p.name, p.houseName, last, `${label}: ${total} аптанын баарында активдүү.`);
+            const strong = data.weeks.every((_, i) => { const w = weekOf(p.weeks, i); return !!w && strongWeek(w); });
+            if (strong) give('full-season', p.id, p.name, p.houseName, last, `${label}: ${total} аптанын баары күчтүү апта болду.`);
         });
         const season = houses.map(h => {
             const ws = h.weeks.filter(w => w.submitted);
