@@ -5,11 +5,11 @@ import type { Insights } from '../utils/insights';
 import { seasonSummary, weekOf } from '../utils/insights';
 import type { Award } from '../utils/badges';
 import type { CardTheme } from '../utils/shareCards';
-import { CARD_H, CARD_W, drawJamaatWeekCard, drawPersonWeekCard, drawSeasonCard, drawWeekCard } from '../utils/shareCards';
+import { CARD_H, CARD_W, drawJamaatCard, drawPersonWeekCard, drawSeasonCard, drawWeekCard } from '../utils/shareCards';
 import { Sheet } from './ui';
 import { t } from '../i18n';
 
-export type ShareTarget = { type: 'week'; card?: 'houses' | 'jamaat'; weekIndex?: number } | { type: 'person'; memberId: string; card?: 'week' | 'season' };
+export type ShareTarget = { type: 'week'; card?: 'houses' | 'jamaat' | 'jamaat-season'; weekIndex?: number } | { type: 'person'; memberId: string; card?: 'week' | 'season' };
 
 interface ShareSheetProps {
     data: DataFile;
@@ -29,7 +29,7 @@ export const ShareSheet: React.FC<ShareSheetProps> = ({ data, weekIndex: selecte
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [theme, setTheme] = useState<CardTheme>(siteTheme);
     const [card, setCard] = useState<'week' | 'season'>(target.type === 'person' ? target.card ?? 'week' : 'week');
-    const [weekCard, setWeekCard] = useState<'houses' | 'jamaat'>(target.type === 'week' ? target.card ?? 'houses' : 'houses');
+    const [weekCard, setWeekCard] = useState<'houses' | 'jamaat' | 'jamaat-season'>(target.type === 'week' ? target.card ?? 'houses' : 'houses');
     const weekIndex = target.type === 'week' && target.weekIndex !== undefined ? target.weekIndex : selectedWeek;
     const [url, setUrl] = useState<string | null>(null);
     const [blob, setBlob] = useState<Blob | null>(null);
@@ -39,9 +39,9 @@ export const ShareSheet: React.FC<ShareSheetProps> = ({ data, weekIndex: selecte
     const weekNumber = data.weeks[weekIndex]?.weekNumber;
     const personWeek = series ? weekOf(series.weeks, weekIndex) ?? series.weeks[series.weeks.length - 1] : undefined;
     const title = target.type === 'week'
-        ? (weekCard === 'jamaat' ? t('{0}-апта: жамаат', weekNumber) : t('{0}-аптанын жыйынтыгы', weekNumber))
+        ? (weekCard === 'jamaat' ? t('{0}-апта: жамаат', weekNumber) : weekCard === 'jamaat-season' ? t('Жамааттын сезону') : t('{0}-аптанын жыйынтыгы', weekNumber))
         : card === 'week' ? t('{0}: {1}-апта', series?.name ?? '', personWeek?.weekNumber) : t('{0}: сезон', series?.name ?? '');
-    const fileName = target.type === 'week' ? `tdjamaat-${weekNumber}-apta${weekCard === 'jamaat' ? '-jamaat' : ''}.png` : `tdjamaat-${(series?.name ?? 'adam').split(' ')[0]}-${card === 'week' ? `${personWeek?.weekNumber}-apta` : 'sezon'}.png`;
+    const fileName = target.type === 'week' ? (weekCard === 'jamaat-season' ? 'tdjamaat-sezon-jamaat.png' : `tdjamaat-${weekNumber}-apta${weekCard === 'jamaat' ? '-jamaat' : ''}.png`) : `tdjamaat-${(series?.name ?? 'adam').split(' ')[0]}-${card === 'week' ? `${personWeek?.weekNumber}-apta` : 'sezon'}.png`;
 
     useEffect(() => {
         let created: string | null = null;
@@ -51,7 +51,8 @@ export const ShareSheet: React.FC<ShareSheetProps> = ({ data, weekIndex: selecte
         setUrl(null);
         const draw = async () => {
             if (target.type === 'week') {
-                if (weekCard === 'jamaat') await drawJamaatWeekCard(canvas, theme, data, weekIndex, insights);
+                if (weekCard === 'jamaat') await drawJamaatCard(canvas, theme, data, insights, { kind: 'week', weekIndex });
+                else if (weekCard === 'jamaat-season') await drawJamaatCard(canvas, theme, data, insights, { kind: 'season', seasonName });
                 else await drawWeekCard(canvas, theme, data, weekIndex, insights);
             }
             else if (series) {
@@ -111,9 +112,10 @@ export const ShareSheet: React.FC<ShareSheetProps> = ({ data, weekIndex: selecte
                             <button className={`chip ${card === 'season' ? 'is-active' : ''}`} onClick={() => setCard('season')}>{t('Сезон')}</button>
                         </div>
                     ) : (
-                        <div className="flex" role="group" aria-label={t('WhatsApp же Telegram үчүн даяр сүрөт')}>
+                        <div className="flex flex-wrap" role="group" aria-label={t('WhatsApp же Telegram үчүн даяр сүрөт')}>
                             <button className={`chip ${weekCard === 'houses' ? 'is-active' : ''}`} onClick={() => setWeekCard('houses')}>{t('Үйлөр')}</button>
-                            <button className={`chip ${weekCard === 'jamaat' ? 'is-active' : ''}`} onClick={() => setWeekCard('jamaat')}>{t('Жамаат')}</button>
+                            <button className={`chip ${weekCard === 'jamaat' ? 'is-active' : ''}`} onClick={() => setWeekCard('jamaat')}>{t('Жамаат: апта')}</button>
+                            <button className={`chip ${weekCard === 'jamaat-season' ? 'is-active' : ''}`} onClick={() => setWeekCard('jamaat-season')}>{t('Жамаат: сезон')}</button>
                         </div>
                     )}
                     <div className="flex" role="group" aria-label={t('Сүрөттүн түсү')}>

@@ -289,7 +289,7 @@ const TeamPerformanceTracker: React.FC = () => {
                     {activeView === 'progress' && <ProgressView data={data} insights={insights} onOpenProfile={openProfile} onCompare={kind => openCompare({ kind })} />}
                     {activeView === 'reports' && <ReportsView data={data} selectedPeriod={periodIndex} setSelectedPeriod={setSelectedPeriod} />}
                     {activeView === 'awards' && <AwardsView data={data} weekIndex={weekIndex} awards={awards} insights={insights} onOpenProfile={openProfile} />}
-                    {activeView === 'community' && <CommunityView data={data} allData={allData} insights={insights} awards={awards} seasonName={season.name} onOpenProfile={openProfile} onShareWeek={i => { setShareTarget({ type: 'week', card: 'jamaat', weekIndex: i }); setModal('share'); }} />}
+                    {activeView === 'community' && <CommunityView data={data} allData={allData} insights={insights} awards={awards} seasonName={season.name} onOpenProfile={openProfile} onShareWeek={i => { setShareTarget({ type: 'week', card: 'jamaat', weekIndex: i }); setModal('share'); }} onShareSeason={() => { setShareTarget({ type: 'week', card: 'jamaat-season' }); setModal('share'); }} />}
 
                     <footer className="mt-14">
                         <OrnamentDivider className="mb-5" />

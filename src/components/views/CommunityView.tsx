@@ -15,6 +15,8 @@ import { t } from '../../i18n';
 interface CommunityViewProps {
     /** Opens the share window with the jamaat's week image. */
     onShareWeek?: (weekIndex: number) => void;
+    /** Opens the share window with the jamaat's season image. */
+    onShareSeason?: () => void;
     /** The season on screen. */
     data: DataFile;
     /** Every season (for the Hall of Fame). */
@@ -36,7 +38,7 @@ const Change: React.FC<{ now: number; before: number }> = ({ now, before }) => {
     return <span className="tabular" style={{ color }}>{pct > 0 ? '▲' : pct < 0 ? '▼' : '='} {Math.abs(pct)}%</span>;
 };
 
-export const CommunityView: React.FC<CommunityViewProps> = ({ data, allData, insights, awards, seasonName, onOpenProfile, onShareWeek }) => {
+export const CommunityView: React.FC<CommunityViewProps> = ({ data, allData, insights, awards, seasonName, onOpenProfile, onShareWeek, onShareSeason }) => {
     const totals = useMemo(() => seasonTotals(data, insights), [data, insights]);
     const last = data.weeks.length - 1;
     const wow = useMemo(() => weekOverWeek(data, insights, last), [data, insights, last]);
@@ -62,7 +64,7 @@ export const CommunityView: React.FC<CommunityViewProps> = ({ data, allData, ins
         <div className="space-y-16 sm:space-y-20">
             {/* Season totals */}
             <section>
-                <SectionHeader eyebrow={t('Сезон {0} · {1} апта', seasonName, data.weeks.length)} title={t('Жамааттын бул сезондогу жыйынтыгы')} sub={t('{0} адам-апта эсептелди. Себептүү жана киргизиле элек апталар кирген жок.', totals.personWeeks)} />
+                <SectionHeader eyebrow={t('Сезон {0} · {1} апта', seasonName, data.weeks.length)} title={t('Жамааттын бул сезондогу жыйынтыгы')} action={onShareSeason && <button className="btn btn-ghost" onClick={onShareSeason}><Share2 className="w-3.5 h-3.5" />  {t('Бөлүшүү')}</button>} sub={t('{0} адам-апта эсептелди. Себептүү жана киргизиле элек апталар кирген жок.', totals.personWeeks)} />
                 {/* 1px gaps over a border-coloured background = hairlines between cells at any column count. */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-px" style={{ backgroundColor: 'var(--border)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}>
                     {METRICS.map((m, i) => (

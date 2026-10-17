@@ -79,8 +79,9 @@ visual redesign.
   and next to the house rating: all cities, Budapest (Pannonia, Damjanich,
   Mester) or Debrecen.
 - **Compare** also says how many of the 8 metrics each side leads.
-- **Jamaat image**: the week's totals for the whole jamaat as a shareable
-  picture (share window → "Жамаат", or the Жамаат tab).
+- **Jamaat images**: the whole jamaat's totals for the week or for the
+  season as a shareable picture (share window → "Жамаат: апта" /
+  "Жамаат: сезон", or the share buttons in the Жамаат tab).
 - **Awards.** Strava-style badges for people and houses (star of the week,
   perfect plan, streaks, biggest leap, house of the month, …), each earned
   automatically from the real numbers and shown with the exact reason.

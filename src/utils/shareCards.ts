@@ -298,21 +298,28 @@ export async function drawSeasonCard(canvas: HTMLCanvasElement, theme: CardTheme
     footer(ctx, p);
 }
 
-/** The whole jamaat's week: every metric added up over everyone who counted,
- *  plus the houses' mini-card totals. */
-export async function drawJamaatWeekCard(canvas: HTMLCanvasElement, theme: CardTheme, data: DataFile, weekIndex: number, insights: Insights) {
+export type JamaatScope = { kind: 'week'; weekIndex: number } | { kind: 'season'; seasonName: string };
+
+/** The whole jamaat's week or season: every metric added up over everyone
+ *  who counted, plus the houses' mini-card totals. */
+export async function drawJamaatCard(canvas: HTMLCanvasElement, theme: CardTheme, data: DataFile, insights: Insights, scope: JamaatScope) {
     const { ctx, p } = await prepare(canvas, theme);
-    const week = data.weeks[weekIndex];
-    const totals = totalsFor(data, insights, [weekIndex]);
-    const houses = week.teams.filter(team => weekOf(insights.houses.get(team.id)?.weeks ?? [], weekIndex)?.submitted).length;
+    const indexes = scope.kind === 'week' ? [scope.weekIndex] : data.weeks.map((_, i) => i);
+    const totals = totalsFor(data, insights, indexes);
+    const inScope = (w: { weekIndex: number; submitted: boolean }) => w.submitted && indexes.includes(w.weekIndex);
+    // People and houses that counted at least once in the scope.
+    const people = [...insights.members.values()].filter(m => m.weeks.some(inScope)).length;
+    const houses = [...insights.houses.values()].filter(h => h.weeks.some(inScope)).length;
 
     ctx.fillStyle = p.gold; ctx.font = `400 22px ${TEXT}`;
-    spaced(ctx, t('{0}-АПТА · БҮТ ЖАМААТ', week.weekNumber), CARD_W / 2, 280, 6, 'center');
+    spaced(ctx, scope.kind === 'week'
+        ? t('{0}-АПТА · БҮТ ЖАМААТ', data.weeks[scope.weekIndex].weekNumber)
+        : t('«{0}» СЕЗОНУ · {1} АПТА', scope.seasonName, data.weeks.length), CARD_W / 2, 280, 6, 'center');
     ctx.textAlign = 'center';
     ctx.fillStyle = p.ink; ctx.font = `400 74px ${DISPLAY}`;
-    ctx.fillText(t('Жамааттын жыйынтыгы'), CARD_W / 2, 368, CARD_W - 240);
+    ctx.fillText(scope.kind === 'week' ? t('Жамааттын жыйынтыгы') : t('Жамааттын сезону'), CARD_W / 2, 368, CARD_W - 240);
     ctx.fillStyle = p.muted; ctx.font = `italic 400 25px ${TEXT}`;
-    ctx.fillText(totals.personWeeks ? t('{0} адам · {1} үй', totals.personWeeks, houses) : t('Бул апта үчүн маалымат азырынча киргизиле элек.'), CARD_W / 2, 414, CARD_W - 240);
+    ctx.fillText(totals.personWeeks ? t('{0} адам · {1} үй', people, houses) : t('Бул апта үчүн маалымат азырынча киргизиле элек.'), CARD_W / 2, 414, CARD_W - 240);
 
     // 8 metrics, 2 columns × 4 rows.
     const colW = (CARD_W - 300) / 2, top = 470, rowH = 112;
