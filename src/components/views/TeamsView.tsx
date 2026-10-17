@@ -2,12 +2,14 @@ import React, { useMemo, useState } from 'react';
 import { CheckCircle2, Clock3, PenLine } from 'lucide-react';
 import type { DataFile } from '../../types';
 import type { Insights, MemberSeries, MemberWeek } from '../../utils/insights';
-import { METRICS, movement, ROLE_LABEL, weekOf } from '../../utils/insights';
+import { METRICS, PLAN_SCORE, movement, ROLE_LABEL, weekOf } from '../../utils/insights';
 import { MINI_CARD_POINTS, TEAM_COLORS, calculatePerformancePercentage } from '../../utils/scoring';
 import { Avatar } from '../Avatar';
 import { Movement, ProgressBar, SectionHeader, Sparkline } from '../ui';
 import { perfColor } from '../../utils/style';
 import { t } from '../../i18n';
+import { houseBreakdown } from '../../utils/breakdown';
+import { PointsBreakdown } from '../PointsBreakdown';
 import { cardLabel, cardName, metricLabel, metricName } from '../../utils/metrics';
 
 interface TeamsViewProps {
@@ -43,6 +45,8 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
             // Excused people (sick, travelling) go last, without a place.
             .sort((a, b) => Number(a.w.excused) - Number(b.w.excused) || b.w.score - a.w.score);
     }, [team, insights, weekIndex]);
+
+    const breakdown = useMemo(() => (team ? houseBreakdown(team) : null), [team]);
 
     if (!team) return null;
 
@@ -176,6 +180,35 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
                         </tbody>
                     </table>
                 </div>
+            </section>
+
+            {/* Where the house's points came from */}
+            <section>
+                <SectionHeader
+                    eyebrow={t('{0}-апта', week.weekNumber)}
+                    title={t('Үйдүн упайы кайдан келди')}
+                    sub={breakdown ? t('Ар бир көрсөткүч боюнча бир адамга орточо упай ({0}). Үйдү эмне көтөрүп, эмне түшүрүп жатканын көрсөтөт.', t('{0} адам', breakdown.people)) : undefined}
+                />
+                {breakdown && hw?.submitted ? (
+                    <div className="card card-pad">
+                        <PointsBreakdown
+                            breakdown={breakdown}
+                            totalLabel={t('Мүчөлөрдүн орточосу')}
+                            planTotal={PLAN_SCORE}
+                            note={m => {
+                                const a = breakdown.atPlan[m];
+                                return a.below.length === 0
+                                    ? <span style={{ color: 'var(--success)' }}>{t('Баары планда ({0}/{1})', a.met, breakdown.people)}</span>
+                                    : <span>{t('Планда: {0}/{1}', a.met, breakdown.people)}</span>;
+                            }}
+                            missedNote={breakdown.missed && breakdown.atPlan[breakdown.missed.row.metric].below.length > 0
+                                ? t('Планга жетпегендер: {0}.', breakdown.atPlan[breakdown.missed.row.metric].below.join(', '))
+                                : undefined}
+                        />
+                    </div>
+                ) : (
+                    <p className="italic" style={{ color: 'var(--text-muted)' }}>{t('Бул апта үчүн маалымат азырынча киргизиле элек.')}</p>
+                )}
             </section>
         </div>
     );

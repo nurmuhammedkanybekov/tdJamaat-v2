@@ -51,3 +51,12 @@ describe('compare', () => {
         expect(defaultRival(['x'], 'x')).toBeUndefined();
     });
 });
+
+describe('metric leads', () => {
+    it('counts the metrics each side leads, and ties', async () => {
+        const { metricLeads } = await import('./compare');
+        const base = { 'К-К': 100, 'СВТ': 80, 'КТП': 90, 'ТХЖ': 100, 'ДТА': 100, 'ИСТГ': 50, 'НФ': 70, 'ТСП': 60 };
+        const other = { ...base, 'К-К': 120, 'СВТ': 60, 'ИСТГ': 90 };
+        expect(metricLeads(base, other)).toEqual({ a: 1, b: 2, draws: 5 });
+    });
+});

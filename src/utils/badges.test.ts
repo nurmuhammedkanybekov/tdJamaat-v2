@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { computeAwards } from './badges';
 import { buildInsights } from './insights';
+import { calculateMemberScore } from './scoring';
 import { card, dataFile, house, person, week } from '../test/factory';
 import type { DataFile } from '../types';
 
@@ -47,6 +48,22 @@ describe('awards', () => {
         const iron = awardsOf(dataFile(...weeks)).filter(a => a.def.id === 'iron-3');
         expect(iron).toHaveLength(1);
         expect(iron[0].weekNumber).toBe(3);
+    });
+
+    it('rising needs real progress: 3 rises of at least +5, together at least +30', () => {
+        const run = (fractions: number[]) => dataFile(...fractions.map((f, i) => week(i + 1, [house('A', [person('r', 'member', f)])])));
+        const score = (f: number) => calculateMemberScore(person('r', 'member', f));
+        const strong = [0.5, 0.6, 0.7, 0.8], tiny = [0.5, 0.52, 0.54, 0.56], short = [0.5, 0.54, 0.58, 0.62];
+        expect(score(0.8) - score(0.5)).toBeGreaterThanOrEqual(30);
+        expect(ids(run(strong), 'r')).toContain('rising');
+        expect(ids(run(tiny), 'r')).not.toContain('rising');           // every step under +5
+        expect(score(0.62) - score(0.5)).toBeLessThan(30);
+        expect(ids(run(short), 'r')).not.toContain('rising');          // steps ≥ +5 but under +30 in total
+    });
+
+    it('rising is given once per run, not again every week while it continues', () => {
+        const data = dataFile(...[0.4, 0.5, 0.6, 0.7, 0.8, 0.9].map((f, i) => week(i + 1, [house('A', [person('r', 'member', f)])])));
+        expect(awardsOf(data).filter(a => a.def.id === 'rising')).toHaveLength(1);
     });
 
     it('biggest leap needs at least +10 points', () => {

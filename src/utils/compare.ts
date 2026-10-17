@@ -49,6 +49,13 @@ export const metricAverages = (s: MemberSeries): MetricValues => {
     return out;
 };
 
+/** Per metric, who did more of their plan on average: { a, b, draws } out of 8. */
+export const metricLeads = (a: MetricValues, b: MetricValues) => {
+    let aLeads = 0, bLeads = 0, draws = 0;
+    METRICS.forEach(m => { if (a[m] > b[m]) aLeads += 1; else if (b[m] > a[m]) bLeads += 1; else draws += 1; });
+    return { a: aLeads, b: bLeads, draws };
+};
+
 export const personRows = (a: MemberSeries, b: MemberSeries, insights: Insights, awards: Award[], weekIndex: number, weeksTotal: number): CompareRow[] => {
     const sa = seasonSummary(a, insights, weeksTotal);
     const sb = seasonSummary(b, insights, weeksTotal);

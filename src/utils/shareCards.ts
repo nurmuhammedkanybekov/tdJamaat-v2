@@ -10,7 +10,8 @@ import { METRICS, ROLE_LABEL, movement, weekOf } from './insights';
 import type { Award } from './badges';
 import { HORN_PATHS } from './ornament';
 import { placeSuffix, t } from '../i18n';
-import { metricLabel } from './metrics';
+import { cardName, metricLabel, metricName } from './metrics';
+import { totalsFor } from './community';
 
 export type CardTheme = 'dark' | 'light';
 export const CARD_W = 1080, CARD_H = 1350;
@@ -293,6 +294,57 @@ export async function drawSeasonCard(canvas: HTMLCanvasElement, theme: CardTheme
         ctx.textAlign = 'center';
         ctx.fillStyle = p.gold; ctx.font = `italic 400 24px ${TEXT}`;
         ctx.fillText(fit(ctx, names.join(' · '), CARD_W - 260), CARD_W / 2, top + 3 * ch + 88);
+    }
+    footer(ctx, p);
+}
+
+/** The whole jamaat's week: every metric added up over everyone who counted,
+ *  plus the houses' mini-card totals. */
+export async function drawJamaatWeekCard(canvas: HTMLCanvasElement, theme: CardTheme, data: DataFile, weekIndex: number, insights: Insights) {
+    const { ctx, p } = await prepare(canvas, theme);
+    const week = data.weeks[weekIndex];
+    const totals = totalsFor(data, insights, [weekIndex]);
+    const houses = week.teams.filter(team => weekOf(insights.houses.get(team.id)?.weeks ?? [], weekIndex)?.submitted).length;
+
+    ctx.fillStyle = p.gold; ctx.font = `400 22px ${TEXT}`;
+    spaced(ctx, t('{0}-АПТА · ЖАМААТ БИРГЕ', week.weekNumber), CARD_W / 2, 280, 6, 'center');
+    ctx.textAlign = 'center';
+    ctx.fillStyle = p.ink; ctx.font = `400 74px ${DISPLAY}`;
+    ctx.fillText(t('Жамааттын жыйынтыгы'), CARD_W / 2, 368, CARD_W - 240);
+    ctx.fillStyle = p.muted; ctx.font = `italic 400 25px ${TEXT}`;
+    ctx.fillText(totals.personWeeks ? t('{0} адам · {1} үй', totals.personWeeks, houses) : t('Бул апта үчүн маалымат азырынча киргизиле элек.'), CARD_W / 2, 414, CARD_W - 240);
+
+    // 8 metrics, 2 columns × 4 rows.
+    const colW = (CARD_W - 300) / 2, top = 470, rowH = 112;
+    METRICS.forEach((m, i) => {
+        const cx = 150 + colW * (i % 2) + colW / 2 + (i % 2 ? 30 : -30), y = top + rowH * Math.floor(i / 2);
+        ctx.textAlign = 'center';
+        ctx.fillStyle = i === 0 ? p.gold : p.ink; ctx.font = `400 62px ${DISPLAY}`;
+        ctx.fillText(totals.personWeeks ? totals.metrics[m].toLocaleString('en-US').replace(/,/g, ' ') : '—', cx, y + 52);
+        ctx.fillStyle = p.muted; ctx.font = `400 23px ${TEXT}`;
+        ctx.fillText(fit(ctx, metricName(m), colW - 20), cx, y + 86);
+    });
+
+    // Mini-card totals: 4 + 3.
+    const keys = Object.keys(totals.card) as Array<keyof typeof totals.card>;
+    if (keys.length && totals.houseWeeks) {
+        let y = top + rowH * 4 + 36;
+        ctx.strokeStyle = p.line; ctx.lineWidth = 1.2;
+        ctx.beginPath(); ctx.moveTo(150, y - 30); ctx.lineTo(CARD_W - 150, y - 30); ctx.stroke();
+        ctx.fillStyle = p.goldDim; ctx.font = `400 18px ${TEXT}`;
+        spaced(ctx, t('МИНИ-КАРТА · ҮЙЛӨР БИРГЕ'), CARD_W / 2, y, 8, 'center');
+        y += 24;
+        [keys.slice(0, 4), keys.slice(4)].forEach((row, r) => {
+            const w = (CARD_W - 300) / row.length;
+            row.forEach((k, i) => {
+                const cx = 150 + w * i + w / 2, cy = y + r * 96;
+                ctx.textAlign = 'center';
+                ctx.fillStyle = p.ink; ctx.font = `400 44px ${DISPLAY}`;
+                ctx.fillText(String(totals.card[k]), cx, cy + 46);
+                ctx.fillStyle = p.muted; ctx.font = `400 19px ${TEXT}`;
+                ctx.fillText(fit(ctx, cardName(k), w - 14), cx, cy + 74);
+            });
+        });
     }
     footer(ctx, p);
 }

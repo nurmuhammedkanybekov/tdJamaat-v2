@@ -2,6 +2,8 @@ import React, { useMemo, useState } from 'react';
 import type { DataFile, Role } from '../../types';
 import type { Insights, MemberSeries, MemberWeek } from '../../utils/insights';
 import { movement, ROLE_LABEL, weekOf } from '../../utils/insights';
+import { CITIES, houseStandings, personStandings } from '../../utils/standings';
+import type { City, Scope } from '../../utils/standings';
 import { Avatar } from '../Avatar';
 import { Movement, SectionHeader } from '../ui';
 import { t } from '../../i18n';
@@ -42,21 +44,23 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ data, weekIndex, ins
     const [roleFilter, setRoleFilter] = useState<'all' | Role>('all');
     const week = data.weeks[weekIndex];
 
-    const people = useMemo(() => {
-        return [...insights.members.values()]
-            .map(s => ({ s, w: weekOf(s.weeks, weekIndex) }))
-            .filter((x): x is { s: MemberSeries; w: MemberWeek } => !!x.w)
-            .sort((a, b) => (a.w.rank ?? 1e9) - (b.w.rank ?? 1e9) || b.w.score - a.w.score || a.s.name.localeCompare(b.s.name));
-    }, [insights, weekIndex]);
-    const filtered = roleFilter === 'all' ? people : people.filter(p => p.s.role === roleFilter);
-    const top = people.filter(p => p.w.submitted && p.w.score > 0 && p.w.rank !== null && p.w.rank <= 3).slice(0, 3);
+    const [scope, setScope] = useState<Scope>('week');
+    const [city, setCity] = useState<City | 'all'>('all');
+    const weeksSoFar = weekIndex + 1;
 
-    const houses = useMemo(() => {
-        return [...insights.houses.values()]
-            .map(h => ({ h, w: weekOf(h.weeks, weekIndex) }))
-            .filter((x): x is { h: typeof x.h; w: NonNullable<typeof x.w> } => !!x.w)
-            .sort((a, b) => (a.w.rank ?? 1e9) - (b.w.rank ?? 1e9) || b.w.avg - a.w.avg);
-    }, [insights, weekIndex]);
+    // Top three of the week: always the whole jamaat, this week.
+    const top = useMemo(() => [...insights.members.values()]
+        .map(s => ({ s, w: weekOf(s.weeks, weekIndex) }))
+        .filter((x): x is { s: MemberSeries; w: MemberWeek } => !!x.w && x.w.submitted && x.w.score > 0 && x.w.rank !== null && x.w.rank <= 3)
+        .sort((a, b) => a.w.rank! - b.w.rank!)
+        .slice(0, 3), [insights, weekIndex]);
+
+    const people = useMemo(() => personStandings(insights, weekIndex, scope, city, weeksSoFar), [insights, weekIndex, scope, city, weeksSoFar]);
+    const filtered = roleFilter === 'all' ? people : people.filter(p => p.s.role === roleFilter);
+    const houses = useMemo(() => houseStandings(insights, weekIndex, scope, city), [insights, weekIndex, scope, city]);
+    // Movement arrows are about the whole jamaat's weekly ranking, so only there.
+    const showMovement = scope === 'week' && city === 'all';
+    const minWeeks = Math.max(1, Math.ceil(weeksSoFar / 2));
 
     return (
         <div className="space-y-16 sm:space-y-20">
@@ -83,31 +87,43 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ data, weekIndex, ins
                 </section>
             )}
 
+            <div>
+            <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 mb-10 pb-4" style={{ borderBottom: '1px solid var(--border)' }}>
+                <div className="flex flex-wrap" role="group" aria-label={t('Мезгил')}>
+                    <button className="chip" aria-pressed={scope === 'week'} onClick={() => setScope('week')}>{t('{0}-апта', week.weekNumber)}</button>
+                    <button className="chip" aria-pressed={scope === 'season'} onClick={() => setScope('season')}>{t('Бүт сезон')}</button>
+                </div>
+                <div className="flex flex-wrap" role="group" aria-label={t('Шаар')}>
+                    <button className="chip" aria-pressed={city === 'all'} onClick={() => setCity('all')}>{t('Бардык шаар')}</button>
+                    {CITIES.map(c => <button key={c.id} className="chip" aria-pressed={city === c.id} onClick={() => setCity(c.id)}>{c.label}</button>)}
+                </div>
+            </div>
             <div className="grid grid-cols-1 gap-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] lg:gap-20 items-start">
                 {/* Houses */}
                 <section>
-                    <SectionHeader eyebrow={t('Үй рейтинги')} title={t('Үйлөр')} />
+                    <SectionHeader eyebrow={scope === 'week' ? t('Үй рейтинги') : t('Бүт сезон · {0} апта', weeksSoFar)} title={t('Үйлөр')} />
                     <ol className="stagger">
-                        {houses.map(({ h, w }) => (
+                        {houses.map(({ h, rank, value, weeks }) => (
                             <li key={h.id} className="flex items-baseline gap-3 py-3">
-                                <span className="w-6 text-[0.75rem] tabular" style={{ color: 'var(--gold-dim)' }}>{w.rank ? pad2(w.rank) : '—'}</span>
-                                <span className="font-display text-[1.35rem] min-w-0 truncate" style={{ color: w.rank === 1 ? 'var(--gold)' : 'var(--text-primary)' }}>{h.name}</span>
-                                <Movement delta={movement(h.weeks, weekIndex)} />
+                                <span className="w-6 text-[0.75rem] tabular" style={{ color: 'var(--gold-dim)' }}>{rank ? pad2(rank) : '—'}</span>
+                                <span className="font-display text-[1.35rem] min-w-0 truncate" style={{ color: rank === 1 ? 'var(--gold)' : 'var(--text-primary)' }}>{h.name}</span>
+                                {showMovement && <Movement delta={movement(h.weeks, weekIndex)} />}
                                 <span className="leader" />
-                                <span className="font-display text-[1.45rem] tabular flex-shrink-0" style={{ color: w.submitted ? (w.rank === 1 ? 'var(--gold)' : 'var(--text-primary)') : 'var(--text-muted)' }}>{w.submitted ? fmt(w.avg) : '—'}</span>
+                                {scope === 'season' && value !== null && <span className="text-[0.75rem] italic flex-shrink-0" style={{ color: 'var(--text-muted)' }}>{t('{0} апта', weeks)}</span>}
+                                <span className="font-display text-[1.45rem] tabular flex-shrink-0" style={{ color: value !== null ? (rank === 1 ? 'var(--gold)' : 'var(--text-primary)') : 'var(--text-muted)' }}>{value !== null ? fmt(value) : '—'}</span>
                             </li>
                         ))}
                     </ol>
                     <p className="text-[0.82rem] italic mt-5 max-w-[42ch]" style={{ color: 'var(--text-muted)' }}>
-                        
                         {t('Рейтинг = мүчөлөрдүн орточо упайы + мини-карта (ар бир иш 100% аткарылса 5 упай, эң көп 35).')}
+                        {scope === 'season' && <> {t('Бүт сезон: эсептелген апталардын орточо рейтинги.')}</>}
                     </p>
                 </section>
 
                 {/* Everyone */}
                 <section>
                     <SectionHeader
-                        eyebrow={t('{0}-апта', week.weekNumber)}
+                        eyebrow={scope === 'week' ? t('{0}-апта', week.weekNumber) : t('Бүт сезон · {0} апта', weeksSoFar)}
                         title={t('Бардык катышуучулар')}
                         action={
                             <div className="flex flex-wrap" role="group" aria-label={t('Ролу боюнча')}>
@@ -117,29 +133,34 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ data, weekIndex, ins
                             </div>
                         }
                     />
+                    {scope === 'season' && (
+                        <p className="text-[0.82rem] italic -mt-3 mb-4" style={{ color: 'var(--text-muted)' }}>{t('Орточо упай. Орун алуу үчүн жок дегенде {0} апта катышуу керек.', minWeeks)}</p>
+                    )}
                     <ol>
-                        {filtered.map(({ s, w }) => (
+                        {filtered.map(({ s, rank, value, weeks, week: w, excused }) => (
                             <li key={s.id}>
                                 <button
                                     onClick={() => onOpenProfile(s.id)}
                                     className="row-link w-full flex items-center gap-3 sm:gap-4 px-2 -mx-2 py-3 text-left"
                                     style={{ borderBottom: '1px solid var(--border)' }}
                                 >
-                                    <span className="w-6 text-[0.75rem] tabular flex-shrink-0" style={{ color: 'var(--gold-dim)' }}>{w.rank ? pad2(w.rank) : '—'}</span>
-                                    <Avatar name={s.name} role={s.role} photoUrl={w.member.photoUrl} size="sm" />
+                                    <span className="w-6 text-[0.75rem] tabular flex-shrink-0" style={{ color: 'var(--gold-dim)' }}>{rank ? pad2(rank) : '—'}</span>
+                                    <Avatar name={s.name} role={s.role} photoUrl={w?.member.photoUrl ?? s.photoUrl} size="sm" />
                                     <span className="min-w-0 flex-1">
-                                        <span className="block truncate text-[1rem]" style={{ color: 'var(--text-primary)' }}>{w.member.name}</span>
-                                        <span className="block text-[0.78rem] italic truncate" style={{ color: 'var(--text-muted)' }}>{w.houseName} · {ROLE_LABEL[s.role].toLowerCase()}</span>
+                                        <span className="block truncate text-[1rem]" style={{ color: 'var(--text-primary)' }}>{s.name}</span>
+                                        <span className="block text-[0.78rem] italic truncate" style={{ color: 'var(--text-muted)' }}>{w?.houseName ?? s.houseName} · {ROLE_LABEL[s.role].toLowerCase()}</span>
                                     </span>
-                                    <Movement delta={movement(s.weeks, weekIndex)} />
-                                    <span className="w-14 text-right font-display text-[1.3rem] tabular flex-shrink-0" style={{ color: w.submitted ? 'var(--text-primary)' : 'var(--text-muted)' }}>
-                                        {w.excused ? <span className="text-[0.8rem] italic" style={{ color: 'var(--text-muted)' }}>{t('себептүү')}</span> : w.submitted ? fmt(w.score) : '—'}
+                                    {showMovement && <Movement delta={movement(s.weeks, weekIndex)} />}
+                                    {scope === 'season' && value !== null && <span className="text-[0.75rem] italic flex-shrink-0" style={{ color: 'var(--text-muted)' }}>{t('{0} апта', weeks)}</span>}
+                                    <span className="w-14 text-right font-display text-[1.3rem] tabular flex-shrink-0" style={{ color: value !== null && (rank !== null || scope === 'week') ? 'var(--text-primary)' : 'var(--text-muted)' }}>
+                                        {excused ? <span className="text-[0.8rem] italic" style={{ color: 'var(--text-muted)' }}>{t('себептүү')}</span> : value !== null ? fmt(value) : '—'}
                                     </span>
                                 </button>
                             </li>
                         ))}
                     </ol>
                 </section>
+            </div>
             </div>
         </div>
     );

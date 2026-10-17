@@ -69,7 +69,17 @@ visual redesign.
 - **Where the points came from.** Each profile splits the score by metric
   (points earned / points for 100% of the plan), for the selected week or
   as the season average, and names the strongest metric and the one
-  furthest from its plan.
+  furthest from its plan. The house page has the same view for the house
+  (average per person, how many met each plan, who is still below it).
+- **Goal hints in the data-entry form**: under each person, what is still
+  missing to reach the plan and how many points it would add
+  ("К-К +3 (+19.3)"), updated while typing.
+- **Overview filters**: this week or the whole season so far (average over
+  the counted weeks; people need at least half of the weeks for a place),
+  and all cities, Budapest (Pannonia, Damjanich, Mester) or Debrecen.
+- **Compare** also says how many of the 8 metrics each side leads.
+- **Jamaat image**: the week's totals for the whole jamaat as a shareable
+  picture (share window → "Жамаат", or the Жамаат tab).
 - **Awards.** Strava-style badges for people and houses (star of the week,
   perfect plan, streaks, biggest leap, house of the month, …), each earned
   automatically from the real numbers and shown with the exact reason.

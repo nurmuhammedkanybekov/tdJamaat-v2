@@ -5,11 +5,11 @@ import type { Insights } from '../utils/insights';
 import { seasonSummary, weekOf } from '../utils/insights';
 import type { Award } from '../utils/badges';
 import type { CardTheme } from '../utils/shareCards';
-import { CARD_H, CARD_W, drawPersonWeekCard, drawSeasonCard, drawWeekCard } from '../utils/shareCards';
+import { CARD_H, CARD_W, drawJamaatWeekCard, drawPersonWeekCard, drawSeasonCard, drawWeekCard } from '../utils/shareCards';
 import { Sheet } from './ui';
 import { t } from '../i18n';
 
-export type ShareTarget = { type: 'week' } | { type: 'person'; memberId: string; card?: 'week' | 'season' };
+export type ShareTarget = { type: 'week'; card?: 'houses' | 'jamaat'; weekIndex?: number } | { type: 'person'; memberId: string; card?: 'week' | 'season' };
 
 interface ShareSheetProps {
     data: DataFile;
@@ -25,10 +25,12 @@ interface ShareSheetProps {
 
 // Ready-made images for WhatsApp / Telegram: the week's results, a
 // person's week, or a person's season — in night or day colors.
-export const ShareSheet: React.FC<ShareSheetProps> = ({ data, weekIndex, insights, awards, target, siteTheme, seasonName, seasonFinished, onClose }) => {
+export const ShareSheet: React.FC<ShareSheetProps> = ({ data, weekIndex: selectedWeek, insights, awards, target, siteTheme, seasonName, seasonFinished, onClose }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [theme, setTheme] = useState<CardTheme>(siteTheme);
     const [card, setCard] = useState<'week' | 'season'>(target.type === 'person' ? target.card ?? 'week' : 'week');
+    const [weekCard, setWeekCard] = useState<'houses' | 'jamaat'>(target.type === 'week' ? target.card ?? 'houses' : 'houses');
+    const weekIndex = target.type === 'week' && target.weekIndex !== undefined ? target.weekIndex : selectedWeek;
     const [url, setUrl] = useState<string | null>(null);
     const [blob, setBlob] = useState<Blob | null>(null);
     const [status, setStatus] = useState<string | null>(null);
@@ -37,9 +39,9 @@ export const ShareSheet: React.FC<ShareSheetProps> = ({ data, weekIndex, insight
     const weekNumber = data.weeks[weekIndex]?.weekNumber;
     const personWeek = series ? weekOf(series.weeks, weekIndex) ?? series.weeks[series.weeks.length - 1] : undefined;
     const title = target.type === 'week'
-        ? t('{0}-аптанын жыйынтыгы', weekNumber)
+        ? (weekCard === 'jamaat' ? t('{0}-апта: жамаат', weekNumber) : t('{0}-аптанын жыйынтыгы', weekNumber))
         : card === 'week' ? t('{0}: {1}-апта', series?.name ?? '', personWeek?.weekNumber) : t('{0}: сезон', series?.name ?? '');
-    const fileName = target.type === 'week' ? `tdjamaat-${weekNumber}-apta.png` : `tdjamaat-${(series?.name ?? 'adam').split(' ')[0]}-${card === 'week' ? `${personWeek?.weekNumber}-apta` : 'sezon'}.png`;
+    const fileName = target.type === 'week' ? `tdjamaat-${weekNumber}-apta${weekCard === 'jamaat' ? '-jamaat' : ''}.png` : `tdjamaat-${(series?.name ?? 'adam').split(' ')[0]}-${card === 'week' ? `${personWeek?.weekNumber}-apta` : 'sezon'}.png`;
 
     useEffect(() => {
         let created: string | null = null;
@@ -48,7 +50,10 @@ export const ShareSheet: React.FC<ShareSheetProps> = ({ data, weekIndex, insight
         if (!canvas) return;
         setUrl(null);
         const draw = async () => {
-            if (target.type === 'week') await drawWeekCard(canvas, theme, data, weekIndex, insights);
+            if (target.type === 'week') {
+                if (weekCard === 'jamaat') await drawJamaatWeekCard(canvas, theme, data, weekIndex, insights);
+                else await drawWeekCard(canvas, theme, data, weekIndex, insights);
+            }
             else if (series) {
                 const mine = awards.filter(a => a.holderId === series.id);
                 if (card === 'week') {
@@ -67,7 +72,7 @@ export const ShareSheet: React.FC<ShareSheetProps> = ({ data, weekIndex, insight
         };
         draw();
         return () => { cancelled = true; if (created) URL.revokeObjectURL(created); };
-    }, [data, weekIndex, insights, awards, target, series, personWeek, theme, card, seasonName, seasonFinished]);
+    }, [data, weekIndex, insights, awards, target, series, personWeek, theme, card, weekCard, seasonName, seasonFinished]);
 
     const file = blob ? new File([blob], fileName, { type: 'image/png' }) : null;
     const canShareFile = !!file && typeof navigator.canShare === 'function' && navigator.canShare({ files: [file] });
@@ -105,7 +110,12 @@ export const ShareSheet: React.FC<ShareSheetProps> = ({ data, weekIndex, insight
                             <button className={`chip ${card === 'week' ? 'is-active' : ''}`} onClick={() => setCard('week')}>{t('Апта')}</button>
                             <button className={`chip ${card === 'season' ? 'is-active' : ''}`} onClick={() => setCard('season')}>{t('Сезон')}</button>
                         </div>
-                    ) : <span className="text-[0.85rem] italic" style={{ color: 'var(--text-muted)' }}>{t('WhatsApp же Telegram үчүн даяр сүрөт')}</span>}
+                    ) : (
+                        <div className="flex" role="group" aria-label={t('WhatsApp же Telegram үчүн даяр сүрөт')}>
+                            <button className={`chip ${weekCard === 'houses' ? 'is-active' : ''}`} onClick={() => setWeekCard('houses')}>{t('Үйлөр')}</button>
+                            <button className={`chip ${weekCard === 'jamaat' ? 'is-active' : ''}`} onClick={() => setWeekCard('jamaat')}>{t('Жамаат')}</button>
+                        </div>
+                    )}
                     <div className="flex" role="group" aria-label={t('Сүрөттүн түсү')}>
                         <button className={`chip ${theme === 'dark' ? 'is-active' : ''}`} onClick={() => setTheme('dark')}>{t('Түн')}</button>
                         <button className={`chip ${theme === 'light' ? 'is-active' : ''}`} onClick={() => setTheme('light')} style={{ marginRight: 0 }}>{t('Күн')}</button>

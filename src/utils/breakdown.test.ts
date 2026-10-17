@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { averageBreakdown, weekBreakdown } from './breakdown';
-import { calculateMemberScore, weights } from './scoring';
+import { averageBreakdown, goalHints, houseBreakdown, weekBreakdown } from './breakdown';
+import { calculateMemberAverage, calculateMemberScore, weights } from './scoring';
 import type { MemberWeek } from './insights';
-import { person } from '../test/factory';
+import { house, person } from '../test/factory';
 import type { TeamMember } from '../types';
 
 const week = (member: TeamMember, submitted = true): MemberWeek => ({
@@ -41,5 +41,37 @@ describe('points breakdown', () => {
     it('averages over the counted weeks', () => {
         const avg = averageBreakdown([week(person('a', 'member', 1)), week(person('a', 'member', 0))])!;
         expect(avg.total).toBeCloseTo(110);
+    });
+
+    it('house: averages over present members and matches the member average', () => {
+        const away = { ...person('away', 'member', 0), excused: true };
+        const team = house('A', [person('a', 'member', 1), person('b', 'imam', 0.5, { 'ДТА': 0 }), away]);
+        const b = houseBreakdown(team)!;
+        expect(b.people).toBe(2);
+        expect(Math.round(b.total * 10) / 10).toBeCloseTo(calculateMemberAverage(team), 0);
+        expect(b.atPlan['ДТА']).toEqual({ met: 1, below: ['b'] });
+        expect(b.missed?.row.metric).toBe('ДТА');
+    });
+
+    it('house with nobody counted has no breakdown (no NaN)', () => {
+        expect(houseBreakdown(house('E', []))).toBeNull();
+        expect(houseBreakdown(house('X', [{ ...person('x'), excused: true }]))).toBeNull();
+    });
+
+    it('goal hints: what is missing to reach each plan, biggest gain first', () => {
+        const m = person('g', 'member', 1, { 'К-К': 4, 'ДТА': 0, 'СВТ': 2000 });
+        const hints = goalHints(m.actual, m.target);
+        expect(hints.map(h => h.metric)).toEqual(['ДТА', 'К-К']);   // ДТА 0/1 → +50, К-К 4/7 → +19.3
+        expect(hints[0]).toMatchObject({ need: 1, gain: 50 });
+        expect(hints[1].need).toBe(3);
+        expect(hints[1].gain).toBeCloseTo(45 * 3 / 7);
+    });
+
+    it('goal hints: nothing when every plan is met, and no hint for a metric without a plan', () => {
+        const done = person('d', 'member', 1);
+        expect(goalHints(done.actual, done.target)).toEqual([]);
+        const noPlan = person('n', 'member', 0);
+        noPlan.target = { ...noPlan.target, 'К-К': 0 };
+        expect(goalHints(noPlan.actual, noPlan.target).some(h => h.metric === 'К-К')).toBe(false);
     });
 });

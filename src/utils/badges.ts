@@ -50,6 +50,10 @@ const DOUBLE_EXCLUDED: Array<keyof MetricValues> = ['СВТ', 'ИСТГ'];
 // these medals only needed "some score", which nearly everyone has every week,
 // so the whole jamaat got them at once and they meant nothing.
 export const STRONG_METRICS = 6;
+/** Rising (Nur, Oct 2026: only for real progress): three rises in a row,
+ *  each at least RISING_STEP points, together at least RISING_TOTAL. */
+export const RISING_STEP = 5;
+export const RISING_TOTAL = 30;
 export const metricsAtPlan = (w: MemberWeek) =>
     METRICS.filter(m => (w.member.target[m] || 0) > 0 && w.pct[m] >= 100).length;
 export const strongWeek = (w: MemberWeek) => w.submitted && metricsAtPlan(w) >= STRONG_METRICS;
@@ -62,7 +66,7 @@ export const BADGES: Record<string, BadgeDef> = {
     'iron-5': { id: 'iron-5', scope: 'person', name: t('Болот тартип'), tier: 'gold', icon: 'chain5', rule: t('Толук планды катары менен 5 апта аткаруу.') },
     'double': { id: 'double', scope: 'person', name: t('Эки эсе'), tier: 'bronze', icon: 'zap', rule: t('Бир көрсөткүч боюнча планды эки эсе ашыра аткаруу (СВТ жана ИСТГ эсепке кирбейт — алардын максаты чоң сан, тез көбөйөт).') },
     'leap': { id: 'leap', scope: 'person', name: t('Чоң секирик'), tier: 'silver', icon: 'leap', rule: t('Аптанын эң чоң өсүшү: мурунку аптага караганда эң көп упай кошкон адам (кеминде +10).') },
-    'rising': { id: 'rising', scope: 'person', name: t('Өсүү жолу'), tier: 'bronze', icon: 'rising', rule: t('Упай катары менен 3 апта өстү.') },
+    'rising': { id: 'rising', scope: 'person', name: t('Өсүү жолу'), tier: 'bronze', icon: 'rising', rule: t('Упай катары менен 3 апта өстү: ар бир апта кеминде +{0}, жалпысынан кеминде +{1}.', RISING_STEP, RISING_TOTAL) },
     'steady-4': { id: 'steady-4', scope: 'person', name: t('Туруктуу'), tier: 'bronze', icon: 'steady', rule: t('Катары менен 4 күчтүү апта: ар бир аптада 8 көрсөткүчтүн кеминде {0}ында план аткарылды.', STRONG_METRICS) },
     'steady-8': { id: 'steady-8', scope: 'person', name: t('Ишенимдүү'), tier: 'silver', icon: 'steady', rule: t('Катары менен 8 күчтүү апта (кеминде {0}/8 көрсөткүч планда).', STRONG_METRICS) },
     'steady-16': { id: 'steady-16', scope: 'person', name: t('Ак ниет'), tier: 'gold', icon: 'steady', rule: t('Катары менен 16 күчтүү апта (кеминде {0}/8 көрсөткүч планда).', STRONG_METRICS) },
@@ -118,11 +122,15 @@ export const computeAwards = (data: DataFile, insights: Insights, opts: { season
             if (strongRun === 8) give('steady-8', p.id, p.name, w.houseName, w, t('{0}–{1}-апталар: катары менен 8 күчтүү апта.', n - 7, n));
             if (strongRun === 16) give('steady-16', p.id, p.name, w.houseName, w, t('{0}–{1}-апталар: катары менен 16 күчтүү апта.', n - 15, n));
 
-            // Rising: score up three weeks running (4 consecutive submitted weeks, each higher)
+            // Rising: score up three weeks running (4 consecutive counted weeks),
+            // each rise at least RISING_STEP and all three together at least RISING_TOTAL.
+            const risingRun = (ws: Array<MemberWeek | undefined>) =>
+                ws.every(x => x && x.submitted) &&
+                ws.every((x, i) => i === 0 || x!.score - ws[i - 1]!.score >= RISING_STEP) &&
+                ws[3]!.score - ws[0]!.score >= RISING_TOTAL;
             const last4 = [3, 2, 1, 0].map(k => weekOf(p.weeks, weekIndex - k));
-            if (last4.every(x => x && x.submitted) && last4.every((x, i) => i === 0 || x!.score > last4[i - 1]!.score)) {
-                const prevRising = [4, 3, 2, 1].map(k => weekOf(p.weeks, weekIndex - k));
-                const alreadyRising = prevRising.every(x => x && x.submitted) && prevRising.every((x, i) => i === 0 || x!.score > prevRising[i - 1]!.score);
+            if (risingRun(last4)) {
+                const alreadyRising = risingRun([4, 3, 2, 1].map(k => weekOf(p.weeks, weekIndex - k)));
                 if (!alreadyRising) give('rising', p.id, p.name, w.houseName, w, t('{0}–{1}-апталар: {2}.', n - 3, n, last4.map(x => fmt(x!.score)).join(' → ')));
             }
         });

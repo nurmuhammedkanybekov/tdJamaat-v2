@@ -6,7 +6,7 @@ import type { Insights } from '../utils/insights';
 import { METRICS, ROLE_LABEL, weekOf } from '../utils/insights';
 import type { Award } from '../utils/badges';
 import type { CompareKind, CompareRow } from '../utils/compare';
-import { defaultRival, headToHead, houseRows, metricAverages, personRows, rowWinner } from '../utils/compare';
+import { defaultRival, headToHead, houseRows, metricAverages, metricLeads, personRows, rowWinner } from '../utils/compare';
 import { Avatar } from './Avatar';
 import { Medallion } from './Ornament';
 import { ChartTooltip, Sheet } from './ui';
@@ -203,6 +203,16 @@ export const CompareSheet: React.FC<CompareSheetProps> = ({ data, insights, awar
                         <section>
                             <h3 className="font-display text-[1.4rem] mb-1" style={{ color: 'var(--text-primary)' }}>{t('Көрсөткүчтөр')}</h3>
                             <p className="text-[0.8rem] italic mb-3" style={{ color: 'var(--text-muted)' }}>{t('Сезон бою планды орточо канча пайыз аткарды. Ар кимдин планы ролуна жараша.')}</p>
+                            {(() => {
+                                const lead = metricLeads(metrics.a, metrics.b);
+                                return (
+                                    <p className="text-[0.92rem] mb-3 flex flex-wrap gap-x-4 gap-y-1">
+                                        <span><b style={{ color: COLOR_A }}>{nameA}</b> {t('{0}/8 көрсөткүчтө алдыда', lead.a)}</span>
+                                        <span><b style={{ color: COLOR_B }}>{nameB}</b> {t('{0}/8 көрсөткүчтө алдыда', lead.b)}</span>
+                                        {lead.draws > 0 && <span style={{ color: 'var(--text-muted)' }}>{t('тең: {0}', lead.draws)}</span>}
+                                    </p>
+                                );
+                            })()}
                             {METRICS.map(m => <Row key={m} row={{ label: metricLabel(m), a: metrics.a[m], b: metrics.b[m], format: 'pct' }} />)}
                         </section>
                     )}

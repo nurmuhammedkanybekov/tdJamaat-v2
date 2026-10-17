@@ -23,6 +23,7 @@ import type { HouseHistory, SeasonSettings } from '../services/dataService';
 import { calculateMemberScore } from '../utils/scoring';
 import { ROLE_LABEL } from '../utils/insights';
 import { memberTypos, miniCardTypos, usualValues } from '../utils/typos';
+import { goalHints } from '../utils/breakdown';
 import type { TypoWarning } from '../utils/typos';
 import { Avatar } from './Avatar';
 import { NumberInput } from './NumberInput';
@@ -100,6 +101,34 @@ const describeSaveError = (err: unknown): string => {
 //    read-only: the role minimum, or a custom target the admin set.
 //  - Only weeks the admin has opened can be filled in. The admin opens the
 //    next week from this form.
+const fmtPoints = (n: number) => (Math.round(n * 10) / 10).toString();
+
+/** Under each person in the form: what is still missing to reach the plan,
+ *  e.g. "ДТА +1 (+50) · К-К +3 (+19.3)". Updates as numbers are typed. */
+const GoalHintLine: React.FC<{ actual: MetricValues; target: MetricValues }> = ({ actual, target }) => {
+    const hints = goalHints(actual, target);
+    const anyPlan = (Object.keys(target) as Array<keyof MetricValues>).some(m => (target[m] || 0) > 0);
+    if (!anyPlan) return null;
+    if (hints.length === 0) {
+        return <div className="mt-2.5 text-xs inline-flex items-center gap-1" style={{ color: 'var(--success)' }}><CheckCircle className="w-3.5 h-3.5" />{t('Бардык план аткарылды.')}</div>;
+    }
+    const total = hints.reduce((s, h) => s + h.gain, 0);
+    return (
+        <div className="mt-2.5 text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+            <span>{t('Планга чейин:')}</span>{' '}
+            {hints.map((h, i) => (
+                <React.Fragment key={h.metric}>
+                    {i > 0 && ' · '}
+                    <span className="whitespace-nowrap tabular" title={metricName(h.metric)}>
+                        <b style={{ color: 'var(--text-secondary)' }}>{metricLabel(h.metric)} +{h.need}</b> (+{fmtPoints(h.gain)})
+                    </span>
+                </React.Fragment>
+            ))}
+            {hints.length > 1 && <span className="whitespace-nowrap"> · {t('баары: +{0} упай', fmtPoints(total))}</span>}
+        </div>
+    );
+};
+
 export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultWeekNumber, initialHouseId, onClose, onSuccess, onWeeksChanged, lockedWeeks = [], data }) => {
     useModal(onClose);
     const isAdmin = authUser.role === 'admin';
@@ -664,6 +693,7 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                                                             </div>
                                                         ))}
                                                     </div>
+                                                    {!draft.excused && <GoalHintLine actual={draft.actual} target={draft.target} />}
                                                 </div>
                                             );
                                         })}

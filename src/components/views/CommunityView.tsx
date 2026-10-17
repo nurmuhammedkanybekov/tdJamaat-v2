@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { Share2 } from 'lucide-react';
 import type { DataFile, MetricValues, MiniCard } from '../../types';
 import type { Insights } from '../../utils/insights';
 import { METRICS, buildInsights } from '../../utils/insights';
@@ -12,6 +13,8 @@ import { SectionHeader } from '../ui';
 import { t } from '../../i18n';
 
 interface CommunityViewProps {
+    /** Opens the share window with the jamaat's week image. */
+    onShareWeek?: (weekIndex: number) => void;
     /** The season on screen. */
     data: DataFile;
     /** Every season (for the Hall of Fame). */
@@ -33,7 +36,7 @@ const Change: React.FC<{ now: number; before: number }> = ({ now, before }) => {
     return <span className="tabular" style={{ color }}>{pct > 0 ? '▲' : pct < 0 ? '▼' : '='} {Math.abs(pct)}%</span>;
 };
 
-export const CommunityView: React.FC<CommunityViewProps> = ({ data, allData, insights, awards, seasonName, onOpenProfile }) => {
+export const CommunityView: React.FC<CommunityViewProps> = ({ data, allData, insights, awards, seasonName, onOpenProfile, onShareWeek }) => {
     const totals = useMemo(() => seasonTotals(data, insights), [data, insights]);
     const last = data.weeks.length - 1;
     const wow = useMemo(() => weekOverWeek(data, insights, last), [data, insights, last]);
@@ -91,6 +94,7 @@ export const CommunityView: React.FC<CommunityViewProps> = ({ data, allData, ins
                     <SectionHeader
                         eyebrow={t('{0}-апта{1}', latestWeek.weekNumber, last > 0 ? t(' · {0}-аптага караганда', data.weeks[last - 1].weekNumber) : '')}
                         title={t('Бул апта жамаат')}
+                        action={onShareWeek && <button className="btn btn-ghost" onClick={() => onShareWeek(last)}><Share2 className="w-3.5 h-3.5" />  {t('Бөлүшүү')}</button>}
                         sub={t('{0} үй эки аптада тең салыштырылды{1}.', wow.houses, submittedNow < latestWeek.teams.length ? t(' · {0} / {1} үй бул аптаны киргизди, калгандары киргизгенде кошулат', submittedNow, latestWeek.teams.length) : '')}
                     />
                     <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-12">
