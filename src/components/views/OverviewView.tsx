@@ -100,16 +100,16 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ data, weekIndex, ins
                     <SectionHeader
                         eyebrow={scope === 'week' ? t('Үй рейтинги') : t('Бүт сезон · {0} апта', weeksSoFar)}
                         title={t('Үйлөр')}
-                        action={
-                            <div className="flex flex-wrap" role="group" aria-label={t('Шаар')}>
-                                <button className="chip" aria-pressed={city === 'all'} onClick={() => setCity('all')}>{t('Бардык шаарлар')}</button>
-                                {CITIES.map(c => <button key={c.id} className="chip" aria-pressed={city === c.id} onClick={() => setCity(c.id)}>{c.label}</button>)}
-                            </div>
-                        }
+                        className="mb-3!"
                     />
+                    {/* Filter chips under the title in both columns, so the two lists start level. */}
+                    <div className="flex flex-wrap mb-4" role="group" aria-label={t('Шаар')}>
+                        <button className="chip" aria-pressed={city === 'all'} onClick={() => setCity('all')}>{t('Бардык шаарлар')}</button>
+                        {CITIES.map(c => <button key={c.id} className="chip" aria-pressed={city === c.id} onClick={() => setCity(c.id)}>{c.label}</button>)}
+                    </div>
                     <ol className="stagger">
                         {houses.map(({ h, rank, value, weeks }) => (
-                            <li key={h.id} className="flex items-baseline gap-3 py-3">
+                            <li key={h.id} className="flex items-baseline gap-3 py-[1rem]" style={{ borderBottom: '1px solid var(--border)' }}>
                                 <span className="w-6 text-[0.75rem] tabular" style={{ color: 'var(--gold-dim)' }}>{rank ? pad2(rank) : '—'}</span>
                                 <span className="font-display text-[1.35rem] min-w-0 truncate" style={{ color: rank === 1 ? 'var(--gold)' : 'var(--text-primary)' }}>{h.name}</span>
                                 {showHouseMovement && <Movement delta={movement(h.weeks, weekIndex)} />}
@@ -130,17 +130,13 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ data, weekIndex, ins
                     <SectionHeader
                         eyebrow={scope === 'week' ? t('{0}-апта', week.weekNumber) : t('Бүт сезон · {0} апта', weeksSoFar)}
                         title={t('Бардык катышуучулар')}
-                        action={
-                            <div className="flex flex-wrap" role="group" aria-label={t('Ролу боюнча')}>
-                                {(['all', 'imam', 'zam', 'member'] as const).map(r => (
-                                    <button key={r} className="chip" aria-pressed={roleFilter === r} onClick={() => setRoleFilter(r)}>{ROLE_FILTER_LABEL[r]}</button>
-                                ))}
-                            </div>
-                        }
+                        className="mb-3!"
                     />
-                    {scope === 'season' && (
-                        <p className="text-[0.82rem] italic -mt-3 mb-4" style={{ color: 'var(--text-muted)' }}>{t('Орточо упай. Орун алуу үчүн жок дегенде {0} аптага катышуу керек.', minWeeks)}</p>
-                    )}
+                    <div className="flex flex-wrap mb-4" role="group" aria-label={t('Ролу боюнча')}>
+                        {(['all', 'imam', 'zam', 'member'] as const).map(r => (
+                            <button key={r} className="chip" aria-pressed={roleFilter === r} onClick={() => setRoleFilter(r)}>{ROLE_FILTER_LABEL[r]}</button>
+                        ))}
+                    </div>
                     <ol>
                         {filtered.map(({ s, rank, value, weeks, week: w, excused }) => (
                             <li key={s.id}>
@@ -164,6 +160,9 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ data, weekIndex, ins
                             </li>
                         ))}
                     </ol>
+                    {scope === 'season' && (
+                        <p className="text-[0.82rem] italic mt-5" style={{ color: 'var(--text-muted)' }}>{t('Орточо упай. Орун алуу үчүн жок дегенде {0} аптага катышуу керек.', minWeeks)}</p>
+                    )}
                 </section>
             </div>
             </div>
