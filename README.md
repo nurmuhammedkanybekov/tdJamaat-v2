@@ -263,9 +263,15 @@ people can change houses between seasons without moving old results.
 
 Each of the 8 individual metrics (К-К, СВТ, КТП, ТХЖ, ДТА, ИСТГ, НФ, ТСП)
 is scored as `(actual / target) × weight` and summed into a member's
-score. There is no cap — going over the plan counts — and a metric with no
-target set gives 0, never a free 100%. Weights: К-К 45, СВТ 1, КТП 35,
-ТХЖ 20, ДТА 30, ИСТГ 1, НФ 20, ТСП 25 (exactly 100% on everything = 177).
+score. A metric with no target set gives 0, never a free 100%. Weights:
+К-К 45, СВТ 1, КТП 30, ТХЖ 40, ДТА 50, ИСТГ 1, НФ 20, ТСП 25 (exactly 100% on
+everything = 212).
+
+Going over the plan still earns more, with diminishing returns: up to 100%
+the percentage counts as it is; above it, the credited percentage is
+`100% × (1 + ln(done ÷ 100%))`. Every doubling of the work adds the same
++69% of plan — 200% counts as 169%, 400% as 239%, 800% as 308% — so one
+metric done many times over can't carry a whole week.
 The weights are the same for everyone; what changes by role is the
 **target** each metric is measured against:
 
