@@ -5,8 +5,8 @@ import { weekComplete } from '../../utils/insights';
 import type { Award, Tier } from '../../utils/badges';
 import { BADGES, TIER_LABEL } from '../../utils/badges';
 import { BadgeMedal } from '../BadgeMedal';
-import { Medallion } from '../Ornament';
 import { SectionHeader } from '../ui';
+import { useIsPhone } from '../../hooks/useMediaQuery';
 import { t } from '../../i18n';
 
 interface AwardsViewProps {
@@ -33,6 +33,7 @@ const Coins: React.FC<{ tiers: Record<Tier, number> }> = ({ tiers }) => (
 );
 
 export const AwardsView: React.FC<AwardsViewProps> = ({ data, weekIndex, awards, onOpenProfile }) => {
+    const isPhone = useIsPhone();
     const [scope, setScope] = useState<'person' | 'house'>('person');
     const [openDef, setOpenDef] = useState<string | null>(null);
     const week = data.weeks[weekIndex];
@@ -40,6 +41,11 @@ export const AwardsView: React.FC<AwardsViewProps> = ({ data, weekIndex, awards,
         .filter(a => a.weekIndex === weekIndex)
         .sort((a, b) => TIER_POINTS[b.def.tier] - TIER_POINTS[a.def.tier] || (a.def.scope === b.def.scope ? 0 : a.def.scope === 'house' ? -1 : 1));
     const upToNow = awards.filter(a => a.weekIndex <= weekIndex);
+    const groups = useMemo(() => {
+        const map = new Map<string, { def: Award['def']; list: Award[] }>();
+        thisWeek.forEach(a => { const g = map.get(a.def.id) ?? { def: a.def, list: [] }; g.list.push(a); map.set(a.def.id, g); });
+        return [...map.values()];
+    }, [thisWeek]);
 
     const leaders = useMemo(() => {
         const map = new Map<string, { id: string; name: string; houseName: string; points: number; tiers: Record<Tier, number>; scope: 'person' | 'house' }>();
@@ -55,7 +61,7 @@ export const AwardsView: React.FC<AwardsViewProps> = ({ data, weekIndex, awards,
     const defs = Object.values(BADGES).filter(d => d.scope === scope);
 
     return (
-        <div className="space-y-20">
+        <div className="space-y-14 sm:space-y-16">
             {/* This week's citations */}
             <section>
                 <SectionHeader
@@ -67,38 +73,38 @@ export const AwardsView: React.FC<AwardsViewProps> = ({ data, weekIndex, awards,
                             ? t('Азырынча: {0} / {1} үй киргизди. Калгандары киргизгенде сыйлыктар өзгөрүшү мүмкүн.', week.teams.filter(it => it.submitted).length, week.teams.length)
                             : undefined}
                 />
-                {thisWeek.length > 0 && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 md:gap-x-16">
-                        {thisWeek.map((a, i) => {
-                            const clickable = a.def.scope === 'person';
-                            return (
-                                <button
-                                    key={i}
-                                    onClick={() => clickable && onOpenProfile(a.holderId)}
-                                    className={`group flex items-center gap-5 py-5 text-left ${clickable ? '' : 'cursor-default'}`}
-                                    style={{ borderBottom: '1px solid var(--border)' }}
-                                >
-                                    <BadgeMedal icon={a.def.icon} tier={a.def.tier} size={92} label={a.def.name} />
-                                    <span className="min-w-0">
-                                        <span className="eyebrow block">{TIER_LABEL[a.def.tier]} · {a.def.name}</span>
-                                        <span className={`block font-display text-[1.55rem] leading-tight mt-1 ${clickable ? 'transition-colors group-hover:text-[var(--gold)]' : ''}`} style={{ color: 'var(--text-primary)' }}>{a.holderName}</span>
-                                        {a.def.scope === 'person' && <span className="block text-[0.8rem]" style={{ color: 'var(--text-muted)' }}>{a.houseName}</span>}
-                                        <span className="block text-[0.88rem] italic mt-1.5 leading-snug" style={{ color: 'var(--text-secondary)' }}>{a.reason}</span>
-                                    </span>
-                                </button>
-                            );
-                        })}
+                {/* One card per award, with everyone who earned it this week. */}
+                {groups.length > 0 && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        {groups.map(({ def, list }) => (
+                            <article key={def.id} className="card lift p-5 sm:p-6 flex gap-5 items-start">
+                                <span className="flex-shrink-0 pop-in"><BadgeMedal icon={def.icon} tier={def.tier} size={84} label={def.name} /></span>
+                                <div className="min-w-0 flex-1">
+                                    <div className="flex items-baseline gap-2 flex-wrap">
+                                        <h3 className="font-display text-[1.45rem] leading-tight" style={{ color: 'var(--text-primary)' }}>{def.name}</h3>
+                                        <span className="text-[0.8rem]" style={{ color: METAL[def.tier] }}>{TIER_LABEL[def.tier]}</span>
+                                    </div>
+                                    <p className="text-[0.86rem] mt-1 leading-snug" style={{ color: 'var(--text-muted)' }}>{list.length === 1 ? list[0].reason : def.rule}</p>
+                                    <div className="flex flex-wrap gap-1.5 mt-3">
+                                        {list.map(a => def.scope === 'person' ? (
+                                            <button key={a.holderId} onClick={() => onOpenProfile(a.holderId)} className="chip" title={a.reason}>
+                                                {a.holderName}<span style={{ color: 'var(--text-muted)' }}>· {a.houseName}</span>
+                                            </button>
+                                        ) : (
+                                            <span key={a.holderId} className="chip">{a.holderName}</span>
+                                        ))}
+                                    </div>
+                                </div>
+                            </article>
+                        ))}
                     </div>
                 )}
             </section>
 
-            <div className="flex justify-center" aria-hidden="true">
-                <Medallion size={150} className="draw-in" style={{ color: 'var(--gold-dim)' }} />
-            </div>
 
             {/* Season leaders */}
-            <div className="grid grid-cols-1 gap-16 lg:grid-cols-2 lg:gap-20">
-                <section>
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-8 items-start">
+                <section className="card p-5 sm:p-6">
                     <SectionHeader eyebrow={t('Сезон')} title={t('Эң көп сыйлык алгандар')} />
                     {personLeaders.length === 0 ? <p className="italic" style={{ color: 'var(--text-muted)' }}>{t('Азырынча жок.')}</p> : (
                         <ol>
@@ -116,7 +122,7 @@ export const AwardsView: React.FC<AwardsViewProps> = ({ data, weekIndex, awards,
                         </ol>
                     )}
                 </section>
-                <section>
+                <section className="card p-5 sm:p-6">
                     <SectionHeader eyebrow={t('Сезон')} title={t('Үйлөрдүн сыйлыктары')} />
                     {houseLeaders.length === 0 ? <p className="italic" style={{ color: 'var(--text-muted)' }}>{t('Азырынча жок.')}</p> : (
                         <ol>
@@ -138,7 +144,6 @@ export const AwardsView: React.FC<AwardsViewProps> = ({ data, weekIndex, awards,
                 <SectionHeader
                     eyebrow={t('Бардык сыйлыктар')}
                     title={t('Коллекция')}
-                    sub={t('Ар бир сыйлык апталык жыйынтыктан өзү берилет. Медалды басып, шартын жана кимдер алганын көрүңүз.')}
                     action={
                         <div className="flex">
                             <button className={`chip ${scope === 'person' ? 'is-active' : ''}`} onClick={() => { setScope('person'); setOpenDef(null); }}>{t('Адамдар')}</button>
@@ -146,18 +151,17 @@ export const AwardsView: React.FC<AwardsViewProps> = ({ data, weekIndex, awards,
                         </div>
                     }
                 />
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-6 gap-y-12 mt-10">
+                <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-x-4 gap-y-8 mt-6">
                     {defs.map(d => {
                         const got = upToNow.filter(a => a.def.id === d.id);
                         const open = openDef === d.id;
                         return (
                             <button key={d.id} onClick={() => setOpenDef(open ? null : d.id)} aria-expanded={open} className="group flex flex-col items-center text-center">
                                 <span className="transition-transform duration-500 group-hover:scale-[1.04]">
-                                    <BadgeMedal icon={d.icon} tier={d.tier} size={128} label={d.name} locked={got.length === 0} count={got.length || undefined} />
+                                    <BadgeMedal icon={d.icon} tier={d.tier} size={isPhone ? 84 : 112} label={d.name} locked={got.length === 0} count={got.length || undefined} />
                                 </span>
-                                <span className="font-display text-[1.2rem] mt-3 leading-tight" style={{ color: got.length ? 'var(--text-primary)' : 'var(--text-muted)' }}>{d.name}</span>
-                                <span className="eyebrow mt-1">{TIER_LABEL[d.tier]}</span>
-                                <span className="text-[0.8rem] italic mt-2 leading-snug max-w-[24ch]" style={{ color: 'var(--text-muted)' }}>{d.rule}</span>
+                                <span className="font-display text-[1.05rem] sm:text-[1.15rem] mt-2 leading-tight" style={{ color: got.length ? 'var(--text-primary)' : 'var(--text-muted)' }}>{d.name}</span>
+                                <span className="text-[0.75rem] mt-0.5" style={{ color: METAL[d.tier] }}>{TIER_LABEL[d.tier]}</span>
                             </button>
                         );
                     })}
@@ -168,7 +172,8 @@ export const AwardsView: React.FC<AwardsViewProps> = ({ data, weekIndex, awards,
                     const holders = [...new Map(got.map(a => [a.holderId, a])).values()];
                     return (
                         <div className="mt-12 pt-8 animate-fade-up" style={{ borderTop: '1px solid var(--border)' }}>
-                            <div className="eyebrow mb-4">{d.name} · {got.length ? t('{0} жолу берилди', got.length) : t('азырынча эч ким алган жок')}</div>
+                            <h3 className="font-display text-[1.4rem]" style={{ color: 'var(--text-primary)' }}>{d.name}</h3>
+                            <p className="text-[0.9rem] mt-1 mb-4" style={{ color: 'var(--text-muted)' }}>{d.rule} · {got.length ? t('{0} жолу берилди', got.length) : t('азырынча эч ким алган жок')}</p>
                             <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-16">
                                 {holders.map(h => {
                                     const times = got.filter(a => a.holderId === h.holderId);

@@ -3,11 +3,11 @@ import { CheckCircle2, Clock3, PenLine } from 'lucide-react';
 import type { DataFile } from '../../types';
 import type { Insights, MemberSeries, MemberWeek } from '../../utils/insights';
 import { METRICS, PLAN_SCORE, movement, ROLE_LABEL, weekOf } from '../../utils/insights';
-import { MINI_CARD_POINTS, TEAM_COLORS, calculatePerformancePercentage } from '../../utils/scoring';
+import { TEAM_COLORS, calculatePerformancePercentage } from '../../utils/scoring';
 import { Avatar } from '../Avatar';
 import { CountUp } from '../motion';
 import { Movement, ProgressBar, SectionHeader, Sparkline } from '../ui';
-import { perfColor } from '../../utils/style';
+import { perfColor, heatBg } from '../../utils/style';
 import { t } from '../../i18n';
 import { houseBreakdown } from '../../utils/breakdown';
 import { PointsBreakdown } from '../PointsBreakdown';
@@ -110,7 +110,7 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
 
             {/* Mini card */}
             <section>
-                <SectionHeader eyebrow={t('Командалык иштер')} title={t('Мини-карта')} sub={t('Ар бир иш 100% аткарылса {0} упай кошулат (эң көп {1}). Ашыкчасы эсептелбейт.', MINI_CARD_POINTS, MINI_CARD_POINTS * 7)} />
+                <SectionHeader eyebrow={t('Командалык иштер')} title={t('Мини-карта')} />
                 {/* One engraved plate with hairline cells, not seven separate boxes. The
                     outer edges of the hairlines are clipped by the card. */}
                 <div className="card overflow-hidden">
@@ -160,7 +160,7 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
                             <tr>
                                 <th style={{ paddingTop: '1rem', paddingLeft: '1.5rem' }}>#</th>
                                 <th style={{ paddingTop: '1rem' }}>{t('Аты')}</th>
-                                {METRICS.map(m => <th key={m} style={{ paddingTop: '1rem', textAlign: 'right' }} title={metricName(m)}>{metricLabel(m)}</th>)}
+                                {METRICS.map(m => <th key={m} style={{ paddingTop: '1rem', textAlign: 'center' }} title={metricName(m)}>{metricLabel(m)}</th>)}
                                 <th style={{ paddingTop: '1rem', textAlign: 'right', paddingRight: '1.5rem' }}>{t('Упай')}</th>
                             </tr>
                         </thead>
@@ -178,8 +178,10 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
                                         </div>
                                     </td>
                                     {METRICS.map(m => (
-                                        <td key={m} className="tabular font-bold text-[0.86rem]" style={{ textAlign: 'right', color: perfColor(w.pct[m]) }} title={`${w.member.actual[m]} / ${w.member.target[m]}`}>
-                                            {Math.round(w.pct[m])}%
+                                        <td key={m} style={{ textAlign: 'center', padding: '0.5rem 0.25rem' }} title={`${w.member.actual[m]} / ${w.member.target[m]}`}>
+                                            <span className="inline-block min-w-[3.6rem] px-2 py-1.5 rounded-md tabular text-[0.86rem] font-medium" style={{ backgroundColor: heatBg(w.pct[m]), color: w.pct[m] >= 100 ? 'var(--text-primary)' : perfColor(w.pct[m]) }}>
+                                                {Math.round(w.pct[m])}%
+                                            </span>
                                         </td>
                                     ))}
                                     <td className="font-display font-bold text-[1.3rem] tabular" style={{ textAlign: 'right', paddingRight: '1.5rem', color: 'var(--text-primary)' }}>{w.excused ? <span className="text-[0.8rem] italic" style={{ color: 'var(--text-muted)' }}>{t('себептүү')}</span> : fmt(w.score)}</td>
@@ -195,7 +197,7 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
                 <SectionHeader
                     eyebrow={t('{0}-апта', week.weekNumber)}
                     title={t('Үйдүн упайы кайдан келди')}
-                    sub={breakdown ? t('Ар бир көрсөткүч боюнча бир адамга орточо упай ({0}). Үйдү эмне көтөрүп, эмне түшүрүп жатканын көрсөтөт.', t('{0} адам', breakdown.people)) : undefined}
+                    sub={breakdown ? t('Бир адамга орточо, {0}', t('{0} адам', breakdown.people)) : undefined}
                 />
                 {breakdown && hw?.submitted ? (
                     <div className="card card-pad">

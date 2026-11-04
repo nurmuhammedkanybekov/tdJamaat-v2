@@ -24,6 +24,7 @@ import { LoginScreen } from './components/LoginScreen';
 import type { ShareTarget } from './components/ShareSheet';
 import type { CompareInit } from './components/CompareSheet';
 import { AdminDeskPanel, CaptainDesk } from './components/Desk';
+import { PageBar } from './components/PageBar';
 import { OverviewView } from './components/views/OverviewView';
 import { TeamsView } from './components/views/TeamsView';
 import { AwardsView } from './components/views/AwardsView';
@@ -37,12 +38,10 @@ import { prefetch, withReload } from './lazyLoad';
 // demand: the first screen comes up without it, and the chunks are fetched
 // in the background right after (see prefetchLazy), so a tap on
 // Progress or a profile doesn't wait.
-const loadProgress = withReload(() => import('./components/views/ProgressView'));
-const loadReports = withReload(() => import('./components/views/ReportsView'));
+const loadSeason = withReload(() => import('./components/views/SeasonView'));
 const loadProfile = withReload(() => import('./components/ProfileSheet'));
 const loadCompare = withReload(() => import('./components/CompareSheet'));
-const ProgressView = lazy(() => loadProgress().then(m => ({ default: m.ProgressView })));
-const ReportsView = lazy(() => loadReports().then(m => ({ default: m.ReportsView })));
+const SeasonView = lazy(() => loadSeason().then(m => ({ default: m.SeasonView })));
 const ProfileSheet = lazy(() => loadProfile().then(m => ({ default: m.ProfileSheet })));
 const CompareSheet = lazy(() => loadCompare().then(m => ({ default: m.CompareSheet })));
 // The sheets only open on a tap: loaded on demand too, prefetched the same way.
@@ -59,7 +58,7 @@ const InstallSheet = lazy(() => withReload(() => import('./components/InstallShe
 const PrayerSheet = lazy(() => withReload(() => import('./components/PrayerSheet'))().then(m => ({ default: m.PrayerSheet })));
 // Prefetch uses the plain imports: a failure there must not reload the page.
 const prefetchLazy = () => prefetch(
-    () => import('./components/DataEntryForm'), () => import('./components/views/ProgressView'), () => import('./components/views/ReportsView'),
+    () => import('./components/DataEntryForm'), () => import('./components/views/SeasonView'),
     () => import('./components/ProfileSheet'), () => import('./components/CompareSheet'), () => import('./components/ShareSheet'),
     () => import('./components/AdminPanel'), () => import('./components/HistorySheet')
 );
@@ -144,7 +143,7 @@ const TeamPerformanceTracker: React.FC = () => {
     }, [activeView, authUser]);
 
     if (!authChecked) return <LoadingScreen />;
-    if (!authUser) return <LoginScreen theme={theme} onToggleTheme={toggleTheme} />;
+    if (!authUser) return <LoginScreen />;
     if (loading) return <LoadingScreen />;
     if (error || !allData || !data || !insights || allData.weeks.length === 0) {
         return (
@@ -200,6 +199,15 @@ const TeamPerformanceTracker: React.FC = () => {
         sub: t('үй рейтинги · {0} адам · {1}/{2} үй киргизди', weekPeople.length, submittedHouses, currentWeekData.teams.length)
     } : undefined;
 
+    const weekControl = {
+        number: currentWeekData.weekNumber,
+        locked: currentWeekData.locked,
+        canPrev: weekIndex > 0,
+        canNext: weekIndex < data.weeks.length - 1,
+        onPrev: () => goWeek(weekIndex - 1),
+        onNext: () => goWeek(weekIndex + 1)
+    };
+
     const profileSeries = route.memberId ? insights.members.get(route.memberId) : undefined;
 
     // The desk: a captain's own house this week, or (admin) who is still missing.
@@ -236,20 +244,9 @@ const TeamPerformanceTracker: React.FC = () => {
                 onCompare={() => openCompare({ kind: 'person' })}
                 installMode={installMode}
                 onInstall={async () => { if (installMode === 'prompt') await install(); else setModal('install'); }}
-                week={isWeekly ? {
-                    number: currentWeekData.weekNumber,
-                    date: currentWeekData.date,
-                    locked: currentWeekData.locked,
-                    canPrev: weekIndex > 0,
-                    canNext: weekIndex < data.weeks.length - 1,
-                    onPrev: () => goWeek(weekIndex - 1),
-                    onNext: () => goWeek(weekIndex + 1),
-                    isLatest: weekIndex === data.weeks.length - 1
-                } : undefined}
-                seasonLabel={{ overview: undefined, teams: t('Үйлөр'), progress: t('Апталык прогресс'), reports: t('Отчеттор'), awards: t('Сыйлыктар'), community: t('Жамаат') }[activeView]}
+                week={activeView === 'overview' ? { ...weekControl, date: currentWeekData.date, isLatest: weekIndex === data.weeks.length - 1 } : undefined}
                 monument={monument}
-                season={seasonPicker}
-                seasonName={season.name}
+                season={activeView === 'overview' ? seasonPicker : undefined}
             />
 
             <ViewNavigator activeView={activeView} setActiveView={setActiveView} />
@@ -264,9 +261,17 @@ const TeamPerformanceTracker: React.FC = () => {
             )}
 
             <main className="page-gutter">
-                <div key={activeView} ref={viewRef} className={`app-container animate-view-in ${activeView === 'overview' ? 'pt-0 md:pt-8' : 'pt-6 sm:pt-8'}`}>
+                <div key={activeView} ref={viewRef} className={`app-container animate-view-in ${activeView === 'overview' ? 'pt-0' : 'pt-6 sm:pt-8'}`}>
                     {activeView === 'overview' && (
-                        <OverviewView data={data} weekIndex={weekIndex} insights={insights} onOpenProfile={openProfile} showSubmission={authUser.role !== 'admin'} desk={desk || undefined} />
+                        <OverviewView data={data} weekIndex={weekIndex} insights={insights} onOpenProfile={openProfile} desk={desk || undefined} />
+                    )}
+                    {activeView !== 'overview' && (
+                        <PageBar
+                            title={activeView === 'season' ? t('Сезон {0}', season.name) : TABS.find(it => it.key === activeView)?.label ?? ''}
+                            sub={activeView === 'teams' || activeView === 'awards' ? currentWeekData.date?.replace(' -- ', ' — ') || undefined : activeView === 'community' ? t('Сезон {0}', season.name) : undefined}
+                            week={activeView === 'teams' || activeView === 'awards' ? weekControl : undefined}
+                            season={activeView === 'season' || activeView === 'community' ? seasonPicker : undefined}
+                        />
                     )}
                     {activeView === 'teams' && (
                         <TeamsView
@@ -280,8 +285,7 @@ const TeamPerformanceTracker: React.FC = () => {
                         />
                     )}
                     <Suspense fallback={<SectionLoading />}>
-                        {activeView === 'progress' && <ProgressView data={data} insights={insights} onOpenProfile={openProfile} onCompare={kind => openCompare({ kind })} />}
-                        {activeView === 'reports' && <ReportsView data={data} selectedPeriod={periodIndex} setSelectedPeriod={setSelectedPeriod} />}
+                        {activeView === 'season' && <SeasonView data={data} insights={insights} selectedPeriod={periodIndex} setSelectedPeriod={setSelectedPeriod} onOpenProfile={openProfile} onCompare={kind => openCompare({ kind })} />}
                     </Suspense>
                     {activeView === 'awards' && <AwardsView data={data} weekIndex={weekIndex} awards={awards} insights={insights} onOpenProfile={openProfile} />}
                     {activeView === 'community' && <CommunityView data={data} allData={allData} insights={insights} awards={awards} seasonName={season.name} onOpenProfile={openProfile} onShareWeek={i => { setShareTarget({ type: 'week', card: 'jamaat', weekIndex: i }); setModal('share'); }} onShareSeason={() => { setShareTarget({ type: 'week', card: 'jamaat-season' }); setModal('share'); }} />}

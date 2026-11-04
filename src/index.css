@@ -45,21 +45,22 @@
 :root {
     color-scheme: light;
 
-    --page-plane: #f4f2ed;
-    --surface: #fbfaf7;
-    --surface-2: #efece5;
-    --text-primary: #141413;
-    --text-secondary: #4a4740;
-    --text-muted: #6f6a60; /* was #8a857a: too faint on a projector (3.3:1 → 4.8:1) */
-    --border: #e1ddd3;
-    --border-strong: #cdc7ba;
-    --gridline: #e6e2d9;
+    /* Day: white paper with real depth, near-black ink, one deep gold. */
+    --page-plane: #f5f4f0;
+    --surface: #ffffff;
+    --surface-2: #f0eee8;
+    --text-primary: #111110;
+    --text-secondary: #45423b;
+    --text-muted: #6b675d;
+    --border: #e8e5dd;
+    --border-strong: #d4cfc3;
+    --gridline: #ebe8e1;
 
-    --gold: #9a7836;
-    --gold-bright: #b48f45;
-    --gold-dim: #8c7642; /* was #a8925f (2.7:1 → 3.9:1) */
-    --gold-soft: #9a78361a;
-    --gold-ink: #fbfaf7;
+    --gold: #8c6a24;
+    --gold-bright: #b08a3e;
+    --gold-dim: #86703f;
+    --gold-soft: #8c6a241a;
+    --gold-ink: #ffffff;
     --accent: var(--gold);
     --accent-strong: #7d6129;
     --accent-soft: #9a783612;
@@ -72,10 +73,10 @@
     --danger: #a3473a;
     --warning: #9a7836;
 
-    --shadow-card: none;
+    --shadow-card: 0 1px 2px rgba(17, 17, 16, 0.04), 0 10px 30px -18px rgba(17, 17, 16, 0.16);
     --shadow-lift: 0 30px 80px -40px rgba(20, 20, 19, 0.35);
-    --radius: 3px;
-    --radius-sm: 2px;
+    --radius: 12px;
+    --radius-sm: 8px;
 
     /* Roles: quiet, used only for the initials ring */
     --role-imam: #9a7836;
@@ -99,8 +100,10 @@
     --metal-seal: #141413;
 }
 
-.dark {
+/* .night: the dark palette inside a light page (the top band). */
+.dark, .night {
     color-scheme: dark;
+    --shadow-card: none;
 
     --page-plane: #0c0c0d;
     --surface: #121214;
@@ -210,6 +213,7 @@ button, a, [role="button"] { -webkit-tap-highlight-color: transparent; }
     background-color: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
 }
 .card-pad { padding: 1.15rem; }
 @media (min-width: 640px) { .card-pad { padding: 1.75rem; } }
@@ -217,48 +221,49 @@ button, a, [role="button"] { -webkit-tap-highlight-color: transparent; }
 /* Small letterspaced caption — used once per section at most. */
 .eyebrow {
     font-family: var(--font-serif);
-    font-size: 0.66rem;
-    letter-spacing: 0.32em;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    font-weight: 400;
-    color: var(--gold-dim);
+    font-weight: 500;
+    color: var(--text-muted);
 }
 
 .section-title {
     font-family: var(--font-display);
     font-weight: 400;
-    font-size: 1.7rem;
-    line-height: 1.1;
+    font-size: 1.55rem;
+    line-height: 1.15;
     color: var(--text-primary);
     font-variant-numeric: lining-nums;
 }
-@media (min-width: 640px) { .section-title { font-size: 2rem; } }
+@media (min-width: 640px) { .section-title { font-size: 1.8rem; } }
 
 .tabular { font-variant-numeric: tabular-nums lining-nums; }
 
 .row-link { cursor: pointer; transition: background-color 200ms ease, color 200ms ease; }
 .row-link:hover { background-color: var(--accent-soft); }
 
-/* Text tabs instead of pills */
+/* Filters and switches: quiet pills; the chosen one is filled with ink. */
 .chip {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
-    padding: 0.45rem 0.1rem;
-    margin-right: 0.9rem;
-    font-size: 0.72rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    border-bottom: 1px solid transparent;
-    transition: color 200ms ease, border-color 200ms ease;
+    gap: 0.45rem;
+    padding: 0.42rem 0.9rem;
+    margin-right: 0.35rem;
+    font-size: 0.86rem;
+    letter-spacing: 0;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    transition: color 200ms ease, border-color 200ms ease, background-color 200ms ease, transform 150ms ease;
     white-space: nowrap;
-    background: none;
+    background: transparent;
 }
-.chip:hover { color: var(--text-primary); }
-.chip[aria-pressed="true"], .chip.is-active { color: var(--gold); border-bottom-color: var(--gold); }
+.chip:hover { color: var(--text-primary); border-color: var(--text-muted); }
+.chip:active { transform: scale(0.97); }
+.chip[aria-pressed="true"], .chip.is-active, .chip[aria-selected="true"] { color: var(--page-plane); background: var(--text-primary); border-color: var(--text-primary); }
 /* Touch screens: chips get a full finger-sized target (44px) without looking bigger. */
-@media (pointer: coarse) { .chip { min-height: 2.75rem; } }
+@media (pointer: coarse) { .chip { min-height: 2.5rem; } }
 /* A row of filter chips: one line that scrolls sideways on a phone (never a
    lone chip wrapped onto a second line); wraps normally on wider screens. */
 .chip-row { display: flex; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-inline: -1.1rem; padding-inline: 1.1rem; padding-bottom: 2px; /* keeps the active underline inside the scroll box */
@@ -273,11 +278,11 @@ button, a, [role="button"] { -webkit-tap-highlight-color: transparent; }
     justify-content: center;
     gap: 0.5rem;
     min-height: 2.5rem;
-    padding: 0.5rem 1.1rem;
-    font-size: 0.7rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    border-radius: var(--radius-sm);
+    padding: 0.5rem 1.15rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    border-radius: 999px;
     transition: background-color 200ms ease, border-color 200ms ease, color 200ms ease;
     white-space: nowrap;
 }
@@ -308,10 +313,10 @@ button, a, [role="button"] { -webkit-tap-highlight-color: transparent; }
 table.data-table { border-collapse: collapse; width: 100%; }
 table.data-table th {
     text-align: left;
-    font-size: 0.62rem;
+    font-size: 0.7rem;
     text-transform: uppercase;
-    letter-spacing: 0.24em;
-    color: var(--gold-dim);
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
     font-weight: 400;
     padding: 0 0.75rem 0.7rem;
     border-bottom: 1px solid var(--border-strong);
@@ -385,12 +390,9 @@ html.screen .eyebrow { font-weight: 500; }
     html.screen { font-size: clamp(18px, 1.72vw, 28px); }
     html.screen body { font-weight: 500; }
     html.screen .font-bold, html.screen .font-semibold, html.screen b, html.screen strong { font-weight: 600; }
-    html.screen .eyebrow { font-size: 0.74rem; letter-spacing: 0.22em; }
-    html.screen .chip { font-size: 0.78rem; letter-spacing: 0.14em; }
+    html.screen .eyebrow { font-size: 0.78rem; letter-spacing: 0.1em; }
+    html.screen .chip { font-size: 0.92rem; }
 }
-/* Big type: the tabs use their short names so six of them always fit. */
-html.screen .nav-long { display: none !important; }
-html.screen .nav-short { display: inline !important; }
 html.screen .recharts-line-curve,
 html.screen .recharts-area-curve { stroke-width: 2.6px; }
 html.screen .recharts-cartesian-axis-tick text { font-size: 15px !important; font-weight: 500; }
@@ -483,3 +485,13 @@ input[aria-invalid="true"] { border-color: var(--danger) !important; color: var(
 .nav-indicator { position: absolute; bottom: -1px; height: 1px; background: var(--gold); box-shadow: 0 0 10px var(--gold); transition: left 500ms cubic-bezier(0.3, 0.8, 0.2, 1), width 500ms cubic-bezier(0.3, 0.8, 0.2, 1); }
 /* Animations inside a section that hasn't been scrolled to yet wait for it. */
 .reveal:not(.is-in) *, .reveal:not(.is-in) { animation-play-state: paused !important; }
+
+/* The night band keeps its sky, light and sheen in the light theme too. */
+.night { background: var(--page-plane); color: var(--text-primary); }
+.night .starfield { display: block; }
+.night .hero-glow { background: radial-gradient(closest-side, color-mix(in oklab, var(--gold) 22%, transparent), transparent 70%); }
+.night .gold-sheen { background-image: linear-gradient(100deg, var(--gold) 0%, var(--gold) 40%, var(--gold-bright) 47%, #fff6dc 50%, var(--gold-bright) 53%, var(--gold) 60%, var(--gold) 100%); }
+
+/* Chart legend: the house's colour dot and name; a tap hides or shows it. */
+.legend-chip { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.35rem 0.8rem; border-radius: 999px; font-size: 0.88rem; color: var(--text-secondary); border: 1px solid var(--border); background: var(--surface); transition: opacity 200ms ease, border-color 200ms ease; }
+.legend-chip:hover { border-color: var(--text-muted); }

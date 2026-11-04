@@ -18,3 +18,13 @@ export const scoreDomain: [(min: number) => number, (max: number) => number] = [
     min => Math.max(0, Math.floor((min * 0.93) / 10) * 10),
     max => Math.ceil((max * 1.05) / 10) * 10
 ];
+
+/** Cell tint for a percent-of-target in tables (a heat map, quiet by
+ *  default): gold when the plan is met, deeper when well over it; clear when
+ *  close; red when far below. */
+export const heatBg = (pct: number) =>
+    pct >= 150 ? 'color-mix(in oklab, var(--gold) 30%, transparent)'
+        : pct >= 100 ? 'color-mix(in oklab, var(--gold) 15%, transparent)'
+            : pct >= 75 ? 'transparent'
+                : pct >= 50 ? 'color-mix(in oklab, var(--danger) 9%, transparent)'
+                    : 'color-mix(in oklab, var(--danger) 18%, transparent)';

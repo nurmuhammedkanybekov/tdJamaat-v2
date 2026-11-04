@@ -104,7 +104,7 @@ export const CaptainDesk: React.FC<{
                 </p>
             )}
 
-            <button onClick={onOpenHouse} className="row-link w-full flex items-center justify-between gap-3 px-5 sm:px-7 py-3 text-[0.72rem] uppercase tracking-[0.2em]" style={{ borderTop: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
+            <button onClick={onOpenHouse} className="row-link w-full flex items-center justify-between gap-3 px-5 sm:px-7 py-3.5 text-[0.92rem] font-medium" style={{ borderTop: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
                 {t('Үйдүн толук отчету')}
                 <ArrowRight className="w-4 h-4" style={{ color: 'var(--gold)' }} />
             </button>

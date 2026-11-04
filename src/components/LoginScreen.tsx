@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { ChevronDown, Eye, EyeOff, Loader2, Lock, LogIn, Moon, Sun } from 'lucide-react';
+import { ChevronDown, Eye, EyeOff, Loader2, Lock, LogIn } from 'lucide-react';
 import { fetchHouses } from '../services/dataService';
 import { signInAsHouse, signInAsAdmin } from '../services/authService';
 import type { House } from '../types';
-import type { Theme } from '../theme';
 import { Corners, Crown, Mark, Medallion } from './Ornament';
 import { StarField } from './motion';
 import { isEnglish, setLang, t } from '../i18n';
@@ -16,7 +15,8 @@ const LAST_HOUSE = 'tdjamaat-login-house';
 
 const readLastHouse = () => { try { return localStorage.getItem(LAST_HOUSE) ?? ''; } catch { return ''; } };
 
-export const LoginScreen: React.FC<{ theme: Theme; onToggleTheme: () => void }> = ({ theme, onToggleTheme }) => {
+// The entrance is always the night sky, in both themes.
+export const LoginScreen: React.FC = () => {
     const [mode, setMode] = useState<Mode>('captain');
     const [houses, setHouses] = useState<House[]>([]);
     const [houseSlug, setHouseSlug] = useState(readLastHouse);
@@ -68,7 +68,7 @@ export const LoginScreen: React.FC<{ theme: Theme; onToggleTheme: () => void }> 
     const iconBtn = 'w-10 h-10 inline-flex items-center justify-center transition-colors hover:text-[var(--gold)]';
 
     return (
-        <main className="hero min-h-[100dvh] flex flex-col page-gutter overflow-hidden" style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top))', paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
+        <main className="hero night min-h-[100dvh] flex flex-col page-gutter overflow-hidden" style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top))', paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
             <StarField count={70} />
             <div className="flex items-center justify-end h-14 gap-1" style={{ color: 'var(--text-secondary)' }}>
                 <button
@@ -79,9 +79,7 @@ export const LoginScreen: React.FC<{ theme: Theme; onToggleTheme: () => void }> 
                 >
                     {isEnglish() ? 'КЫР' : 'EN'}
                 </button>
-                <button onClick={onToggleTheme} aria-label={theme === 'dark' ? t('Жарык тема') : t('Караңгы тема')} className={iconBtn}>
-                    {theme === 'dark' ? <Sun className="w-[1.1rem] h-[1.1rem]" strokeWidth={1.5} /> : <Moon className="w-[1.1rem] h-[1.1rem]" strokeWidth={1.5} />}
-                </button>
+
             </div>
 
             <div className="flex-1 flex flex-col items-center justify-center py-6">

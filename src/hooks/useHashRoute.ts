@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { TABS } from '../components/navigation';
+import { LEGACY_VIEWS, TABS } from '../components/navigation';
 import type { ActiveView } from '../components/navigation';
 
 // The view and the open profile live in the URL hash (#/teams?m=<member id>),
@@ -11,7 +11,7 @@ const VIEW_KEYS = TABS.map(it => it.key) as string[];
 export const parseHash = (hash: string): Route => {
     const raw = hash.replace(/^#\/?/, '');
     const [path, query] = raw.split('?');
-    const view = VIEW_KEYS.includes(path) ? (path as ActiveView) : 'overview';
+    const view = VIEW_KEYS.includes(path) ? (path as ActiveView) : LEGACY_VIEWS[path] ?? 'overview';
     return { view, memberId: new URLSearchParams(query ?? '').get('m') };
 };
 

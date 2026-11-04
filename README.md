@@ -69,10 +69,12 @@ visual redesign.
   have different expected minimums for each metric — the app seeds new
   weekly entries with the right target for that person's role instead of
   one flat number for everyone.
-- **Five sections**: a weekly overview (top-3 podium, everyone's rank with
-  ▲/▼ movement since last week and a trend line), a per-house breakdown,
-  season progress charts, reports (four-week periods and the season
-  total), and awards.
+- **Five tabs, from the nearest to the widest view**: *Week* (your house,
+  the week's podium, the house and people tables), *Houses* (one house:
+  members as a heat table, team activities, where the points came from),
+  *Season* (season tables, the rating week by week, the race for places,
+  four-week reports), *Awards*, and *Community*. Each fact lives in one
+  place; old links to #/progress and #/reports open the Season tab.
 - **Personal profile pages.** Tap anyone to see their score trend, how
   close they are to each target this week, best week, perfect-week streak,
   badges and full week-by-week history.
@@ -369,7 +371,8 @@ src/
   components/          shared UI (AppHeader, ProfileSheet, CompareSheet, ShareSheet,
                        AdminPanel, AdminSeason, HistorySheet, DataEntryForm,
                        BadgeMedal, Ornament, ui.tsx, …)
-  components/views/    one component per section (Overview, Teams, Progress, Reports, Awards, Community)
+  components/views/    one component per tab (Overview = Week, Teams, Season, Awards, Community);
+                       Standings.tsx holds the house/people tables shared by Week and Season
   services/            Supabase reads/writes (dataService.ts, buildDataFile.ts) and auth
   utils/               scoring formula, season insights, the captain/admin desk, badges,
                        seasons, compare, data-entry drafts, share-card drawing,

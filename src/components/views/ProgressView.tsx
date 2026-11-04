@@ -110,9 +110,9 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ data, insights, onOp
             {houses.map(h => {
                 const off = hidden.has(h.id);
                 return (
-                    <button key={h.id} className="chip" onClick={() => toggle(h.id)} aria-pressed={!off}
+                    <button key={h.id} className="legend-chip" onClick={() => toggle(h.id)} aria-pressed={!off}
                         onMouseEnter={() => !off && setFocus(h.id)} onMouseLeave={() => setFocus(null)} onFocus={() => !off && setFocus(h.id)} onBlur={() => setFocus(null)}
-                        style={off ? { opacity: 0.45 } : { borderColor: 'var(--border-strong)' }}>
+                        style={off ? { opacity: 0.4, textDecoration: 'line-through' } : undefined}>
                         <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: TEAM_COLORS[h.colorIndex % TEAM_COLORS.length] }} />
                         {h.name}
                     </button>
@@ -122,9 +122,9 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ data, insights, onOp
     );
 
     return (
-        <div className="space-y-8 sm:space-y-10">
+        <div className="space-y-12 sm:space-y-16">
             <section className="card card-pad">
-                <SectionHeader eyebrow={t('Үй рейтинги')} title={t('Үйлөрдүн апталык прогресси')} sub={t('Үйдү жашыруу же көрсөтүү үчүн атын басыңыз.')} action={<button className="btn btn-ghost" onClick={() => onCompare('house')}><Columns2 className="w-3.5 h-3.5" />  {t('Салыштыруу')}</button>} />
+                <SectionHeader title={t('Рейтинг апта сайын')} action={<button className="btn btn-ghost" onClick={() => onCompare('house')}><Columns2 className="w-3.5 h-3.5" />  {t('Салыштыруу')}</button>} />
                 {legend}
                 <div className="mt-4 -ml-3 sm:ml-0">
                     <ResponsiveContainer width="100%" height={isPhone ? 280 : 420}>
@@ -150,7 +150,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ data, insights, onOp
 
             <div className="grid grid-cols-1 gap-8 xl:grid-cols-2">
                 <section className="card card-pad">
-                    <SectionHeader eyebrow={t('Ар бир аптадагы орун')} title={t('Орундардын жарышы')} />
+                    <SectionHeader title={t('Орундардын жарышы')} />
                     <div className="-ml-3 sm:ml-0">
                         <ResponsiveContainer width="100%" height={isPhone ? 240 : 300}>
                             <LineChart data={rankData} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
@@ -169,7 +169,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ data, insights, onOp
                 </section>
 
                 <section className="card card-pad">
-                    <SectionHeader eyebrow={t('{0}-апта', data.weeks[lastIndex].weekNumber)} title={t('Эң көп өскөндөр')} sub={t('Мурунку аптага караганда эң көп упай кошкондор.')} />
+                    <SectionHeader eyebrow={t('{0}-апта', data.weeks[lastIndex].weekNumber)} title={t('Эң көп өскөндөр')} />
                     {risers.length === 0 ? (
                         <p className="text-[0.88rem]" style={{ color: 'var(--text-muted)' }}>{t('Салыштыруу үчүн эки апталык маалымат керек.')}</p>
                     ) : (
@@ -192,7 +192,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ data, insights, onOp
             </div>
 
             <section>
-                <SectionHeader eyebrow={t('Үйлөр')} title={t('Апталар боюнча статистика')} />
+                <SectionHeader title={t('Ар бир үй')} />
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 stagger">
                     {houses.map(h => {
                         const counted = h.weeks.filter(w => w.submitted);

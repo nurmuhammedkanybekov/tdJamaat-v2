@@ -4,7 +4,8 @@ import { hashFor, parseHash } from './useHashRoute';
 describe('the view in the address', () => {
     it('reads the view and an open profile', () => {
         expect(parseHash('#/teams?m=abc')).toEqual({ view: 'teams', memberId: 'abc' });
-        expect(parseHash('#/progress')).toEqual({ view: 'progress', memberId: null });
+        expect(parseHash('#/season')).toEqual({ view: 'season', memberId: null });
+        expect(parseHash('#/progress')).toEqual({ view: 'season', memberId: null });   // old link
     });
 
     it('anything unknown (or nothing) is the overview', () => {
@@ -14,6 +15,6 @@ describe('the view in the address', () => {
 
     it('round-trips', () => {
         expect(parseHash(hashFor('awards', 'x1'))).toEqual({ view: 'awards', memberId: 'x1' });
-        expect(hashFor('reports')).toBe('#/reports');
+        expect(hashFor('season')).toBe('#/season');
     });
 });

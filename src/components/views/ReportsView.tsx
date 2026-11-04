@@ -29,15 +29,16 @@ const TREND: Record<Trend, { label: string; icon: React.ComponentType<{ classNam
 export const ReportsView: React.FC<ReportsViewProps> = ({ data, selectedPeriod, setSelectedPeriod }) => {
     const [mode, setMode] = useState<'period' | 'total'>('period');
     return (
-        <div className="space-y-6">
-            {/* Text tabs with a gold underline, like every other switch on the site. */}
+        <section className="space-y-6">
+            <SectionHeader title={t('Отчеттор')} className="mb-0!" />
+            {/* The two reports: four-week periods, and the total from week 5. */}
             <div className="chip-row" role="tablist">
                 {([['period', t('4 апталык отчет')], ['total', t('Жалпы рейтинг')]] as const).map(([k, label]) => (
-                    <button key={k} role="tab" aria-selected={mode === k} onClick={() => setMode(k)} className={`chip ${mode === k ? 'is-active' : ''}`} style={{ marginRight: '1.75rem', fontSize: '0.78rem' }}>{label}</button>
+                    <button key={k} role="tab" aria-selected={mode === k} onClick={() => setMode(k)} className={`chip ${mode === k ? 'is-active' : ''}`}>{label}</button>
                 ))}
             </div>
             {mode === 'period' ? <PeriodReport data={data} selectedPeriod={selectedPeriod} setSelectedPeriod={setSelectedPeriod} /> : <TotalReport data={data} />}
-        </div>
+        </section>
     );
 };
 
@@ -92,7 +93,7 @@ const PeriodReport: React.FC<ReportsViewProps> = ({ data, selectedPeriod, setSel
             </div>
 
             <section className="card overflow-hidden">
-                <div className="card-pad pb-0 sm:pb-0"><SectionHeader eyebrow={t('Үй рейтинги боюнча')} title={t('Мезгилдин рейтинги')} /></div>
+                <div className="card-pad pb-0 sm:pb-0"><SectionHeader title={t('Мезгилдин рейтинги')} /></div>
                 <div className="overflow-x-auto">
                     <table className="data-table">
                         <thead>
