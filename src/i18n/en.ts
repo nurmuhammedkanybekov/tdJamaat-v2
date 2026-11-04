@@ -637,7 +637,6 @@ export const EN: Record<string, string> = {
     "Админ · {0}-апта": "Admin · week {0}",
     "Апта бекитилген: жыйынтыктар акыркы.": "The week is locked: the results are final.",
     "Баары киргизди. Эми аптаны бекитсеңиз болот — жыйынтыктар акыркы болот.": "Every house has entered. You can lock the week now to make the results final.",
-    "Күтүлүп жаткан үйлөр төмөндө. Капитан киргизе албаса, сиз анын ордуна киргизе аласыз.": "The houses still missing are below. If a captain can't enter, you can enter for them.",
     "Киргизүү": "Enter",
     "апта": "week",
     "бөлүмдөр": "sections",
@@ -685,7 +684,6 @@ export const EN: Record<string, string> = {
     "Көчүрүп алыңыз:": "Copy this:",
     "Көчүрүлдү": "Copied",
     "Эскертүү жөнөтүү": "Send a reminder",
-    "Капитандарга эскертүү": "Remind the captains",
     "Орточо рейтинг": "Average rating",
     "Аптанын жыйынтыгы": "The week in review",
     "Бардык {0} үй киргизди": "All {0} houses have entered",
@@ -693,5 +691,11 @@ export const EN: Record<string, string> = {
     "Азырынча алдыда": "Leading so far",
     "Үйлөрдүн жарышы": "The race between houses",
     "Жамаат бирге": "The jamaat together",
-    "Келерки аптада жолугабыз": "See you next week"
+    "Келерки аптада жолугабыз": "See you next week",
+    "Эскертүү": "Remind",
+    "үй киргизди": "houses entered",
+    "Калды: {0}": "Still missing: {0}",
+    "{0}: киргизүү": "{0}: enter",
+    "{0}: өзгөртүү": "{0}: edit",
+    "киргизилди": "entered"
 };

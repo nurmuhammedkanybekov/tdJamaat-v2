@@ -77,4 +77,11 @@ describe('the admin desk', () => {
         expect(d.total).toBe(3);
         expect(d.waiting.map(h => h.id)).toEqual(['C']);
     });
+
+    it('shows every house with its status and rating', () => {
+        const d = adminDesk(w2, ins, 1);
+        expect(d.houses.map(h => [h.id, h.entered])).toEqual([['A', true], ['B', true], ['C', false]]);
+        expect(d.houses[0].rating).toBeGreaterThan(0);
+        expect(d.houses[2].rating).toBeNull();
+    });
 });

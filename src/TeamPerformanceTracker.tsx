@@ -224,7 +224,7 @@ const TeamPerformanceTracker: React.FC = () => {
     // The desk: a captain's own house this week, or (admin) who is still missing.
     const ownDesk = authUser.role === 'leader' && authUser.houseId ? houseDesk(data, insights, authUser.houseId, weekIndex) : null;
     const desk = authUser.role === 'admin'
-        ? <AdminDeskPanel desk={adminDesk(currentWeekData)} onEnterFor={houseId => openEntry(houseId, currentWeekData.globalWeek)} onAdmin={() => setModal('admin')} />
+        ? <AdminDeskPanel desk={adminDesk(currentWeekData, insights, weekIndex)} onEnterFor={houseId => openEntry(houseId, currentWeekData.globalWeek)} onAdmin={() => setModal('admin')} />
         : ownDesk && (
             <CaptainDesk
                 desk={ownDesk}

@@ -94,21 +94,38 @@ export const houseDesk = (data: DataFile, insights: Insights, houseId: string, w
     };
 };
 
+export interface AdminDeskHouse {
+    id: string;
+    name: string;
+    /** Position in the house list (picks its colour). */
+    colorIndex: number;
+    entered: boolean;
+    /** House rating, once the week counts for it. */
+    rating: number | null;
+}
+
 export interface AdminDesk {
     weekNumber: number;
     globalWeek: number;
     locked: boolean;
     entered: number;
     total: number;
+    /** Every house, in the usual order, with its status this week. */
+    houses: AdminDeskHouse[];
     /** Houses that haven't entered the week yet. */
     waiting: { id: string; name: string }[];
 }
 
-export const adminDesk = (week: WeekData): AdminDesk => ({
+export const adminDesk = (week: WeekData, insights?: Insights, weekIndex?: number): AdminDesk => ({
     weekNumber: week.weekNumber,
     globalWeek: week.globalWeek,
     locked: week.locked,
     entered: week.teams.filter(it => it.submitted).length,
     total: week.teams.length,
+    houses: week.teams.map((it, i) => {
+        const series = insights?.houses.get(it.id);
+        const hw = series && weekIndex !== undefined ? weekOf(series.weeks, weekIndex) : undefined;
+        return { id: it.id, name: it.name, colorIndex: series?.colorIndex ?? i, entered: it.submitted, rating: hw?.submitted ? hw.avg : null };
+    }),
     waiting: week.teams.filter(it => !it.submitted).map(it => ({ id: it.id, name: it.name }))
 });
