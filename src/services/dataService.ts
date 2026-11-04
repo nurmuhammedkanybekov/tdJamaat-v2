@@ -146,13 +146,16 @@ export const normalizeMiniCard = (value: unknown, fallback: MiniCard): MiniCard 
     return out;
 };
 
-type MetricRow = { member_id: string; week_number: number; actual: unknown; target: unknown; excused?: boolean | null };
+type MetricRow = { member_id: string; week_number: number; actual: unknown; target: unknown; excused?: boolean | null; house_id?: string | null; role?: Role | null };
 
 // Everything one house has actually saved (not the placeholders the dashboard
 // shows for weeks a house hasn't submitted) — used by the data-entry form to
 // carry each member's target forward from their most recent real entry.
 export interface HouseHistory {
-    metrics: { memberId: string; weekNumber: number; actual: MetricValues; target: MetricValues | null; excused: boolean }[];
+    /** Every saved week of the house's people: today's members (in any house)
+     *  and anyone whose saved week belongs to this house. houseId / role are the
+     *  house and role the week was saved under (null before seasons-2026-10.sql). */
+    metrics: { memberId: string; weekNumber: number; actual: MetricValues; target: MetricValues | null; excused: boolean; houseId: string | null; role: Role | null }[];
     activity: { weekNumber: number; miniCard: MiniCard; hasTargets: boolean }[];
 }
 
@@ -162,7 +165,15 @@ export interface HouseHistory {
 let excusedColumn: boolean | null = null;
 export const excusedSupported = () => excusedColumn === true;
 
-const fetchMetricHistory = async (memberIds: string[]) => {
+const fetchMetricHistory = async (houseId: string, memberIds: string[]) => {
+    // With the per-week house (seasons-2026-10.sql): today's members, wherever
+    // their weeks were saved, plus every week saved under this house (people
+    // who have since moved out still belong to this house's earlier weeks).
+    const mine = memberIds.length ? `member_id.in.(${memberIds.join(',')}),` : '';
+    const full = await supabase.from('weekly_metrics').select('member_id, week_number, actual, target, excused, house_id, role')
+        .or(`${mine}house_id.eq.${houseId}`).order('week_number');
+    if (!full.error) { excusedColumn = true; return { data: (full.data ?? []) as MetricRow[], error: null }; }
+    if (!isMissingSchema(full.error)) return { data: [] as MetricRow[], error: full.error };
     if (!memberIds.length) return { data: [] as MetricRow[], error: null };
     if (excusedColumn !== false) {
         const res = await supabase.from('weekly_metrics').select('member_id, week_number, actual, target, excused').in('member_id', memberIds).order('week_number');
@@ -176,7 +187,7 @@ const fetchMetricHistory = async (memberIds: string[]) => {
 
 export const fetchHouseHistory = async (houseId: string, memberIds: string[]): Promise<HouseHistory> => {
     const [metricsRes, activityRes] = await Promise.all([
-        fetchMetricHistory(memberIds),
+        fetchMetricHistory(houseId, memberIds),
         supabase.from('house_activity').select('week_number, activity').eq('house_id', houseId).order('week_number')
     ]);
     if (metricsRes.error) fail(metricsRes.error);
@@ -187,7 +198,9 @@ export const fetchHouseHistory = async (houseId: string, memberIds: string[]): P
             weekNumber: r.week_number,
             actual: normalizeMetrics(r.actual, ZERO_METRICS),
             target: r.target && typeof r.target === 'object' && Object.keys(r.target as object).length ? normalizeMetrics(r.target, ZERO_METRICS) : null,
-            excused: r.excused === true
+            excused: r.excused === true,
+            houseId: r.house_id ?? null,
+            role: r.role ?? null
         })),
         activity: ((activityRes.data ?? []) as Array<{ week_number: number; activity: unknown }>).map(r => ({
             weekNumber: r.week_number,
@@ -345,6 +358,25 @@ export const updateMember = async (id: string, patch: Partial<{ name: string; ro
             ...(patch.houseId !== undefined && { house_id: patch.houseId })
         })
         .eq('id', id);
+    if (error) fail(error);
+};
+
+/** A move or a new role that starts from a chosen week: the person's saved
+ *  weeks from that week on count under the new house / role, and a new role
+ *  also gives those weeks the role's season plans. Earlier weeks are untouched.
+ *  (Changing a saved week's house/role needs supabase/roster-changes-2026-11.sql;
+ *  before it, only the plans change.) */
+export const applyRosterChangeFrom = async (
+    memberId: string,
+    fromWeek: number,
+    change: { houseId?: string; role?: Role; roleTarget?: MetricValues }
+) => {
+    const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
+    if (change.houseId) patch.house_id = change.houseId;
+    if (change.role) patch.role = change.role;
+    if (change.role && change.roleTarget) patch.target = change.roleTarget;
+    if (Object.keys(patch).length === 1) return;
+    const { error } = await supabase.from('weekly_metrics').update(patch).eq('member_id', memberId).gte('week_number', fromWeek);
     if (error) fail(error);
 };
 

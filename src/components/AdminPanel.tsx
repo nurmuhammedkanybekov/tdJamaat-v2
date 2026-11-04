@@ -131,7 +131,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
             )}
 
             {tab === 'season' && <SeasonTab data={data} busy={busy} run={run} onChanged={onChanged} />}
-            {tab === 'roster' && <RosterTab busy={busy} run={run} onChanged={onChanged} />}
+            {tab === 'roster' && <RosterTab data={data} busy={busy} run={run} onChanged={onChanged} />}
 
             {tab === 'targets' && (
                 <div className="px-4 sm:px-6 pb-6">

@@ -24,6 +24,7 @@ import { calculateMemberScore } from '../utils/scoring';
 import { ROLE_LABEL } from '../utils/insights';
 import { memberTypos, miniCardTypos, usualValues } from '../utils/typos';
 import { goalHints } from '../utils/breakdown';
+import { rosterForWeek } from '../utils/weekRoster';
 import type { TypoWarning } from '../utils/typos';
 import { Avatar } from './Avatar';
 import { NumberInput } from './NumberInput';
@@ -136,7 +137,9 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
     const [selectedHouseId, setSelectedHouseId] = useState<string>(authUser.houseId ?? initialHouseId ?? '');
     const [weekNumbers, setWeekNumbers] = useState<number[]>([]);
     const [weekNumber, setWeekNumber] = useState<number>(defaultWeekNumber);
-    const [members, setMembers] = useState<Member[]>([]);
+    // Every person (any house, also those who left): a past week can include
+    // people who have since moved or left (see rosterForWeek).
+    const [allMembers, setAllMembers] = useState<Member[]>([]);
     const [settings, setSettings] = useState<SeasonSettings>({ roleTargets: DEFAULT_TARGETS, miniCard: DEFAULT_MINICARD });
     const [history, setHistory] = useState<HouseHistory | null>(null);
     const [miniCard, setMiniCard] = useState<MiniCard>(DEFAULT_MINICARD);
@@ -188,15 +191,29 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
         if (!selectedHouseId) return;
         let cancelled = false;
         setHistory(null);
-        fetchMembers()
+        fetchMembers(true)
             .then(async all => {
-                const roster = all.filter(m => m.houseId === selectedHouseId);
-                const hist = await fetchHouseHistory(selectedHouseId, roster.map(m => m.id));
-                if (!cancelled) { setMembers(roster); setHistory(hist); }
+                const today = all.filter(m => m.houseId === selectedHouseId && m.active);
+                const hist = await fetchHouseHistory(selectedHouseId, today.map(m => m.id));
+                if (!cancelled) { setAllMembers(all); setHistory(hist); }
             })
             .catch(err => { if (!cancelled) setError(t('Мүчөлөр жүктөлгөн жок: {0}', err instanceof Error ? err.message : String(err))); });
         return () => { cancelled = true; };
     }, [selectedHouseId]);
+
+    const houseNameOf = (id: string) =>
+        houses.find(h => h.id === id)?.name ?? data?.weeks.flatMap(w => w.teams).find(team => team.id === id)?.name ?? '';
+
+    // Who is on the form for this week, with the role the week counts under.
+    const roster = useMemo(
+        () => (history ? rosterForWeek(selectedHouseId, weekNumber, weekNumber >= latestWeek, allMembers, history.metrics) : []),
+        [history, selectedHouseId, weekNumber, latestWeek, allMembers]
+    );
+    const members: Member[] = useMemo(() => roster.map(e => ({ ...e.member, role: e.role })), [roster]);
+    const elsewhere = useMemo(() => new Map(roster.filter(e => e.nowElsewhere).map(e => [e.member.id, e.nowElsewhere!])), [roster]);
+    // A primitive stand-in for the roster, so the seed effect below re-runs
+    // when the roster itself changes (never on an unrelated re-render).
+    const rosterKey = members.map(m => `${m.id}:${m.role}`).join(',');
 
     // Seed the form for the chosen house + week from what's really saved:
     //  results  → that week's saved results, else zeros
@@ -230,7 +247,9 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
         members.forEach(member => {
             const mine = history.metrics.filter(r => r.memberId === member.id);
             const thisWeek = mine.find(r => r.weekNumber === weekNumber);
-            const previous = rowsBefore(mine).find(r => r.target);
+            // A plan carries forward only from weeks under the same role: a new
+            // captain starts from the captain plans (same rule as the database).
+            const previous = rowsBefore(mine).find(r => r.target && (r.role ?? member.role) === member.role);
             nextDrafts[member.id] = {
                 actual: thisWeek?.actual ?? ZERO_METRICS,
                 target: thisWeek?.target ?? previous?.target ?? settings.roleTargets[member.role] ?? DEFAULT_TARGETS.member,
@@ -263,10 +282,9 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
         setRestored(fromStore);
         setMiniCard(nextCard);
         setDrafts(nextDrafts);
-        // `members` is loaded together with `history` (same render), so it is
-        // always current here; it is left out on purpose (see above).
+        // `members` is derived from history + week; rosterKey stands in for it.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedHouseId, weekNumber, history, settings, seasonStart]);
+    }, [selectedHouseId, weekNumber, history, settings, seasonStart, rosterKey]);
 
     // Keep unsaved typing on the phone (see StoredDraft).
     useEffect(() => {
@@ -417,8 +435,17 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
             await requireActiveSession();
             await assertWeekExists(weekNumber);
             await upsertHouseActivity(selectedHouseId, weekNumber, miniCard);
+            // Only rows that are new or changed: re-saving a week never touches
+            // anyone whose numbers stayed the same (e.g. someone who has since
+            // moved to another house).
+            const saved = new Map((history?.metrics ?? []).filter(r => r.weekNumber === weekNumber).map(r => [r.memberId, r]));
+            const changed = members.filter(member => {
+                const d = drafts[member.id], row = saved.get(member.id);
+                return !row || JSON.stringify(row.actual) !== JSON.stringify(d.actual) || row.excused !== d.excused
+                    || (isAdmin && JSON.stringify(row.target) !== JSON.stringify(d.target));
+            });
             await Promise.all(
-                members.map(member => upsertMemberMetrics(member.id, weekNumber, drafts[member.id].actual, drafts[member.id].target, drafts[member.id].excused))
+                changed.map(member => upsertMemberMetrics(member.id, weekNumber, drafts[member.id].actual, drafts[member.id].target, drafts[member.id].excused))
             );
             clearDraft(selectedHouseId, weekNumber);
             dirty.current = false;
@@ -635,6 +662,11 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                                                             <div className="font-semibold truncate" style={{ color: 'var(--text-primary)' }}>{member.name}</div>
                                                             <div className="text-xs italic" style={{ color: 'var(--text-muted)' }}>
                                                                 {ROLE_LABEL[member.role]}
+                                                                {elsewhere.has(member.id) && (
+                                                                    <span style={{ color: 'var(--gold-dim)' }}>
+                                                                        {' · '}{elsewhere.get(member.id)!.active ? t('азыр {0} үйүндө', houseNameOf(elsewhere.get(member.id)!.houseId)) : t('курамдан чыккан')}
+                                                                    </span>
+                                                                )}
                                                             </div>
                                                         </div>
                                                         <div className="text-right flex-shrink-0">

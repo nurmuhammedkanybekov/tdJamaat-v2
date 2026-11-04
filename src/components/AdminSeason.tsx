@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowRightLeft, CheckCircle2, Loader2, Plus, Save, UserMinus, UserPlus } from 'lucide-react';
 import type { DataFile, House, Member, Role } from '../types';
-import { addHouse, addMember, fetchHouses, fetchMembers, renameSeason, startNewSeason, updateHouse, updateMember } from '../services/dataService';
+import { addHouse, addMember, applyRosterChangeFrom, fetchHouses, fetchMembers, fetchSeasonSettings, renameSeason, startNewSeason, updateHouse, updateMember } from '../services/dataService';
+import type { SeasonSettings } from '../services/dataService';
 import { runningSeason } from '../utils/seasons';
 import { ROLE_LABEL } from '../utils/insights';
 import { t } from '../i18n';
@@ -126,8 +127,11 @@ export const SeasonTab: React.FC<{ data: DataFile; busy: string | null; run: Run
     );
 };
 
-export const RosterTab: React.FC<{ busy: string | null; run: Run; onChanged: () => void }> = ({ busy, run, onChanged }) => {
+export const RosterTab: React.FC<{ data: DataFile; busy: string | null; run: Run; onChanged: () => void }> = ({ data, busy, run, onChanged }) => {
     const [houses, setHouses] = useState<House[] | null>(null);
+    const [settings, setSettings] = useState<SeasonSettings | null>(null);
+    // A move or a new role starts from a chosen week (default: the newest one).
+    const [fromWeek, setFromWeek] = useState<Record<string, number>>({});
     const [members, setMembers] = useState<Member[]>([]);
     const [drafts, setDrafts] = useState<Record<string, Partial<Member>>>({});
     const [houseNames, setHouseNames] = useState<Record<string, string>>({});
@@ -136,10 +140,21 @@ export const RosterTab: React.FC<{ busy: string | null; run: Run; onChanged: () 
     const [showLeft, setShowLeft] = useState(false);
 
     const reload = async () => {
-        const [h, m] = await Promise.all([fetchHouses(true), fetchMembers(true)]);
-        setHouses(h); setMembers(m); setDrafts({}); setHouseNames({});
+        const [h, m, st] = await Promise.all([fetchHouses(true), fetchMembers(true), fetchSeasonSettings()]);
+        setHouses(h); setMembers(m); setSettings(st); setDrafts({}); setHouseNames({}); setFromWeek({});
     };
     useEffect(() => { reload(); }, []);
+
+    // Weeks of the running season, plus "next week" for a change that starts
+    // before the next week is opened.
+    const running = runningSeason(data.seasons);
+    const seasonWeeks = data.weeks.filter(w => !running || w.seasonId === running.id);
+    const newest = seasonWeeks[seasonWeeks.length - 1];
+    const weekOptions = [
+        ...seasonWeeks.map(w => ({ value: w.globalWeek, seasonWeek: w.seasonWeek, upcoming: false })),
+        { value: (newest?.globalWeek ?? 0) + 1, seasonWeek: (newest?.seasonWeek ?? 0) + 1, upcoming: true }
+    ];
+    const defaultFrom = newest?.globalWeek ?? 1;
 
     const sortedHouses = useMemo(() => [...(houses ?? [])].sort((a, b) => Number(b.active) - Number(a.active) || a.displayOrder - b.displayOrder), [houses]);
     if (!houses) return <div className="flex items-center justify-center gap-2 py-12" style={{ color: 'var(--text-muted)' }}><Loader2 className="w-5 h-5 animate-spin" />  {t('Жүктөлүүдө…')}</div>;
@@ -149,12 +164,26 @@ export const RosterTab: React.FC<{ busy: string | null; run: Run; onChanged: () 
     const dirty = (m: Member) => !!drafts[m.id] && Object.entries(drafts[m.id]).some(([k, v]) => (m as unknown as Record<string, unknown>)[k] !== v);
     const left = members.filter(m => !m.active);
 
+    const roleChanged = (m: Member) => !!drafts[m.id]?.role && drafts[m.id]!.role !== m.role;
+    const houseChanged = (m: Member) => !!drafts[m.id]?.houseId && drafts[m.id]!.houseId !== m.houseId;
+    const nameChanged = (m: Member) => drafts[m.id]?.name !== undefined && drafts[m.id]!.name!.trim() !== m.name;
+
     const saveMember = (m: Member) => run(`m${m.id}`, async () => {
         const d = drafts[m.id] ?? {};
+        const from = fromWeek[m.id] ?? defaultFrom;
+        const moving = houseChanged(m), newRole = roleChanged(m);
         await updateMember(m.id, { name: d.name?.trim(), role: d.role, houseId: d.houseId, active: d.active });
+        if (m.active && (moving || newRole)) {
+            await applyRosterChangeFrom(m.id, from, {
+                houseId: moving ? d.houseId : undefined,
+                role: newRole ? d.role : undefined,
+                roleTarget: newRole && settings ? settings.roleTargets[d.role!] : undefined
+            });
+        }
         await reload(); onChanged();
-        const moved = d.houseId && d.houseId !== m.houseId ? ` → ${houses.find(h => h.id === d.houseId)?.name}` : '';
-        return t('{0} сакталды{1}.', (d.name ?? m.name).trim(), moved);
+        const moved = moving ? ` → ${houses.find(h => h.id === d.houseId)?.name}` : '';
+        const since = moving || newRole ? t(' ({0}-аптадан баштап)', weekOptions.find(o => o.value === from)?.seasonWeek ?? from) : '';
+        return t('{0} сакталды{1}.', (d.name ?? m.name).trim(), moved + since);
     });
 
     const memberRow = (m: Member) => (
@@ -182,6 +211,20 @@ export const RosterTab: React.FC<{ busy: string | null; run: Run; onChanged: () 
                     {m.active ? <UserMinus className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}
                 </button>
             </span>
+            {m.active && (houseChanged(m) || roleChanged(m)) && (
+                <label className="col-span-3 sm:col-span-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.85rem]" style={{ color: 'var(--text-secondary)' }}>
+                    <span>{t('Кайсы аптадан баштап?')}</span>
+                    <select value={fromWeek[m.id] ?? defaultFrom} onChange={e => setFromWeek(f => ({ ...f, [m.id]: Number(e.target.value) }))} className="px-2 py-1 text-[0.88rem]" style={input}>
+                        {weekOptions.map(o => <option key={o.value} value={o.value}>{o.upcoming ? t('{0}-апта (али ачыла элек)', o.seasonWeek) : t('{0}-апта', o.seasonWeek)}</option>)}
+                    </select>
+                    <span className="italic" style={{ color: 'var(--text-muted)' }}>{t('Мурунку апталар мурдагыдай калат.')}</span>
+                </label>
+            )}
+            {nameChanged(m) && (
+                <p className="col-span-3 sm:col-span-4 text-[0.82rem]" style={{ color: 'var(--warning)' }}>
+                    {t('Ат каталарын оңдоо үчүн гана. Бул адамдын ордуна башка адам келсе, жаңысын «Кошуу» менен кошуп, муну курамдан чыгарыңыз — антпесе бул адамдын жыйынтыктары жаңысына өтүп кетет.')}
+                </p>
+            )}
         </li>
     );
 
@@ -189,7 +232,7 @@ export const RosterTab: React.FC<{ busy: string | null; run: Run; onChanged: () 
         <div className="px-5 sm:px-7 pb-8 space-y-10">
             <p className="text-[0.9rem]" style={{ color: 'var(--text-secondary)' }}>
                 
-                {t('Адамды башка үйгө которуу үчүн анын «Үйү» талаасын өзгөртүп, «Сактоо» басыңыз. Мурунку жыйынтыктары эски үйүндө калат. Курамдан чыгарылган адамдын тарыхы өчпөйт.')}
+                {t('Адамды башка үйгө которуу же ролун өзгөртүү үчүн тандап, кайсы аптадан баштап экенин көрсөтүп, «Сактоо» басыңыз. Мурунку апталары мурдагы үйүндө жана ролунда калат. Кеткен адамды курамдан чыгарыңыз — тарыхы сакталат.')}
             </p>
 
             {sortedHouses.map(h => {
