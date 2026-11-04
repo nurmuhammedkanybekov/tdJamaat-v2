@@ -1,8 +1,8 @@
 {
-  "admin": "calm-falcon-775",
-  "mester": "mester1234567",
-  "damjanich": "damjanich1234567",
-  "pannonia": "pannonia1234567",
-  "baksai": "baksai1234567",
-  "dobozy": "dobozy1234567"
+  "admin": "REPLACE-WITH-A-STRONG-ADMIN-PASSWORD",
+  "mester": "REPLACE-WITH-MESTER-PASSWORD",
+  "damjanich": "REPLACE-WITH-DAMJANICH-PASSWORD",
+  "pannonia": "REPLACE-WITH-PANNONIA-PASSWORD",
+  "baksai": "REPLACE-WITH-BAKSAI-PASSWORD",
+  "dobozy": "REPLACE-WITH-DOBOZY-PASSWORD"
 }
