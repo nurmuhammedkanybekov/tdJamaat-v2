@@ -15,6 +15,7 @@ import { useAuthUser } from './hooks/useAuthUser';
 import { useThemeState } from './hooks/useThemeState';
 import { useResults } from './hooks/useResults';
 import { useKeyboardNav } from './hooks/useKeyboardNav';
+import { useAutoReveal } from './hooks/useReveal';
 
 import { AppHeader } from './components/AppHeader';
 import { ViewNavigator } from './components/ViewNavigator';
@@ -127,6 +128,9 @@ const TeamPerformanceTracker: React.FC = () => {
         next: isWeekly && weekIndex < weekCount - 1 ? () => goWeek(weekIndex + 1) : undefined,
         tab: i => { if (TABS[i]) setActiveView(TABS[i].key); }
     });
+    // Sections below the screen rise into view as they are scrolled to.
+    const viewRef = useRef<HTMLDivElement>(null);
+    useAutoReveal(viewRef, `${activeView}|${!!allData}`);
     // Once the results are on screen, fetch the on-demand code in the background.
     const hasData = !!allData;
     useEffect(() => {
@@ -260,7 +264,7 @@ const TeamPerformanceTracker: React.FC = () => {
             )}
 
             <main className="page-gutter">
-                <div key={activeView} className={`app-container animate-fade-up ${activeView === 'overview' ? 'pt-0 md:pt-8' : 'pt-6 sm:pt-8'}`}>
+                <div key={activeView} ref={viewRef} className={`app-container animate-view-in ${activeView === 'overview' ? 'pt-0 md:pt-8' : 'pt-6 sm:pt-8'}`}>
                     {activeView === 'overview' && (
                         <OverviewView data={data} weekIndex={weekIndex} insights={insights} onOpenProfile={openProfile} showSubmission={authUser.role !== 'admin'} desk={desk || undefined} />
                     )}

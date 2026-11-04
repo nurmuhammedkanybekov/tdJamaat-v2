@@ -202,7 +202,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ data, insights, onOp
                         const best = counted.reduce((b, w) => Math.max(b, w.avg), 0);
                         const color = TEAM_COLORS[h.colorIndex % TEAM_COLORS.length];
                         return (
-                            <div key={h.id} className="card p-4 sm:p-5 relative overflow-hidden">
+                            <div key={h.id} className="card lift p-4 sm:p-5 relative overflow-hidden">
                                 <div className="flex items-start justify-between gap-3">
                                     <div className="min-w-0">
                                         <h3 className="font-display text-[1.45rem] truncate flex items-center gap-2.5" style={{ color: 'var(--text-primary)' }}><span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />{h.name}</h3>

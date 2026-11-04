@@ -287,7 +287,7 @@ button, a, [role="button"] { -webkit-tap-highlight-color: transparent; }
 .btn-primary:hover, .btn-gold:hover { background: var(--gold-bright); border-color: var(--gold-bright); }
 .btn-icon { width: 2.5rem; padding: 0; letter-spacing: 0; }
 
-.hero { position: relative; color: var(--text-primary); background: var(--page-plane); isolation: isolate; }
+.hero { position: relative; color: var(--text-primary); background: var(--page-plane); isolation: isolate; overflow-x: clip; /* the glow and stars never widen the page */ }
 .hero:has([role="menu"]) { z-index: 35; }
 
 /* Dotted leader between a name and its number (engraved-plate lists). */
@@ -417,3 +417,69 @@ input[aria-invalid="true"] { border-color: var(--danger) !important; color: var(
 
 /* A key in a keyboard hint. */
 .kbd { display: inline-block; min-width: 1.5em; padding: 0 0.35em; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-family: var(--font-serif); font-size: 0.68rem; line-height: 1.45; text-align: center; color: var(--text-secondary); }
+
+/* -----------------------------------------------------------------------
+   Motion II — the "night" comes alive (all of it is switched off by the
+   prefers-reduced-motion rule above).
+   ------------------------------------------------------------------------ */
+
+/* Views arrive with a short rise and a soft focus pull. */
+@keyframes view-in { from { opacity: 0; transform: translateY(12px); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
+.animate-view-in { animation: view-in 650ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+
+/* Sections reveal as they scroll into view (src/components/motion.tsx). */
+.reveal { opacity: 0; transform: translateY(22px); transition: opacity 900ms cubic-bezier(0.2, 0.7, 0.2, 1), transform 900ms cubic-bezier(0.2, 0.7, 0.2, 1); }
+.reveal.is-in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; } }
+
+/* A star field behind the hero, only at night. */
+.starfield { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: -1; }
+.starfield i { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: var(--gold-bright); opacity: 0; animation: twinkle var(--d, 5s) ease-in-out var(--delay, 0s) infinite; }
+.starfield i.big { width: 3px; height: 3px; box-shadow: 0 0 6px var(--gold); }
+@keyframes twinkle { 0%, 100% { opacity: 0; transform: scale(0.6); } 50% { opacity: var(--o, 0.7); transform: scale(1); } }
+:root:not(.dark) .starfield { display: none; }
+
+/* A soft gold light behind the big number, breathing slowly. */
+.hero-glow { position: absolute; left: 50%; top: 50%; width: min(46rem, 120vw); aspect-ratio: 1.6; transform: translate(-50%, -50%); pointer-events: none; z-index: -1;
+    background: radial-gradient(closest-side, color-mix(in oklab, var(--gold) 22%, transparent), transparent 70%); animation: breathe 7s ease-in-out infinite; }
+:root:not(.dark) .hero-glow { background: radial-gradient(closest-side, color-mix(in oklab, var(--gold) 14%, transparent), transparent 70%); }
+@keyframes breathe { 0%, 100% { opacity: 0.55; transform: translate(-50%, -50%) scale(0.96); } 50% { opacity: 1; transform: translate(-50%, -50%) scale(1.04); } }
+
+/* Gold that catches the light: a highlight sweeps across the text. */
+.gold-sheen {
+    background: linear-gradient(100deg, var(--gold) 0%, var(--gold) 40%, var(--gold-bright) 47%, #fff6dc 50%, var(--gold-bright) 53%, var(--gold) 60%, var(--gold) 100%);
+    background-size: 260% 100%; background-position: 100% 0;
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: var(--gold);
+    animation: sheen 9s cubic-bezier(0.4, 0, 0.2, 1) 1300ms infinite;
+}
+:root:not(.dark) .gold-sheen { background-image: linear-gradient(100deg, var(--gold) 0%, var(--gold) 40%, var(--gold-bright) 47%, #e9cf8e 50%, var(--gold-bright) 53%, var(--gold) 60%, var(--gold) 100%); }
+/* A sweep in the first ~1.6 s, then rest (the band is off the text at both ends, so the loop restart is invisible). */
+@keyframes sheen { 0% { background-position: 100% 0; } 18% { background-position: 0% 0; } 100% { background-position: 0% 0; } }
+@media (prefers-reduced-motion: reduce) { .gold-sheen { animation: none; background-position: 100% 0; } }
+
+/* Slow-turning ornaments (the login medallion, the winner's halo). */
+@keyframes spin-slow { to { transform: rotate(360deg); } }
+.spin-slow { animation: spin-slow 120s linear infinite; }
+.spin-halo { animation: spin-slow 24s linear infinite; }
+
+/* The podium (top three on tablet/desktop). */
+@keyframes rise { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+.pedestal { transform-origin: bottom center; animation: rise 1100ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+@keyframes pop-in { 0% { opacity: 0; transform: translateY(16px) scale(0.92); } 70% { opacity: 1; transform: translateY(-3px) scale(1.01); } 100% { opacity: 1; transform: none; } }
+.pop-in { animation: pop-in 900ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+
+/* Cards that can be opened lift a little under the pointer. */
+.lift { transition: transform 300ms cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 300ms ease, border-color 300ms ease; }
+@media (hover: hover) {
+    .lift:hover { transform: translateY(-3px); border-color: color-mix(in oklab, var(--gold) 45%, var(--border)); box-shadow: 0 22px 50px -30px color-mix(in oklab, var(--gold) 55%, transparent); }
+}
+
+/* Gold buttons: a sweep of light on hover. */
+.btn-primary, .btn-gold { position: relative; overflow: hidden; isolation: isolate; }
+.btn-primary::after, .btn-gold::after { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.35) 50%, transparent 70%); transform: translateX(-120%); transition: transform 700ms cubic-bezier(0.2, 0.7, 0.2, 1); }
+@media (hover: hover) { .btn-primary:hover::after, .btn-gold:hover::after { transform: translateX(120%); } }
+
+/* The tab indicator slides between tabs. */
+.nav-indicator { position: absolute; bottom: -1px; height: 1px; background: var(--gold); box-shadow: 0 0 10px var(--gold); transition: left 500ms cubic-bezier(0.3, 0.8, 0.2, 1), width 500ms cubic-bezier(0.3, 0.8, 0.2, 1); }
+/* Animations inside a section that hasn't been scrolled to yet wait for it. */
+.reveal:not(.is-in) *, .reveal:not(.is-in) { animation-play-state: paused !important; }

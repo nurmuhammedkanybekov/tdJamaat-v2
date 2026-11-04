@@ -5,6 +5,7 @@ import React from 'react';
 import { ArrowRight, CheckCircle2, Clock3, Lock, PenLine, Settings } from 'lucide-react';
 import type { AdminDesk, HouseDesk } from '../utils/desk';
 import { metricName } from '../utils/metrics';
+import { CountUp } from './motion';
 import { placeSuffix, t } from '../i18n';
 
 const fmt = (n: number) => (Math.round(n * 10) / 10).toString();
@@ -40,7 +41,7 @@ export const CaptainDesk: React.FC<{
         </button>
     );
     return (
-        <section className="card overflow-hidden animate-fade-up" aria-label={t('Сиздин үй')}>
+        <section className="card overflow-hidden animate-view-in relative" aria-label={t('Сиздин үй')} style={{ borderTop: '2px solid var(--gold)' }}>
             <div className="card-pad flex flex-col sm:flex-row sm:items-center gap-5 sm:gap-8">
                 <div className="flex-1 min-w-0">
                     <div className="eyebrow" style={{ color: 'var(--gold)' }}>{t('Сиздин үй · {0}-апта', desk.weekNumber)}</div>
@@ -60,7 +61,7 @@ export const CaptainDesk: React.FC<{
                         <div>
                             <div className="eyebrow">{t('Үй рейтинги')}</div>
                             <div className="flex items-baseline gap-2 mt-1">
-                                <span className="font-display text-[2.8rem] leading-none tabular" style={{ color: 'var(--text-primary)' }}>{fmt(desk.rating)}</span>
+                                <CountUp value={desk.rating} className="font-display text-[2.8rem] leading-none tabular" style={{ color: 'var(--text-primary)' }} />
                                 {desk.change !== null && desk.change !== 0 && (
                                     <span className="text-[0.82rem] tabular" style={{ color: desk.change > 0 ? 'var(--success)' : 'var(--danger)' }}>{signed(desk.change)}</span>
                                 )}
@@ -116,7 +117,7 @@ export const AdminDeskPanel: React.FC<{
     onEnterFor: (houseId: string) => void;
     onAdmin: () => void;
 }> = ({ desk, onEnterFor, onAdmin }) => (
-    <section className="card overflow-hidden animate-fade-up" aria-label={t('Админ')}>
+    <section className="card overflow-hidden animate-view-in" aria-label={t('Админ')} style={{ borderTop: '2px solid var(--gold)' }}>
         <div className="card-pad flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8">
             <div className="flex-1 min-w-0">
                 <div className="eyebrow" style={{ color: 'var(--gold)' }}>{t('Админ · {0}-апта', desk.weekNumber)}</div>

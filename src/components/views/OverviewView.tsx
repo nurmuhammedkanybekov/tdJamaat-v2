@@ -6,7 +6,9 @@ import { houseNameAt, movement, ROLE_LABEL, roleAt, weekOf } from '../../utils/i
 import { CITIES, houseStandings, personStandings } from '../../utils/standings';
 import type { City, Scope } from '../../utils/standings';
 import { Avatar } from '../Avatar';
+import { TEAM_COLORS } from '../../utils/scoring';
 import { Movement, SectionHeader } from '../ui';
+import { CountUp, Reveal } from '../motion';
 import { t } from '../../i18n';
 
 const ROLE_FILTER_LABEL: Record<'all' | Role, string> = { all: t('Бардыгы'), imam: t('Капитандар'), zam: t('Орун басарлар'), member: t('Мүчөлөр') };
@@ -24,23 +26,70 @@ interface OverviewViewProps {
     desk?: React.ReactNode;
 }
 
-// One of the week's top three: a gold hairline ring (photo inside if there is
-// one), the Roman place, the name, and the score.
-const Laureate: React.FC<{ s: MemberSeries; w: MemberWeek; weekIndex: number; onOpen: () => void }> = ({ s, w, weekIndex, onOpen }) => (
-    <button onClick={onOpen} className="group flex sm:flex-col items-center gap-4 sm:gap-3 text-left sm:text-center w-full py-4 sm:py-2">
-        <span className="relative flex-shrink-0 rounded-full p-[5px] transition-colors" style={{ border: '1px solid var(--gold)' }}>
-            <Avatar name={s.name} role={w.member.role} photoUrl={w.member.photoUrl} size="lg" />
-            <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 px-2 font-display text-[0.95rem] leading-none" style={{ color: 'var(--gold)', backgroundColor: 'var(--page-plane)' }}>{ROMAN[(w.rank ?? 1) - 1]}</span>
-        </span>
-        <span className="flex-1 min-w-0 sm:mt-2">
-            <span className="block font-display text-[1.45rem] leading-tight line-clamp-2 sm:truncate transition-colors group-hover:text-[var(--gold)]" style={{ color: 'var(--text-primary)' }}>{w.member.name}</span>
-            <span className="block text-[0.82rem] italic truncate" style={{ color: 'var(--text-muted)' }}>{w.houseName} · {ROLE_LABEL[w.member.role].toLowerCase()}</span>
-        </span>
-        <span className="flex-shrink-0 flex sm:flex-col items-center gap-2 sm:gap-1">
-            <span className="font-display text-[1.9rem] leading-none tabular" style={{ color: 'var(--text-primary)' }}>{fmt(w.score)}</span>
-            <Movement delta={movement(s.weeks, weekIndex)} />
-        </span>
-    </button>
+const METAL = ['var(--metal-gold)', 'var(--metal-silver)', 'var(--metal-bronze)'];
+
+// One of the week's top three, on a phone: a ring in the place's metal
+// (photo inside if there is one), the Roman place, the name, the score.
+const Laureate: React.FC<{ s: MemberSeries; w: MemberWeek; weekIndex: number; onOpen: () => void; delay: number }> = ({ s, w, weekIndex, onOpen, delay }) => {
+    const metal = METAL[(w.rank ?? 1) - 1] ?? METAL[2];
+    return (
+        <button onClick={onOpen} className="group flex items-center gap-4 text-left w-full py-4 pop-in" style={{ animationDelay: `${delay}ms` }}>
+            <span className="relative flex-shrink-0 rounded-full p-[5px]" style={{ border: `1px solid ${metal}` }}>
+                <Avatar name={s.name} role={w.member.role} photoUrl={w.member.photoUrl} size="lg" />
+                <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 px-2 font-display text-[0.95rem] leading-none" style={{ color: metal, backgroundColor: 'var(--page-plane)' }}>{ROMAN[(w.rank ?? 1) - 1]}</span>
+            </span>
+            <span className="flex-1 min-w-0">
+                <span className="block font-display text-[1.45rem] leading-tight line-clamp-2 transition-colors group-hover:text-[var(--gold)]" style={{ color: 'var(--text-primary)' }}>{w.member.name}</span>
+                <span className="block text-[0.82rem] italic truncate" style={{ color: 'var(--text-muted)' }}>{w.houseName} · {ROLE_LABEL[w.member.role].toLowerCase()}</span>
+            </span>
+            <span className="flex-shrink-0 flex items-center gap-2">
+                <CountUp value={w.score} className="font-display text-[1.9rem] leading-none tabular" style={{ color: 'var(--text-primary)' }} />
+                <Movement delta={movement(s.weeks, weekIndex)} />
+            </span>
+        </button>
+    );
+};
+
+// Tablet/desktop: a real podium — second, first, third — on pedestals that
+// rise in turn; the winner is larger, with a slowly turning halo.
+const PODIUM_ORDER = [1, 0, 2];
+const PEDESTAL = ['h-28', 'h-20', 'h-14'];
+const Podium: React.FC<{ top: { s: MemberSeries; w: MemberWeek }[]; weekIndex: number; onOpen: (id: string) => void }> = ({ top, weekIndex, onOpen }) => (
+    <div className="grid grid-cols-3 items-end gap-4 lg:gap-8 max-w-[56rem] mx-auto">
+        {PODIUM_ORDER.map(i => top[i] ? { ...top[i], i } : null).map((x, col) => {
+            if (!x) return <div key={`empty-${col}`} />;
+            const { s, w, i } = x;
+            const place = (w.rank ?? i + 1) - 1;
+            const metal = METAL[place] ?? METAL[2];
+            const first = i === 0;
+            const delay = [450, 150, 700][i];
+            return (
+                <div key={s.id} className="flex flex-col items-center">
+                    <button onClick={() => onOpen(s.id)} className="group flex flex-col items-center text-center w-full pop-in" style={{ animationDelay: `${delay + 350}ms` }}>
+                        <span className="relative rounded-full p-[6px]" style={{ border: `1px solid ${metal}`, boxShadow: first ? `0 0 40px -6px color-mix(in oklab, ${metal} 60%, transparent)` : undefined }}>
+                            {first && (
+                                <svg className="absolute -inset-3 spin-halo pointer-events-none" viewBox="0 0 100 100" aria-hidden="true" style={{ width: 'calc(100% + 1.5rem)', height: 'calc(100% + 1.5rem)' }}>
+                                    <circle cx="50" cy="50" r="48" fill="none" stroke={metal} strokeWidth="0.6" strokeDasharray="1.5 4.5" opacity="0.8" />
+                                </svg>
+                            )}
+                            <Avatar name={s.name} role={w.member.role} photoUrl={w.member.photoUrl} size={first ? 'xl' : 'lg'} />
+                        </span>
+                        <span className={`block font-display leading-tight mt-4 truncate max-w-full transition-colors group-hover:text-[var(--gold)] ${first ? 'text-[1.9rem]' : 'text-[1.45rem]'}`} style={{ color: 'var(--text-primary)' }}>{w.member.name}</span>
+                        <span className="block text-[0.8rem] italic truncate max-w-full" style={{ color: 'var(--text-muted)' }}>{w.houseName} · {ROLE_LABEL[w.member.role].toLowerCase()}</span>
+                        <span className="flex items-center gap-2 mt-2">
+                            <CountUp value={w.score} className={`font-display leading-none tabular ${first ? 'text-[2.6rem] gold-sheen' : 'text-[2rem]'}`} style={first ? undefined : { color: 'var(--text-primary)' }} />
+                            <Movement delta={movement(s.weeks, weekIndex)} />
+                        </span>
+                    </button>
+                    {/* The pedestal: a hairline block in the place's metal, engraved with the Roman place. */}
+                    <div className={`pedestal relative w-full mt-5 ${PEDESTAL[place] ?? PEDESTAL[2]} flex items-start justify-center pt-3`}
+                        style={{ animationDelay: `${delay}ms`, borderTop: `2px solid ${metal}`, background: `linear-gradient(180deg, color-mix(in oklab, ${metal} 16%, transparent), transparent)` }}>
+                        <span className="font-display text-[1.6rem] leading-none" style={{ color: metal }}>{ROMAN[place]}</span>
+                    </div>
+                </div>
+            );
+        })}
+    </div>
 );
 
 export const OverviewView: React.FC<OverviewViewProps> = ({ data, weekIndex, insights, onOpenProfile, showSubmission, desk }) => {
@@ -69,6 +118,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ data, weekIndex, ins
     const waitingHouses = [...new Set(waiting.map(p => p.week?.houseName ?? p.s.houseName))];
     const [showWaiting, setShowWaiting] = useState(false);
     const houses = useMemo(() => houseStandings(insights, weekIndex, scope, city), [insights, weekIndex, scope, city]);
+    const houseMax = Math.max(1, ...houses.map(x => x.value ?? 0));
     // Movement arrows are about the whole jamaat's weekly ranking, so only
     // there (the city filter re-ranks houses within the city).
     const showHouseMovement = scope === 'week' && city === 'all';
@@ -80,15 +130,18 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ data, weekIndex, ins
             {desk}
             {top.length > 0 && (
                 <section aria-label={t('Аптанын үч мыктысы')}>
-                    <div className="eyebrow text-center mb-6">{t('Аптанын үч мыктысы')}</div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 sm:gap-6 divide-y divide-[var(--border)] sm:divide-y-0">
-                        {top.map(({ s, w }) => <Laureate key={s.id} s={s} w={w} weekIndex={weekIndex} onOpen={() => onOpenProfile(s.id)} />)}
+                    <div className="eyebrow text-center mb-8">{t('Аптанын үч мыктысы')}</div>
+                    <div key={`podium-${weekIndex}`} className="hidden sm:block" style={{ borderBottom: '1px solid var(--border)' }}>
+                        <Podium top={top} weekIndex={weekIndex} onOpen={onOpenProfile} />
+                    </div>
+                    <div key={`list-${weekIndex}`} className="sm:hidden divide-y divide-[var(--border)]">
+                        {top.map(({ s, w }, i) => <Laureate key={s.id} s={s} w={w} weekIndex={weekIndex} onOpen={() => onOpenProfile(s.id)} delay={i * 120} />)}
                     </div>
                 </section>
             )}
 
             {showSubmission && (
-                <section className="text-center" aria-label={t('Маалымат киргизүү абалы')}>
+                <Reveal as="section" className="text-center" aria-label={t('Маалымат киргизүү абалы')}>
                     <div className="eyebrow mb-3">{t('Бул апта · {0} / {1} үй киргизди', week.teams.filter(it => it.submitted).length, week.teams.length)}</div>
                     <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-[0.92rem]">
                         {week.teams.map(it => (
@@ -98,10 +151,10 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ data, weekIndex, ins
                             </span>
                         ))}
                     </div>
-                </section>
+                </Reveal>
             )}
 
-            <div>
+            <Reveal>
             <div className="flex flex-wrap mb-10 pb-4" role="group" aria-label={t('Мезгил')} style={{ borderBottom: '1px solid var(--border)' }}>
                 <button className="chip" aria-pressed={scope === 'week'} onClick={() => setScope('week')}>{t('{0}-апта', week.weekNumber)}</button>
                 <button className="chip" aria-pressed={scope === 'season'} onClick={() => setScope('season')}>{t('Бүт сезон')}</button>
@@ -119,15 +172,25 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ data, weekIndex, ins
                         <button className="chip" aria-pressed={city === 'all'} onClick={() => setCity('all')}>{t('Бардык шаарлар')}</button>
                         {CITIES.map(c => <button key={c.id} className="chip" aria-pressed={city === c.id} onClick={() => setCity(c.id)}>{c.label}</button>)}
                     </div>
-                    <ol className="stagger">
-                        {houses.map(({ h, rank, value, weeks }) => (
-                            <li key={h.id} className="flex items-baseline gap-3 py-[1rem]" style={{ borderBottom: '1px solid var(--border)' }}>
-                                <span className="w-6 text-[0.75rem] tabular" style={{ color: 'var(--gold-dim)' }}>{rank ? pad2(rank) : '—'}</span>
-                                <span className="font-display text-[1.35rem] min-w-0 truncate" style={{ color: rank === 1 ? 'var(--gold)' : 'var(--text-primary)' }}>{h.name}</span>
-                                {showHouseMovement && <Movement delta={movement(h.weeks, weekIndex)} />}
-                                <span className="leader" />
-                                {scope === 'season' && value !== null && <span className="text-[0.75rem] italic flex-shrink-0" style={{ color: 'var(--text-muted)' }}>{t('{0} апта', weeks)}</span>}
-                                <span className="font-display text-[1.45rem] tabular flex-shrink-0" style={{ color: value !== null ? (rank === 1 ? 'var(--gold)' : 'var(--text-primary)') : 'var(--text-muted)' }}>{value !== null ? fmt(value) : '—'}</span>
+                    <ol key={`${scope}-${city}-${weekIndex}`} className="stagger">
+                        {houses.map(({ h, rank, value, weeks }, i) => (
+                            <li key={h.id} className="relative pt-[1rem] pb-[1.15rem]" style={{ borderBottom: '1px solid var(--border)' }}>
+                                <div className="flex items-baseline gap-3">
+                                    <span className="w-6 text-[0.75rem] tabular" style={{ color: 'var(--gold-dim)' }}>{rank ? pad2(rank) : '—'}</span>
+                                    <span className="font-display text-[1.35rem] min-w-0 truncate" style={{ color: rank === 1 ? 'var(--gold)' : 'var(--text-primary)' }}>{h.name}</span>
+                                    {showHouseMovement && <Movement delta={movement(h.weeks, weekIndex)} />}
+                                    <span className="leader" />
+                                    {scope === 'season' && value !== null && <span className="text-[0.75rem] italic flex-shrink-0" style={{ color: 'var(--text-muted)' }}>{t('{0} апта', weeks)}</span>}
+                                    {value !== null
+                                        ? <CountUp value={value} duration={1100} className="font-display text-[1.45rem] tabular flex-shrink-0" style={{ color: rank === 1 ? 'var(--gold)' : 'var(--text-primary)' }} />
+                                        : <span className="font-display text-[1.45rem] tabular flex-shrink-0" style={{ color: 'var(--text-muted)' }}>—</span>}
+                                </div>
+                                {/* The rating as a bar in the house's colour, relative to the leader. */}
+                                {value !== null && (
+                                    <span aria-hidden="true" className="absolute left-9 right-0 bottom-[-1px] h-[2px] overflow-hidden">
+                                        <span className="block h-full animate-grow-x" style={{ width: `${(value / houseMax) * 100}%`, backgroundColor: TEAM_COLORS[h.colorIndex % TEAM_COLORS.length], animationDelay: `${150 + i * 90}ms`, opacity: rank === 1 ? 1 : 0.75 }} />
+                                    </span>
+                                )}
                             </li>
                         ))}
                     </ol>
@@ -193,7 +256,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ data, weekIndex, ins
                     )}
                 </section>
             </div>
-            </div>
+            </Reveal>
         </div>
     );
 };

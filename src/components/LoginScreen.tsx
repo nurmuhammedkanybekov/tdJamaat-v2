@@ -4,7 +4,8 @@ import { fetchHouses } from '../services/dataService';
 import { signInAsHouse, signInAsAdmin } from '../services/authService';
 import type { House } from '../types';
 import type { Theme } from '../theme';
-import { Corners, Crown, Mark } from './Ornament';
+import { Corners, Crown, Mark, Medallion } from './Ornament';
+import { StarField } from './motion';
 import { isEnglish, setLang, t } from '../i18n';
 
 // The site is private: nothing is shown until a captain or the admin logs in.
@@ -67,7 +68,8 @@ export const LoginScreen: React.FC<{ theme: Theme; onToggleTheme: () => void }> 
     const iconBtn = 'w-10 h-10 inline-flex items-center justify-center transition-colors hover:text-[var(--gold)]';
 
     return (
-        <main className="hero min-h-[100dvh] flex flex-col page-gutter" style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top))', paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
+        <main className="hero min-h-[100dvh] flex flex-col page-gutter overflow-hidden" style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top))', paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
+            <StarField count={70} />
             <div className="flex items-center justify-end h-14 gap-1" style={{ color: 'var(--text-secondary)' }}>
                 <button
                     onClick={() => setLang(isEnglish() ? 'ky' : 'en')}
@@ -84,10 +86,15 @@ export const LoginScreen: React.FC<{ theme: Theme; onToggleTheme: () => void }> 
 
             <div className="flex-1 flex flex-col items-center justify-center py-6">
                 <div className="w-full max-w-[25rem] animate-fade-up">
-                    <div className="flex flex-col items-center text-center">
-                        <Mark size={64} style={{ color: 'var(--gold)' }} />
-                        <div className="font-display text-[2.4rem] leading-none mt-4" style={{ color: 'var(--gold)' }}>tdJamaat</div>
-                        <Crown className="w-[min(13rem,60%)] h-auto mt-4" style={{ color: 'var(--gold)' }} />
+                    <div className="relative flex flex-col items-center text-center">
+                        {/* A large ornament turning very slowly behind the mark, and a soft light. */}
+                        <span aria-hidden="true" className="absolute left-1/2 top-[2.2rem] -translate-x-1/2 -translate-y-1/2 -z-10 pointer-events-none">
+                            <Medallion size={300} className="spin-slow" style={{ color: 'var(--gold)', opacity: 0.05 }} />
+                        </span>
+                        <span className="hero-glow" aria-hidden="true" style={{ top: '2.2rem', width: '26rem' }} />
+                        <Mark size={64} className="pop-in" style={{ color: 'var(--gold)' }} />
+                        <div className="font-display text-[2.4rem] leading-none mt-4 gold-sheen">tdJamaat</div>
+                        <Crown className="draw-in w-[min(13rem,60%)] h-auto mt-4" style={{ color: 'var(--gold)' }} />
                         <p className="eyebrow mt-4 inline-flex items-center gap-2" style={{ color: 'var(--text-muted)' }}>
                             <Lock className="w-3 h-3" aria-hidden="true" />{t('Жабык сайт')}
                         </p>

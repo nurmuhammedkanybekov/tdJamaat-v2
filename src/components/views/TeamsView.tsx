@@ -5,6 +5,7 @@ import type { Insights, MemberSeries, MemberWeek } from '../../utils/insights';
 import { METRICS, PLAN_SCORE, movement, ROLE_LABEL, weekOf } from '../../utils/insights';
 import { MINI_CARD_POINTS, TEAM_COLORS, calculatePerformancePercentage } from '../../utils/scoring';
 import { Avatar } from '../Avatar';
+import { CountUp } from '../motion';
 import { Movement, ProgressBar, SectionHeader, Sparkline } from '../ui';
 import { perfColor } from '../../utils/style';
 import { t } from '../../i18n';
@@ -88,7 +89,9 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
                         <div>
                             <div className="eyebrow">{t('Үй рейтинги')}</div>
                             <div className="flex items-baseline gap-2 mt-1">
-                                <span className="font-display text-[2.6rem] leading-none tabular" style={{ color: 'var(--gold)' }}>{hw?.submitted ? fmt(hw.avg) : '—'}</span>
+                                {hw?.submitted
+                                    ? <CountUp key={`${team.id}-${weekIndex}`} value={hw.avg} className="font-display text-[2.6rem] leading-none tabular gold-sheen" />
+                                    : <span className="font-display text-[2.6rem] leading-none tabular" style={{ color: 'var(--gold)' }}>—</span>}
                                 {series && <Movement delta={movement(series.weeks, weekIndex)} size="md" />}
                             </div>
                             {hw?.submitted && (
@@ -220,7 +223,7 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
 };
 
 const MemberCard: React.FC<{ s: MemberSeries; w: MemberWeek; place: number; weekIndex: number; onOpen: () => void }> = ({ s, w, place, weekIndex, onOpen }) => (
-    <button onClick={onOpen} className="card w-full text-left p-3.5 sm:p-4 transition-shadow hover:shadow-[var(--shadow-lift)]">
+    <button onClick={onOpen} className="card lift w-full text-left p-3.5 sm:p-4">
         <div className="flex items-center gap-3">
             <span className="w-6 font-display font-bold text-[1.1rem] tabular" style={{ color: place <= 3 && !w.excused ? 'var(--gold)' : 'var(--text-muted)' }}>{w.excused ? '—' : pad2(place)}</span>
             <Avatar name={s.name} role={w.member.role} photoUrl={w.member.photoUrl} size="md" />

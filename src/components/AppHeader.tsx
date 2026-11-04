@@ -11,6 +11,7 @@ import { loadCity } from '../utils/city';
 import { useNow } from '../hooks/useNow';
 import { formatHijri, isRamadan, toHijri } from '../utils/hijri';
 import { PRAYER_NAMES, clock, nextPrayer, prayerTimes } from '../utils/prayer';
+import { CountUp, StarField } from './motion';
 import { isEnglish, setLang, t } from '../i18n';
 
 interface AppHeaderProps {
@@ -134,6 +135,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
     return (
         <header className="hero page-gutter" style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top))' }}>
+            {monument && <StarField />}
             <div className="app-container">
                 {/* Wordmark bar */}
                 <div className="flex items-center gap-3 h-16">
@@ -226,8 +228,14 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
                     {monument ? (
                         <>
-                            <h1 className="font-display leading-none mt-5 text-[2.4rem] sm:text-[3.2rem] lg:text-[3.6rem]" style={{ color: 'var(--text-primary)' }}>{monument.title}</h1>
-                            <div className="font-display tabular leading-[0.9] mt-2 text-[5.2rem] sm:text-[7.5rem] lg:text-[9rem]" style={{ color: 'var(--gold)' }}>{monument.value}</div>
+                            <h1 key={`t-${monument.title}`} className="font-display leading-none mt-5 text-[2.4rem] sm:text-[3.2rem] lg:text-[3.6rem] animate-view-in" style={{ color: 'var(--text-primary)' }}>{monument.title}</h1>
+                            {/* The week's number: counts up, light sweeps across it, a soft glow behind. */}
+                            <div className="relative mt-2">
+                                <span className="hero-glow" aria-hidden="true" />
+                                <div className="font-display tabular leading-[0.9] text-[5.2rem] sm:text-[7.5rem] lg:text-[9rem] gold-sheen" aria-label={monument.value}>
+                                    {Number.isFinite(Number(monument.value)) ? <CountUp value={Number(monument.value)} duration={1600} /> : monument.value}
+                                </div>
+                            </div>
                             <p className="mt-3 text-[0.9rem] tracking-[0.04em]" style={{ color: 'var(--text-muted)' }}>{monument.sub}</p>
                         </>
                     ) : (
