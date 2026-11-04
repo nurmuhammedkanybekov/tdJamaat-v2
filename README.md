@@ -140,7 +140,9 @@ visual redesign.
   couple of minutes while open, and offers a "new version" button after a
   deploy (never reloads by itself, so nothing being typed is lost). If the
   connection drops, the numbers stay on screen with a note saying when
-  they were last loaded, and refresh by themselves once it is back.
+  they were last loaded, and refresh by themselves once it is back. The
+  app opens instantly on the last results the device loaded (kept per
+  login, removed on logout) and refreshes them in the background.
 - **Keyboard shortcuts** for the laptop in meetings: ← / → change the week,
   1–6 switch sections.
 - **Adapts to any screen**: phones get a bottom tab bar and card layouts,
