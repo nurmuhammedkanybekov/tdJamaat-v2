@@ -8,11 +8,11 @@
 
 **Live: [tdjamaat.vercel.app](https://tdjamaat.vercel.app)**
 
-A weekly performance dashboard for a Kyrgyz Muslim community (jamaat) in
-Hungary, organized into houses. Each house's leaders log individual member
-metrics and team activity once a week; the app turns that into rankings,
-per-member scores, awards and trend charts everyone in the community can
-see. The interface is in Kyrgyz.
+A weekly performance dashboard for a community organized into small teams
+("houses"). Each house's captain logs every member's results against a set
+of personal metrics, plus a few team activities, once a week; the app turns
+that into scores, rankings, awards and trend charts the whole community can
+see. The interface is in Kyrgyz, with an English version.
 
 Rebuilt from the original [tdJamaat](https://github.com/Muslim04/tdJamaat)
 as an independent project on a normalized data model — real houses and
@@ -82,22 +82,22 @@ visual redesign.
   ("К-К +3 (+19.3)"), updated while typing.
 - **Overview filters**: this week or the whole season so far (average over
   the counted weeks; people need at least half of the weeks for a place),
-  and next to the house rating: all cities, Budapest (Pannonia, Damjanich,
-  Mester) or Debrecen.
+  and next to the house rating: all cities or one city (which house belongs
+  to which city is set in `src/utils/standings.ts`).
 - **Compare** also says how many of the 8 metrics each side leads.
-- **Jamaat images**: the whole jamaat's totals for the week or for the
-  season as a shareable picture (share window → "Жамаат: апта" /
-  "Жамаат: сезон", or the share buttons in the Жамаат tab).
+- **Community images**: the whole community's totals for the week or for
+  the season as a shareable picture (from the share window or the
+  community tab).
 - **Awards.** Strava-style badges for people and houses (star of the week,
   perfect plan, streaks, biggest leap, house of the month, …), each earned
   automatically from the real numbers and shown with the exact reason.
 - **Shareable results card.** A ready-made image of the week's rankings to
   send to WhatsApp/Telegram groups (drawn in the browser, no server).
-- **Submission status.** Signed-in leaders and the admin see which houses
+- **Submission status.** Signed-in captains and the admin see which houses
   have entered this week's numbers.
 - **Change history and week locking.** Every save is recorded (who, when,
   before → after); the admin can lock a finished week so it can no longer
-  be edited by house leaders. Both enforced in Postgres.
+  be edited by captains. Both enforced in Postgres.
 - **Seasons.** Results are kept per season with a full archive of past
   seasons. The admin ends a season with one button; the next one starts at
   week 1, and people can move to new houses without last season's results
@@ -108,16 +108,14 @@ visual redesign.
 - **Season summary ("Wrapped").** Each profile shows the person's season
   so far, and both the week and the season can be shared as an image, in a
   dark or a light version.
-- **Hijri date, prayer times and Ramadan mode.** The header shows today's
-  Hijri date and the next prayer; a prayer-times page (Budapest/Debrecen,
-  Hanafi Asr, computed on the device, works offline) lists today and the
-  next 7 days. During Ramadan the header greets with "Рамазан мубарак" and
-  shows iftar time, and the prayer page adds suhoor/iftar.
-- **Жамаат (community) section.** What the whole jamaat did together this
-  season — every metric and mini-card activity summed up — this week
-  compared with last week (only houses that entered both weeks), season
-  records, and a Hall of Fame for every season.
-- **Excused weeks.** A leader can mark someone as excused for a week
+- **Daily schedule.** The header shows the date and the next time on the
+  community's daily schedule; a schedule page (per city, computed on the
+  device, works offline) lists today and the next 7 days.
+- **Community section.** What the whole community did together this
+  season — every metric and team activity summed up — this week compared
+  with last week (only houses that entered both weeks), season records,
+  and a Hall of Fame for every season.
+- **Excused weeks.** A captain can mark someone as excused for a week
   (sick, travelling): they are left out of the house average and the
   ranking, and the week neither breaks nor extends their streaks.
 - **Typo warnings.** A number that is 10× the plan and 3× what the person
@@ -126,11 +124,10 @@ visual redesign.
   larger, heavier type, stronger contrast, thicker chart lines
   (menu, or `?ekran` in the address).
 - **Kyrgyz or English.** Kyrgyz is the default; the "EN" / "КЫР" button in
-  the header switches the whole site (metric codes too: К-К becomes QUR,
-  БГМДТ becomes FAJR) and each device remembers its choice. People's names
-  and the stored data stay as they are. House names are always shown in
-  Latin letters, in both languages (a name stored in Cyrillic is shown in
-  its Hungarian spelling, e.g. Дамянич → Damjanich).
+  the header switches the whole site (metric codes get English labels too)
+  and each device remembers its choice. People's names and the stored data
+  stay as they are. House names are always shown in Latin letters, in both
+  languages (a name stored in Cyrillic is transliterated).
 - **Admin panel**: open/lock weeks, end the season, edit the roster
   (names, roles, houses), edit season targets, download a backup.
 - **Installable app (PWA)** with a home-screen icon; refreshes live every
@@ -138,7 +135,7 @@ visual redesign.
   deploy (never reloads by itself, so nothing being typed is lost).
 - **Adapts to any screen**: phones get a bottom tab bar and card layouts,
   and the whole interface scales smoothly from a phone to a projector.
-- **Self-service member photos**, uploaded by a house's own leader
+- **Self-service member photos**, uploaded by a house's own captain
   straight from the data-entry screen.
 - **Light and dark themes**, both built from the same validated color
   tokens so role and team colors stay distinguishable (including for
@@ -161,7 +158,7 @@ typeface), Spectral for text.
 | Frontend | React 19, TypeScript, Vite (rolldown), Tailwind CSS v4 |
 | Charts | Recharts |
 | Icons | Lucide React |
-| Prayer times | [adhan](https://github.com/batoulapps/adhan-js) (computed on the device) |
+| Daily schedule | [adhan](https://github.com/batoulapps/adhan-js) (computed on the device) |
 | Tests | Vitest |
 | Database & auth | Supabase (Postgres, Row Level Security, Supabase Auth, Storage) |
 | Hosting | Vercel |
@@ -183,7 +180,7 @@ graph LR
     end
 
     Visitor((Community member)) -->|reads dashboard, no login| UI
-    Leader((House leader)) -->|logs in with house password| UI
+    Captain((Captain)) -->|logs in with house password| UI
     Admin((Admin)) -->|logs in, manages roster| UI
 
     UI -->|sign in| Auth
@@ -203,22 +200,22 @@ the frontend had a bug.
 ```mermaid
 flowchart LR
     Visitor((Community\nmember))
-    Leader((House\nleader))
+    Captain((Captain))
     Admin((Admin))
 
     Visitor --> UC1[View weekly rankings]
     Visitor --> UC2[View progress / 4-week report]
     Visitor --> UC3[View total ratings]
     Visitor --> UC10[Profiles, awards, compare, share images]
-    Visitor --> UC11[Prayer times, Hijri date]
+    Visitor --> UC11[Daily schedule]
 
-    Leader --> UC1
-    Leader --> UC2
-    Leader --> UC3
-    Leader --> UC4[Sign in]
-    Leader --> UC5[Enter this week's member metrics]
-    Leader --> UC6[Enter this week's house activity]
-    Leader --> UC7[Upload a member's photo]
+    Captain --> UC1
+    Captain --> UC2
+    Captain --> UC3
+    Captain --> UC4[Sign in]
+    Captain --> UC5[Enter this week's member metrics]
+    Captain --> UC6[Enter this week's house activity]
+    Captain --> UC7[Upload a member's photo]
     UC5 --> UC4
     UC6 --> UC4
     UC7 --> UC4
@@ -261,7 +258,7 @@ erDiagram
         uuid id PK
         uuid house_id FK
         text name
-        text role "imam (shown as Капитан) | zam | member"
+        text role "captain | deputy | member"
         text photo_url
         int display_order
         boolean active
@@ -285,7 +282,7 @@ erDiagram
         uuid id PK
         uuid house_id FK
         int week_number FK
-        jsonb activity "7 team activities (мини-карта)"
+        jsonb activity "7 team activities (mini-card)"
     }
 ```
 
@@ -337,7 +334,7 @@ the week, a house that still hasn't submitted counts as 0 for it
 
 Targets are enforced in the database: a person's target carries forward
 from their previous week within the season, or starts from the role
-minimum. Only the admin can change a target; a value a house leader sends
+minimum. Only the admin can change a target; a value a captain sends
 is replaced by a trigger (`supabase/season-2026-09.sql`,
 `supabase/seasons-2026-10.sql`). The formula lives in
 `src/utils/scoring.ts` and is covered by tests.
@@ -355,7 +352,7 @@ npm run dev
 ```bash
 npm run build   # type-check + production build
 npm run lint    # eslint
-npm test        # vitest: scoring, rankings, awards, seasons, compare, prayer times
+npm test        # vitest: scoring, rankings, awards, seasons, compare, schedule
 ```
 
 Every push and pull request runs the same three checks on GitHub Actions
@@ -367,12 +364,12 @@ Every push and pull request runs the same three checks on GitHub Actions
 src/
   TeamPerformanceTracker.tsx   app shell: data loading, routing (#/<view>?m=<member>), modals
   components/          shared UI (AppHeader, ProfileSheet, CompareSheet, ShareSheet,
-                       PrayerSheet, AdminPanel, AdminSeason, HistorySheet, DataEntryForm,
+                       AdminPanel, AdminSeason, HistorySheet, DataEntryForm,
                        BadgeMedal, Ornament, ui.tsx, …)
   components/views/    one component per section (Overview, Teams, Progress, Reports, Awards, Community)
   services/            Supabase reads/writes (dataService.ts, buildDataFile.ts) and auth
   utils/               scoring formula, season insights, badges, seasons, compare,
-                       share-card drawing, Hijri date, prayer times
+                       share-card drawing, calendar and daily schedule
   i18n/                Kyrgyz/English: t() and the English texts (en.ts), keyed by
                        the Kyrgyz text; a test checks every t() text has a translation
   hooks/               useModal (scroll lock + Escape), useMediaQuery, useNow
@@ -392,11 +389,11 @@ supabase/              run in the SQL editor, in the order listed in SETUP.md
   update-2026-09-names.sql   one-time fixup, already applied — don't re-run
 api/keepalive.js       daily Vercel cron so the free Supabase project never pauses
 public/
-  favicon.svg, icons/  app mark (crescent above a ram's horn, in a ring)
+  favicon.svg, icons/  app mark (a ram's horn in a ring)
   manifest.webmanifest, sw.js   installable app (never caches the data)
 docs/                  README screenshots
 scripts/
-  create-auth-users.js provisions the house/admin login accounts
+  create-auth-users.js provisions the captain (per house) and admin login accounts
   syr_sozdor.example.json  template for the (gitignored) real passwords file
 ```
 
