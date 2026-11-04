@@ -28,7 +28,7 @@ export const HouseTable: React.FC<{ insights: Insights; weekIndex: number; scope
     return (
         <section aria-label={t('Үйлөр')}>
             <SectionHeader
-                eyebrow={scope === 'week' && week ? t('{0}-апта · {1} / {2} киргизди', week.weekNumber, entered, week.teams.length) : t('Сезон · {0} апта', weekIndex + 1)}
+                eyebrow={scope === 'week' && week ? t('{0}-апта · {1} / {2} киргизди', week.weekNumber, entered, week.teams.length) : t('Орточо рейтинг')}
                 title={t('Үйлөр')}
                 className="mb-3!"
             />

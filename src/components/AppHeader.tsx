@@ -38,6 +38,8 @@ interface AppHeaderProps {
     /** The big centered statement: who leads and by how much. */
     monument?: { kicker: string; title: string; value: string; sub: string; lead?: string; complete?: boolean };
     seasonLabel?: string;
+    /** The small line above a tab's title (default: the season's name). */
+    kicker?: string;
     /** Name of the season on screen. */
     seasonName?: string;
     /** Season picker, shown when there is more than one season. */
@@ -103,7 +105,7 @@ const IconButton: React.FC<{ label: string; onClick: () => void; children: React
 
 export const AppHeader: React.FC<AppHeaderProps> = ({
     authUser, houseName, theme, onToggleTheme, screen, onToggleScreen, onLogin, onLogout, onDataEntry, onFormula, onAdmin, onHistory, onShare, onPrayer, onCompare,
-    installMode, onInstall, week, monument, seasonLabel, seasonName, season
+    installMode, onInstall, week, monument, seasonLabel, kicker, seasonName, season
 }) => {
     const isAdmin = authUser?.role === 'admin';
     const who = isAdmin ? t('Админ') : houseName ? t('{0} үйүнүн капитаны', houseName) : t('Капитан');
@@ -223,7 +225,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                             </button>
                         </div>
                     ) : (
-                        !season && <div className="eyebrow mt-3" style={{ color: 'var(--gold)' }}>{t('Сезон {0}', seasonName ?? '')}</div>
+                        !season && <div className="eyebrow mt-3" style={{ color: 'var(--gold)' }}>{kicker ?? t('Сезон {0}', seasonName ?? '')}</div>
                     )}
 
                     {monument ? (

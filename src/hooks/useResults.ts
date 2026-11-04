@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { DataFile, House } from '../types';
 import { fetchDataFile, fetchHouses } from '../services/dataService';
 import { t } from '../i18n';
+import { clearResults, readResults, writeResults } from '../utils/resultsCache';
 
 const REFRESH_EVERY = 120_000;
 const MIN_GAP = 30_000;
@@ -16,8 +17,14 @@ const MIN_GAP = 30_000;
  * A background refresh that fails keeps the numbers on screen and marks them
  * `stale`, with the time they were last loaded — so nobody mistakes old
  * numbers for new ones when the connection drops.
+ *
+ * `who` identifies the login (null: logged out). The last results this
+ * device loaded for that login are shown at once while fresh ones load, so
+ * the app opens instantly; logging out removes them. Nothing happens until
+ * `checked` (the stored session has been read).
  */
-export const useResults = (enabled: boolean, paused: () => boolean) => {
+export const useResults = (who: string | null, checked: boolean, paused: () => boolean) => {
+    const enabled = !!who;
     const [data, setData] = useState<DataFile | null>(null);
     const [houses, setHouses] = useState<House[]>([]);
     const [loading, setLoading] = useState(true);
@@ -25,6 +32,8 @@ export const useResults = (enabled: boolean, paused: () => boolean) => {
     const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
     const [stale, setStale] = useState(false);
     const [online, setOnline] = useState(() => (typeof navigator === 'undefined' ? true : navigator.onLine));
+    const whoRef = useRef(who);
+    useEffect(() => { whoRef.current = who; }, [who]);
     const pausedRef = useRef(paused);
     useEffect(() => { pausedRef.current = paused; }, [paused]);
 
@@ -36,6 +45,7 @@ export const useResults = (enabled: boolean, paused: () => boolean) => {
             const [df, houseList] = await Promise.all([fetchDataFile(), fetchHouses()]);
             setData(df);
             setHouses(houseList);
+            if (whoRef.current) writeResults(whoRef.current, df, houseList);
             setError(null);
             setStale(false);
             setUpdatedAt(new Date());
@@ -49,12 +59,27 @@ export const useResults = (enabled: boolean, paused: () => boolean) => {
     }, []);
 
     useEffect(() => {
-        if (enabled) { reload(); return; }
+        if (!checked) return;
+        if (who) {
+            // Open on the last results at once; the fresh load replaces them.
+            const cached = readResults(who);
+            if (cached) {
+                setData(cached.data);
+                setHouses(cached.houses);
+                setUpdatedAt(new Date(cached.at));
+                setLoading(false);
+                reload(true);
+            } else {
+                reload();
+            }
+            return;
+        }
+        clearResults();
         setData(null);
         setHouses([]);
         setUpdatedAt(null);
         setStale(false);
-    }, [enabled, reload]);
+    }, [who, checked, reload]);
 
     useEffect(() => {
         let last = Date.now();

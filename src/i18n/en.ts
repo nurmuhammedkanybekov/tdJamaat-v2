@@ -681,5 +681,10 @@ export const EN: Record<string, string> = {
     "Ар бир иш 100% аткарылса {0} упай кошулат (эң көп {1}). Ашыкчасы эсептелбейт.": "Each activity done 100% adds {0} points (at most {1}). Anything above that doesn't count.",
     "Ар бир көрсөткүч боюнча бир адамга орточо упай ({0}). Үйдү эмне көтөрүп, эмне түшүрүп жатканын көрсөтөт.": "Average points per person in each metric ({0}). Shows what lifts the house and what holds it back.",
     "{0}-апта · {1} / {2} киргизди": "Week {0} · {1} / {2} entered",
-    "Сезон · {0} апта": "Season · {0|week|weeks}"
+    "{0}-апта: {1} али маалымат киргизе элек. Сураныч, киргизип коюңуз: {2}": "Week {0}: {1} haven't entered yet. Please enter your results: {2}",
+    "Көчүрүп алыңыз:": "Copy this:",
+    "Көчүрүлдү": "Copied",
+    "Эскертүү жөнөтүү": "Send a reminder",
+    "Капитандарга эскертүү": "Remind the captains",
+    "Орточо рейтинг": "Average rating"
 };

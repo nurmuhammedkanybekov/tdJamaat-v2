@@ -1,8 +1,8 @@
 // The desk: the first thing a captain or the admin sees on the overview —
 // their own house's week (or, for the admin, who is still missing) and the
 // one action that matters next. Numbers come from src/utils/desk.ts.
-import React from 'react';
-import { ArrowRight, CheckCircle2, Clock3, Lock, PenLine, Settings } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowRight, Check, CheckCircle2, Clock3, Lock, PenLine, Send, Settings } from 'lucide-react';
 import type { AdminDesk, HouseDesk } from '../utils/desk';
 import { metricName } from '../utils/metrics';
 import { CountUp } from './motion';
@@ -112,6 +112,29 @@ export const CaptainDesk: React.FC<{
     );
 };
 
+// A ready reminder for the houses that haven't entered: shared straight to
+// WhatsApp (or anywhere) on a phone, copied to the clipboard on a computer.
+const ReminderButton: React.FC<{ weekNumber: number; houses: string[] }> = ({ weekNumber, houses }) => {
+    const [copied, setCopied] = useState(false);
+    const text = t('{0}-апта: {1} али маалымат киргизе элек. Сураныч, киргизип коюңуз: {2}', weekNumber, houses.join(', '), window.location.origin);
+    const send = async () => {
+        try {
+            if (navigator.share) { await navigator.share({ text }); return; }
+        } catch { /* closed the share sheet: fall back to copying */ }
+        try {
+            await navigator.clipboard.writeText(text);
+            setCopied(true);
+            window.setTimeout(() => setCopied(false), 2500);
+        } catch { window.prompt(t('Көчүрүп алыңыз:'), text); }
+    };
+    return (
+        <button onClick={send} className="btn btn-ghost" style={{ minHeight: '2.25rem' }}>
+            {copied ? <Check className="w-3.5 h-3.5" /> : <Send className="w-3.5 h-3.5" />}
+            {copied ? t('Көчүрүлдү') : t('Эскертүү жөнөтүү')}
+        </button>
+    );
+};
+
 export const AdminDeskPanel: React.FC<{
     desk: AdminDesk;
     onEnterFor: (houseId: string) => void;
@@ -148,6 +171,12 @@ export const AdminDeskPanel: React.FC<{
                     </li>
                 ))}
             </ul>
+        )}
+        {!desk.locked && desk.waiting.length > 0 && (
+            <div className="flex items-center justify-between gap-3 px-5 sm:px-7 py-3" style={{ borderTop: '1px solid var(--border)' }}>
+                <span className="text-[0.85rem] italic" style={{ color: 'var(--text-muted)' }}>{t('Капитандарга эскертүү')}</span>
+                <ReminderButton weekNumber={desk.weekNumber} houses={desk.waiting.map(h => h.name)} />
+            </div>
         )}
     </section>
 );

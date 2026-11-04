@@ -86,7 +86,7 @@ const TeamPerformanceTracker: React.FC = () => {
     const modalRef = useRef<Modal>(null);
     useEffect(() => { modalRef.current = modal; }, [modal]);
     const entryOpen = useCallback(() => modalRef.current === 'entry', []);
-    const { data: allData, houses, loading, error, reload: loadData, updatedAt, stale, offline } = useResults(!!authUser, entryOpen);
+    const { data: allData, houses, loading, error, reload: loadData, updatedAt, stale, offline } = useResults(authUser ? `${authUser.role}:${authUser.houseId ?? ''}` : null, authChecked, entryOpen);
     // Logged out: close whatever was open.
     useEffect(() => { if (!authUser) setModal(null); }, [authUser]);
 
@@ -253,7 +253,8 @@ const TeamPerformanceTracker: React.FC = () => {
                 installMode={installMode}
                 onInstall={async () => { if (installMode === 'prompt') await install(); else setModal('install'); }}
                 week={isWeekly ? { ...weekControl, date: currentWeekData.date, isLatest: weekIndex === data.weeks.length - 1 } : undefined}
-                seasonLabel={{ overview: undefined, teams: t('Үйлөр'), season: t('Сезон'), awards: t('Сыйлыктар'), community: t('Жамаат') }[activeView]}
+                seasonLabel={{ overview: undefined, teams: t('Үйлөр'), season: t('Сезон {0}', season.name), awards: t('Сыйлыктар'), community: t('Жамаат') }[activeView]}
+                kicker={activeView === 'season' ? t('{0} апта', data.weeks.length) : undefined}
                 monument={monument}
                 season={seasonPicker}
                 seasonName={season.name}

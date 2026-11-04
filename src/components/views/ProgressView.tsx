@@ -166,6 +166,8 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ data, insights, onOp
                             </LineChart>
                         </ResponsiveContainer>
                     </div>
+                    {/* Which line is which house (the legend above is far away on a phone). */}
+                    <div className="mt-3">{legend}</div>
                 </section>
 
                 <section className="card card-pad">
