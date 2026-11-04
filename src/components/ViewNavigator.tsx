@@ -21,7 +21,7 @@ export const ViewNavigator: React.FC<ViewNavigatorProps> = ({ activeView, setAct
             const list = listRef.current;
             const el = list?.querySelector<HTMLElement>(`[data-view="${activeView}"]`);
             if (!list || !el || !el.offsetWidth) return;
-            setBar({ left: el.offsetLeft + 16, width: el.offsetWidth - 32 });
+            setBar({ left: el.offsetLeft + 12, width: el.offsetWidth - 24 });
         };
         measure();
         window.addEventListener('resize', measure);
@@ -36,9 +36,9 @@ export const ViewNavigator: React.FC<ViewNavigatorProps> = ({ activeView, setAct
             style={{ backgroundColor: 'color-mix(in oklab, var(--page-plane) 90%, transparent)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}
             aria-label={t('Бөлүмдөр')}
         >
-            <div ref={listRef} className="app-container relative flex justify-center gap-1 lg:gap-4" role="tablist">
+            <div ref={listRef} className="app-container relative flex justify-center gap-2 lg:gap-6" role="tablist">
                 {bar && <span aria-hidden="true" className="nav-indicator" style={{ left: bar.left, width: bar.width }} />}
-                {TABS.map(({ key, label }) => {
+                {TABS.map(({ key, label, short }) => {
                     const active = activeView === key;
                     return (
                         <button
@@ -47,10 +47,11 @@ export const ViewNavigator: React.FC<ViewNavigatorProps> = ({ activeView, setAct
                             role="tab"
                             aria-selected={active}
                             onClick={() => setActiveView(key)}
-                            className="relative whitespace-nowrap px-4 py-4 text-[0.95rem] transition-colors hover:text-[var(--text-primary)]"
-                            style={{ color: active ? 'var(--text-primary)' : 'var(--text-muted)', fontWeight: active ? 500 : 400 }}
+                            className="relative whitespace-nowrap px-3 py-4 text-[0.68rem] tracking-[0.26em] uppercase transition-colors hover:text-[var(--text-primary)]"
+                            style={{ color: active ? 'var(--gold)' : 'var(--text-muted)' }}
                         >
-                            {label}
+                            <span className="nav-short lg:hidden">{short}</span>
+                            <span className="nav-long hidden lg:inline">{label}</span>
                         </button>
                     );
                 })}
@@ -84,7 +85,7 @@ export const ViewNavigator: React.FC<ViewNavigatorProps> = ({ activeView, setAct
                             style={{ color: active ? 'var(--gold)' : 'var(--text-muted)' }}
                         >
                             <Icon className="w-[1.2rem] h-[1.2rem]" strokeWidth={1.3} />
-                            <span className="text-[0.7rem] leading-none max-w-full truncate">{short}</span>
+                            <span className="text-[0.54rem] min-[360px]:text-[0.58rem] tracking-[0.02em] min-[360px]:tracking-[0.08em] min-[400px]:tracking-[0.14em] uppercase leading-none max-w-full truncate">{short}</span>
                         </button>
                     );
                 })}

@@ -3,7 +3,7 @@ import { CheckCircle2, Clock3, PenLine } from 'lucide-react';
 import type { DataFile } from '../../types';
 import type { Insights, MemberSeries, MemberWeek } from '../../utils/insights';
 import { METRICS, PLAN_SCORE, movement, ROLE_LABEL, weekOf } from '../../utils/insights';
-import { TEAM_COLORS, calculatePerformancePercentage } from '../../utils/scoring';
+import { MINI_CARD_POINTS, TEAM_COLORS, calculatePerformancePercentage } from '../../utils/scoring';
 import { Avatar } from '../Avatar';
 import { CountUp } from '../motion';
 import { Movement, ProgressBar, SectionHeader, Sparkline } from '../ui';
@@ -73,7 +73,7 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
             </div>
 
             {/* House summary, in the house's own colour. */}
-            <section key={team.id} className="card overflow-hidden animate-view-in" style={{ borderTop: `3px solid ${color}`, backgroundImage: `linear-gradient(180deg, color-mix(in oklab, ${color} 7%, transparent), transparent 70%)` }}>
+            <section key={team.id} className="card overflow-hidden animate-view-in" style={{ borderTop: `2px solid ${color}` }}>
                 <div className="card-pad flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
                     <div className="flex-1 min-w-0">
                         <div className="eyebrow flex items-center gap-2" style={{ color: 'var(--gold)' }}>{t('{0} · {1}-апта', hw?.rank ? t('{0}-орун', hw.rank) : t('Рейтингде жок'), week.weekNumber)}</div>
@@ -110,7 +110,7 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
 
             {/* Mini card */}
             <section>
-                <SectionHeader eyebrow={t('Командалык иштер')} title={t('Мини-карта')} />
+                <SectionHeader eyebrow={t('Командалык иштер')} title={t('Мини-карта')} sub={t('Ар бир иш 100% аткарылса {0} упай кошулат (эң көп {1}). Ашыкчасы эсептелбейт.', MINI_CARD_POINTS, MINI_CARD_POINTS * 7)} />
                 {/* One engraved plate with hairline cells, not seven separate boxes. The
                     outer edges of the hairlines are clipped by the card. */}
                 <div className="card overflow-hidden">
@@ -179,7 +179,7 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
                                     </td>
                                     {METRICS.map(m => (
                                         <td key={m} style={{ textAlign: 'center', padding: '0.5rem 0.25rem' }} title={`${w.member.actual[m]} / ${w.member.target[m]}`}>
-                                            <span className="inline-block min-w-[3.6rem] px-2 py-1.5 rounded-md tabular text-[0.86rem] font-medium" style={{ backgroundColor: heatBg(w.pct[m]), color: w.pct[m] >= 100 ? 'var(--text-primary)' : perfColor(w.pct[m]) }}>
+                                            <span className="inline-block min-w-[3.6rem] px-2 py-1.5 tabular text-[0.86rem] font-bold" style={{ backgroundColor: heatBg(w.pct[m]), color: w.pct[m] >= 100 ? 'var(--text-primary)' : perfColor(w.pct[m]) }}>
                                                 {Math.round(w.pct[m])}%
                                             </span>
                                         </td>
@@ -197,7 +197,7 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
                 <SectionHeader
                     eyebrow={t('{0}-апта', week.weekNumber)}
                     title={t('Үйдүн упайы кайдан келди')}
-                    sub={breakdown ? t('Бир адамга орточо, {0}', t('{0} адам', breakdown.people)) : undefined}
+                    sub={breakdown ? t('Ар бир көрсөткүч боюнча бир адамга орточо упай ({0}). Үйдү эмне көтөрүп, эмне түшүрүп жатканын көрсөтөт.', t('{0} адам', breakdown.people)) : undefined}
                 />
                 {breakdown && hw?.submitted ? (
                     <div className="card card-pad">

@@ -37,6 +37,9 @@ interface AppHeaderProps {
     week?: { number: number; date: string; locked: boolean; canPrev: boolean; canNext: boolean; onPrev: () => void; onNext: () => void; isLatest: boolean };
     /** The big centered statement: who leads and by how much. */
     monument?: { kicker: string; title: string; value: string; sub: string; lead?: string; complete?: boolean };
+    seasonLabel?: string;
+    /** Name of the season on screen. */
+    seasonName?: string;
     /** Season picker, shown when there is more than one season. */
     season?: { options: Array<{ id: number; name: string }>; selectedId: number; onChange: (id: number) => void };
 }
@@ -100,7 +103,7 @@ const IconButton: React.FC<{ label: string; onClick: () => void; children: React
 
 export const AppHeader: React.FC<AppHeaderProps> = ({
     authUser, houseName, theme, onToggleTheme, screen, onToggleScreen, onLogin, onLogout, onDataEntry, onFormula, onAdmin, onHistory, onShare, onPrayer, onCompare,
-    installMode, onInstall, week, monument, season
+    installMode, onInstall, week, monument, seasonLabel, seasonName, season
 }) => {
     const isAdmin = authUser?.role === 'admin';
     const who = isAdmin ? t('Админ') : houseName ? t('{0} үйүнүн капитаны', houseName) : t('Капитан');
@@ -131,7 +134,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     ];
 
     return (
-        <header className="hero night page-gutter" style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top))' }}>
+        <header className="hero page-gutter" style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top))' }}>
             {monument && <StarField />}
             <div className="app-container">
                 {/* Wordmark bar */}
@@ -141,11 +144,6 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                         <span className="font-display text-[1.45rem] leading-none tracking-[0.02em]">tdJamaat</span>
                     </div>
                     <div className="flex items-center">
-                        {!monument && (
-                            <button onClick={onPrayer} className="hidden md:inline-flex items-center gap-1.5 mr-3 text-[0.85rem] transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}>
-                                {ramadan ? t('Ифтар') : PRAYER_NAMES[next.key]} <span className="tabular" style={{ color: 'var(--gold)' }}>{clock(ramadan ? todayTimes.maghrib : next.at, city.tz)}</span>
-                            </button>
-                        )}
                         {authUser && (
                             // The wrapper does the hiding: .btn sets display itself and would override Tailwind's `hidden`.
                             <span className="hidden sm:inline-flex mr-2">
@@ -182,17 +180,17 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                     </div>
                 </div>
 
-                {/* The hero: only on the Week tab. The other tabs start with their
-                    own page bar, so their content is on the first screen. */}
-                {monument && week && (
-                <div className="monument flex flex-col items-center text-center pt-4 sm:pt-8 pb-12 sm:pb-16">
+                {/* Monument */}
+                {/* The full monument only on the overview; the other sections get a
+                    compact version so their content starts on the first screen. */}
+                <div className={`monument flex flex-col items-center text-center ${monument ? 'pt-6 sm:pt-10 pb-10 sm:pb-14' : 'is-compact pt-1 sm:pt-4 pb-6 sm:pb-9'}`}>
                     {ramadan && (
                         <div className="flex flex-col items-center mb-2 animate-fade-in" aria-label={t('Рамазан')}>
                             <svg width="34" height="34" viewBox="0 0 40 40" aria-hidden="true"><defs><mask id="ramadan-m"><rect width="40" height="40" fill="#fff" /><circle cx="25" cy="16" r="12" fill="#000" /></mask></defs><circle cx="20" cy="20" r="14" fill="var(--gold)" mask="url(#ramadan-m)" /></svg>
                             <div className="eyebrow mt-1" style={{ color: 'var(--gold)' }}>{t('Рамазан мубарак')}</div>
                         </div>
                     )}
-                    <Crown className="draw-in h-auto w-[min(17rem,70%)]" style={{ color: 'var(--gold)' }} />
+                    <Crown className={`draw-in h-auto ${monument ? 'w-[min(19rem,78%)]' : 'w-[min(10rem,46%)] sm:w-[min(13rem,50%)]'}`} style={{ color: 'var(--gold)' }} />
 
                     {season && (
                         <label className="relative mt-3 inline-flex items-center gap-2 eyebrow cursor-pointer" style={{ color: 'var(--text-muted)' }}>
@@ -211,37 +209,49 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                         </label>
                     )}
 
-                    <div className="flex items-center gap-4 mt-3">
-                        <button onClick={week.onPrev} disabled={!week.canPrev} aria-label={t('Мурунку апта')} className="w-9 h-9 inline-flex items-center justify-center rounded-full transition-colors disabled:opacity-20 hover:text-[var(--gold)]" style={{ border: '1px solid var(--border-strong)', color: 'var(--text-secondary)' }}>
-                            <ChevronLeft className="w-4 h-4" strokeWidth={1.5} />
-                        </button>
-                        <div className="text-[0.92rem] inline-flex items-center gap-2" style={{ color: 'var(--gold)' }} aria-live="polite">
-                            {monument.kicker}
-                            {week.locked && <Lock className="w-3 h-3" aria-label={t('кулпуланган')} />}
+                    {week ? (
+                        <div className="flex items-center gap-4 mt-3">
+                            <button onClick={week.onPrev} disabled={!week.canPrev} aria-label={t('Мурунку апта')} className="w-9 h-9 inline-flex items-center justify-center rounded-full transition-colors disabled:opacity-20 hover:text-[var(--gold)]" style={{ border: '1px solid var(--border-strong)', color: 'var(--text-secondary)' }}>
+                                <ChevronLeft className="w-4 h-4" strokeWidth={1.5} />
+                            </button>
+                            <div className="eyebrow inline-flex items-center gap-2" style={{ color: 'var(--gold)' }} aria-live="polite">
+                                {monument?.kicker ?? t('{0}-апта', week.number)}
+                                {week.locked && <Lock className="w-3 h-3" aria-label={t('кулпуланган')} />}
+                            </div>
+                            <button onClick={week.onNext} disabled={!week.canNext} aria-label={t('Кийинки апта')} className="w-9 h-9 inline-flex items-center justify-center rounded-full transition-colors disabled:opacity-20 hover:text-[var(--gold)]" style={{ border: '1px solid var(--border-strong)', color: 'var(--text-secondary)' }}>
+                                <ChevronRight className="w-4 h-4" strokeWidth={1.5} />
+                            </button>
                         </div>
-                        <button onClick={week.onNext} disabled={!week.canNext} aria-label={t('Кийинки апта')} className="w-9 h-9 inline-flex items-center justify-center rounded-full transition-colors disabled:opacity-20 hover:text-[var(--gold)]" style={{ border: '1px solid var(--border-strong)', color: 'var(--text-secondary)' }}>
-                            <ChevronRight className="w-4 h-4" strokeWidth={1.5} />
-                        </button>
-                    </div>
+                    ) : (
+                        !season && <div className="eyebrow mt-3" style={{ color: 'var(--gold)' }}>{t('Сезон {0}', seasonName ?? '')}</div>
+                    )}
 
-                    <h1 key={`t-${monument.title}`} className="font-display leading-none mt-6 text-[2.4rem] sm:text-[3.2rem] lg:text-[3.6rem] animate-view-in" style={{ color: 'var(--text-primary)' }}>{monument.title}</h1>
-                    {/* The week's number: counts up, light sweeps across it, a soft glow behind. */}
-                    <div className="relative mt-2">
-                        <span className="hero-glow" aria-hidden="true" />
-                        {monument.complete && <Sparks key={`sparks-${week.number}`} />}
-                        <div className="font-display tabular leading-[0.9] text-[5.2rem] sm:text-[7.5rem] lg:text-[9rem] gold-sheen" aria-label={monument.value}>
-                            {Number.isFinite(Number(monument.value)) ? <CountUp value={Number(monument.value)} duration={1600} /> : monument.value}
-                        </div>
-                    </div>
-                    {monument.lead && <p className="mt-3 text-[1rem] animate-view-in" style={{ color: 'var(--gold-bright)', animationDelay: '900ms' }}>{monument.lead}</p>}
-                    <p className="mt-2 text-[0.9rem]" style={{ color: 'var(--text-muted)' }}>{monument.sub}</p>
-                    <button onClick={onPrayer} className={`mt-5 inline-flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[0.82rem] transition-colors hover:text-[var(--gold)]`} style={{ color: 'var(--text-muted)' }}>
+                    {monument ? (
+                        <>
+                            <h1 key={`t-${monument.title}`} className="font-display leading-none mt-5 text-[2.4rem] sm:text-[3.2rem] lg:text-[3.6rem] animate-view-in" style={{ color: 'var(--text-primary)' }}>{monument.title}</h1>
+                            {/* The week's number: counts up, light sweeps across it, a soft glow behind. */}
+                            <div className="relative mt-2">
+                                <span className="hero-glow" aria-hidden="true" />
+                                {monument.complete && <Sparks key={`sparks-${week?.number}`} />}
+                                <div className="font-display tabular leading-[0.9] text-[5.2rem] sm:text-[7.5rem] lg:text-[9rem] gold-sheen" aria-label={monument.value}>
+                                    {Number.isFinite(Number(monument.value)) ? <CountUp value={Number(monument.value)} duration={1600} /> : monument.value}
+                                </div>
+                            </div>
+                            {monument.lead && <p className="mt-3 text-[1rem] animate-view-in" style={{ color: 'var(--gold)', animationDelay: '900ms' }}>{monument.lead}</p>}
+                            <p className="mt-2 text-[0.9rem] tracking-[0.04em]" style={{ color: 'var(--text-muted)' }}>{monument.sub}</p>
+                        </>
+                    ) : (
+                        <h1 className="font-display leading-none mt-3 sm:mt-4 text-[2.2rem] sm:text-[3rem] lg:text-[3.4rem]" style={{ color: 'var(--text-primary)' }}>
+                            {seasonLabel ?? (week ? t('{0}-апта', week.number) : '')}
+                        </h1>
+                    )}
+                    {week?.date && !monument && <p className="mt-3 text-[0.9rem]" style={{ color: 'var(--text-muted)' }}>{week.date.replace(' -- ', ' — ')}</p>}
+                    <button onClick={onPrayer} className={`${monument ? 'mt-5' : 'mt-3'} inline-flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[0.82rem] transition-colors hover:text-[var(--gold)]`} style={{ color: 'var(--text-muted)' }}>
                         {hijri && <span className="italic">{formatHijri(hijri)}</span>}
                         {hijri && <span aria-hidden="true" style={{ color: 'var(--gold-dim)' }}>·</span>}
                         <span>{ramadan ? t('Ифтар') : PRAYER_NAMES[next.key]} <span className="tabular" style={{ color: 'var(--gold)' }}>{clock(ramadan ? todayTimes.maghrib : next.at, city.tz)}</span></span>
                     </button>
                 </div>
-                )}
             </div>
         </header>
     );

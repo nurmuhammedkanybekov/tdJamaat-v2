@@ -24,7 +24,6 @@ import { LoginScreen } from './components/LoginScreen';
 import type { ShareTarget } from './components/ShareSheet';
 import type { CompareInit } from './components/CompareSheet';
 import { AdminDeskPanel, CaptainDesk } from './components/Desk';
-import { PageBar } from './components/PageBar';
 import { OverviewView } from './components/views/OverviewView';
 import { TeamsView } from './components/views/TeamsView';
 import { AwardsView } from './components/views/AwardsView';
@@ -143,7 +142,7 @@ const TeamPerformanceTracker: React.FC = () => {
     }, [activeView, authUser]);
 
     if (!authChecked) return <LoadingScreen />;
-    if (!authUser) return <LoginScreen />;
+    if (!authUser) return <LoginScreen theme={theme} onToggleTheme={toggleTheme} />;
     if (loading) return <LoadingScreen />;
     if (error || !allData || !data || !insights || allData.weeks.length === 0) {
         return (
@@ -253,9 +252,11 @@ const TeamPerformanceTracker: React.FC = () => {
                 onCompare={() => openCompare({ kind: 'person' })}
                 installMode={installMode}
                 onInstall={async () => { if (installMode === 'prompt') await install(); else setModal('install'); }}
-                week={activeView === 'overview' ? { ...weekControl, date: currentWeekData.date, isLatest: weekIndex === data.weeks.length - 1 } : undefined}
+                week={isWeekly ? { ...weekControl, date: currentWeekData.date, isLatest: weekIndex === data.weeks.length - 1 } : undefined}
+                seasonLabel={{ overview: undefined, teams: t('Үйлөр'), season: t('Сезон'), awards: t('Сыйлыктар'), community: t('Жамаат') }[activeView]}
                 monument={monument}
-                season={activeView === 'overview' ? seasonPicker : undefined}
+                season={seasonPicker}
+                seasonName={season.name}
             />
 
             <ViewNavigator activeView={activeView} setActiveView={setActiveView} />
@@ -270,17 +271,9 @@ const TeamPerformanceTracker: React.FC = () => {
             )}
 
             <main className="page-gutter">
-                <div key={activeView} ref={viewRef} className={`app-container animate-view-in ${activeView === 'overview' ? 'pt-0' : 'pt-6 sm:pt-8'}`}>
+                <div key={activeView} ref={viewRef} className={`app-container animate-view-in ${activeView === 'overview' ? 'pt-0 md:pt-8' : 'pt-6 sm:pt-8'}`}>
                     {activeView === 'overview' && (
                         <OverviewView data={data} weekIndex={weekIndex} insights={insights} onOpenProfile={openProfile} desk={desk || undefined} />
-                    )}
-                    {activeView !== 'overview' && (
-                        <PageBar
-                            title={activeView === 'season' ? t('Сезон {0}', season.name) : TABS.find(it => it.key === activeView)?.label ?? ''}
-                            sub={activeView === 'teams' || activeView === 'awards' ? currentWeekData.date?.replace(' -- ', ' — ') || undefined : activeView === 'community' ? t('Сезон {0}', season.name) : undefined}
-                            week={activeView === 'teams' || activeView === 'awards' ? weekControl : undefined}
-                            season={activeView === 'season' || activeView === 'community' ? seasonPicker : undefined}
-                        />
                     )}
                     {activeView === 'teams' && (
                         <TeamsView

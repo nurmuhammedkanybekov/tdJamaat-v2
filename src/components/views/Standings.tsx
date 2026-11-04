@@ -9,22 +9,13 @@ import { CITIES, houseStandings, personStandings } from '../../utils/standings';
 import type { City, Scope } from '../../utils/standings';
 import { TEAM_COLORS } from '../../utils/scoring';
 import { Avatar } from '../Avatar';
-import { Movement } from '../ui';
+import { Movement, SectionHeader } from '../ui';
 import { CountUp } from '../motion';
 import { t } from '../../i18n';
 
 const ROLE_FILTER_LABEL: Record<'all' | Role, string> = { all: t('Бардыгы'), imam: t('Капитандар'), zam: t('Орун басарлар'), member: t('Мүчөлөр') };
 const fmt = (n: number) => (Math.round(n * 10) / 10).toString();
-
-const TableHead: React.FC<{ title: string; note?: string; children?: React.ReactNode }> = ({ title, note, children }) => (
-    <div className="px-5 sm:px-6 pt-5 pb-3">
-        <div className="flex items-baseline justify-between gap-3">
-            <h2 className="section-title">{title}</h2>
-            {note && <span className="text-[0.8rem] tabular" style={{ color: 'var(--text-muted)' }}>{note}</span>}
-        </div>
-        {children && <div className="chip-row mt-3">{children}</div>}
-    </div>
-);
+const pad2 = (n: number) => String(n).padStart(2, '0');
 
 /** Houses, best first, each with a bar in its colour. In a week, a house that
  *  hasn't entered says so in its own row. */
@@ -35,37 +26,43 @@ export const HouseTable: React.FC<{ insights: Insights; weekIndex: number; scope
     const showMovement = scope === 'week' && city === 'all';
     const entered = week ? week.teams.filter(it => it.submitted).length : 0;
     return (
-        <section className="card overflow-hidden" aria-label={t('Үйлөр')}>
-            <TableHead title={t('Үйлөр')} note={scope === 'week' && week ? t('{0} / {1} киргизди', entered, week.teams.length) : t('{0} апта', weekIndex + 1)}>
+        <section aria-label={t('Үйлөр')}>
+            <SectionHeader
+                eyebrow={scope === 'week' && week ? t('{0}-апта · {1} / {2} киргизди', week.weekNumber, entered, week.teams.length) : t('Сезон · {0} апта', weekIndex + 1)}
+                title={t('Үйлөр')}
+                className="mb-3!"
+            />
+            <div className="chip-row mb-4" role="group" aria-label={t('Шаар')}>
                 <button className="chip" aria-pressed={city === 'all'} onClick={() => setCity('all')}>{t('Бардык шаарлар')}</button>
                 {CITIES.map(c => <button key={c.id} className="chip" aria-pressed={city === c.id} onClick={() => setCity(c.id)}>{c.label}</button>)}
-            </TableHead>
+            </div>
             <ol key={`${scope}-${city}-${weekIndex}`} className="stagger">
                 {rows.map(({ h, rank, value, weeks }, i) => {
                     const color = TEAM_COLORS[h.colorIndex % TEAM_COLORS.length];
                     const team = week?.teams.find(it => it.id === h.id);
                     const waiting = scope === 'week' && team && !team.submitted;
                     return (
-                        <li key={h.id} className="relative px-5 sm:px-6 py-4" style={{ borderTop: '1px solid var(--border)' }}>
-                            <div className="flex items-center gap-3">
-                                <span className="w-7 font-display text-[1.25rem] tabular leading-none" style={{ color: rank === 1 ? 'var(--gold)' : 'var(--text-muted)' }}>{rank ?? '–'}</span>
-                                <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
-                                <span className="font-display text-[1.3rem] leading-tight min-w-0 truncate flex-1" style={{ color: 'var(--text-primary)' }}>{h.name}</span>
+                        <li key={h.id} className="relative pt-[1rem] pb-[1.15rem]" style={{ borderBottom: '1px solid var(--border)' }}>
+                            <div className="flex items-baseline gap-3">
+                                <span className="w-6 text-[0.75rem] tabular" style={{ color: 'var(--gold-dim)' }}>{rank ? pad2(rank) : '—'}</span>
+                                <span className="font-display text-[1.35rem] min-w-0 truncate" style={{ color: rank === 1 ? 'var(--gold)' : 'var(--text-primary)' }}>{h.name}</span>
                                 {showMovement && !waiting && <Movement delta={movement(h.weeks, weekIndex)} />}
-                                {scope === 'season' && value !== null && <span className="text-[0.75rem] flex-shrink-0" style={{ color: 'var(--text-muted)' }}>{t('{0} апта', weeks)}</span>}
+                                <span className="leader" />
+                                {scope === 'season' && value !== null && <span className="text-[0.75rem] italic flex-shrink-0" style={{ color: 'var(--text-muted)' }}>{t('{0} апта', weeks)}</span>}
                                 {waiting
-                                    ? <span className="inline-flex items-center gap-1.5 text-[0.8rem] flex-shrink-0" style={{ color: week?.locked ? 'var(--danger)' : 'var(--text-muted)' }}>
+                                    ? <span className="inline-flex items-center gap-1.5 text-[0.82rem] italic flex-shrink-0" style={{ color: week?.locked ? 'var(--danger)' : 'var(--text-muted)' }}>
                                         {week?.locked ? <Lock className="w-3.5 h-3.5" /> : <Clock3 className="w-3.5 h-3.5" />}
                                         {week?.locked ? t('киргизилген жок') : t('күтүлүүдө')}
                                     </span>
                                     : value !== null
-                                        ? <CountUp value={value} duration={1100} className="font-display text-[1.5rem] tabular flex-shrink-0 leading-none" style={{ color: rank === 1 ? 'var(--gold)' : 'var(--text-primary)' }} />
-                                        : <span className="font-display text-[1.5rem] flex-shrink-0" style={{ color: 'var(--text-muted)' }}>–</span>}
+                                        ? <CountUp value={value} duration={1100} className="font-display text-[1.45rem] tabular flex-shrink-0" style={{ color: rank === 1 ? 'var(--gold)' : 'var(--text-primary)' }} />
+                                        : <span className="font-display text-[1.45rem] tabular flex-shrink-0" style={{ color: 'var(--text-muted)' }}>—</span>}
                             </div>
+                            {/* The rating as a bar in the house's colour, relative to the leader. */}
                             {value !== null && !waiting && (
-                                <div className="ml-10 mt-2.5 h-[3px] rounded-full overflow-hidden" style={{ backgroundColor: 'var(--surface-2)' }} aria-hidden="true">
-                                    <div className="h-full rounded-full animate-grow-x" style={{ width: `${(value / max) * 100}%`, backgroundColor: color, animationDelay: `${150 + i * 90}ms` }} />
-                                </div>
+                                <span aria-hidden="true" className="absolute left-9 right-0 bottom-[-1px] h-[2px] overflow-hidden">
+                                    <span className="block h-full animate-grow-x" style={{ width: `${(value / max) * 100}%`, backgroundColor: color, animationDelay: `${150 + i * 90}ms`, opacity: rank === 1 ? 1 : 0.75 }} />
+                                </span>
                             )}
                         </li>
                     );
@@ -89,42 +86,53 @@ export const PeopleTable: React.FC<{ insights: Insights; weekIndex: number; scop
     const waiting = filtered.filter(p => p.value === null && !p.excused);
     const waitingHouses = [...new Set(waiting.map(p => p.week?.houseName ?? p.s.houseName))];
     const minWeeks = Math.max(1, Math.ceil(weeksSoFar / 2));
+    const shown = (showWaiting ? [...listed, ...waiting] : listed).slice(0, limit && !showAll ? limit : undefined);
     return (
-        <section className="card overflow-hidden" aria-label={title}>
-            <TableHead title={title} note={scope === 'season' ? t('кеминде {0} апта', minWeeks) : t('{0} адам', listed.length)}>
+        <section aria-label={title}>
+            <SectionHeader
+                eyebrow={scope === 'week' ? t('{0} адам', listed.length) : t('кеминде {0} апта', minWeeks)}
+                title={title}
+                className="mb-3!"
+            />
+            <div className="chip-row mb-4" role="group" aria-label={t('Ролу боюнча')}>
                 {(['all', 'imam', 'zam', 'member'] as const).map(r => (
                     <button key={r} className="chip" aria-pressed={role === r} onClick={() => setRole(r)}>{ROLE_FILTER_LABEL[r]}</button>
                 ))}
-            </TableHead>
+            </div>
             <ol>
-                {(showWaiting ? [...listed, ...waiting] : listed).slice(0, limit && !showAll ? limit : undefined).map(({ s, rank, value, weeks, week: w, excused }) => (
-                    <li key={s.id} style={{ borderTop: '1px solid var(--border)' }}>
-                        <button onClick={() => onOpenProfile(s.id)} className="row-link w-full flex items-center gap-3 sm:gap-4 px-5 sm:px-6 py-3 text-left">
-                            <span className="w-7 font-display text-[1.05rem] tabular flex-shrink-0 leading-none" style={{ color: rank !== null && rank <= 3 ? 'var(--gold)' : 'var(--text-muted)' }}>{rank ?? '–'}</span>
+                {shown.map(({ s, rank, value, weeks, week: w, excused }) => (
+                    <li key={s.id}>
+                        <button
+                            onClick={() => onOpenProfile(s.id)}
+                            className="row-link w-[calc(100%+1rem)] flex items-center gap-3 sm:gap-4 px-2 -mx-2 py-3 text-left"
+                            style={{ borderBottom: '1px solid var(--border)' }}
+                        >
+                            <span className="w-6 text-[0.75rem] tabular flex-shrink-0" style={{ color: 'var(--gold-dim)' }}>{rank ? pad2(rank) : '—'}</span>
                             <Avatar name={s.name} role={roleAt(s, weekIndex)} photoUrl={w?.member.photoUrl ?? s.photoUrl} size="sm" />
                             <span className="min-w-0 flex-1">
-                                <span className="block truncate text-[1rem] font-medium" style={{ color: 'var(--text-primary)' }}>{s.name}</span>
-                                <span className="block text-[0.8rem] truncate" style={{ color: 'var(--text-muted)' }}>{w?.houseName ?? houseNameAt(s, weekIndex)} · {ROLE_LABEL[roleAt(s, weekIndex)].toLowerCase()}</span>
+                                <span className="block truncate text-[1rem]" style={{ color: 'var(--text-primary)' }}>{s.name}</span>
+                                <span className="block text-[0.78rem] italic truncate" style={{ color: 'var(--text-muted)' }}>{w?.houseName ?? houseNameAt(s, weekIndex)} · {ROLE_LABEL[roleAt(s, weekIndex)].toLowerCase()}</span>
                             </span>
                             {scope === 'week' && <Movement delta={movement(s.weeks, weekIndex)} />}
-                            {scope === 'season' && value !== null && <span className="text-[0.75rem] flex-shrink-0" style={{ color: 'var(--text-muted)' }}>{t('{0} апта', weeks)}</span>}
-                            <span className="w-16 text-right font-display text-[1.3rem] tabular flex-shrink-0" style={{ color: value !== null && (rank !== null || scope === 'week') ? 'var(--text-primary)' : 'var(--text-muted)' }}>
-                                {excused ? <span className="text-[0.8rem]" style={{ color: 'var(--text-muted)' }}>{t('себептүү')}</span> : value !== null ? fmt(value) : '–'}
+                            {scope === 'season' && value !== null && <span className="text-[0.75rem] italic flex-shrink-0" style={{ color: 'var(--text-muted)' }}>{t('{0} апта', weeks)}</span>}
+                            <span className="w-14 text-right font-display text-[1.3rem] tabular flex-shrink-0" style={{ color: value !== null && (rank !== null || scope === 'week') ? 'var(--text-primary)' : 'var(--text-muted)' }}>
+                                {excused ? <span className="text-[0.8rem] italic" style={{ color: 'var(--text-muted)' }}>{t('себептүү')}</span> : value !== null ? fmt(value) : '—'}
                             </span>
                         </button>
                     </li>
                 ))}
             </ol>
             {limit !== undefined && listed.length > limit && (
-                <button onClick={() => setShowAll(v => !v)} aria-expanded={showAll} className="w-full flex items-center justify-center gap-2 px-5 py-3.5 text-[0.9rem] font-medium transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-secondary)', borderTop: '1px solid var(--border)' }}>
-                    {showAll ? t('Кыскартуу') : t('Баарын көрсөтүү ({0})', listed.length)}
+                <button onClick={() => setShowAll(v => !v)} aria-expanded={showAll} className="w-full flex items-center justify-between gap-3 py-3.5 text-left transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)', borderBottom: '1px solid var(--border)' }}>
+                    <span className="text-[0.9rem] italic">{showAll ? t('Кыскартуу') : t('Баарын көрсөтүү ({0})', listed.length)}</span>
                     <ChevronDown className={`w-4 h-4 transition-transform ${showAll ? 'rotate-180' : ''}`} />
                 </button>
             )}
             {waiting.length > 0 && (!limit || showAll) && (
-                <button onClick={() => setShowWaiting(v => !v)} aria-expanded={showWaiting} className="w-full flex items-center gap-3 px-5 sm:px-6 py-3.5 text-left transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)', borderTop: '1px solid var(--border)' }}>
+                <button onClick={() => setShowWaiting(v => !v)} aria-expanded={showWaiting} className="w-full flex items-center gap-3 py-3.5 text-left transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)', borderBottom: '1px solid var(--border)' }}>
+                    <span className="w-6 text-[0.75rem]">—</span>
                     <span className="flex-1 min-w-0 text-[0.9rem]">
-                        {scope === 'week' ? t('Киргизиле элек') : t('Азырынча эсеп жок')}
+                        <span className="italic">{scope === 'week' ? t('Киргизиле элек') : t('Азырынча эсеп жок')}</span>
                         {scope === 'week' && <span> · {waitingHouses.join(', ')}</span>}
                         <span> · {t('{0} адам', waiting.length)}</span>
                     </span>

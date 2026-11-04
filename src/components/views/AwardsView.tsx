@@ -61,7 +61,7 @@ export const AwardsView: React.FC<AwardsViewProps> = ({ data, weekIndex, awards,
     const defs = Object.values(BADGES).filter(d => d.scope === scope);
 
     return (
-        <div className="space-y-14 sm:space-y-16">
+        <div className="space-y-20">
             {/* This week's citations */}
             <section>
                 <SectionHeader
@@ -75,25 +75,24 @@ export const AwardsView: React.FC<AwardsViewProps> = ({ data, weekIndex, awards,
                 />
                 {/* One card per award, with everyone who earned it this week. */}
                 {groups.length > 0 && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 md:gap-x-16">
                         {groups.map(({ def, list }) => (
-                            <article key={def.id} className="card lift p-5 sm:p-6 flex gap-5 items-start">
-                                <span className="flex-shrink-0 pop-in"><BadgeMedal icon={def.icon} tier={def.tier} size={84} label={def.name} /></span>
+                            <article key={def.id} className="flex gap-5 items-start py-5" style={{ borderBottom: '1px solid var(--border)' }}>
+                                <span className="flex-shrink-0 pop-in"><BadgeMedal icon={def.icon} tier={def.tier} size={92} label={def.name} /></span>
                                 <div className="min-w-0 flex-1">
-                                    <div className="flex items-baseline gap-2 flex-wrap">
-                                        <h3 className="font-display text-[1.45rem] leading-tight" style={{ color: 'var(--text-primary)' }}>{def.name}</h3>
-                                        <span className="text-[0.8rem]" style={{ color: METAL[def.tier] }}>{TIER_LABEL[def.tier]}</span>
-                                    </div>
-                                    <p className="text-[0.86rem] mt-1 leading-snug" style={{ color: 'var(--text-muted)' }}>{list.length === 1 ? list[0].reason : def.rule}</p>
-                                    <div className="flex flex-wrap gap-1.5 mt-3">
-                                        {list.map(a => def.scope === 'person' ? (
-                                            <button key={a.holderId} onClick={() => onOpenProfile(a.holderId)} className="chip" title={a.reason}>
-                                                {a.holderName}<span style={{ color: 'var(--text-muted)' }}>· {a.houseName}</span>
-                                            </button>
-                                        ) : (
-                                            <span key={a.holderId} className="chip">{a.holderName}</span>
+                                    <span className="eyebrow block">{TIER_LABEL[def.tier]} · {def.name}</span>
+                                    {/* Everyone who earned it this week. */}
+                                    <div className="mt-1 leading-snug">
+                                        {list.map((a, i) => (
+                                            <React.Fragment key={a.holderId}>
+                                                {i > 0 && <span style={{ color: 'var(--gold-dim)' }}>, </span>}
+                                                {def.scope === 'person'
+                                                    ? <button onClick={() => onOpenProfile(a.holderId)} title={a.reason} className="font-display text-[1.45rem] transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-primary)' }}>{a.holderName}</button>
+                                                    : <span className="font-display text-[1.45rem]" style={{ color: 'var(--text-primary)' }}>{a.holderName}</span>}
+                                            </React.Fragment>
                                         ))}
                                     </div>
+                                    <span className="block text-[0.88rem] italic mt-1.5 leading-snug" style={{ color: 'var(--text-secondary)' }}>{list.length === 1 ? `${list[0].def.scope === 'person' ? `${list[0].houseName} · ` : ''}${list[0].reason}` : def.rule}</span>
                                 </div>
                             </article>
                         ))}
@@ -103,8 +102,8 @@ export const AwardsView: React.FC<AwardsViewProps> = ({ data, weekIndex, awards,
 
 
             {/* Season leaders */}
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-8 items-start">
-                <section className="card p-5 sm:p-6">
+            <div className="grid grid-cols-1 gap-16 lg:grid-cols-2 lg:gap-20">
+                <section>
                     <SectionHeader eyebrow={t('Сезон')} title={t('Эң көп сыйлык алгандар')} />
                     {personLeaders.length === 0 ? <p className="italic" style={{ color: 'var(--text-muted)' }}>{t('Азырынча жок.')}</p> : (
                         <ol>
@@ -122,7 +121,7 @@ export const AwardsView: React.FC<AwardsViewProps> = ({ data, weekIndex, awards,
                         </ol>
                     )}
                 </section>
-                <section className="card p-5 sm:p-6">
+                <section>
                     <SectionHeader eyebrow={t('Сезон')} title={t('Үйлөрдүн сыйлыктары')} />
                     {houseLeaders.length === 0 ? <p className="italic" style={{ color: 'var(--text-muted)' }}>{t('Азырынча жок.')}</p> : (
                         <ol>
@@ -161,7 +160,7 @@ export const AwardsView: React.FC<AwardsViewProps> = ({ data, weekIndex, awards,
                                     <BadgeMedal icon={d.icon} tier={d.tier} size={isPhone ? 84 : 112} label={d.name} locked={got.length === 0} count={got.length || undefined} />
                                 </span>
                                 <span className="font-display text-[1.05rem] sm:text-[1.15rem] mt-2 leading-tight" style={{ color: got.length ? 'var(--text-primary)' : 'var(--text-muted)' }}>{d.name}</span>
-                                <span className="text-[0.75rem] mt-0.5" style={{ color: METAL[d.tier] }}>{TIER_LABEL[d.tier]}</span>
+                                <span className="eyebrow mt-1">{TIER_LABEL[d.tier]}</span>
                             </button>
                         );
                     })}
@@ -172,8 +171,8 @@ export const AwardsView: React.FC<AwardsViewProps> = ({ data, weekIndex, awards,
                     const holders = [...new Map(got.map(a => [a.holderId, a])).values()];
                     return (
                         <div className="mt-12 pt-8 animate-fade-up" style={{ borderTop: '1px solid var(--border)' }}>
-                            <h3 className="font-display text-[1.4rem]" style={{ color: 'var(--text-primary)' }}>{d.name}</h3>
-                            <p className="text-[0.9rem] mt-1 mb-4" style={{ color: 'var(--text-muted)' }}>{d.rule} · {got.length ? t('{0} жолу берилди', got.length) : t('азырынча эч ким алган жок')}</p>
+                            <div className="eyebrow mb-1">{d.name} · {got.length ? t('{0} жолу берилди', got.length) : t('азырынча эч ким алган жок')}</div>
+                            <p className="text-[0.88rem] italic mb-4" style={{ color: 'var(--text-muted)' }}>{d.rule}</p>
                             <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-16">
                                 {holders.map(h => {
                                     const times = got.filter(a => a.holderId === h.holderId);

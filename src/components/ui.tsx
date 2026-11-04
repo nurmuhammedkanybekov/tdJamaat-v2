@@ -47,17 +47,13 @@ export const Sparkline: React.FC<{ values: number[]; color?: string; width?: num
     );
 };
 
-/** Section heading: the title, with what it is about (the week, the house…)
- *  as a quiet note beside it, an optional line under it, and an optional
- *  action on the right. */
+/** Section heading: small caps eyebrow, display title, optional action on the right. */
 export const SectionHeader: React.FC<{ eyebrow?: string; title: React.ReactNode; action?: React.ReactNode; sub?: React.ReactNode; className?: string }> = ({ eyebrow, title, action, sub, className }) => (
-    <div className={`flex items-end justify-between gap-3 flex-wrap mb-5 ${className ?? ''}`}>
+    <div className={`flex items-end justify-between gap-3 flex-wrap mb-6 ${className ?? ''}`}>
         <div className="min-w-0">
-            <h2 className="section-title">
-                {title}
-                {eyebrow && <span className="ml-3 align-middle font-serif text-[0.85rem]" style={{ color: 'var(--text-muted)' }}>{eyebrow}</span>}
-            </h2>
-            {sub && <p className="text-[0.88rem] mt-1.5 max-w-[60ch]" style={{ color: 'var(--text-muted)' }}>{sub}</p>}
+            {eyebrow && <div className="eyebrow mb-2">{eyebrow}</div>}
+            <h2 className="section-title">{title}</h2>
+            {sub && <p className="text-[0.85rem] mt-1" style={{ color: 'var(--text-muted)' }}>{sub}</p>}
         </div>
         {action}
     </div>

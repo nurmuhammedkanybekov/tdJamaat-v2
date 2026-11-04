@@ -21,8 +21,8 @@ interface SeasonViewProps {
 export const SeasonView: React.FC<SeasonViewProps> = ({ data, insights, selectedPeriod, setSelectedPeriod, onOpenProfile, onCompare }) => {
     const last = data.weeks.length - 1;
     return (
-        <div className="space-y-12 sm:space-y-16">
-            <div className="grid grid-cols-1 gap-6 lg:gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)] items-start">
+        <div className="space-y-16 sm:space-y-20">
+            <div className="grid grid-cols-1 gap-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] lg:gap-20 items-start">
                 <HouseTable insights={insights} weekIndex={last} scope="season" />
                 <PeopleTable insights={insights} weekIndex={last} scope="season" title={t('Катышуучулар')} onOpenProfile={onOpenProfile} limit={10} />
             </div>

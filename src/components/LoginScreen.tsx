@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { ChevronDown, Eye, EyeOff, Loader2, Lock, LogIn } from 'lucide-react';
+import { ChevronDown, Eye, EyeOff, Loader2, Lock, LogIn, Moon, Sun } from 'lucide-react';
 import { fetchHouses } from '../services/dataService';
 import { signInAsHouse, signInAsAdmin } from '../services/authService';
 import type { House } from '../types';
-import { Crown, Mark, Medallion } from './Ornament';
+import type { Theme } from '../theme';
+import { Corners, Crown, Mark, Medallion } from './Ornament';
 import { StarField } from './motion';
 import { isEnglish, setLang, t } from '../i18n';
 
@@ -15,8 +16,7 @@ const LAST_HOUSE = 'tdjamaat-login-house';
 
 const readLastHouse = () => { try { return localStorage.getItem(LAST_HOUSE) ?? ''; } catch { return ''; } };
 
-// The entrance is always the night sky, in both themes.
-export const LoginScreen: React.FC = () => {
+export const LoginScreen: React.FC<{ theme: Theme; onToggleTheme: () => void }> = ({ theme, onToggleTheme }) => {
     const [mode, setMode] = useState<Mode>('captain');
     const [houses, setHouses] = useState<House[]>([]);
     const [houseSlug, setHouseSlug] = useState(readLastHouse);
@@ -68,7 +68,7 @@ export const LoginScreen: React.FC = () => {
     const iconBtn = 'w-10 h-10 inline-flex items-center justify-center transition-colors hover:text-[var(--gold)]';
 
     return (
-        <main className="hero night min-h-[100dvh] flex flex-col page-gutter overflow-hidden" style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top))', paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
+        <main className="hero min-h-[100dvh] flex flex-col page-gutter overflow-hidden" style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top))', paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
             <StarField count={70} />
             <div className="flex items-center justify-end h-14 gap-1" style={{ color: 'var(--text-secondary)' }}>
                 <button
@@ -79,7 +79,9 @@ export const LoginScreen: React.FC = () => {
                 >
                     {isEnglish() ? 'КЫР' : 'EN'}
                 </button>
-
+                <button onClick={onToggleTheme} aria-label={theme === 'dark' ? t('Жарык тема') : t('Караңгы тема')} className={iconBtn}>
+                    {theme === 'dark' ? <Sun className="w-[1.1rem] h-[1.1rem]" strokeWidth={1.5} /> : <Moon className="w-[1.1rem] h-[1.1rem]" strokeWidth={1.5} />}
+                </button>
             </div>
 
             <div className="flex-1 flex flex-col items-center justify-center py-6">
@@ -102,6 +104,7 @@ export const LoginScreen: React.FC = () => {
                     </div>
 
                     <form onSubmit={handleSubmit} noValidate className="relative mt-8 card card-pad pb-10! space-y-5" style={{ boxShadow: 'var(--shadow-lift)' }}>
+                        <Corners inset={6} size={22} />
                         <div className="flex justify-center" role="tablist" aria-label={t('Ким катары кирүү')}>
                             <button type="button" role="tab" aria-selected={mode === 'captain'} className={`chip ${mode === 'captain' ? 'is-active' : ''}`} onClick={() => switchMode('captain')}>{t('Капитан')}</button>
                             <button type="button" role="tab" aria-selected={mode === 'admin'} className={`chip ${mode === 'admin' ? 'is-active' : ''}`} onClick={() => switchMode('admin')} style={{ marginRight: 0 }}>{t('Админ')}</button>
