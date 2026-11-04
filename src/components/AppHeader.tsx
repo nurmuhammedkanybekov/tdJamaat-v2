@@ -179,14 +179,16 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                 </div>
 
                 {/* Monument */}
-                <div className="monument flex flex-col items-center text-center pt-6 sm:pt-10 pb-10 sm:pb-14">
+                {/* The full monument only on the overview; the other sections get a
+                    compact version so their content starts on the first screen. */}
+                <div className={`monument flex flex-col items-center text-center ${monument ? 'pt-6 sm:pt-10 pb-10 sm:pb-14' : 'is-compact pt-1 sm:pt-4 pb-6 sm:pb-9'}`}>
                     {ramadan && (
                         <div className="flex flex-col items-center mb-2 animate-fade-in" aria-label={t('Рамазан')}>
                             <svg width="34" height="34" viewBox="0 0 40 40" aria-hidden="true"><defs><mask id="ramadan-m"><rect width="40" height="40" fill="#fff" /><circle cx="25" cy="16" r="12" fill="#000" /></mask></defs><circle cx="20" cy="20" r="14" fill="var(--gold)" mask="url(#ramadan-m)" /></svg>
                             <div className="eyebrow mt-1" style={{ color: 'var(--gold)' }}>{t('Рамазан мубарак')}</div>
                         </div>
                     )}
-                    <Crown className="draw-in w-[min(19rem,78%)] h-auto" style={{ color: 'var(--gold)' }} />
+                    <Crown className={`draw-in h-auto ${monument ? 'w-[min(19rem,78%)]' : 'w-[min(10rem,46%)] sm:w-[min(13rem,50%)]'}`} style={{ color: 'var(--gold)' }} />
 
                     {season && (
                         <label className="relative mt-3 inline-flex items-center gap-2 eyebrow cursor-pointer" style={{ color: 'var(--text-muted)' }}>
@@ -229,12 +231,12 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                             <p className="mt-3 text-[0.9rem] tracking-[0.04em]" style={{ color: 'var(--text-muted)' }}>{monument.sub}</p>
                         </>
                     ) : (
-                        <h1 className="font-display leading-none mt-5 text-[2.6rem] sm:text-[3.4rem] lg:text-[4rem]" style={{ color: 'var(--text-primary)' }}>
+                        <h1 className="font-display leading-none mt-3 sm:mt-4 text-[2.2rem] sm:text-[3rem] lg:text-[3.4rem]" style={{ color: 'var(--text-primary)' }}>
                             {seasonLabel ?? (week ? t('{0}-апта', week.number) : '')}
                         </h1>
                     )}
                     {week?.date && !monument && <p className="mt-3 text-[0.9rem]" style={{ color: 'var(--text-muted)' }}>{week.date.replace(' -- ', ' — ')}</p>}
-                    <button onClick={onPrayer} className="mt-5 inline-flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[0.82rem] transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}>
+                    <button onClick={onPrayer} className={`${monument ? 'mt-5' : 'mt-3'} inline-flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[0.82rem] transition-colors hover:text-[var(--gold)]`} style={{ color: 'var(--text-muted)' }}>
                         {hijri && <span className="italic">{formatHijri(hijri)}</span>}
                         {hijri && <span aria-hidden="true" style={{ color: 'var(--gold-dim)' }}>·</span>}
                         <span>{ramadan ? t('Ифтар') : PRAYER_NAMES[next.key]} <span className="tabular" style={{ color: 'var(--gold)' }}>{clock(ramadan ? todayTimes.maghrib : next.at, city.tz)}</span></span>
