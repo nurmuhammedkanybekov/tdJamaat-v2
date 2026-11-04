@@ -72,8 +72,8 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
                 </div>
             </div>
 
-            {/* House summary */}
-            <section className="card overflow-hidden">
+            {/* House summary, in the house's own colour. */}
+            <section key={team.id} className="card overflow-hidden animate-view-in" style={{ borderTop: `3px solid ${color}`, backgroundImage: `linear-gradient(180deg, color-mix(in oklab, ${color} 7%, transparent), transparent 70%)` }}>
                 <div className="card-pad flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
                     <div className="flex-1 min-w-0">
                         <div className="eyebrow flex items-center gap-2" style={{ color: 'var(--gold)' }}>{t('{0} · {1}-апта', hw?.rank ? t('{0}-орун', hw.rank) : t('Рейтингде жок'), week.weekNumber)}</div>

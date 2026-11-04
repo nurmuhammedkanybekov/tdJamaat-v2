@@ -3,7 +3,7 @@ import { ChevronDown, Eye, EyeOff, Loader2, Lock, LogIn } from 'lucide-react';
 import { fetchHouses } from '../services/dataService';
 import { signInAsHouse, signInAsAdmin } from '../services/authService';
 import type { House } from '../types';
-import { Corners, Crown, Mark, Medallion } from './Ornament';
+import { Crown, Mark, Medallion } from './Ornament';
 import { StarField } from './motion';
 import { isEnglish, setLang, t } from '../i18n';
 
@@ -102,7 +102,6 @@ export const LoginScreen: React.FC = () => {
                     </div>
 
                     <form onSubmit={handleSubmit} noValidate className="relative mt-8 card card-pad pb-10! space-y-5" style={{ boxShadow: 'var(--shadow-lift)' }}>
-                        <Corners inset={6} size={22} />
                         <div className="flex justify-center" role="tablist" aria-label={t('Ким катары кирүү')}>
                             <button type="button" role="tab" aria-selected={mode === 'captain'} className={`chip ${mode === 'captain' ? 'is-active' : ''}`} onClick={() => switchMode('captain')}>{t('Капитан')}</button>
                             <button type="button" role="tab" aria-selected={mode === 'admin'} className={`chip ${mode === 'admin' ? 'is-active' : ''}`} onClick={() => switchMode('admin')} style={{ marginRight: 0 }}>{t('Админ')}</button>

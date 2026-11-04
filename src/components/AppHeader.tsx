@@ -11,7 +11,7 @@ import { loadCity } from '../utils/city';
 import { useNow } from '../hooks/useNow';
 import { formatHijri, isRamadan, toHijri } from '../utils/hijri';
 import { PRAYER_NAMES, clock, nextPrayer, prayerTimes } from '../utils/prayer';
-import { CountUp, StarField } from './motion';
+import { CountUp, Sparks, StarField } from './motion';
 import { isEnglish, setLang, t } from '../i18n';
 
 interface AppHeaderProps {
@@ -36,7 +36,7 @@ interface AppHeaderProps {
     /** Week switcher; omitted on season-wide views. */
     week?: { number: number; date: string; locked: boolean; canPrev: boolean; canNext: boolean; onPrev: () => void; onNext: () => void; isLatest: boolean };
     /** The big centered statement: who leads and by how much. */
-    monument?: { kicker: string; title: string; value: string; sub: string };
+    monument?: { kicker: string; title: string; value: string; sub: string; lead?: string; complete?: boolean };
     /** Season picker, shown when there is more than one season. */
     season?: { options: Array<{ id: number; name: string }>; selectedId: number; onChange: (id: number) => void };
 }
@@ -228,11 +228,13 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                     {/* The week's number: counts up, light sweeps across it, a soft glow behind. */}
                     <div className="relative mt-2">
                         <span className="hero-glow" aria-hidden="true" />
+                        {monument.complete && <Sparks key={`sparks-${week.number}`} />}
                         <div className="font-display tabular leading-[0.9] text-[5.2rem] sm:text-[7.5rem] lg:text-[9rem] gold-sheen" aria-label={monument.value}>
                             {Number.isFinite(Number(monument.value)) ? <CountUp value={Number(monument.value)} duration={1600} /> : monument.value}
                         </div>
                     </div>
-                    <p className="mt-3 text-[0.9rem]" style={{ color: 'var(--text-muted)' }}>{monument.sub}</p>
+                    {monument.lead && <p className="mt-3 text-[1rem] animate-view-in" style={{ color: 'var(--gold-bright)', animationDelay: '900ms' }}>{monument.lead}</p>}
+                    <p className="mt-2 text-[0.9rem]" style={{ color: 'var(--text-muted)' }}>{monument.sub}</p>
                     <button onClick={onPrayer} className={`mt-5 inline-flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[0.82rem] transition-colors hover:text-[var(--gold)]`} style={{ color: 'var(--text-muted)' }}>
                         {hijri && <span className="italic">{formatHijri(hijri)}</span>}
                         {hijri && <span aria-hidden="true" style={{ color: 'var(--gold-dim)' }}>·</span>}

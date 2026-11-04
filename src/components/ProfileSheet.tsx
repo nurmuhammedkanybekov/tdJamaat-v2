@@ -9,7 +9,6 @@ import { TIER_LABEL, bestPerfectStreak, groupAwards } from '../utils/badges';
 import { useModal } from '../hooks/useModal';
 import { Avatar } from './Avatar';
 import { BadgeMedal } from './BadgeMedal';
-import { Corners } from './Ornament';
 import { ChartTooltip, Movement, ProgressBar } from './ui';
 import { axisTick, perfColor } from '../utils/style';
 import { t } from '../i18n';
@@ -78,7 +77,6 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({ series, data, insigh
                 <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
                     {/* Portrait */}
                     <div className="relative px-6 sm:px-12 pt-10 sm:pt-12 pb-10 text-center">
-                        <Corners inset={14} size={30} />
                         <button onClick={onClose} aria-label={t('Жабуу')} className="absolute top-4 right-4 sm:top-5 sm:right-5 w-10 h-10 inline-flex items-center justify-center z-10 transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}>
                             <X className="w-5 h-5" strokeWidth={1.3} />
                         </button>

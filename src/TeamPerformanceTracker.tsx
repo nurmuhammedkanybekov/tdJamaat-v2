@@ -186,6 +186,11 @@ const TeamPerformanceTracker: React.FC = () => {
     // The monument: the week's leading house and its average (submitted houses only).
     const leader = [...insights.houses.values()].find(h => weekOf(h.weeks, weekIndex)?.rank === 1);
     const leaderWeek = leader ? weekOf(leader.weeks, weekIndex) : undefined;
+    const runnerUp = [...insights.houses.values()]
+        .map(h => ({ name: h.name, w: weekOf(h.weeks, weekIndex) }))
+        .filter(x => x.w?.submitted && x.w.rank !== null && x.name !== leader?.name)
+        .sort((a, b) => b.w!.avg - a.w!.avg)
+        .map(x => ({ name: x.name, avg: x.w!.avg }))[0];
     const weekPeople = [...insights.members.values()].map(m => weekOf(m.weeks, weekIndex)).filter(w => w && w.submitted);
     const submittedHouses = currentWeekData.teams.filter(it => it.submitted).length;
     const monument = activeView === 'overview' ? {
@@ -196,7 +201,11 @@ const TeamPerformanceTracker: React.FC = () => {
             : t('{0}-апта · азырынча алдыда', currentWeekData.weekNumber),
         title: leader?.name ?? t('Маалымат күтүлүүдө'),
         value: leaderWeek ? fmt(leaderWeek.avg) : '—',
-        sub: t('үй рейтинги · {0} адам · {1}/{2} үй киргизди', weekPeople.length, submittedHouses, currentWeekData.teams.length)
+        sub: t('үй рейтинги · {0} адам · {1}/{2} үй киргизди', weekPeople.length, submittedHouses, currentWeekData.teams.length),
+        // The drama of the week: by how much, and over whom.
+        lead: leaderWeek && runnerUp ? t('{0} упай алдыда · {1}', fmt(leaderWeek.avg - runnerUp.avg), runnerUp.name) : undefined,
+        // Every house has entered (or the week is locked): a moment of celebration.
+        complete: weekComplete(currentWeekData) && !!leaderWeek
     } : undefined;
 
     const weekControl = {

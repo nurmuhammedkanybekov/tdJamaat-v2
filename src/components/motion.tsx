@@ -64,3 +64,24 @@ export const StarField: React.FC<{ count?: number; className?: string }> = ({ co
         ))}
     </div>
 );
+
+/** Gold sparks bursting once from the centre (a week that is complete). */
+export const Sparks: React.FC<{ count?: number }> = ({ count = 22 }) => (
+    <span className="sparks" aria-hidden="true">
+        {Array.from({ length: count }, (_, i) => {
+            const angle = (i / count) * Math.PI * 2 + rand(i) * 0.4;
+            const dist = 120 + rand(i + 9) * 150;
+            return (
+                <i
+                    key={i}
+                    style={{
+                        ['--x' as string]: `${(Math.cos(angle) * dist).toFixed(1)}px`,
+                        ['--y' as string]: `${(Math.sin(angle) * dist * 0.6).toFixed(1)}px`,
+                        ['--delay' as string]: `${(1500 + rand(i + 21) * 350).toFixed(0)}ms`,
+                        ['--s' as string]: (0.6 + rand(i + 4) * 0.9).toFixed(2)
+                    }}
+                />
+            );
+        })}
+    </span>
+);

@@ -539,36 +539,35 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                             )}
 
                             <div className="mb-8">
-                                <h3 className="font-display text-[1.35rem] font-bold mb-4 pb-2" style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border)' }}>{t('Мини-карта (командалык)')}</h3>
-                                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+                                <h3 className="font-display text-[1.35rem] font-bold mb-4 pb-2" style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border)' }}>{t('Мини-карта')}</h3>
+                                {/* One row per activity: name, what was done, and the plan. */}
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 rounded-[var(--radius)] overflow-hidden" style={{ border: '1px solid var(--border)' }}>
                                     {(Object.keys(DEFAULT_MINICARD) as Array<keyof MiniCard>).map(key => (
-                                        <div key={key} className="p-3" style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)' }}>
-                                            <div className="text-center text-xs font-semibold mb-2" style={{ color: 'var(--text-muted)' }} title={cardName(key)}>{cardLabel(key)}</div>
-                                            <div className="flex flex-col gap-2">
-                                                <div>
-                                                    <label className="text-xs block" style={{ color: 'var(--text-muted)' }}>{t('Факт')}</label>
-                                                    <NumberInput
-                                                        value={miniCard[key].actual}
-                                                        aria-invalid={typoKeys.has(`card|${key}`) || undefined}
-                                                        onValueChange={v => handleMiniCardChange(key, 'actual', v)}
-                                                        className="w-full text-center p-1.5 text-base sm:text-sm"
-                                                        style={inputStyle}
-                                                        aria-label={t('{0} — Факт', cardName(key))}
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="text-xs block" style={{ color: 'var(--text-muted)' }}>{t('План')}</label>
-                                                    <NumberInput
-                                                        value={miniCard[key].target}
-                                                        readOnly={!isAdmin}
-                                                        tabIndex={isAdmin ? undefined : -1}
-                                                        onValueChange={v => handleMiniCardChange(key, 'target', v)}
-                                                        className={`w-full text-center p-1.5 text-base sm:text-sm ${isAdmin ? '' : 'cursor-default'}`}
-                                                        style={isAdmin ? inputMutedStyle : { ...inputMutedStyle, borderStyle: 'dashed' }}
-                                                        aria-label={t('{0} — План', cardName(key))}
-                                                    />
-                                                </div>
+                                        <div key={key} className="flex items-center gap-3 px-4 py-2.5" style={{ borderBottom: '1px solid var(--border)' }}>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="text-[0.95rem] truncate" style={{ color: 'var(--text-primary)' }}>{cardName(key)}</div>
+                                                <div className="text-[0.72rem]" style={{ color: 'var(--text-muted)' }}>{cardLabel(key)}</div>
                                             </div>
+                                            <NumberInput
+                                                value={miniCard[key].actual}
+                                                aria-invalid={typoKeys.has(`card|${key}`) || undefined}
+                                                onValueChange={v => handleMiniCardChange(key, 'actual', v)}
+                                                className="w-20 text-center py-2 text-base"
+                                                style={inputStyle}
+                                                aria-label={t('{0} — Факт', cardName(key))}
+                                            />
+                                            <span className="text-[0.9rem]" style={{ color: 'var(--text-muted)' }}>/</span>
+                                            {isAdmin ? (
+                                                <NumberInput
+                                                    value={miniCard[key].target}
+                                                    onValueChange={v => handleMiniCardChange(key, 'target', v)}
+                                                    className="w-16 text-center py-2 text-base"
+                                                    style={inputMutedStyle}
+                                                    aria-label={t('{0} — План', cardName(key))}
+                                                />
+                                            ) : (
+                                                <span className="w-8 tabular text-[1rem]" style={{ color: 'var(--text-muted)' }} aria-label={t('{0} — План', cardName(key))}>{miniCard[key].target}</span>
+                                            )}
                                         </div>
                                     ))}
                                 </div>

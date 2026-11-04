@@ -192,7 +192,6 @@ export const EN: Record<string, string> = {
     "Үй": "House",
     "{0} кулпуланган: капитандар өзгөртө алышпайт, бирок админ катары сиз өзгөртө аласыз.": "{0} is locked: captains can't change it, but as admin you can.",
     "{0} кулпуланган — өзгөртүү үчүн админге кайрылыңыз.": "{0} is locked — contact the admin to make changes.",
-    "Мини-карта (командалык)": "Mini-card (team)",
     "Факт": "Done",
     "{0} — Факт": "{0} — Done",
     "План": "Plan",
@@ -670,5 +669,6 @@ export const EN: Record<string, string> = {
     "кеминде {0} апта": "at least {0|week|weeks}",
     "Кыскартуу": "Show less",
     "Баарын көрсөтүү ({0})": "Show all ({0})",
-    "Бир адамга орточо, {0}": "Average per person, {0}"
+    "Бир адамга орточо, {0}": "Average per person, {0}",
+    "{0} упай алдыда · {1}": "{0} points ahead of {1}"
 };
