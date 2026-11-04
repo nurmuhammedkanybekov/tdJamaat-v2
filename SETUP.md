@@ -90,10 +90,9 @@ through real Supabase accounts (step 4).
    password later, just change it in `syr_sozdor.json` and run it again.
 
 Each house's password is for its **captain** only — the captain logs in
-as "Капитан", picks the house (the list shows each house with its
-captain's name) and types it; the app builds the internal
-`<slug>@tdjamaat.internal` login email itself. Everyone else only views
-the site and never needs a password. The admin password is separate and
+as "Капитан", picks the house (the list shows house names only) and types
+it; the app builds the internal `<slug>@tdjamaat.internal` login email
+itself. The site is private: nobody else can see the results. The admin password is separate and
 gives full access (managing houses/members/weeks), which the house
 logins deliberately can't do.
 
@@ -126,8 +125,8 @@ Vercel — that key only ever runs locally, once, via the setup script.
 
 If Vercel's **Deployment Protection** is on for the project, the live
 URL will sit behind a Vercel login wall — turn it off under
-**Settings → Deployment Protection** for a dashboard the whole jamaat
-should be able to open without a Vercel account.
+**Settings → Deployment Protection** so captains can reach the app's own
+login screen without a Vercel account.
 
 The app also has a daily keep-alive (`api/keepalive.js`, scheduled in
 `vercel.json`): Supabase's free plan pauses a project after 7 days without
