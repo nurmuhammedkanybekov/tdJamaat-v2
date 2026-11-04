@@ -18,7 +18,7 @@ import { AppHeader } from './components/AppHeader';
 import { ViewNavigator } from './components/ViewNavigator';
 import { TABS } from './components/navigation';
 import type { ActiveView } from './components/navigation';
-import { LoginModal } from './components/LoginModal';
+import { LoginScreen } from './components/LoginScreen';
 import { DataEntryForm } from './components/DataEntryForm';
 import { FormulaSheet } from './components/FormulaDisplay';
 import { ProfileSheet } from './components/ProfileSheet';
@@ -35,7 +35,7 @@ import { OrnamentDivider, SunMark } from './components/Ornament';
 import { LoadingScreen, StateCard } from './components/ui';
 import { t } from './i18n';
 
-type Modal = null | 'login' | 'entry' | 'formula' | 'share' | 'admin' | 'history' | 'install' | 'prayer' | 'compare';
+type Modal = null | 'entry' | 'formula' | 'share' | 'admin' | 'history' | 'install' | 'prayer' | 'compare';
 
 const VIEW_KEYS = TABS.map(it => it.key);
 const parseHash = (): { view: ActiveView; memberId: string | null } => {
@@ -81,6 +81,9 @@ const TeamPerformanceTracker: React.FC = () => {
     };
 
     const [authUser, setAuthUser] = useState<AuthUser | null>(null);
+    // The site is private: nothing loads until we know who is logged in.
+    const [authChecked, setAuthChecked] = useState(false);
+    const signedIn = !!authUser;
     const { mode: installMode, install } = useInstallPrompt();
     const updateAvailable = useUpdateAvailable();
     const [updateDismissed, setUpdateDismissed] = useState(false);
@@ -135,10 +138,20 @@ const TeamPerformanceTracker: React.FC = () => {
     }, []);
 
     useEffect(() => {
-        loadData();
-        getInitialAuthUser().then(setAuthUser).catch(() => setAuthUser(null));
-        return subscribeToAuthChanges(setAuthUser);
-    }, [loadData]);
+        getInitialAuthUser()
+            .then(setAuthUser)
+            .catch(() => setAuthUser(null))
+            .finally(() => setAuthChecked(true));
+        return subscribeToAuthChanges(user => { setAuthUser(user); setAuthChecked(true); });
+    }, []);
+
+    // Load the results once someone is logged in; forget them on logout.
+    useEffect(() => {
+        if (signedIn) { loadData(); return; }
+        setAllData(null);
+        setHouses([]);
+        setModal(null);
+    }, [signedIn, loadData]);
 
     // Live: refresh every 2 minutes while the page is visible, and right away
     // when someone comes back to the tab — so a laptop left open in a meeting
@@ -146,7 +159,7 @@ const TeamPerformanceTracker: React.FC = () => {
     useEffect(() => {
         let last = Date.now();
         const refresh = () => {
-            if (document.visibilityState !== 'visible') return;
+            if (!signedIn || document.visibilityState !== 'visible') return;
             // Not while the data entry form is open: a leader is typing, and
             // fresh numbers would only get in the way. Saving reloads the data;
             // after closing, the next refresh catches up.
@@ -163,7 +176,7 @@ const TeamPerformanceTracker: React.FC = () => {
             document.removeEventListener('visibilitychange', refresh);
             window.removeEventListener('focus', refresh);
         };
-    }, [loadData]);
+    }, [loadData, signedIn]);
 
     // The season on screen (default: the running one, or the latest with
     // weeks). Everything below works on that season only, numbered from 1.
@@ -175,6 +188,8 @@ const TeamPerformanceTracker: React.FC = () => {
     const awards = useMemo(() => (data && insights ? computeAwards(data, insights, { seasonClosed, seasonName: seasonNameForAwards }) : []), [data, insights, seasonClosed, seasonNameForAwards]);
     const chooseSeason = (id: number) => { setSeasonChoice(id); setSelectedWeek(null); setSelectedPeriod(null); };
 
+    if (!authChecked) return <LoadingScreen />;
+    if (!authUser) return <LoginScreen theme={theme} onToggleTheme={toggleTheme} />;
     if (loading) return <LoadingScreen />;
     if (error || !allData || !data || !insights || allData.weeks.length === 0) {
         return (
@@ -203,11 +218,9 @@ const TeamPerformanceTracker: React.FC = () => {
                         <div className="flex flex-wrap gap-2 justify-center">
                             {previous && <button className="btn btn-ghost" onClick={() => chooseSeason(previous.id)}>{t('Сезон {0}', previous.name)}</button>}
                             {authUser?.role === 'admin' && <button className="btn btn-primary" onClick={() => setModal('admin')}>{t('Админ панели')}</button>}
-                            {!authUser && <button className="btn btn-ghost" onClick={() => setModal('login')}>{t('Кирүү')}</button>}
                         </div>
                     }
                 />
-                {modal === 'login' && <LoginModal onSuccess={() => setModal(null)} onClose={() => setModal(null)} />}
                 {modal === 'admin' && authUser?.role === 'admin' && <AdminPanel data={allData} onClose={() => setModal(null)} onChanged={() => loadData(true)} />}
             </div>
         );
@@ -245,7 +258,7 @@ const TeamPerformanceTracker: React.FC = () => {
                 onToggleTheme={toggleTheme}
                 screen={screen}
                 onToggleScreen={toggleScreen}
-                onLogin={() => setModal('login')}
+                onLogin={() => undefined}
                 onLogout={() => signOut()}
                 onDataEntry={() => { setDataEntryHouseId(null); setModal('entry'); }}
                 onFormula={() => setModal('formula')}
@@ -319,7 +332,6 @@ const TeamPerformanceTracker: React.FC = () => {
                     onClose={closeProfile}
                 />
             )}
-            {modal === 'login' && <LoginModal onSuccess={() => setModal(null)} onClose={() => setModal(null)} />}
             {modal === 'formula' && <FormulaSheet onClose={() => setModal(null)} />}
             {modal === 'share' && (
                 <ShareSheet data={data} weekIndex={weekIndex} insights={insights} awards={awards} target={shareTarget} siteTheme={theme} seasonName={season.name} seasonFinished={seasonClosed} onClose={() => setModal(null)} />

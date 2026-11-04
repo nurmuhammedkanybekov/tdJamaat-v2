@@ -46,6 +46,17 @@ In the Supabase dashboard, open **SQL Editor** and run, in order:
     someone moves; the admin can set which house/role a saved week counts
     under (the roster tab does this when a move starts from a chosen
     week). Needs step 8. Safe to re-run.
+11. `supabase/private-site-2026-11.sql` — makes the site private: people,
+    results, plans and seasons can only be read by a logged-in captain or
+    the admin (only house names and week numbers stay readable, for the
+    login screen and the keep-alive). It also moves every account's role
+    into `app_metadata`, which users can't change about themselves (the
+    old `user_metadata` could be — a captain could have made themselves
+    admin). Run it **after** deploying the website version that has the
+    login screen. Safe to re-run.
+    Then, in Supabase → **Authentication → Sign In / Providers → Email**,
+    turn **off** "Allow new users to sign up". (Even if left on, a
+    self-made account gets no access.)
 
 ## 3. Configure the app's environment
 

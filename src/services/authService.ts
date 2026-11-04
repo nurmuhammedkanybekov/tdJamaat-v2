@@ -5,7 +5,9 @@ import { t } from '../i18n';
 // Leaders and the admin never see or type an email — the app builds a fixed,
 // non-deliverable email internally just because Supabase Auth requires one.
 // What actually gates access is the password + the RLS policies in
-// supabase/schema.sql, which check user_metadata on the authenticated session.
+// supabase/private-site-2026-11.sql, which read the role from app_metadata
+// (only the server key can set it; user_metadata can be edited by the user
+// themselves, so it is never trusted for access).
 const EMAIL_DOMAIN = 'tdjamaat.internal';
 
 export type SessionRole = 'admin' | 'leader';
@@ -50,17 +52,32 @@ export const signOut = async () => {
     if (error) throw error;
 };
 
+type RoleMeta = { role?: SessionRole; house_id?: string };
+const hasRole = (m: RoleMeta | undefined) => m?.role === 'admin' || m?.role === 'leader';
+
+// app_metadata is what the database trusts. Accounts created before it was
+// filled in only have user_metadata; the database then lets them see nothing
+// until their session is refreshed (see getInitialAuthUser), so using it here
+// only decides what the interface shows, never what anyone may read or write.
 export const getAuthUserFromSession = (session: Session | null): AuthUser | null => {
     if (!session?.user) return null;
-    const meta = session.user.user_metadata as { role?: SessionRole; house_id?: string };
-    if (meta?.role !== 'admin' && meta?.role !== 'leader') return null;
-    return { role: meta.role, houseId: meta.house_id ?? null };
+    const app = session.user.app_metadata as RoleMeta | undefined;
+    const meta = hasRole(app) ? app! : (session.user.user_metadata as RoleMeta | undefined);
+    if (!meta || !hasRole(meta)) return null;
+    return { role: meta.role!, houseId: meta.house_id ?? null };
 };
 
 export const getInitialAuthUser = async (): Promise<AuthUser | null> => {
     const { data, error } = await supabase.auth.getSession();
     if (error) throw error;
-    return getAuthUserFromSession(data.session);
+    let session = data.session;
+    // A session from before the role moved to app_metadata: refresh once so
+    // the token carries it (otherwise the database shows this captain nothing).
+    if (session && !hasRole(session.user.app_metadata as RoleMeta) && hasRole(session.user.user_metadata as RoleMeta)) {
+        const refreshed = await supabase.auth.refreshSession();
+        if (!refreshed.error && refreshed.data.session) session = refreshed.data.session;
+    }
+    return getAuthUserFromSession(session);
 };
 
 // Returns an unsubscribe function — call it in a useEffect cleanup.

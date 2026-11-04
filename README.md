@@ -48,14 +48,12 @@ visual redesign.
 
 ## Features
 
-- **Public dashboard, gated editing.** Anyone in the community can open
-  the site and see current rankings — no login required. Entering or
-  changing data requires signing in.
-- **Captain and admin logins only.** Each house's captain has one
-  password and can only write that house's own weeks; a separate admin
-  login manages the roster and can edit anything. Everyone else just
-  views. Enforced by Postgres row-level security, not just hidden in the
-  UI. The site asks search engines not to index it.
+- **Private: captains and the admin only.** Nothing is shown before
+  logging in. Each house's captain has one password, sees the results and
+  can only write that house's own weeks; a separate admin login manages
+  the roster and can edit anything. Enforced by Postgres row-level
+  security (roles live in `app_metadata`, which users can't change), not
+  just hidden in the UI. The site also asks search engines not to index it.
 - **Roster changes mid-season.** Moving someone to another house or
   giving them a new role starts from a chosen week; earlier weeks stay
   where they were earned, a new captain starts from the captain plans,
@@ -179,12 +177,11 @@ graph LR
         Storage[(Storage: member-photos)]
     end
 
-    Visitor((Community member)) -->|reads dashboard, no login| UI
     Captain((Captain)) -->|logs in with house password| UI
     Admin((Admin)) -->|logs in, manages roster| UI
 
     UI -->|sign in| Auth
-    UI -->|read: public| DB
+    UI -->|read: captains + admin only| DB
     UI -->|write: own house only, RLS-checked| DB
     UI -->|upload photo: own house only| Storage
     Auth -.JWT carries role + house_id.-> DB
@@ -199,19 +196,15 @@ the frontend had a bug.
 
 ```mermaid
 flowchart LR
-    Visitor((Community\nmember))
     Captain((Captain))
     Admin((Admin))
 
-    Visitor --> UC1[View weekly rankings]
-    Visitor --> UC2[View progress / 4-week report]
-    Visitor --> UC3[View total ratings]
-    Visitor --> UC10[Profiles, awards, compare, share images]
-    Visitor --> UC11[Daily schedule]
+    Captain --> UC1[View weekly rankings]
+    Captain --> UC2[View progress / 4-week report]
+    Captain --> UC3[View total ratings]
+    Captain --> UC10[Profiles, awards, compare, share images]
+    Captain --> UC11[Daily schedule]
 
-    Captain --> UC1
-    Captain --> UC2
-    Captain --> UC3
     Captain --> UC4[Sign in]
     Captain --> UC5[Enter this week's member metrics]
     Captain --> UC6[Enter this week's house activity]
@@ -386,6 +379,7 @@ supabase/              run in the SQL editor, in the order listed in SETUP.md
   seasons-2026-10.sql  seasons, per-week house snapshot, end-of-season function
   excused-weeks-2026-10.sql   excused weeks (weekly_metrics.excused)
   roster-changes-2026-11.sql  mid-season moves / new roles; a saved week belongs to its house
+  private-site-2026-11.sql    results readable by captains/admin only; roles from app_metadata
   update-2026-09-names.sql   one-time fixup, already applied — don't re-run
 api/keepalive.js       daily Vercel cron so the free Supabase project never pauses
 public/
@@ -406,16 +400,18 @@ scripts/
 
 ## Access & security
 
-- Anyone with the link can **view** the dashboard — no login needed. The
-  site is not indexed by search engines (noindex meta, robots.txt and an
-  `X-Robots-Tag` header).
+- The site is **private**: nothing can be seen without logging in, and the
+  database itself returns nothing to a visitor (only house names, for the
+  login screen, and week numbers). It is also not indexed by search
+  engines (noindex meta, robots.txt and an `X-Robots-Tag` header).
 - Each **house** has its own password, for its **captain** only, and can
   only write that house's own weekly data (a saved week belongs to the
   house it was earned in, even after someone moves).
 - The **admin** password can do everything, including managing the
   houses/members roster and opening new weeks.
-- Both are enforced by Postgres row-level security (`supabase/schema.sql`),
-  not just hidden in the interface.
+- Both are enforced by Postgres row-level security, which reads each
+  account's role from `app_metadata` (only the server key can set it), not
+  just hidden in the interface.
 - Real credentials never live in this repo: `.env`, `.env.admin`, and
   `scripts/syr_sozdor.json` are all gitignored — copy the matching
   `*.example` file and fill in real values locally.

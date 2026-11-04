@@ -3,8 +3,10 @@
 // One-time (and safely re-runnable) setup script: creates the Supabase Auth
 // accounts that leaders and the admin log in with. Each house gets its own
 // account (email is <slug>@tdjamaat.internal — not a real inbox, just an
-// identifier Supabase Auth requires), tagged with user_metadata so the RLS
-// policies in schema.sql know which house it's allowed to write to.
+// identifier Supabase Auth requires), tagged with app_metadata so the RLS
+// policies know which house it may read and write (app_metadata can only be
+// set with the service key; user_metadata gets the same values for older
+// versions of the website).
 //
 // Re-running this script is safe: it updates the password/metadata of any
 // account that already exists instead of failing, so it's also how you
@@ -62,7 +64,8 @@ async function upsertAuthUser(email, password, userMetadata, label) {
     if (existing) {
         const { error } = await supabase.auth.admin.updateUserById(existing.id, {
             password,
-            user_metadata: userMetadata
+            user_metadata: userMetadata,
+            app_metadata: { ...(existing.app_metadata ?? {}), ...userMetadata }
         });
         if (error) throw error;
         console.log(`Updated  ${label} (${email})`);
@@ -71,7 +74,8 @@ async function upsertAuthUser(email, password, userMetadata, label) {
             email,
             password,
             email_confirm: true,
-            user_metadata: userMetadata
+            user_metadata: userMetadata,
+            app_metadata: userMetadata
         });
         if (error) throw error;
         console.log(`Created  ${label} (${email})`);
@@ -109,7 +113,7 @@ async function main() {
         );
     }
 
-    console.log('\nDone. Each house leader signs in with just their house name + password in the app;');
+    console.log('\nDone. Each captain signs in with just their house name + password in the app;');
     console.log('the app builds the <slug>@tdjamaat.internal email internally.');
 }
 
