@@ -25,6 +25,8 @@ import { ROLE_LABEL } from '../utils/insights';
 import { memberTypos, miniCardTypos, usualValues } from '../utils/typos';
 import { goalHints } from '../utils/breakdown';
 import { rosterForWeek } from '../utils/weekRoster';
+import { clearDraft, pruneDrafts, readDraft, writeDraft } from '../utils/drafts';
+import type { MemberDraft } from '../utils/drafts';
 import type { TypoWarning } from '../utils/typos';
 import { Avatar } from './Avatar';
 import { NumberInput } from './NumberInput';
@@ -49,30 +51,6 @@ interface DataEntryFormProps {
 
 const ZERO_METRICS: MetricValues = {
     'К-К': 0, 'СВТ': 0, 'КТП': 0, 'ТХЖ': 0, 'ДТА': 0, 'ИСТГ': 0, 'НФ': 0, 'ТСП': 0
-};
-
-type MemberDraft = { actual: MetricValues; target: MetricValues; excused: boolean };
-
-// Unsaved typing is also kept on the phone, per house and week, until it is
-// saved. Phones (iPhone especially) reload a page that was in the
-// background, e.g. after checking WhatsApp for someone's numbers; without
-// this, everything typed so far would be gone.
-type StoredDraft = { drafts: Record<string, MemberDraft>; miniCard: MiniCard; at: number };
-const DRAFT_TTL = 7 * 24 * 3600_000;
-const draftKey = (houseId: string, week: number) => `tdjamaat-draft:${houseId}:${week}`;
-const readDraft = (houseId: string, week: number): StoredDraft | null => {
-    try {
-        const raw = localStorage.getItem(draftKey(houseId, week));
-        if (!raw) return null;
-        const d = JSON.parse(raw) as StoredDraft;
-        return d && d.drafts && d.miniCard && Date.now() - d.at < DRAFT_TTL ? d : null;
-    } catch { return null; }
-};
-const writeDraft = (houseId: string, week: number, d: Omit<StoredDraft, 'at'>) => {
-    try { localStorage.setItem(draftKey(houseId, week), JSON.stringify({ ...d, at: Date.now() })); } catch { /* storage full or blocked: not critical */ }
-};
-const clearDraft = (houseId: string, week: number) => {
-    try { localStorage.removeItem(draftKey(houseId, week)); } catch { /* not critical */ }
 };
 
 const inputStyle: React.CSSProperties = { backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)' };
@@ -168,6 +146,9 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
     const label = (n: number) => (data ? weekLabel(data, n) : t('{0}-апта', n));
     const weekLocked = lockedWeeks.includes(weekNumber);
     const lockedForMe = weekLocked && !isAdmin;
+
+    // Old drafts (expired, or left by a house that was renamed away) don't pile up.
+    useEffect(() => { pruneDrafts(); }, []);
 
     useEffect(() => {
         Promise.all([

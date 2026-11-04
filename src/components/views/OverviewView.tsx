@@ -20,6 +20,8 @@ interface OverviewViewProps {
     insights: Insights;
     onOpenProfile: (memberId: string) => void;
     showSubmission: boolean;
+    /** The logged-in captain's (or admin's) desk, shown first. */
+    desk?: React.ReactNode;
 }
 
 // One of the week's top three: a gold hairline ring (photo inside if there is
@@ -41,7 +43,7 @@ const Laureate: React.FC<{ s: MemberSeries; w: MemberWeek; weekIndex: number; on
     </button>
 );
 
-export const OverviewView: React.FC<OverviewViewProps> = ({ data, weekIndex, insights, onOpenProfile, showSubmission }) => {
+export const OverviewView: React.FC<OverviewViewProps> = ({ data, weekIndex, insights, onOpenProfile, showSubmission, desk }) => {
     const [roleFilter, setRoleFilter] = useState<'all' | Role>('all');
     const week = data.weeks[weekIndex];
 
@@ -73,6 +75,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ data, weekIndex, ins
 
     return (
         <div className="space-y-16 sm:space-y-20">
+            {desk}
             {top.length > 0 && (
                 <section aria-label={t('Аптанын үч мыктысы')}>
                     <div className="eyebrow text-center mb-6">{t('Аптанын үч мыктысы')}</div>

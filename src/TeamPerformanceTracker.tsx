@@ -1,182 +1,110 @@
 // TeamPerformanceTracker.tsx — the app shell.
-// Loads data, keeps auth/theme state, routes between views (in the URL hash,
-// so the phone's back button closes a profile and links can be shared), and
-// owns every modal. Each view computes its own layout (src/components/views/*).
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { DataFile, House } from './types';
-import { fetchDataFile, fetchHouses } from './services/dataService';
-import { getInitialAuthUser, subscribeToAuthChanges, signOut } from './services/authService';
-import type { AuthUser } from './services/authService';
-import { getStoredTheme, setScreen, setTheme as persistTheme } from './theme';
-import type { Theme } from './theme';
+// Puts the pieces together: who is logged in (hooks/useAuthUser), the results
+// and their live refresh (hooks/useResults), the view in the URL hash
+// (hooks/useHashRoute), the theme, the keyboard, and every modal. Each view
+// computes its own layout (src/components/views/*).
+import React, { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { signOut } from './services/authService';
 import { useInstallPrompt, useUpdateAvailable } from './pwa';
 import { buildInsights, weekComplete, weekOf } from './utils/insights';
 import { computeAwards } from './utils/badges';
 import { defaultSeasonId, seasonView } from './utils/seasons';
+import { adminDesk, houseDesk } from './utils/desk';
+import { useHashRoute } from './hooks/useHashRoute';
+import { useAuthUser } from './hooks/useAuthUser';
+import { useThemeState } from './hooks/useThemeState';
+import { useResults } from './hooks/useResults';
+import { useKeyboardNav } from './hooks/useKeyboardNav';
 
 import { AppHeader } from './components/AppHeader';
 import { ViewNavigator } from './components/ViewNavigator';
 import { TABS } from './components/navigation';
-import type { ActiveView } from './components/navigation';
 import { LoginScreen } from './components/LoginScreen';
-import { DataEntryForm } from './components/DataEntryForm';
-import { FormulaSheet } from './components/FormulaDisplay';
-import { ProfileSheet } from './components/ProfileSheet';
-import { ShareSheet } from './components/ShareSheet';
 import type { ShareTarget } from './components/ShareSheet';
-import { AdminPanel } from './components/AdminPanel';
-import { HistorySheet } from './components/HistorySheet';
-import { InstallSheet } from './components/InstallSheet';
-import { PrayerSheet } from './components/PrayerSheet';
-import { CompareSheet } from './components/CompareSheet';
 import type { CompareInit } from './components/CompareSheet';
-import { OverviewView, TeamsView, ProgressView, ReportsView, AwardsView, CommunityView } from './components/views';
+import { AdminDeskPanel, CaptainDesk } from './components/Desk';
+import { OverviewView } from './components/views/OverviewView';
+import { TeamsView } from './components/views/TeamsView';
+import { AwardsView } from './components/views/AwardsView';
+import { CommunityView } from './components/views/CommunityView';
 import { OrnamentDivider, SunMark } from './components/Ornament';
 import { LoadingScreen, StateCard } from './components/ui';
 import { t } from './i18n';
+import { prefetch, withReload } from './lazyLoad';
+
+// The chart library (Recharts) is only needed by these four, so they load on
+// demand: the first screen comes up without it, and the chunks are fetched
+// in the background right after (see prefetchLazy), so a tap on
+// Progress or a profile doesn't wait.
+const loadProgress = withReload(() => import('./components/views/ProgressView'));
+const loadReports = withReload(() => import('./components/views/ReportsView'));
+const loadProfile = withReload(() => import('./components/ProfileSheet'));
+const loadCompare = withReload(() => import('./components/CompareSheet'));
+const ProgressView = lazy(() => loadProgress().then(m => ({ default: m.ProgressView })));
+const ReportsView = lazy(() => loadReports().then(m => ({ default: m.ReportsView })));
+const ProfileSheet = lazy(() => loadProfile().then(m => ({ default: m.ProfileSheet })));
+const CompareSheet = lazy(() => loadCompare().then(m => ({ default: m.CompareSheet })));
+// The sheets only open on a tap: loaded on demand too, prefetched the same way.
+const loadEntry = withReload(() => import('./components/DataEntryForm'));
+const loadAdmin = withReload(() => import('./components/AdminPanel'));
+const loadShare = withReload(() => import('./components/ShareSheet'));
+const loadHistory = withReload(() => import('./components/HistorySheet'));
+const DataEntryForm = lazy(() => loadEntry().then(m => ({ default: m.DataEntryForm })));
+const AdminPanel = lazy(() => loadAdmin().then(m => ({ default: m.AdminPanel })));
+const ShareSheet = lazy(() => loadShare().then(m => ({ default: m.ShareSheet })));
+const HistorySheet = lazy(() => loadHistory().then(m => ({ default: m.HistorySheet })));
+const FormulaSheet = lazy(() => withReload(() => import('./components/FormulaDisplay'))().then(m => ({ default: m.FormulaSheet })));
+const InstallSheet = lazy(() => withReload(() => import('./components/InstallSheet'))().then(m => ({ default: m.InstallSheet })));
+const PrayerSheet = lazy(() => withReload(() => import('./components/PrayerSheet'))().then(m => ({ default: m.PrayerSheet })));
+// Prefetch uses the plain imports: a failure there must not reload the page.
+const prefetchLazy = () => prefetch(
+    () => import('./components/DataEntryForm'), () => import('./components/views/ProgressView'), () => import('./components/views/ReportsView'),
+    () => import('./components/ProfileSheet'), () => import('./components/CompareSheet'), () => import('./components/ShareSheet'),
+    () => import('./components/AdminPanel'), () => import('./components/HistorySheet')
+);
+
+/** Placeholder while a section's code arrives (normally already prefetched). */
+const SectionLoading: React.FC = () => (
+    <div className="py-24 flex justify-center" aria-busy="true" aria-label={t('Жүктөлүүдө')}>
+        <div className="skeleton h-1 w-24" />
+    </div>
+);
 
 type Modal = null | 'entry' | 'formula' | 'share' | 'admin' | 'history' | 'install' | 'prayer' | 'compare';
 
-const VIEW_KEYS = TABS.map(it => it.key);
-const parseHash = (): { view: ActiveView; memberId: string | null } => {
-    const raw = window.location.hash.replace(/^#\/?/, '');
-    const [path, query] = raw.split('?');
-    const view = (VIEW_KEYS as string[]).includes(path) ? (path as ActiveView) : 'overview';
-    return { view, memberId: new URLSearchParams(query ?? '').get('m') };
-};
-const hashFor = (view: ActiveView, memberId?: string | null) => `#/${view}${memberId ? `?m=${memberId}` : ''}`;
-
 const fmt = (n: number) => (Math.round(n * 10) / 10).toString();
+const clock = (d: Date) => d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
 const TeamPerformanceTracker: React.FC = () => {
-    const [allData, setAllData] = useState<DataFile | null>(null);
-    const [seasonChoice, setSeasonChoice] = useState<number | null>(null);
-    const [houses, setHouses] = useState<House[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
-    const [route, setRoute] = useState(parseHash);
+    const { authUser, checked: authChecked } = useAuthUser();
+    const { theme, toggleTheme, screen, toggleScreen } = useThemeState();
+    const { route, setView: setActiveView, openProfile, closeProfile } = useHashRoute();
     const activeView = route.view;
+
+    const [modal, setModal] = useState<Modal>(null);
+    // Read by the background refresh, which must not run while someone is
+    // typing results.
+    const modalRef = useRef<Modal>(null);
+    useEffect(() => { modalRef.current = modal; }, [modal]);
+    const entryOpen = useCallback(() => modalRef.current === 'entry', []);
+    const { data: allData, houses, loading, error, reload: loadData, updatedAt, stale, offline } = useResults(!!authUser, entryOpen);
+    // Logged out: close whatever was open.
+    useEffect(() => { if (!authUser) setModal(null); }, [authUser]);
+
+    const [seasonChoice, setSeasonChoice] = useState<number | null>(null);
     // null = "follow the latest" (a new week appears → it's shown automatically)
     const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
     const [selectedPeriod, setSelectedPeriod] = useState<number | null>(null);
-    const [modal, setModal] = useState<Modal>(null);
-    // Read by the background refresh, which must not run while someone is
-    // typing results (see the live refresh below).
-    const modalRef = useRef<Modal>(null);
-    useEffect(() => { modalRef.current = modal; }, [modal]);
     const [compareInit, setCompareInit] = useState<CompareInit>({ kind: 'person' });
     const openCompare = (init: CompareInit) => { setCompareInit(init); setModal('compare'); };
-    const [dataEntryHouseId, setDataEntryHouseId] = useState<string | null>(null);
+    // The data entry form: which house and week it opens on (null = defaults).
+    const [entry, setEntry] = useState<{ houseId: string | null; week: number | null }>({ houseId: null, week: null });
+    const openEntry = (houseId: string | null = null, week: number | null = null) => { setEntry({ houseId, week }); setModal('entry'); };
     const [shareTarget, setShareTarget] = useState<ShareTarget>({ type: 'week' });
-    const pushedProfile = useRef(false);
 
-    const [theme, setThemeState] = useState<Theme>(() => getStoredTheme() ?? (document.documentElement.classList.contains('dark') ? 'dark' : 'light'));
-    const [screen, setScreenState] = useState(() => document.documentElement.classList.contains('screen'));
-    const toggleScreen = () => { setScreen(!screen); setScreenState(!screen); };
-    const toggleTheme = () => {
-        const next: Theme = theme === 'dark' ? 'light' : 'dark';
-        persistTheme(next);
-        setThemeState(next);
-    };
-
-    const [authUser, setAuthUser] = useState<AuthUser | null>(null);
-    // The site is private: nothing loads until we know who is logged in.
-    const [authChecked, setAuthChecked] = useState(false);
-    const signedIn = !!authUser;
     const { mode: installMode, install } = useInstallPrompt();
     const updateAvailable = useUpdateAvailable();
     const [updateDismissed, setUpdateDismissed] = useState(false);
-
-    // Keep state in sync with the URL (back/forward buttons, shared links).
-    useEffect(() => {
-        const onChange = () => {
-            const next = parseHash();
-            if (!next.memberId) pushedProfile.current = false;
-            setRoute(next);
-        };
-        window.addEventListener('hashchange', onChange);
-        window.addEventListener('popstate', onChange);
-        return () => {
-            window.removeEventListener('hashchange', onChange);
-            window.removeEventListener('popstate', onChange);
-        };
-    }, []);
-
-    const setActiveView = (view: ActiveView) => {
-        history.replaceState(null, '', hashFor(view));
-        setRoute({ view, memberId: null });
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-    const openProfile = (memberId: string) => {
-        history.pushState(null, '', hashFor(activeView, memberId));
-        pushedProfile.current = true;
-        setRoute({ view: activeView, memberId });
-    };
-    const closeProfile = () => {
-        if (pushedProfile.current) { history.back(); return; }
-        history.replaceState(null, '', hashFor(activeView));
-        setRoute({ view: activeView, memberId: null });
-    };
-
-    // `silent`: refresh in the background (periodic refresh, after a save,
-    // after the admin opens a week) without swapping the page for the
-    // loading screen — which would also unmount an open form.
-    const loadData = useCallback(async (silent = false) => {
-        try {
-            if (!silent) setLoading(true);
-            const [df, houseList] = await Promise.all([fetchDataFile(), fetchHouses()]);
-            setAllData(df);
-            setHouses(houseList);
-            setError(null);
-        } catch (err) {
-            if (!silent) setError(t('Маалыматты жүктөөдө ката кетти. Интернет байланышын текшерип, бир аздан кийин кайра аракет кылыңыз.'));
-            console.error('Error loading data:', err);
-        } finally {
-            setLoading(false);
-        }
-    }, []);
-
-    useEffect(() => {
-        getInitialAuthUser()
-            .then(setAuthUser)
-            .catch(() => setAuthUser(null))
-            .finally(() => setAuthChecked(true));
-        return subscribeToAuthChanges(user => { setAuthUser(user); setAuthChecked(true); });
-    }, []);
-
-    // Load the results once someone is logged in; forget them on logout.
-    useEffect(() => {
-        if (signedIn) { loadData(); return; }
-        setAllData(null);
-        setHouses([]);
-        setModal(null);
-    }, [signedIn, loadData]);
-
-    // Live: refresh every 2 minutes while the page is visible, and right away
-    // when someone comes back to the tab — so a laptop left open in a meeting
-    // shows new results as leaders submit them, without a manual reload.
-    useEffect(() => {
-        let last = Date.now();
-        const refresh = () => {
-            if (!signedIn || document.visibilityState !== 'visible') return;
-            // Not while the data entry form is open: a leader is typing, and
-            // fresh numbers would only get in the way. Saving reloads the data;
-            // after closing, the next refresh catches up.
-            if (modalRef.current === 'entry') return;
-            if (Date.now() - last < 30_000) return;
-            last = Date.now();
-            loadData(true);
-        };
-        const id = window.setInterval(refresh, 120_000);
-        document.addEventListener('visibilitychange', refresh);
-        window.addEventListener('focus', refresh);
-        return () => {
-            window.clearInterval(id);
-            document.removeEventListener('visibilitychange', refresh);
-            window.removeEventListener('focus', refresh);
-        };
-    }, [loadData, signedIn]);
 
     // The season on screen (default: the running one, or the latest with
     // weeks). Everything below works on that season only, numbered from 1.
@@ -187,6 +115,29 @@ const TeamPerformanceTracker: React.FC = () => {
     const seasonNameForAwards = allData?.seasons.find(x => x.id === seasonId)?.name;
     const awards = useMemo(() => (data && insights ? computeAwards(data, insights, { seasonClosed, seasonName: seasonNameForAwards }) : []), [data, insights, seasonClosed, seasonNameForAwards]);
     const chooseSeason = (id: number) => { setSeasonChoice(id); setSelectedWeek(null); setSelectedPeriod(null); };
+
+    // The week on screen, and the keys/tab title that follow it. (Computed
+    // before the early returns below: hooks must always run.)
+    const weekCount = data?.weeks.length ?? 0;
+    const weekIndex = selectedWeek === null ? weekCount - 1 : Math.min(selectedWeek, weekCount - 1);
+    const isWeekly = activeView === 'overview' || activeView === 'teams' || activeView === 'awards';
+    const goWeek = (i: number) => setSelectedWeek(i >= weekCount - 1 ? null : Math.max(0, i));
+    useKeyboardNav(!!data && weekCount > 0 && modal === null && !route.memberId, {
+        prev: isWeekly && weekIndex > 0 ? () => goWeek(weekIndex - 1) : undefined,
+        next: isWeekly && weekIndex < weekCount - 1 ? () => goWeek(weekIndex + 1) : undefined,
+        tab: i => { if (TABS[i]) setActiveView(TABS[i].key); }
+    });
+    // Once the results are on screen, fetch the on-demand code in the background.
+    const hasData = !!allData;
+    useEffect(() => {
+        if (!hasData) return;
+        const idle = window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 1500));
+        idle(() => prefetchLazy());
+    }, [hasData]);
+    useEffect(() => {
+        const tab = TABS.find(it => it.key === activeView);
+        document.title = authUser && tab && activeView !== 'overview' ? `${tab.label} · tdJamaat` : 'tdJamaat';
+    }, [activeView, authUser]);
 
     if (!authChecked) return <LoadingScreen />;
     if (!authUser) return <LoginScreen theme={theme} onToggleTheme={toggleTheme} />;
@@ -221,15 +172,13 @@ const TeamPerformanceTracker: React.FC = () => {
                         </div>
                     }
                 />
-                {modal === 'admin' && authUser?.role === 'admin' && <AdminPanel data={allData} onClose={() => setModal(null)} onChanged={() => loadData(true)} />}
+                {modal === 'admin' && authUser?.role === 'admin' && <Suspense fallback={null}><AdminPanel data={allData} onClose={() => setModal(null)} onChanged={() => loadData(true)} /></Suspense>}
             </div>
         );
     }
 
-    const weekIndex = selectedWeek === null ? data.weeks.length - 1 : Math.min(selectedWeek, data.weeks.length - 1);
     const currentWeekData = data.weeks[weekIndex];
     const periodIndex = selectedPeriod === null ? Math.max(0, Math.ceil(data.weeks.length / 4) - 1) : selectedPeriod;
-    const isWeekly = activeView === 'overview' || activeView === 'teams' || activeView === 'awards';
 
     // The monument: the week's leading house and its average (submitted houses only).
     const leader = [...insights.houses.values()].find(h => weekOf(h.weeks, weekIndex)?.rank === 1);
@@ -249,6 +198,20 @@ const TeamPerformanceTracker: React.FC = () => {
 
     const profileSeries = route.memberId ? insights.members.get(route.memberId) : undefined;
 
+    // The desk: a captain's own house this week, or (admin) who is still missing.
+    const ownDesk = authUser.role === 'leader' && authUser.houseId ? houseDesk(data, insights, authUser.houseId, weekIndex) : null;
+    const desk = authUser.role === 'admin'
+        ? <AdminDeskPanel desk={adminDesk(currentWeekData)} onEnterFor={houseId => openEntry(houseId, currentWeekData.globalWeek)} onAdmin={() => setModal('admin')} />
+        : ownDesk && (
+            <CaptainDesk
+                desk={ownDesk}
+                canEdit={!ownDesk.locked}
+                onEnter={() => openEntry(ownDesk.houseId, ownDesk.globalWeek)}
+                onOpenHouse={() => setActiveView('teams')}
+                onOpenPerson={openProfile}
+            />
+        );
+
     return (
         <div className="min-h-screen bottom-nav-space" style={{ backgroundColor: 'var(--page-plane)' }}>
             <AppHeader
@@ -260,7 +223,7 @@ const TeamPerformanceTracker: React.FC = () => {
                 onToggleScreen={toggleScreen}
                 onLogin={() => undefined}
                 onLogout={() => signOut()}
-                onDataEntry={() => { setDataEntryHouseId(null); setModal('entry'); }}
+                onDataEntry={() => openEntry()}
                 onFormula={() => setModal('formula')}
                 onAdmin={() => setModal('admin')}
                 onHistory={() => setModal('history')}
@@ -275,8 +238,8 @@ const TeamPerformanceTracker: React.FC = () => {
                     locked: currentWeekData.locked,
                     canPrev: weekIndex > 0,
                     canNext: weekIndex < data.weeks.length - 1,
-                    onPrev: () => setSelectedWeek(Math.max(0, weekIndex - 1)),
-                    onNext: () => setSelectedWeek(weekIndex + 1 >= data.weeks.length - 1 ? null : weekIndex + 1),
+                    onPrev: () => goWeek(weekIndex - 1),
+                    onNext: () => goWeek(weekIndex + 1),
                     isLatest: weekIndex === data.weeks.length - 1
                 } : undefined}
                 seasonLabel={{ overview: undefined, teams: t('Үйлөр'), progress: t('Апталык прогресс'), reports: t('Отчеттор'), awards: t('Сыйлыктар'), community: t('Жамаат') }[activeView]}
@@ -287,10 +250,19 @@ const TeamPerformanceTracker: React.FC = () => {
 
             <ViewNavigator activeView={activeView} setActiveView={setActiveView} />
 
+            {stale && (
+                <div role="status" className="page-gutter py-2.5 text-[0.85rem] flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center" style={{ borderBottom: '1px solid var(--border)', color: 'var(--text-secondary)', backgroundColor: 'var(--surface)' }}>
+                    <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: 'var(--danger)' }} aria-hidden="true" />
+                    {offline ? t('Интернет жок.') : t('Жаңы маалымат жүктөлгөн жок.')}
+                    {updatedAt && <span style={{ color: 'var(--text-muted)' }}>{t('Көрсөтүлгөнү {0} абалында.', clock(updatedAt))}</span>}
+                    {!offline && <button className="underline underline-offset-2 hover:text-[var(--gold)]" onClick={() => loadData(true)}>{t('Кайра аракет кылуу')}</button>}
+                </div>
+            )}
+
             <main className="page-gutter">
                 <div key={activeView} className={`app-container animate-fade-up ${activeView === 'overview' ? 'pt-0 md:pt-8' : 'pt-6 sm:pt-8'}`}>
                     {activeView === 'overview' && (
-                        <OverviewView data={data} weekIndex={weekIndex} insights={insights} onOpenProfile={openProfile} showSubmission={!!authUser} />
+                        <OverviewView data={data} weekIndex={weekIndex} insights={insights} onOpenProfile={openProfile} showSubmission={authUser.role !== 'admin'} desk={desk || undefined} />
                     )}
                     {activeView === 'teams' && (
                         <TeamsView
@@ -299,12 +271,14 @@ const TeamPerformanceTracker: React.FC = () => {
                             insights={insights}
                             initialHouseId={authUser?.houseId ?? null}
                             canEditHouse={houseId => authUser?.role === 'admin' || (!!authUser && authUser.houseId === houseId)}
-                            onEditHouse={houseId => { setDataEntryHouseId(houseId); setModal('entry'); }}
+                            onEditHouse={houseId => openEntry(houseId)}
                             onOpenProfile={openProfile}
                         />
                     )}
-                    {activeView === 'progress' && <ProgressView data={data} insights={insights} onOpenProfile={openProfile} onCompare={kind => openCompare({ kind })} />}
-                    {activeView === 'reports' && <ReportsView data={data} selectedPeriod={periodIndex} setSelectedPeriod={setSelectedPeriod} />}
+                    <Suspense fallback={<SectionLoading />}>
+                        {activeView === 'progress' && <ProgressView data={data} insights={insights} onOpenProfile={openProfile} onCompare={kind => openCompare({ kind })} />}
+                        {activeView === 'reports' && <ReportsView data={data} selectedPeriod={periodIndex} setSelectedPeriod={setSelectedPeriod} />}
+                    </Suspense>
                     {activeView === 'awards' && <AwardsView data={data} weekIndex={weekIndex} awards={awards} insights={insights} onOpenProfile={openProfile} />}
                     {activeView === 'community' && <CommunityView data={data} allData={allData} insights={insights} awards={awards} seasonName={season.name} onOpenProfile={openProfile} onShareWeek={i => { setShareTarget({ type: 'week', card: 'jamaat', weekIndex: i }); setModal('share'); }} onShareSeason={() => { setShareTarget({ type: 'week', card: 'jamaat-season' }); setModal('share'); }} />}
 
@@ -312,12 +286,19 @@ const TeamPerformanceTracker: React.FC = () => {
                         <OrnamentDivider className="mb-5" />
                         <div className="flex items-center justify-center gap-2 pb-4">
                             <SunMark size={15} />
-                            <p className="text-[0.75rem] italic" style={{ color: 'var(--text-muted)' }}>tdJamaat</p>
+                            <p className="text-[0.75rem] italic" style={{ color: 'var(--text-muted)' }}>
+                                tdJamaat{updatedAt && <> · {t('жаңыртылды {0}', clock(updatedAt))}</>}
+                            </p>
                         </div>
+                        {/* Keyboard shortcuts (hooks/useKeyboardNav), for the laptop in meetings. */}
+                        <p className="hidden lg:block text-center text-[0.72rem] pb-4 -mt-2" style={{ color: 'var(--text-muted)' }}>
+                            <kbd className="kbd">←</kbd> <kbd className="kbd">→</kbd> {t('апта')} · <kbd className="kbd">1</kbd>–<kbd className="kbd">{TABS.length}</kbd> {t('бөлүмдөр')}
+                        </p>
                     </footer>
                 </div>
             </main>
 
+            <Suspense fallback={null}>
             {profileSeries && (
                 <ProfileSheet
                     series={profileSeries}
@@ -332,11 +313,14 @@ const TeamPerformanceTracker: React.FC = () => {
                     onClose={closeProfile}
                 />
             )}
-            {modal === 'formula' && <FormulaSheet onClose={() => setModal(null)} />}
+            </Suspense>
+            {modal === 'formula' && <Suspense fallback={null}><FormulaSheet onClose={() => setModal(null)} /></Suspense>}
+            <Suspense fallback={null}>
             {modal === 'share' && (
                 <ShareSheet data={data} weekIndex={weekIndex} insights={insights} awards={awards} target={shareTarget} siteTheme={theme} seasonName={season.name} seasonFinished={seasonClosed} onClose={() => setModal(null)} />
             )}
-            {modal === 'install' && <InstallSheet onClose={() => setModal(null)} />}
+            </Suspense>
+            {modal === 'install' && <Suspense fallback={null}><InstallSheet onClose={() => setModal(null)} /></Suspense>}
             {updateAvailable && !updateDismissed && (
                 <div role="status" className="update-bar fixed left-1/2 -translate-x-1/2 z-[60] w-[calc(100%-2rem)] max-w-md flex items-center gap-3 px-4 py-3 animate-fade-up" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--gold)', borderRadius: 'var(--radius)', boxShadow: 'var(--shadow-lift)' }}>
                     <span className="flex-1 text-[0.9rem]" style={{ color: 'var(--text-primary)' }}>{t('Сайттын жаңы версиясы чыкты.')}</span>
@@ -344,21 +328,23 @@ const TeamPerformanceTracker: React.FC = () => {
                     <button onClick={() => setUpdateDismissed(true)} aria-label={t('Кийинчерээк')} className="w-8 h-8 inline-flex items-center justify-center" style={{ color: 'var(--text-muted)' }}>×</button>
                 </div>
             )}
-            {modal === 'prayer' && <PrayerSheet onClose={() => setModal(null)} />}
-            {modal === 'compare' && <CompareSheet data={data} insights={insights} awards={awards} weekIndex={weekIndex} init={compareInit} onClose={() => setModal(null)} />}
-            {modal === 'history' && authUser && <HistorySheet authUser={authUser} data={allData} onClose={() => setModal(null)} />}
+            {modal === 'prayer' && <Suspense fallback={null}><PrayerSheet onClose={() => setModal(null)} /></Suspense>}
+            {modal === 'compare' && <Suspense fallback={null}><CompareSheet data={data} insights={insights} awards={awards} weekIndex={weekIndex} init={compareInit} onClose={() => setModal(null)} /></Suspense>}
+            {modal === 'history' && authUser && <Suspense fallback={null}><HistorySheet authUser={authUser} data={allData} onClose={() => setModal(null)} /></Suspense>}
+            <Suspense fallback={null}>
             {modal === 'admin' && authUser?.role === 'admin' && (
                 <AdminPanel data={allData} onClose={() => setModal(null)} onChanged={() => loadData(true)} />
             )}
+            </Suspense>
+            <Suspense fallback={null}>
             {modal === 'entry' && authUser && (
                 <DataEntryForm
                     authUser={authUser}
-                    defaultWeekNumber={latestWeekNumber}
-                    initialHouseId={dataEntryHouseId}
-                    onClose={() => { setModal(null); setDataEntryHouseId(null); }}
+                    defaultWeekNumber={entry.week ?? latestWeekNumber}
+                    initialHouseId={entry.houseId}
+                    onClose={() => setModal(null)}
                     onSuccess={() => {
                         setModal(null);
-                        setDataEntryHouseId(null);
                         loadData(true);
                     }}
                     onWeeksChanged={() => loadData(true)}
@@ -366,6 +352,7 @@ const TeamPerformanceTracker: React.FC = () => {
                     data={allData}
                 />
             )}
+            </Suspense>
         </div>
     );
 };

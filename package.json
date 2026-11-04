@@ -2,7 +2,7 @@
   "name": "tdjamaat",
   "private": true,
   "version": "2.0.0",
-  "description": "Weekly house rankings for a Kyrgyz Muslim community in Hungary",
+  "description": "Private weekly house rankings for a community: captains enter results, everyone sees standings, progress and awards",
   "homepage": "https://tdjamaat.vercel.app",
   "repository": {
     "type": "git",

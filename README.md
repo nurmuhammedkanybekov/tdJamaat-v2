@@ -54,6 +54,12 @@ visual redesign.
   the roster and can edit anything. Enforced by Postgres row-level
   security (roles live in `app_metadata`, which users can't change), not
   just hidden in the UI. The site also asks search engines not to index it.
+- **A desk for whoever logs in.** A captain's overview opens on their own
+  house's week: place and rating (with the change since last week), the
+  points to the house above, how many people met the full plan, and where
+  the house lost the most points and who was below plan there — with one
+  button to enter (or correct) that week. The admin sees which houses are
+  still missing, with a button to enter for any of them.
 - **Roster changes mid-season.** Moving someone to another house or
   giving them a new role starts from a chosen week; earlier weeks stay
   where they were earned, a new captain starts from the captain plans,
@@ -130,7 +136,11 @@ visual redesign.
   (names, roles, houses), edit season targets, download a backup.
 - **Installable app (PWA)** with a home-screen icon; refreshes live every
   couple of minutes while open, and offers a "new version" button after a
-  deploy (never reloads by itself, so nothing being typed is lost).
+  deploy (never reloads by itself, so nothing being typed is lost). If the
+  connection drops, the numbers stay on screen with a note saying when
+  they were last loaded, and refresh by themselves once it is back.
+- **Keyboard shortcuts** for the laptop in meetings: ← / → change the week,
+  1–6 switch sections.
 - **Adapts to any screen**: phones get a bottom tab bar and card layouts,
   and the whole interface scales smoothly from a phone to a projector.
 - **Self-service member photos**, uploaded by a house's own captain
@@ -355,18 +365,25 @@ Every push and pull request runs the same three checks on GitHub Actions
 
 ```
 src/
-  TeamPerformanceTracker.tsx   app shell: data loading, routing (#/<view>?m=<member>), modals
+  TeamPerformanceTracker.tsx   app shell: puts the hooks, views and modals together
   components/          shared UI (AppHeader, ProfileSheet, CompareSheet, ShareSheet,
                        AdminPanel, AdminSeason, HistorySheet, DataEntryForm,
                        BadgeMedal, Ornament, ui.tsx, …)
   components/views/    one component per section (Overview, Teams, Progress, Reports, Awards, Community)
   services/            Supabase reads/writes (dataService.ts, buildDataFile.ts) and auth
-  utils/               scoring formula, season insights, badges, seasons, compare,
-                       share-card drawing, calendar and daily schedule
+  utils/               scoring formula, season insights, the captain/admin desk, badges,
+                       seasons, compare, data-entry drafts, share-card drawing,
+                       calendar and daily schedule
   i18n/                Kyrgyz/English: t() and the English texts (en.ts), keyed by
                        the Kyrgyz text; a test checks every t() text has a translation
-  hooks/               useModal (scroll lock + Escape), useMediaQuery, useNow
+  hooks/               useAuthUser (who is logged in), useResults (loading, live refresh,
+                       offline/stale state), useHashRoute (#/<view>?m=<member>),
+                       useThemeState, useKeyboardNav, useModal (scroll lock + Escape),
+                       useMediaQuery, useNow
   test/                test data builders
+  lazyLoad.ts          on-demand code: the charts and the sheets load after the first
+                       screen (prefetched right away), and a page left open across a
+                       deploy reloads itself instead of failing
   pwa.ts               service worker registration + install prompt
   types/               shared TypeScript types
 supabase/              run in the SQL editor, in the order listed in SETUP.md
