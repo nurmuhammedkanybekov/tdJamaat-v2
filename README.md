@@ -51,10 +51,16 @@ visual redesign.
 - **Public dashboard, gated editing.** Anyone in the community can open
   the site and see current rankings — no login required. Entering or
   changing data requires signing in.
-- **Per-house logins.** Each house's leaders share one password and can
-  only write that house's own weekly numbers; a separate admin login
-  manages the roster and can edit anything. Enforced by Postgres row-level
-  security, not just hidden in the UI.
+- **Captain and admin logins only.** Each house's captain has one
+  password and can only write that house's own weeks; a separate admin
+  login manages the roster and can edit anything. Everyone else just
+  views. Enforced by Postgres row-level security, not just hidden in the
+  UI. The site asks search engines not to index it.
+- **Roster changes mid-season.** Moving someone to another house or
+  giving them a new role starts from a chosen week; earlier weeks stay
+  where they were earned, a new captain starts from the captain plans,
+  and the data-entry form for any week shows who was actually in the
+  house that week.
 - **Role-scaled targets.** A captain (капитан), a deputy (орун басар), and a regular member
   have different expected minimums for each metric — the app seeds new
   weekly entries with the right target for that person's role instead of
@@ -382,6 +388,7 @@ supabase/              run in the SQL editor, in the order listed in SETUP.md
   history-and-locks-2026-10.sql   change history + admin week locking
   seasons-2026-10.sql  seasons, per-week house snapshot, end-of-season function
   excused-weeks-2026-10.sql   excused weeks (weekly_metrics.excused)
+  roster-changes-2026-11.sql  mid-season moves / new roles; a saved week belongs to its house
   update-2026-09-names.sql   one-time fixup, already applied — don't re-run
 api/keepalive.js       daily Vercel cron so the free Supabase project never pauses
 public/
@@ -402,9 +409,12 @@ scripts/
 
 ## Access & security
 
-- Anyone can **view** the dashboard — no login needed.
-- Each **house** has its own password (shared by that house's leaders)
-  and can only write that house's own weekly data.
+- Anyone with the link can **view** the dashboard — no login needed. The
+  site is not indexed by search engines (noindex meta, robots.txt and an
+  `X-Robots-Tag` header).
+- Each **house** has its own password, for its **captain** only, and can
+  only write that house's own weekly data (a saved week belongs to the
+  house it was earned in, even after someone moves).
 - The **admin** password can do everything, including managing the
   houses/members roster and opening new weeks.
 - Both are enforced by Postgres row-level security (`supabase/schema.sql`),

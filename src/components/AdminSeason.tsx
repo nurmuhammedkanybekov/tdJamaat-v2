@@ -197,8 +197,9 @@ export const RosterTab: React.FC<{ data: DataFile; busy: string | null; run: Run
             </select>
             <span className="flex gap-1.5 justify-end">
                 {dirty(m) && (
-                    <button className="btn btn-primary" disabled={busy === `m${m.id}`} onClick={() => saveMember(m)}>
-                        {busy === `m${m.id}` ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : value(m, 'houseId') !== m.houseId ? <ArrowRightLeft className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />} {t('Сактоо')}
+                    <button className="btn btn-primary px-3 sm:px-[1.1rem]" aria-label={t('Сактоо')} disabled={busy === `m${m.id}`} onClick={() => saveMember(m)}>
+                        {busy === `m${m.id}` ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : value(m, 'houseId') !== m.houseId ? <ArrowRightLeft className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
+                        <span className="hidden sm:inline">{t('Сактоо')}</span>
                     </button>
                 )}
                 <button

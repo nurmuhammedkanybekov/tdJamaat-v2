@@ -40,6 +40,12 @@ In the Supabase dashboard, open **SQL Editor** and run, in order:
 9. `supabase/excused-weeks-2026-10.sql` — excused weeks: leaders can mark
    someone as excused (sick, travelling) for a week. Until this runs the
    site hides the switch and saves exactly as before. Safe to re-run.
+10. `supabase/roster-changes-2026-11.sql` — roster changes during a
+    season: a new role (e.g. member → captain) starts from that role's
+    plans; a saved week stays editable by the house it was earned in after
+    someone moves; the admin can set which house/role a saved week counts
+    under (the roster tab does this when a move starts from a chosen
+    week). Needs step 8. Safe to re-run.
 
 ## 3. Configure the app's environment
 
@@ -53,7 +59,7 @@ VITE_SUPABASE_ANON_KEY=<anon public key from step 1>
 There's no admin password baked into the client bundle — auth happens
 through real Supabase accounts (step 4).
 
-## 4. Create the login accounts (house leaders + admin)
+## 4. Create the login accounts (captains + admin)
 
 1. Copy `scripts/syr_sozdor.example.json` to `scripts/syr_sozdor.json`
    and fill in a real password for `admin` and for each house slug
@@ -72,11 +78,19 @@ through real Supabase accounts (step 4).
    account. It's safe to re-run any time — e.g. to rotate a house's
    password later, just change it in `syr_sozdor.json` and run it again.
 
-Each house's leaders share that one house password — when they log in
-they just pick their house and type it, the app builds the internal
-`<slug>@tdjamaat.internal` login email itself. The admin password is
-separate and gives full access (managing houses/members/weeks), which
-the per-house logins deliberately can't do.
+Each house's password is for its **captain** only — the captain logs in
+as "Капитан", picks the house (the list shows each house with its
+captain's name) and types it; the app builds the internal
+`<slug>@tdjamaat.internal` login email itself. Everyone else only views
+the site and never needs a password. The admin password is separate and
+gives full access (managing houses/members/weeks), which the house
+logins deliberately can't do.
+
+**When a captain changes** (or a password may have been shared), give the
+house a new password: change it in `scripts/syr_sozdor.json` and run the
+script again (step 4.3). The old password stops working at once; a phone
+that is already logged in stays logged in until it logs out or its
+session expires, so change it on that phone too if needed.
 
 ## 5. Run it locally
 
