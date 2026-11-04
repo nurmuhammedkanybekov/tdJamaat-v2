@@ -181,7 +181,7 @@ button, a, [role="button"] { -webkit-tap-highlight-color: transparent; }
 .font-bold, .font-semibold, b, strong { font-weight: 500; }
 
 :focus-visible {
-    outline: 1px solid var(--gold);
+    outline: 2px solid var(--gold);
     outline-offset: 3px;
 }
 
@@ -257,6 +257,15 @@ button, a, [role="button"] { -webkit-tap-highlight-color: transparent; }
 }
 .chip:hover { color: var(--text-primary); }
 .chip[aria-pressed="true"], .chip.is-active { color: var(--gold); border-bottom-color: var(--gold); }
+/* Touch screens: chips get a full finger-sized target (44px) without looking bigger. */
+@media (pointer: coarse) { .chip { min-height: 2.75rem; } }
+/* A row of filter chips: one line that scrolls sideways on a phone (never a
+   lone chip wrapped onto a second line); wraps normally on wider screens. */
+.chip-row { display: flex; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-inline: -1.1rem; padding-inline: 1.1rem;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 1.1rem, #000 calc(100% - 1.75rem), transparent 100%);
+    mask-image: linear-gradient(90deg, transparent 0, #000 1.1rem, #000 calc(100% - 1.75rem), transparent 100%); }
+.chip-row::-webkit-scrollbar { display: none; }
+@media (min-width: 640px) { .chip-row { flex-wrap: wrap; overflow: visible; margin-inline: 0; padding-inline: 0; -webkit-mask-image: none; mask-image: none; } }
 
 .btn {
     display: inline-flex;

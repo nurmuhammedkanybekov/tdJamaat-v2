@@ -110,7 +110,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ data, weekIndex, ins
                         className="mb-3!"
                     />
                     {/* Filter chips under the title in both columns, so the two lists start level. */}
-                    <div className="flex flex-wrap mb-4" role="group" aria-label={t('Шаар')}>
+                    <div className="chip-row mb-4" role="group" aria-label={t('Шаар')}>
                         <button className="chip" aria-pressed={city === 'all'} onClick={() => setCity('all')}>{t('Бардык шаарлар')}</button>
                         {CITIES.map(c => <button key={c.id} className="chip" aria-pressed={city === c.id} onClick={() => setCity(c.id)}>{c.label}</button>)}
                     </div>
@@ -139,7 +139,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ data, weekIndex, ins
                         title={t('Бардык катышуучулар')}
                         className="mb-3!"
                     />
-                    <div className="flex flex-wrap mb-4" role="group" aria-label={t('Ролу боюнча')}>
+                    <div className="chip-row mb-4" role="group" aria-label={t('Ролу боюнча')}>
                         {(['all', 'imam', 'zam', 'member'] as const).map(r => (
                             <button key={r} className="chip" aria-pressed={roleFilter === r} onClick={() => setRoleFilter(r)}>{ROLE_FILTER_LABEL[r]}</button>
                         ))}

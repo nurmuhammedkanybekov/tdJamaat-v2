@@ -100,7 +100,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ data, insights, onOp
                             <LineChart data={rankData} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
                                 <CartesianGrid stroke="var(--gridline)" vertical={false} />
                                 <XAxis dataKey="week" tick={axisTick} axisLine={false} tickLine={false} />
-                                <YAxis reversed domain={[1, Math.max(1, houses.length)]} allowDecimals={false} tick={axisTick} axisLine={false} tickLine={false} width={30} tickFormatter={v => `${v}`} />
+                                <YAxis reversed domain={[1, Math.max(1, houses.length)]} ticks={Array.from({ length: Math.max(1, houses.length) }, (_, i) => i + 1)} interval={0} padding={{ top: 10, bottom: 10 }} allowDecimals={false} tick={axisTick} axisLine={false} tickLine={false} width={30} tickFormatter={v => `${v}`} />
                                 <Tooltip content={<ChartTooltip unit={placeSuffix} />} cursor={{ stroke: 'var(--border-strong)' }} />
                                 {houses.filter(h => !hidden.has(h.id)).map(h => (
                                     <Line key={h.id} type="monotone" dataKey={h.id} name={h.name} stroke={TEAM_COLORS[h.colorIndex % TEAM_COLORS.length]} strokeWidth={1.4} dot={{ r: 2.5, strokeWidth: 0, fill: TEAM_COLORS[h.colorIndex % TEAM_COLORS.length] }} connectNulls />
@@ -118,7 +118,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ data, insights, onOp
                         <ol className="stagger">
                             {risers.map(({ s, now, delta }, i) => (
                                 <li key={s.id}>
-                                    <button onClick={() => onOpenProfile(s.id)} className="row-link w-[calc(100%+1rem)] flex items-center gap-3 py-2.5 px-2 -mx-2 rounded-[8px] text-left" style={{ borderTop: i ? '1px solid var(--border)' : undefined }}>
+                                    <button onClick={() => onOpenProfile(s.id)} className="row-link w-[calc(100%+1rem)] flex items-center gap-3 py-2.5 px-2 -mx-2 text-left" style={{ borderTop: i ? '1px solid var(--border)' : undefined }}>
                                         <Avatar name={s.name} role={s.role} photoUrl={s.photoUrl} size="sm" />
                                         <span className="flex-1 min-w-0">
                                             <span className="block font-bold truncate" style={{ color: 'var(--text-primary)' }}>{s.name}</span>

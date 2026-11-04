@@ -2,7 +2,7 @@
 import React from 'react';
 import { ArrowDown, ArrowUp, Minus, X } from 'lucide-react';
 import { useModal } from '../hooks/useModal';
-import { perfColor } from '../utils/style';
+import { perfBarColor } from '../utils/style';
 import { Crown, Mark } from './Ornament';
 import { t } from '../i18n';
 
@@ -62,7 +62,7 @@ export const SectionHeader: React.FC<{ eyebrow?: string; title: React.ReactNode;
 /** Horizontal progress bar toward a target (100% = full; beyond shows an overflow mark). */
 export const ProgressBar: React.FC<{ pct: number; color?: string; height?: number }> = ({ pct, color, height = 2 }) => {
     const shown = Math.max(0, Math.min(pct, 100));
-    const c = color ?? perfColor(pct);
+    const c = color ?? perfBarColor(pct);
     return (
         <div className="relative w-full overflow-hidden" style={{ height, backgroundColor: 'var(--border)' }}>
             <div className="h-full animate-grow-x" style={{ width: `${shown}%`, backgroundColor: c }} />

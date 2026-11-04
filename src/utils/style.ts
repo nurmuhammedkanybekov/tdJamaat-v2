@@ -1,8 +1,13 @@
 // Shared style helpers (theme-aware via CSS custom properties).
 
-/** Color for a percent-of-target: green at/above plan, then navy, amber, red. */
+/** Text color for a percent-of-target: gold at/above plan, then ink, grey, red. */
 export const perfColor = (pct: number) =>
     pct >= 100 ? 'var(--gold)' : pct >= 75 ? 'var(--text-primary)' : pct >= 50 ? 'var(--text-secondary)' : 'var(--danger)';
+
+/** Bar color for a percent-of-target. Calmer than the text: a near miss must
+ *  not look heavier than a plan that was met (full ink bars did). */
+export const perfBarColor = (pct: number) =>
+    pct >= 100 ? 'var(--gold)' : pct >= 75 ? 'var(--text-secondary)' : pct >= 50 ? 'var(--text-muted)' : 'var(--danger)';
 
 /** Axis tick style for Recharts, in the site's text font. */
 export const axisTick = { fill: 'var(--text-muted)', fontSize: 11, fontFamily: 'Spectral, Georgia, serif' };
