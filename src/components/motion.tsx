@@ -6,7 +6,7 @@ import { reduced, useReveal } from '../hooks/useReveal';
 const easeOut = (x: number) => 1 - Math.pow(1 - x, 4);
 
 /** A number that counts from where it was to `value` (from 0 the first time). */
-export const CountUp: React.FC<{ value: number; decimals?: number; duration?: number; className?: string; style?: React.CSSProperties }> = ({ value, decimals = 1, duration = 1400, className, style }) => {
+export const CountUp: React.FC<{ value: number; decimals?: number; duration?: number; group?: boolean; className?: string; style?: React.CSSProperties }> = ({ value, decimals = 1, duration = 1400, group, className, style }) => {
     const [shown, setShown] = useState(() => (reduced() ? value : 0));
     const from = useRef(reduced() ? value : 0);
     const el = useRef<HTMLSpanElement>(null);
@@ -32,7 +32,9 @@ export const CountUp: React.FC<{ value: number; decimals?: number; duration?: nu
         return () => { cancelAnimationFrame(raf); from.current = b; };
     }, [value, duration, seen]);
     const factor = Math.pow(10, decimals);
-    const text = (Math.round(shown * factor) / factor).toString();
+    const rounded = Math.round(shown * factor) / factor;
+    // group: thousands apart (20 984), the way the community page writes them
+    const text = group ? rounded.toLocaleString('ru-RU') : rounded.toString();
     return <span ref={el} className={className} style={style}>{text}</span>;
 };
 
@@ -84,4 +86,33 @@ export const Sparks: React.FC<{ count?: number }> = ({ count = 22 }) => (
             );
         })}
     </span>
+);
+
+/** The sky behind the header: tinted by the time of day (src/utils/sky.ts),
+ *  with the sun or the moon on its arc when `body` is set. */
+export const SkyLayer: React.FC<{ phase: string; body?: 'sun' | 'moon'; progress?: number }> = ({ phase, body, progress = 0.5 }) => (
+    <div className={`sky sky-${phase}`} aria-hidden="true">
+        {body && (
+            <span className={`sky-body sky-${body}`} style={{ left: `${8 + progress * 84}%`, top: `${30 - Math.sin(progress * Math.PI) * 22}%` }}>
+                {body === 'moon' && (
+                    <svg viewBox="0 0 40 40" width="100%" height="100%"><defs><mask id="sky-moon"><rect width="40" height="40" fill="#fff" /><circle cx="26" cy="15" r="13" fill="#000" /></mask></defs><circle cx="20" cy="20" r="15" fill="currentColor" mask="url(#sky-moon)" /></svg>
+                )}
+            </span>
+        )}
+    </div>
+);
+
+/** A border of ram's horns (кочкор мүйүз), as on the edge of a шырдак. */
+export const HornBand: React.FC<{ className?: string }> = ({ className = '' }) => (
+    <svg className={`horn-band ${className}`} width="100%" height="16" aria-hidden="true">
+        <defs>
+            <pattern id="horn-tile" width="56" height="16" patternUnits="userSpaceOnUse">
+                <path d="M28 9 C 23 9, 20 3.5, 15 3.5 C 11 3.5, 10 8.5, 13.5 9 C 16 9.4, 16.6 6.8, 14.8 6.6" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
+                <path d="M28 9 C 33 9, 36 3.5, 41 3.5 C 45 3.5, 46 8.5, 42.5 9 C 40 9.4, 39.4 6.8, 41.2 6.6" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
+                <path d="M28 6.6 L30 9 L28 11.4 L26 9 Z" fill="none" stroke="currentColor" strokeWidth="0.9" />
+                <path d="M0 13.5 H56" stroke="currentColor" strokeWidth="0.6" opacity="0.6" />
+            </pattern>
+        </defs>
+        <rect width="100%" height="16" fill="url(#horn-tile)" />
+    </svg>
 );

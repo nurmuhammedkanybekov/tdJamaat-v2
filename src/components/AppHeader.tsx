@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
     ChevronLeft, ChevronRight, Clock3, Columns2, Download, ExternalLink, History, Info, Lock, LogIn, LogOut,
-    Menu, Monitor, Moon, PenLine, Settings2, Share2, Sun
+    Menu, Monitor, Moon, PenLine, Play, Settings2, Share2, Sun
 } from 'lucide-react';
 import type { AuthUser } from '../services/authService';
 import type { Theme } from '../theme';
@@ -11,7 +11,8 @@ import { loadCity } from '../utils/city';
 import { useNow } from '../hooks/useNow';
 import { formatHijri, isRamadan, toHijri } from '../utils/hijri';
 import { PRAYER_NAMES, clock, nextPrayer, prayerTimes } from '../utils/prayer';
-import { CountUp, Sparks, StarField } from './motion';
+import { CountUp, HornBand, SkyLayer, Sparks, StarField } from './motion';
+import { skyAt } from '../utils/sky';
 import { isEnglish, setLang, t } from '../i18n';
 
 interface AppHeaderProps {
@@ -37,6 +38,8 @@ interface AppHeaderProps {
     week?: { number: number; date: string; locked: boolean; canPrev: boolean; canNext: boolean; onPrev: () => void; onNext: () => void; isLatest: boolean };
     /** The big centered statement: who leads and by how much. */
     monument?: { kicker: string; title: string; value: string; sub: string; lead?: string; complete?: boolean };
+    /** Opens the week's story (shown under the hero number). */
+    onStory?: () => void;
     seasonLabel?: string;
     /** The small line above a tab's title (default: the season's name). */
     kicker?: string;
@@ -105,7 +108,7 @@ const IconButton: React.FC<{ label: string; onClick: () => void; children: React
 
 export const AppHeader: React.FC<AppHeaderProps> = ({
     authUser, houseName, theme, onToggleTheme, screen, onToggleScreen, onLogin, onLogout, onDataEntry, onFormula, onAdmin, onHistory, onShare, onPrayer, onCompare,
-    installMode, onInstall, week, monument, seasonLabel, kicker, seasonName, season
+    installMode, onInstall, week, monument, onStory, seasonLabel, kicker, seasonName, season
 }) => {
     const isAdmin = authUser?.role === 'admin';
     const who = isAdmin ? t('Админ') : houseName ? t('{0} үйүнүн капитаны', houseName) : t('Капитан');
@@ -115,6 +118,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     const hijri = toHijri(now);
     const ramadan = isRamadan(hijri);
     const next = nextPrayer(city, now);
+    const sky = skyAt(city, now);
     const todayTimes = prayerTimes(city, now);
 
     const items: MenuItem[] = [
@@ -137,6 +141,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
     return (
         <header className="hero page-gutter" style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top))' }}>
+            <SkyLayer phase={sky.phase} body={monument ? sky.body : undefined} progress={sky.progress} />
             {monument && <StarField />}
             <div className="app-container">
                 {/* Wordmark bar */}
@@ -241,6 +246,11 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                             </div>
                             {monument.lead && <p className="mt-3 text-[1rem] animate-view-in" style={{ color: 'var(--gold)', animationDelay: '900ms' }}>{monument.lead}</p>}
                             <p className="mt-2 text-[0.9rem] tracking-[0.04em]" style={{ color: 'var(--text-muted)' }}>{monument.sub}</p>
+                            {onStory && (
+                                <button onClick={onStory} className="story-cta mt-5 inline-flex items-center gap-2.5 px-5 h-10 rounded-full text-[0.72rem] tracking-[0.2em] uppercase transition-colors">
+                                    <Play className="w-3 h-3" fill="currentColor" />{t('Аптанын жыйынтыгы')}
+                                </button>
+                            )}
                         </>
                     ) : (
                         <h1 className="font-display leading-none mt-3 sm:mt-4 text-[2.2rem] sm:text-[3rem] lg:text-[3.4rem]" style={{ color: 'var(--text-primary)' }}>
@@ -254,6 +264,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                         <span>{ramadan ? t('Ифтар') : PRAYER_NAMES[next.key]} <span className="tabular" style={{ color: 'var(--gold)' }}>{clock(ramadan ? todayTimes.maghrib : next.at, city.tz)}</span></span>
                     </button>
                 </div>
+                {/* A border of ram's horns closes the header, like the edge of a шырдак. */}
+                <HornBand className={monument ? '-mt-4 mb-1' : 'mb-1'} />
             </div>
         </header>
     );

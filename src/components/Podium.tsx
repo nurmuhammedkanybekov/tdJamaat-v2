@@ -49,6 +49,7 @@ export const Podium: React.FC<{ top: { s: MemberSeries; w: MemberWeek }[]; weekI
                 <div key={s.id} className="flex flex-col items-center">
                     <button onClick={() => onOpen(s.id)} className="group flex flex-col items-center text-center w-full pop-in" style={{ animationDelay: `${delay + 350}ms` }}>
                         <span className="relative rounded-full p-[6px]" style={{ border: `1px solid ${metal}`, boxShadow: first ? `0 0 40px -6px color-mix(in oklab, ${metal} 60%, transparent)` : undefined }}>
+                            {first && <span className="rays" aria-hidden="true" />}
                             {first && (
                                 <svg className="absolute -inset-3 spin-halo pointer-events-none" viewBox="0 0 100 100" aria-hidden="true" style={{ width: 'calc(100% + 1.5rem)', height: 'calc(100% + 1.5rem)' }}>
                                     <circle cx="50" cy="50" r="48" fill="none" stroke={metal} strokeWidth="0.6" strokeDasharray="1.5 4.5" opacity="0.8" />

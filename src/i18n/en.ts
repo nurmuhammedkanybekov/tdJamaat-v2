@@ -686,5 +686,12 @@ export const EN: Record<string, string> = {
     "Көчүрүлдү": "Copied",
     "Эскертүү жөнөтүү": "Send a reminder",
     "Капитандарга эскертүү": "Remind the captains",
-    "Орточо рейтинг": "Average rating"
+    "Орточо рейтинг": "Average rating",
+    "Аптанын жыйынтыгы": "The week in review",
+    "Бардык {0} үй киргизди": "All {0} houses have entered",
+    "{0} / {1} үй киргизди · азырынча": "{0} / {1} houses have entered · so far",
+    "Азырынча алдыда": "Leading so far",
+    "Үйлөрдүн жарышы": "The race between houses",
+    "Жамаат бирге": "The jamaat together",
+    "Келерки аптада жолугабыз": "See you next week"
 };

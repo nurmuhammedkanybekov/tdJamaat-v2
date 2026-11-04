@@ -16,6 +16,7 @@ import { useThemeState } from './hooks/useThemeState';
 import { useResults } from './hooks/useResults';
 import { useKeyboardNav } from './hooks/useKeyboardNav';
 import { useAutoReveal } from './hooks/useReveal';
+import { useSpotlight } from './hooks/useSpotlight';
 
 import { AppHeader } from './components/AppHeader';
 import { ViewNavigator } from './components/ViewNavigator';
@@ -54,6 +55,7 @@ const ShareSheet = lazy(() => loadShare().then(m => ({ default: m.ShareSheet }))
 const HistorySheet = lazy(() => loadHistory().then(m => ({ default: m.HistorySheet })));
 const FormulaSheet = lazy(() => withReload(() => import('./components/FormulaDisplay'))().then(m => ({ default: m.FormulaSheet })));
 const InstallSheet = lazy(() => withReload(() => import('./components/InstallSheet'))().then(m => ({ default: m.InstallSheet })));
+const WeekStory = lazy(() => withReload(() => import('./components/WeekStory'))().then(m => ({ default: m.WeekStory })));
 const PrayerSheet = lazy(() => withReload(() => import('./components/PrayerSheet'))().then(m => ({ default: m.PrayerSheet })));
 // Prefetch uses the plain imports: a failure there must not reload the page.
 const prefetchLazy = () => prefetch(
@@ -69,7 +71,7 @@ const SectionLoading: React.FC = () => (
     </div>
 );
 
-type Modal = null | 'entry' | 'formula' | 'share' | 'admin' | 'history' | 'install' | 'prayer' | 'compare';
+type Modal = null | 'story' | 'entry' | 'formula' | 'share' | 'admin' | 'history' | 'install' | 'prayer' | 'compare';
 
 const fmt = (n: number) => (Math.round(n * 10) / 10).toString();
 const clock = (d: Date) => d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -128,6 +130,7 @@ const TeamPerformanceTracker: React.FC = () => {
     });
     // Sections below the screen rise into view as they are scrolled to.
     const viewRef = useRef<HTMLDivElement>(null);
+    useSpotlight();
     useAutoReveal(viewRef, `${activeView}|${!!allData}`);
     // Once the results are on screen, fetch the on-demand code in the background.
     const hasData = !!allData;
@@ -256,6 +259,7 @@ const TeamPerformanceTracker: React.FC = () => {
                 seasonLabel={{ overview: undefined, teams: t('Үйлөр'), season: t('Сезон {0}', season.name), awards: t('Сыйлыктар'), community: t('Жамаат') }[activeView]}
                 kicker={activeView === 'season' ? t('{0} апта', data.weeks.length) : undefined}
                 monument={monument}
+                onStory={activeView === 'overview' && leaderWeek ? () => setModal('story') : undefined}
                 season={seasonPicker}
                 seasonName={season.name}
             />
@@ -339,6 +343,7 @@ const TeamPerformanceTracker: React.FC = () => {
                     <button onClick={() => setUpdateDismissed(true)} aria-label={t('Кийинчерээк')} className="w-8 h-8 inline-flex items-center justify-center" style={{ color: 'var(--text-muted)' }}>×</button>
                 </div>
             )}
+            {modal === 'story' && <Suspense fallback={null}><WeekStory data={data} weekIndex={weekIndex} insights={insights} awards={awards} onShare={() => { setShareTarget({ type: 'week' }); setModal('share'); }} onClose={() => setModal(null)} /></Suspense>}
             {modal === 'prayer' && <Suspense fallback={null}><PrayerSheet onClose={() => setModal(null)} /></Suspense>}
             {modal === 'compare' && <Suspense fallback={null}><CompareSheet data={data} insights={insights} awards={awards} weekIndex={weekIndex} init={compareInit} onClose={() => setModal(null)} /></Suspense>}
             {modal === 'history' && authUser && <Suspense fallback={null}><HistorySheet authUser={authUser} data={allData} onClose={() => setModal(null)} /></Suspense>}

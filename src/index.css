@@ -489,3 +489,65 @@ input[aria-invalid="true"] { border-color: var(--danger) !important; color: var(
 /* Big type: the tabs use their short names so they always fit. */
 html.screen .nav-long { display: none !important; }
 html.screen .nav-short { display: inline !important; }
+
+/* -----------------------------------------------------------------------
+   The sky (src/utils/sky.ts): the header is tinted by the time of day in
+   the chosen city, following the prayer times. A soft wash on porcelain in
+   the day theme, a deep glow in the night theme.
+   ------------------------------------------------------------------------ */
+.sky { position: absolute; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
+.sky::before { content: ''; position: absolute; inset: -12% -8% 0; opacity: var(--sky-o, 0.6);
+    background:
+        radial-gradient(55% 65% at 50% 0%, var(--sky-a), transparent 72%),
+        radial-gradient(38% 55% at 12% 18%, var(--sky-b), transparent 72%),
+        radial-gradient(38% 55% at 88% 22%, var(--sky-c), transparent 72%);
+    animation: sky-drift 48s ease-in-out infinite alternate; transition: opacity 1.5s ease; }
+@keyframes sky-drift { from { transform: translate3d(-2.5%, 0, 0) scale(1.02); } to { transform: translate3d(2.5%, 1.5%, 0) scale(1.06); } }
+/* fade into the page at the bottom so it never ends in a hard edge */
+.sky::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 35%; background: linear-gradient(to bottom, transparent, var(--page-plane)); }
+.sky-dawn { --sky-a: #f2a99a; --sky-b: #a99be0; --sky-c: #f6cf8f; }
+.sky-morning { --sky-a: #f5dfa3; --sky-b: #a9cdee; --sky-c: #f7e6c0; }
+.sky-noon { --sky-a: #f3d27f; --sky-b: #fbe6b1; --sky-c: #ecd59d; }
+.sky-afternoon { --sky-a: #f0b765; --sky-b: #ec9a5a; --sky-c: #f6d39a; }
+.sky-sunset { --sky-a: #e2785f; --sky-b: #a8558f; --sky-c: #f0a35a; }
+.sky-night { --sky-a: #34468a; --sky-b: #1f5e6a; --sky-c: #5b3d87; --sky-o: 0.32; }
+.dark .sky { --sky-o: 0.42; }
+.dark .sky-night { --sky-o: 0.6; }
+
+.sky-body { position: absolute; width: 44px; height: 44px; transform: translate(-50%, -50%); transition: left 60s linear, top 60s linear; }
+.sky-sun { border-radius: 50%; background: radial-gradient(circle, #fff3c9 0%, #f7d06a 45%, rgba(247, 208, 106, 0) 72%); box-shadow: 0 0 70px 26px rgba(247, 200, 90, 0.28); animation: sun-breathe 6s ease-in-out infinite; }
+.sky-moon { width: 34px; height: 34px; color: var(--gold-bright); filter: drop-shadow(0 0 14px color-mix(in oklab, var(--gold) 60%, transparent)); }
+:root:not(.dark) .sky-moon { color: var(--gold); }
+@keyframes sun-breathe { 0%, 100% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(1.08); } }
+
+/* The ram's-horn border under the header. */
+.horn-band { display: block; color: var(--gold); opacity: 0.55; }
+
+/* The week story (WeekStory.tsx): a night stage with slides that rise in. */
+.story { background: radial-gradient(120% 80% at 50% 0%, #1a1d33 0%, #0c0c0d 60%); color: var(--text-primary); }
+.story .hero-glow { top: 45%; }
+@keyframes story-in { from { opacity: 0; transform: translateY(18px); filter: blur(4px); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes story-pop { 0% { opacity: 0; transform: scale(0.6); } 70% { opacity: 1; transform: scale(1.06); } 100% { opacity: 1; transform: none; } }
+@keyframes story-progress { from { width: 0%; } to { width: 100%; } }
+.story-in { animation: story-in 800ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.story-pop { display: inline-block; animation: story-pop 900ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.story-bar { transform-origin: left center; animation: grow-x 1200ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.story-progress { width: 0%; animation: story-progress linear forwards; }
+.story .starfield { display: block; }
+/* The hero's "week story" button: a quiet gold pill with a slow shine. */
+.story-cta { color: var(--gold); border: 1px solid color-mix(in oklab, var(--gold) 55%, transparent); background: color-mix(in oklab, var(--gold) 6%, transparent); position: relative; overflow: hidden; }
+.story-cta:hover { background: color-mix(in oklab, var(--gold) 14%, transparent); }
+.story-cta::after { content: ''; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 35%, color-mix(in oklab, var(--gold-bright) 35%, transparent) 50%, transparent 65%); transform: translateX(-120%); animation: cta-shine 7s ease-in-out 2.5s infinite; }
+@keyframes cta-shine { 0%, 80% { transform: translateX(-120%); } 100% { transform: translateX(120%); } }
+@media (prefers-reduced-motion: reduce) { .story-cta::after { display: none; } }
+
+/* Cards: a soft gold light under the pointer (useSpotlight). */
+@media (hover: hover) {
+    .card { background-image: radial-gradient(320px circle at var(--mx, -999px) var(--my, -999px), color-mix(in oklab, var(--gold) 9%, transparent), transparent 70%); }
+}
+
+/* Light rays behind the week's winner on the podium. */
+.rays { position: absolute; left: 50%; top: 50%; width: 260px; height: 260px; transform: translate(-50%, -50%); pointer-events: none; z-index: -1;
+    background: repeating-conic-gradient(from 0deg, color-mix(in oklab, var(--gold) 16%, transparent) 0deg 5deg, transparent 5deg 20deg);
+    -webkit-mask-image: radial-gradient(circle, #000 18%, transparent 68%); mask-image: radial-gradient(circle, #000 18%, transparent 68%);
+    animation: spin-slow 60s linear infinite; }

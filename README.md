@@ -143,6 +143,15 @@ visual redesign.
   they were last loaded, and refresh by themselves once it is back. The
   app opens instantly on the last results the device loaded (kept per
   login, removed on logout) and refreshes them in the background.
+- **A sky that follows the prayer times.** The header is tinted by the time
+  of day in the chosen city (dawn after Fajr, noon, afternoon after Asr,
+  sunset after Maghrib, night after Isha); on the Week tab the sun, or the
+  moon at night, crosses its arc. A ram's-horn (кочкор мүйүз) border
+  closes the header (src/utils/sky.ts).
+- **"Аптанын жыйынтыгы" — the week as a story.** A full-screen, animated
+  recap (house of the week, the race between houses, the top three, the
+  biggest jump, what the community did together), for meetings and for
+  sharing; tap or ← / → to move, it moves on by itself.
 - **Keyboard shortcuts** for the laptop in meetings: ← / → change the week,
   1–6 switch sections.
 - **Adapts to any screen**: phones get a bottom tab bar and card layouts,
