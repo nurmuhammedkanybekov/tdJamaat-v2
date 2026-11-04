@@ -105,7 +105,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     installMode, onInstall, week, monument, seasonLabel, seasonName, season
 }) => {
     const isAdmin = authUser?.role === 'admin';
-    const who = isAdmin ? t('Админ') : houseName ?? t('Үй жетекчиси');
+    const who = isAdmin ? t('Админ') : houseName ? t('{0} үйүнүн капитаны', houseName) : t('Капитан');
     const ThemeIcon = theme === 'dark' ? Sun : Moon;
     const now = useNow();
     const city = loadCity();

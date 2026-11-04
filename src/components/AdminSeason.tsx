@@ -87,7 +87,7 @@ export const SeasonTab: React.FC<{ data: DataFile; busy: string | null; run: Run
                             </label>
                             <label className="flex items-start gap-3 cursor-pointer text-[0.9rem]" style={{ color: 'var(--text-secondary)' }}>
                                 <input type="checkbox" checked={lock} onChange={e => setLock(e.target.checked)} className="mt-1 accent-[var(--gold)]" />
-                                <span>{t('«{0}» сезонунун апталарын кулпулоо (жетекчилер эски жыйынтыктарды өзгөртө албай калат; админ баары бир өзгөртө алат).', running.name)}</span>
+                                <span>{t('«{0}» сезонунун апталарын кулпулоо (капитандар эски жыйынтыктарды өзгөртө албай калышат; админ баары бир өзгөртө алат).', running.name)}</span>
                             </label>
                             <p className="text-[0.85rem] italic" style={{ color: 'var(--text-muted)' }}>
                                 
@@ -284,10 +284,10 @@ export const RosterTab: React.FC<{ data: DataFile; busy: string | null; run: Run
                         await addHouse(newHouse.name.trim(), newHouse.slug, houses.length + 1);
                         setNewHouse({ name: '', slug: '' });
                         await reload(); onChanged();
-                        return t('Үй кошулду. Жетекчилер кириши үчүн бул үйгө кирүү аккаунтун scripts/create-auth-users.js аркылуу түзүңүз.');
+                        return t('Үй кошулду. Капитаны кириши үчүн бул үйгө кирүү аккаунтун scripts/create-auth-users.js аркылуу түзүңүз.');
                     })}><Plus className="w-3.5 h-3.5" />  {t('Үй кошуу')}</button>
                 </div>
-                <p className="text-[0.8rem] italic" style={{ color: 'var(--text-muted)' }}>{t('Жаңы үйдүн жетекчилери кириши үчүн анын сыр сөзү (аккаунту) өзүнчө түзүлөт: scripts/create-auth-users.js.')}</p>
+                <p className="text-[0.8rem] italic" style={{ color: 'var(--text-muted)' }}>{t('Жаңы үйдүн капитаны кириши үчүн анын сыр сөзү (аккаунту) өзүнчө түзүлөт: scripts/create-auth-users.js.')}</p>
             </section>
         </div>
     );

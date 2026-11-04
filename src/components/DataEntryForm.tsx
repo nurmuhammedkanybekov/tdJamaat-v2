@@ -350,7 +350,7 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
             const weeks = await fetchWeekNumbers();
             setWeekNumbers(weeks);
             setWeekNumber(next);
-            setNotice(t('{0} ачылды. Эми үй жетекчилери маалымат киргизе алышат.', label(next)));
+            setNotice(t('{0} ачылды. Эми капитандар маалымат киргизе алышат.', label(next)));
             onWeeksChanged?.();
         } catch (err) {
             setError(describeSaveError(err));
@@ -553,7 +553,7 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                             {weekLocked && (
                                 <div className="mb-6 px-4 py-3 rounded-[8px] flex items-start gap-2.5 text-sm" style={{ backgroundColor: 'var(--gold-soft)', border: '1px solid color-mix(in oklab, var(--gold) 35%, transparent)', color: 'var(--text-secondary)' }}>
                                     <Lock className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: 'var(--gold)' }} />
-                                    <p>{isAdmin ? t('{0} кулпуланган: жетекчилер өзгөртө албайт, бирок админ катары сиз өзгөртө аласыз.', label(weekNumber)) : t('{0} кулпуланган — өзгөртүү үчүн админге кайрылыңыз.', label(weekNumber))}</p>
+                                    <p>{isAdmin ? t('{0} кулпуланган: капитандар өзгөртө алышпайт, бирок админ катары сиз өзгөртө аласыз.', label(weekNumber)) : t('{0} кулпуланган — өзгөртүү үчүн админге кайрылыңыз.', label(weekNumber))}</p>
                                 </div>
                             )}
 

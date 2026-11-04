@@ -1,0 +1,3 @@
+# A private community site: please don't index it.
+User-agent: *
+Disallow: /

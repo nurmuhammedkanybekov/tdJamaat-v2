@@ -84,7 +84,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
                     <div className="card card-pad mb-5 flex flex-col sm:flex-row sm:items-center gap-3">
                         <div className="flex-1">
                             <div className="font-bold" style={{ color: 'var(--text-primary)' }}>{t('Жаңы апта ачуу')}</div>
-                            <p className="text-[0.8rem]" style={{ color: 'var(--text-muted)' }}>{t('Ачылгандан кийин үй жетекчилери {0} үчүн маалымат киргизе алышат.', label(latestWeek + 1))}</p>
+                            <p className="text-[0.8rem]" style={{ color: 'var(--text-muted)' }}>{t('Ачылгандан кийин капитандар {0} үчүн маалымат киргизе алышат.', label(latestWeek + 1))}</p>
                         </div>
                         <button
                             className={`btn ${confirmOpen ? 'btn-gold' : 'btn-primary'}`}
@@ -100,7 +100,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
                     </div>
 
                     <p className="text-[0.8rem] mb-3" style={{ color: 'var(--text-muted)' }}>
-                        <Lock className="w-3.5 h-3.5 inline -mt-0.5" />  {t('Кулпуланган аптаны үй жетекчилери өзгөртө алышпайт (админ гана өзгөртө алат). Аны каалаган убакта кайра ачса болот.')}
+                        <Lock className="w-3.5 h-3.5 inline -mt-0.5" />  {t('Кулпуланган аптаны капитандар өзгөртө алышпайт (админ гана өзгөртө алат). Аны каалаган убакта кайра ачса болот.')}
                     </p>
                     <ol className="card overflow-hidden">
                         {[...data.weeks].reverse().map((w, i) => {
@@ -117,7 +117,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
                                         onClick={() => run(`lock${w.globalWeek}`, async () => {
                                             await setWeekLocked(w.globalWeek, !w.locked);
                                             onChanged();
-                                            return w.locked ? t('{0} ачылды — жетекчилер кайра өзгөртө алышат.', label(w.globalWeek)) : t('{0} кулпуланды.', label(w.globalWeek));
+                                            return w.locked ? t('{0} ачылды — капитандар кайра өзгөртө алышат.', label(w.globalWeek)) : t('{0} кулпуланды.', label(w.globalWeek));
                                         })}
                                     >
                                         {busy === `lock${w.globalWeek}` ? <Loader2 className="w-4 h-4 animate-spin" /> : w.locked ? <Lock className="w-4 h-4" /> : <LockOpen className="w-4 h-4" />}

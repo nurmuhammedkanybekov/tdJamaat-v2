@@ -114,7 +114,7 @@ export const HistorySheet: React.FC<HistorySheetProps> = ({ authUser, data, onCl
                                     const excusedChange = e.tableName === 'weekly_metrics' && wasExcused !== isExcused ? (isExcused ? 'on' : 'off') : null;
                                     const subject = e.tableName === 'weekly_metrics' ? memberName.get(e.memberId ?? '') ?? t('Белгисиз мүчө') : t('Мини-карта');
                                     const actorIsAdmin = e.actorRole === 'admin';
-                                    const actor = actorIsAdmin ? t('Админ') : e.actorHouseId ? houseName.get(e.actorHouseId) ?? t('Үй жетекчиси') : t('База');
+                                    const actor = actorIsAdmin ? t('Админ') : e.actorHouseId ? houseName.get(e.actorHouseId) ?? t('Капитан') : t('База');
                                     return (
                                         <li key={e.id} className="px-4 py-3" style={{ borderTop: i ? '1px solid var(--border)' : undefined }}>
                                             <div className="flex items-start gap-3">
