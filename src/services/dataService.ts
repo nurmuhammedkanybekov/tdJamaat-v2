@@ -369,14 +369,18 @@ export const updateMember = async (id: string, patch: Partial<{ name: string; ro
 export const applyRosterChangeFrom = async (
     memberId: string,
     fromWeek: number,
-    change: { houseId?: string; role?: Role; roleTarget?: MetricValues }
+    change: { houseId?: string; role?: Role; roleTarget?: MetricValues },
+    /** Last week to change (inclusive); all later weeks when left out. */
+    toWeek?: number
 ) => {
     const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
     if (change.houseId) patch.house_id = change.houseId;
     if (change.role) patch.role = change.role;
     if (change.role && change.roleTarget) patch.target = change.roleTarget;
     if (Object.keys(patch).length === 1) return;
-    const { error } = await supabase.from('weekly_metrics').update(patch).eq('member_id', memberId).gte('week_number', fromWeek);
+    let query = supabase.from('weekly_metrics').update(patch).eq('member_id', memberId).gte('week_number', fromWeek);
+    if (toWeek !== undefined) query = query.lte('week_number', toWeek);
+    const { error } = await query;
     if (error) fail(error);
 };
 

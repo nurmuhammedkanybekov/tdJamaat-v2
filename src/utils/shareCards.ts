@@ -206,7 +206,7 @@ export async function drawPersonWeekCard(canvas: HTMLCanvasElement, theme: CardT
     ctx.fillStyle = p.ink; ctx.font = `400 76px ${DISPLAY}`;
     ctx.fillText(fit(ctx, series.name, CARD_W - 220), CARD_W / 2, 368);
     ctx.fillStyle = p.muted; ctx.font = `italic 400 24px ${TEXT}`;
-    ctx.fillText(ROLE_LABEL[series.role].toLowerCase(), CARD_W / 2, 408);
+    ctx.fillText(ROLE_LABEL[w.member.role].toLowerCase(), CARD_W / 2, 408);
     ctx.fillStyle = p.gold; ctx.font = `400 150px ${DISPLAY}`;
     ctx.fillText(w.submitted ? fmt(w.score) : '—', CARD_W / 2, 556);
     const mv = movement(series.weeks, w.weekIndex);

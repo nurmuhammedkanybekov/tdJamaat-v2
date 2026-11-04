@@ -167,10 +167,10 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
                                     <td className="font-display font-bold text-[1.1rem] tabular" style={{ paddingLeft: '1.5rem', color: i < 3 && !w.excused ? 'var(--gold)' : 'var(--text-muted)' }}>{w.excused ? '—' : pad2(i + 1)}</td>
                                     <td>
                                         <div className="flex items-center gap-3">
-                                            <Avatar name={s.name} role={s.role} photoUrl={w.member.photoUrl} size="sm" />
+                                            <Avatar name={s.name} role={w.member.role} photoUrl={w.member.photoUrl} size="sm" />
                                             <div className="min-w-0">
                                                 <div className="font-bold truncate" style={{ color: 'var(--text-primary)' }}>{w.member.name}</div>
-                                                <div className="text-[0.75rem] italic" style={{ color: 'var(--text-muted)' }}>{ROLE_LABEL[s.role]}</div>
+                                                <div className="text-[0.75rem] italic" style={{ color: 'var(--text-muted)' }}>{ROLE_LABEL[w.member.role]}</div>
                                             </div>
                                         </div>
                                     </td>
@@ -223,10 +223,10 @@ const MemberCard: React.FC<{ s: MemberSeries; w: MemberWeek; place: number; week
     <button onClick={onOpen} className="card w-full text-left p-3.5 sm:p-4 transition-shadow hover:shadow-[var(--shadow-lift)]">
         <div className="flex items-center gap-3">
             <span className="w-6 font-display font-bold text-[1.1rem] tabular" style={{ color: place <= 3 && !w.excused ? 'var(--gold)' : 'var(--text-muted)' }}>{w.excused ? '—' : pad2(place)}</span>
-            <Avatar name={s.name} role={s.role} photoUrl={w.member.photoUrl} size="md" />
+            <Avatar name={s.name} role={w.member.role} photoUrl={w.member.photoUrl} size="md" />
             <div className="flex-1 min-w-0">
                 <div className="font-bold truncate" style={{ color: 'var(--text-primary)' }}>{w.member.name}</div>
-                <div className="text-[0.75rem] italic" style={{ color: 'var(--text-muted)' }}>{ROLE_LABEL[s.role]}</div>
+                <div className="text-[0.75rem] italic" style={{ color: 'var(--text-muted)' }}>{ROLE_LABEL[w.member.role]}</div>
             </div>
             <div className="text-right">
                 <div className="font-display font-bold text-[1.5rem] leading-none tabular" style={{ color: 'var(--text-primary)' }}>{w.excused ? <span className="text-[0.8rem] italic" style={{ color: 'var(--text-muted)' }}>{t('себептүү')}</span> : fmt(w.score)}</div>

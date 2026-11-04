@@ -677,14 +677,16 @@ export const EN: Record<string, string> = {
     "апта": "week",
     "бөлүмдөр": "sections",
     // AdminSeason.tsx: roster history check
-    "{0}: {1}-аптадан баштап оңдолду.": "{0}: corrected from week {1}.",
     "Бул сезондо үйү же ролу өзгөргөндөр": "House or role changed this season",
     "Текшерүү": "Check",
-    "Ар бир апта кайсы үйдө жана кайсы ролдо сакталганы. Эгер өзгөрүү буга чейин сакталган апталарга да тиешелүү болсо, алардын биринчисин тандап «Оңдоо» басыңыз: тандалган аптадан баштап азыркы үйүнө жана ролуна (жана ролунун планына) келтирилет, андан мурункуларга тийбейт.": "Which house and role each week was saved under. If a change should also count for weeks already saved, pick the first such week and press Correct: from that week on, the weeks are set to today's house and role (and that role's plan); earlier weeks are not touched.",
+    "Ар бир апта кайсы үйдө жана кайсы ролдо сакталганы. Оңдоо үчүн апталарды (биринчиси – акыркысы), үйдү жана ролду тандап «Оңдоо» басыңыз. Башка апталарга тийбейт; рол өзгөрсө, ошол ролдун планы коюлат. Каалаган адамдын апталарын анын сабындагы саат белгиси менен ачса болот.": "Which house and role each week was saved under. To correct, pick the weeks (first – last), the house and the role, and press Correct. Other weeks are not touched; a new role gets that role's plan. Anyone's weeks can be opened with the clock button on their row.",
     "азыр: {0} · {1}": "now: {0} · {1}",
     "пландары оңдолушу керек": "plans need correcting",
     "которуу кийинки аптадан башталса — туура": "fine if the change starts next week",
     "туура келет": "matches",
     "бул ролдун планы эмес": "not this role's plan",
-    "Азыркы үйүнө жана ролуна келтирүү, кайсы аптадан баштап?": "Bring in line with today's house and role, from which week?"
+    "{0}: бул апталар буга чейин эле ушундай.": "{0}: these weeks are already like that.",
+    "{0}: {1}–{2}-апталар → {3} · {4}.": "{0}: weeks {1}–{2} → {3} · {4}.",
+    "Биринчи апта": "First week",
+    "Апталар боюнча тарыхы": "Week-by-week history"
 };

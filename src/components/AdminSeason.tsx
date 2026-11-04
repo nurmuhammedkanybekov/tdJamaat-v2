@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowRightLeft, CheckCircle2, Loader2, Plus, Save, UserMinus, UserPlus } from 'lucide-react';
+import { ArrowRightLeft, CheckCircle2, History, Loader2, Plus, Save, UserMinus, UserPlus } from 'lucide-react';
 import type { DataFile, House, Member, Role } from '../types';
 import { rosterHistory } from '../utils/rosterHistory';
 import { addHouse, addMember, applyRosterChangeFrom, fetchHouses, fetchMembers, fetchSeasonSettings, renameSeason, startNewSeason, updateHouse, updateMember } from '../services/dataService';
@@ -139,7 +139,9 @@ export const RosterTab: React.FC<{ data: DataFile; busy: string | null; run: Run
     const [newMember, setNewMember] = useState<Record<string, { name: string; role: Role }>>({});
     const [newHouse, setNewHouse] = useState({ name: '', slug: '' });
     const [showLeft, setShowLeft] = useState(false);
-    const [fixFrom, setFixFrom] = useState<Record<string, number>>({});
+    // The week-range editor: which weeks, and which house/role they count under.
+    const [fix, setFix] = useState<Record<string, { from?: number; to?: number; houseId?: string; role?: Role }>>({});
+    const [openHistory, setOpenHistory] = useState<Record<string, boolean>>({});
 
     const reload = async () => {
         const [h, m, st] = await Promise.all([fetchHouses(true), fetchMembers(true), fetchSeasonSettings()]);
@@ -165,17 +167,31 @@ export const RosterTab: React.FC<{ data: DataFile; busy: string | null; run: Run
     // weeks agree with today (changes made before "from which week" existed
     // changed only the current house/role).
     const history = rosterHistory(seasonWeeks, members, settings?.roleTargets ?? null);
+    const allHistory = rosterHistory(seasonWeeks, members, settings?.roleTargets ?? null, true);
+    const newestGlobal = newest?.globalWeek ?? 1;
+    const fixValue = (h: (typeof history)[number]) => ({
+        from: fix[h.member.id]?.from ?? h.suggestedFrom,
+        to: fix[h.member.id]?.to ?? newestGlobal,
+        houseId: fix[h.member.id]?.houseId ?? h.member.houseId,
+        role: fix[h.member.id]?.role ?? h.member.role
+    });
     const fixHistory = (h: (typeof history)[number]) => run(`fix${h.member.id}`, async () => {
         const m = h.member;
-        const from = fixFrom[m.id] ?? h.suggestedFrom;
-        const roleWrong = h.runs.some(r => r.toGlobal >= from && (r.role !== m.role || r.offPlan));
+        const v = fixValue(h);
+        const from = Math.min(v.from, v.to), to = Math.max(v.from, v.to);
+        const inRange = h.runs.filter(r => r.toGlobal >= from && r.fromGlobal <= to);
+        const houseWrong = inRange.some(r => r.houseId !== v.houseId);
+        const roleWrong = inRange.some(r => r.role !== v.role || r.offPlan);
+        if (!houseWrong && !roleWrong) return t('{0}: бул апталар буга чейин эле ушундай.', m.name);
         await applyRosterChangeFrom(m.id, from, {
-            houseId: m.houseId,
-            role: roleWrong ? m.role : undefined,
-            roleTarget: roleWrong && settings ? settings.roleTargets[m.role] : undefined
-        });
+            houseId: houseWrong ? v.houseId : undefined,
+            role: roleWrong ? v.role : undefined,
+            roleTarget: roleWrong && settings ? settings.roleTargets[v.role] : undefined
+        }, to);
+        setFix(f => ({ ...f, [m.id]: {} }));
         await reload(); onChanged();
-        return t('{0}: {1}-аптадан баштап оңдолду.', m.name, weekOptions.find(o => o.value === from)?.seasonWeek ?? from);
+        const label = (g: number) => weekOptions.find(o => o.value === g)?.seasonWeek ?? g;
+        return t('{0}: {1}–{2}-апталар → {3} · {4}.', m.name, label(from), label(to), houses.find(x => x.id === v.houseId)?.name ?? '', ROLE_LABEL[v.role].toLowerCase());
     });
     const runText = (r: (typeof history)[number]['runs'][number]) =>
         `${r.from === r.to ? t('{0}-апта', r.from) : t('{0}–{1}-апталар', r.from, r.to)}: ${r.houseName} · ${ROLE_LABEL[r.role].toLowerCase()}`;
@@ -207,6 +223,45 @@ export const RosterTab: React.FC<{ data: DataFile; busy: string | null; run: Run
         return t('{0} сакталды{1}.', (d.name ?? m.name).trim(), moved + since);
     });
 
+    const weekSelect = (value: number, onChange: (v: number) => void, label: string) => (
+        <select value={value} onChange={e => onChange(Number(e.target.value))} className="px-2 py-1 text-[0.88rem]" style={input} aria-label={label}>
+            {weekOptions.filter(o => !o.upcoming).map(o => <option key={o.value} value={o.value}>{o.seasonWeek}</option>)}
+        </select>
+    );
+    // "Weeks X–Y count under house H, role R" — for any saved weeks.
+    const rangeEditor = (h: (typeof history)[number]) => {
+        const v = fixValue(h);
+        const set = (patch: Partial<typeof v>) => setFix(f => ({ ...f, [h.member.id]: { ...f[h.member.id], ...patch } }));
+        return (
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-[0.85rem]" style={{ color: 'var(--text-secondary)' }}>
+                <span>{t('Апталар')}</span>
+                {weekSelect(v.from, x => set({ from: x }), t('Биринчи апта'))}
+                <span>–</span>
+                {weekSelect(v.to, x => set({ to: x }), t('Акыркы апта'))}
+                <span>→</span>
+                <select value={v.houseId} onChange={e => set({ houseId: e.target.value })} className="px-2 py-1 text-[0.88rem]" style={input} aria-label={t('Үйү')}>
+                    {houses.filter(x => x.active || x.id === v.houseId).map(x => <option key={x.id} value={x.id}>{x.name}</option>)}
+                </select>
+                <select value={v.role} onChange={e => set({ role: e.target.value as Role })} className="px-2 py-1 text-[0.88rem]" style={input} aria-label={t('Ролу')}>
+                    {ROLES.map(r => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
+                </select>
+                <button className={`btn ${h.status === 'plan' ? 'btn-primary' : 'btn-ghost'}`} disabled={busy === `fix${h.member.id}`} onClick={() => fixHistory(h)}>
+                    {busy === `fix${h.member.id}` ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}{t('Оңдоо')}
+                </button>
+            </div>
+        );
+    };
+    const timeline = (h: (typeof history)[number]) => (
+        <ol className="mt-1.5 text-[0.85rem] space-y-0.5" style={{ color: 'var(--text-secondary)' }}>
+            {h.runs.map(r => (
+                <li key={r.fromGlobal}>
+                    {runText(r)}
+                    {r.offPlan && <span style={{ color: 'var(--danger)' }}> — {t('бул ролдун планы эмес')}</span>}
+                </li>
+            ))}
+        </ol>
+    );
+
     const memberRow = (m: Member) => (
         <li key={m.id} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] sm:grid-cols-[minmax(0,1.4fr)_8rem_10rem_auto] gap-2 items-center py-2.5" style={{ borderBottom: '1px solid var(--border)' }}>
             <input value={value(m, 'name')} onChange={e => setDraft(m.id, { name: e.target.value })} className="col-span-3 sm:col-span-1 px-2 py-1.5 min-w-0 text-[0.95rem]" style={input} aria-label={t('Аты')} />
@@ -217,6 +272,11 @@ export const RosterTab: React.FC<{ data: DataFile; busy: string | null; run: Run
                 {houses.filter(h => h.active || h.id === m.houseId).map(h => <option key={h.id} value={h.id}>{h.name}</option>)}
             </select>
             <span className="flex gap-1.5 justify-end">
+                {m.active && allHistory.some(h => h.member.id === m.id) && (
+                    <button className="btn btn-ghost btn-icon" title={t('Апталар боюнча тарыхы')} aria-label={t('Апталар боюнча тарыхы')} aria-expanded={!!openHistory[m.id]} onClick={() => setOpenHistory(o => ({ ...o, [m.id]: !o[m.id] }))}>
+                        <History className="w-4 h-4" />
+                    </button>
+                )}
                 {dirty(m) && (
                     <button className="btn btn-primary px-3 sm:px-[1.1rem]" aria-label={t('Сактоо')} disabled={busy === `m${m.id}`} onClick={() => saveMember(m)}>
                         {busy === `m${m.id}` ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : value(m, 'houseId') !== m.houseId ? <ArrowRightLeft className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
@@ -242,6 +302,10 @@ export const RosterTab: React.FC<{ data: DataFile; busy: string | null; run: Run
                     <span className="italic" style={{ color: 'var(--text-muted)' }}>{t('Мурунку апталар мурдагыдай калат.')}</span>
                 </label>
             )}
+            {openHistory[m.id] && (() => {
+                const h = allHistory.find(x => x.member.id === m.id);
+                return h ? <div className="col-span-3 sm:col-span-4 pb-1">{timeline(h)}{rangeEditor(h)}</div> : null;
+            })()}
             {nameChanged(m) && (
                 <p className="col-span-3 sm:col-span-4 text-[0.82rem]" style={{ color: 'var(--warning)' }}>
                     {t('Ат каталарын оңдоо үчүн гана. Бул адамдын ордуна башка адам келсе, жаңысын «Кошуу» менен кошуп, муну курамдан чыгарыңыз — антпесе бул адамдын жыйынтыктары жаңысына өтүп кетет.')}
@@ -262,7 +326,7 @@ export const RosterTab: React.FC<{ data: DataFile; busy: string | null; run: Run
                     <div className="eyebrow mb-1">{t('Текшерүү')}</div>
                     <h3 className="font-display text-[1.5rem]" style={{ color: 'var(--text-primary)' }}>{t('Бул сезондо үйү же ролу өзгөргөндөр')}</h3>
                     <p className="text-[0.85rem] mt-1 mb-3" style={{ color: 'var(--text-secondary)' }}>
-                        {t('Ар бир апта кайсы үйдө жана кайсы ролдо сакталганы. Эгер өзгөрүү буга чейин сакталган апталарга да тиешелүү болсо, алардын биринчисин тандап «Оңдоо» басыңыз: тандалган аптадан баштап азыркы үйүнө жана ролуна (жана ролунун планына) келтирилет, андан мурункуларга тийбейт.')}
+                        {t('Ар бир апта кайсы үйдө жана кайсы ролдо сакталганы. Оңдоо үчүн апталарды (биринчиси – акыркысы), үйдү жана ролду тандап «Оңдоо» басыңыз. Башка апталарга тийбейт; рол өзгөрсө, ошол ролдун планы коюлат. Каалаган адамдын апталарын анын сабындагы саат белгиси менен ачса болот.')}
                     </p>
                     <ul>
                         {history.map(h => (
@@ -274,23 +338,8 @@ export const RosterTab: React.FC<{ data: DataFile; busy: string | null; run: Run
                                         {h.status === 'plan' ? t('пландары оңдолушу керек') : h.status === 'move' ? t('которуу кийинки аптадан башталса — туура') : t('туура келет')}
                                     </span>
                                 </div>
-                                <ol className="mt-1.5 text-[0.85rem] space-y-0.5" style={{ color: 'var(--text-secondary)' }}>
-                                    {h.runs.map(r => (
-                                        <li key={r.fromGlobal}>
-                                            {runText(r)}
-                                            {r.offPlan && <span style={{ color: 'var(--danger)' }}> — {t('бул ролдун планы эмес')}</span>}
-                                        </li>
-                                    ))}
-                                </ol>
-                                <div className="mt-2 flex flex-wrap items-center gap-2 text-[0.85rem]" style={{ color: 'var(--text-secondary)' }}>
-                                    <span>{t('Азыркы үйүнө жана ролуна келтирүү, кайсы аптадан баштап?')}</span>
-                                    <select value={fixFrom[h.member.id] ?? h.suggestedFrom} onChange={e => setFixFrom(f => ({ ...f, [h.member.id]: Number(e.target.value) }))} className="px-2 py-1 text-[0.88rem]" style={input}>
-                                        {weekOptions.filter(o => !o.upcoming).map(o => <option key={o.value} value={o.value}>{t('{0}-апта', o.seasonWeek)}</option>)}
-                                    </select>
-                                    <button className={`btn ${h.status === 'plan' ? 'btn-primary' : 'btn-ghost'}`} disabled={busy === `fix${h.member.id}`} onClick={() => fixHistory(h)}>
-                                        {busy === `fix${h.member.id}` ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}{t('Оңдоо')}
-                                    </button>
-                                </div>
+                                {timeline(h)}
+                                {rangeEditor(h)}
                             </li>
                         ))}
                     </ul>

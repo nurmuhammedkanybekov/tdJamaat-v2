@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import type { DataFile, Role } from '../../types';
 import type { Insights, MemberSeries, MemberWeek } from '../../utils/insights';
-import { movement, ROLE_LABEL, weekOf } from '../../utils/insights';
+import { houseNameAt, movement, ROLE_LABEL, roleAt, weekOf } from '../../utils/insights';
 import { CITIES, houseStandings, personStandings } from '../../utils/standings';
 import type { City, Scope } from '../../utils/standings';
 import { Avatar } from '../Avatar';
@@ -29,12 +29,12 @@ interface OverviewViewProps {
 const Laureate: React.FC<{ s: MemberSeries; w: MemberWeek; weekIndex: number; onOpen: () => void }> = ({ s, w, weekIndex, onOpen }) => (
     <button onClick={onOpen} className="group flex sm:flex-col items-center gap-4 sm:gap-3 text-left sm:text-center w-full py-4 sm:py-2">
         <span className="relative flex-shrink-0 rounded-full p-[5px] transition-colors" style={{ border: '1px solid var(--gold)' }}>
-            <Avatar name={s.name} role={s.role} photoUrl={w.member.photoUrl} size="lg" />
+            <Avatar name={s.name} role={w.member.role} photoUrl={w.member.photoUrl} size="lg" />
             <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 px-2 font-display text-[0.95rem] leading-none" style={{ color: 'var(--gold)', backgroundColor: 'var(--page-plane)' }}>{ROMAN[(w.rank ?? 1) - 1]}</span>
         </span>
         <span className="flex-1 min-w-0 sm:mt-2">
             <span className="block font-display text-[1.45rem] leading-tight line-clamp-2 sm:truncate transition-colors group-hover:text-[var(--gold)]" style={{ color: 'var(--text-primary)' }}>{w.member.name}</span>
-            <span className="block text-[0.82rem] italic truncate" style={{ color: 'var(--text-muted)' }}>{w.houseName} · {ROLE_LABEL[s.role].toLowerCase()}</span>
+            <span className="block text-[0.82rem] italic truncate" style={{ color: 'var(--text-muted)' }}>{w.houseName} · {ROLE_LABEL[w.member.role].toLowerCase()}</span>
         </span>
         <span className="flex-shrink-0 flex sm:flex-col items-center gap-2 sm:gap-1">
             <span className="font-display text-[1.9rem] leading-none tabular" style={{ color: 'var(--text-primary)' }}>{fmt(w.score)}</span>
@@ -59,7 +59,9 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ data, weekIndex, ins
         .slice(0, 3), [insights, weekIndex]);
 
     const people = useMemo(() => personStandings(insights, weekIndex, scope, 'all', weeksSoFar), [insights, weekIndex, scope, weeksSoFar]);
-    const filtered = roleFilter === 'all' ? people : people.filter(p => p.s.role === roleFilter);
+    // The role each person had at this week (a new captain is listed as a
+    // captain only from the week the change started).
+    const filtered = roleFilter === 'all' ? people : people.filter(p => roleAt(p.s, weekIndex) === roleFilter);
     // People whose house hasn't entered the week yet: one line instead of a
     // long run of "—" rows (it can be opened).
     const listed = filtered.filter(p => p.value !== null || p.excused);
@@ -156,10 +158,10 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ data, weekIndex, ins
                                     style={{ borderBottom: '1px solid var(--border)' }}
                                 >
                                     <span className="w-6 text-[0.75rem] tabular flex-shrink-0" style={{ color: 'var(--gold-dim)' }}>{rank ? pad2(rank) : '—'}</span>
-                                    <Avatar name={s.name} role={s.role} photoUrl={w?.member.photoUrl ?? s.photoUrl} size="sm" />
+                                    <Avatar name={s.name} role={roleAt(s, weekIndex)} photoUrl={w?.member.photoUrl ?? s.photoUrl} size="sm" />
                                     <span className="min-w-0 flex-1">
                                         <span className="block truncate text-[1rem]" style={{ color: 'var(--text-primary)' }}>{s.name}</span>
-                                        <span className="block text-[0.78rem] italic truncate" style={{ color: 'var(--text-muted)' }}>{w?.houseName ?? s.houseName} · {ROLE_LABEL[s.role].toLowerCase()}</span>
+                                        <span className="block text-[0.78rem] italic truncate" style={{ color: 'var(--text-muted)' }}>{w?.houseName ?? houseNameAt(s, weekIndex)} · {ROLE_LABEL[roleAt(s, weekIndex)].toLowerCase()}</span>
                                     </span>
                                     {showMovement && <Movement delta={movement(s.weeks, weekIndex)} />}
                                     {scope === 'season' && value !== null && <span className="text-[0.75rem] italic flex-shrink-0" style={{ color: 'var(--text-muted)' }}>{t('{0} апта', weeks)}</span>}

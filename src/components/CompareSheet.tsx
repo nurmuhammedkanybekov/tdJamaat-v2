@@ -3,7 +3,7 @@ import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YA
 import { ChevronRight } from 'lucide-react';
 import type { DataFile } from '../types';
 import type { Insights } from '../utils/insights';
-import { METRICS, ROLE_LABEL, weekOf } from '../utils/insights';
+import { METRICS, ROLE_LABEL, houseNameAt, roleAt, weekOf } from '../utils/insights';
 import type { Award } from '../utils/badges';
 import type { CompareKind, CompareRow } from '../utils/compare';
 import { defaultRival, headToHead, houseRows, metricAverages, metricLeads, personRows, rowWinner } from '../utils/compare';
@@ -163,22 +163,22 @@ export const CompareSheet: React.FC<CompareSheetProps> = ({ data, insights, awar
                     {/* The two sides */}
                     <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
                         <div className="min-w-0 flex flex-col items-end text-right">
-                            {kind === 'person' && pa && <Avatar name={pa.name} role={pa.role} photoUrl={pa.photoUrl} size="lg" />}
+                            {kind === 'person' && pa && <Avatar name={pa.name} role={roleAt(pa, weekIndex)} photoUrl={pa.photoUrl} size="lg" />}
                             <div className="mt-2 max-w-full">
                                 <Picker value={aId} onChange={v => setSide(0, v)} text={nameA ?? ''} label={t('Биринчиси')} color={COLOR_A} align="right">{kind === 'person' ? personOptions : houseOptions}</Picker>
                             </div>
-                            {kind === 'person' && pa && <div className="eyebrow mt-1 max-w-full">{ROLE_LABEL[pa.role]} · {pa.houseName}</div>}
+                            {kind === 'person' && pa && <div className="eyebrow mt-1 max-w-full">{ROLE_LABEL[roleAt(pa, weekIndex)]} · {houseNameAt(pa, weekIndex)}</div>}
                         </div>
                         <div className="flex flex-col items-center" aria-hidden>
                             <Medallion className="w-9 h-9" style={{ color: 'var(--gold-dim)' }} />
                             <span className="eyebrow mt-1">vs</span>
                         </div>
                         <div className="min-w-0 flex flex-col items-start text-left">
-                            {kind === 'person' && pb && <Avatar name={pb.name} role={pb.role} photoUrl={pb.photoUrl} size="lg" />}
+                            {kind === 'person' && pb && <Avatar name={pb.name} role={roleAt(pb, weekIndex)} photoUrl={pb.photoUrl} size="lg" />}
                             <div className="mt-2 max-w-full">
                                 <Picker value={bId} onChange={v => setSide(1, v)} text={nameB ?? ''} label={t('Экинчиси')} color={COLOR_B} align="left">{kind === 'person' ? personOptions : houseOptions}</Picker>
                             </div>
-                            {kind === 'person' && pb && <div className="eyebrow mt-1 max-w-full">{ROLE_LABEL[pb.role]} · {pb.houseName}</div>}
+                            {kind === 'person' && pb && <div className="eyebrow mt-1 max-w-full">{ROLE_LABEL[roleAt(pb, weekIndex)]} · {houseNameAt(pb, weekIndex)}</div>}
                         </div>
                     </div>
 

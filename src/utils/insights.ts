@@ -176,6 +176,18 @@ export const buildInsights = (data: DataFile): Insights => {
     return { members, houses };
 };
 
+/** The week a person was in at a given week index: that week, or else their
+ *  latest week before it (or their first, if they joined later). Their house
+ *  and role THEN — not today's — come from here. */
+export const entryAt = (s: MemberSeries, weekIndex: number): MemberWeek | undefined =>
+    weekOf(s.weeks, weekIndex) ?? s.weeks.filter(w => w.weekIndex <= weekIndex).at(-1) ?? s.weeks[0];
+
+/** A person's role at a given week (the role that week was saved under). */
+export const roleAt = (s: MemberSeries, weekIndex: number): Role => entryAt(s, weekIndex)?.member.role ?? s.role;
+
+/** A person's house name at a given week. */
+export const houseNameAt = (s: MemberSeries, weekIndex: number): string => entryAt(s, weekIndex)?.houseName ?? s.houseName;
+
 /** A person's (or house's) entry for a given week index, if they were on a roster then. */
 export const weekOf = <T extends { weekIndex: number }>(weeks: T[], weekIndex: number): T | undefined =>
     weeks.find(w => w.weekIndex === weekIndex);

@@ -43,7 +43,7 @@ export interface RosterHistory {
 const samePlan = (a: MetricValues, b: MetricValues | undefined) =>
     !!b && METRICS.every(m => Math.abs((a[m] || 0) - (b[m] || 0)) < 1e-9);
 
-export const rosterHistory = (weeks: WeekData[], members: Member[], roleTargets: Record<Role, MetricValues> | null): RosterHistory[] => {
+export const rosterHistory = (weeks: WeekData[], members: Member[], roleTargets: Record<Role, MetricValues> | null, includeAll = false): RosterHistory[] => {
     const out: RosterHistory[] = [];
     for (const member of members.filter(m => m.active)) {
         const runs: HistoryRun[] = [];
@@ -59,7 +59,7 @@ export const rosterHistory = (weeks: WeekData[], members: Member[], roleTargets:
         if (runs.length === 0) continue;
         const matches = (r: HistoryRun): boolean => r.houseId === member.houseId && r.role === member.role && !r.offPlan;
         // Only people who actually changed house or role this season.
-        if (!runs.some(r => r.houseId !== member.houseId || r.role !== member.role)) continue;
+        if (!includeAll && !runs.some(r => r.houseId !== member.houseId || r.role !== member.role)) continue;
         // Only the latest run is suggested: earlier runs under another house or
         // role are usually real history (the admin can pick an earlier week).
         const latest = runs[runs.length - 1];

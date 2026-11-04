@@ -3,7 +3,7 @@ import { Area, AreaChart, CartesianGrid, ReferenceLine, ResponsiveContainer, Too
 import { Columns2, Share2, X } from 'lucide-react';
 import type { DataFile } from '../types';
 import type { Insights, MemberSeries } from '../utils/insights';
-import { METRICS, PLAN_SCORE, ROLE_LABEL, movement, seasonSummary, streakUntil, weekOf } from '../utils/insights';
+import { METRICS, PLAN_SCORE, ROLE_LABEL, houseNameAt, movement, roleAt, seasonSummary, streakUntil, weekOf } from '../utils/insights';
 import type { Award } from '../utils/badges';
 import { TIER_LABEL, bestPerfectStreak, groupAwards } from '../utils/badges';
 import { useModal } from '../hooks/useModal';
@@ -83,10 +83,10 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({ series, data, insigh
                             <X className="w-5 h-5" strokeWidth={1.3} />
                         </button>
                         <div className="inline-block rounded-full p-[6px]" style={{ border: '1px solid var(--gold)' }}>
-                            <Avatar name={series.name} role={series.role} photoUrl={series.photoUrl} size="2xl" />
+                            <Avatar name={series.name} role={roleAt(series, weekIndex)} photoUrl={series.photoUrl} size="2xl" />
                         </div>
                         <h2 className="font-display text-[2.4rem] sm:text-[3rem] leading-none mt-5" style={{ color: 'var(--text-primary)' }}>{series.name}</h2>
-                        <div className="eyebrow mt-3">{ROLE_LABEL[series.role]} · {series.houseName}</div>
+                        <div className="eyebrow mt-3">{ROLE_LABEL[roleAt(series, weekIndex)]} · {houseNameAt(series, weekIndex)}</div>
 
                         <dl className="profile-stats grid grid-cols-2 sm:grid-cols-4 mt-9 text-center">
                             {stats.map((s, i) => (
