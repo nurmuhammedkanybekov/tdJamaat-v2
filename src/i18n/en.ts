@@ -675,5 +675,16 @@ export const EN: Record<string, string> = {
     "Күтүлүп жаткан үйлөр төмөндө. Капитан киргизе албаса, сиз анын ордуна киргизе аласыз.": "The houses still missing are below. If a captain can't enter, you can enter for them.",
     "Киргизүү": "Enter",
     "апта": "week",
-    "бөлүмдөр": "sections"
+    "бөлүмдөр": "sections",
+    // AdminSeason.tsx: roster history check
+    "{0}: {1}-аптадан баштап оңдолду.": "{0}: corrected from week {1}.",
+    "Бул сезондо үйү же ролу өзгөргөндөр": "House or role changed this season",
+    "Текшерүү": "Check",
+    "Ар бир апта кайсы үйдө жана кайсы ролдо сакталганы. Эгер өзгөрүү буга чейин сакталган апталарга да тиешелүү болсо, алардын биринчисин тандап «Оңдоо» басыңыз: тандалган аптадан баштап азыркы үйүнө жана ролуна (жана ролунун планына) келтирилет, андан мурункуларга тийбейт.": "Which house and role each week was saved under. If a change should also count for weeks already saved, pick the first such week and press Correct: from that week on, the weeks are set to today's house and role (and that role's plan); earlier weeks are not touched.",
+    "азыр: {0} · {1}": "now: {0} · {1}",
+    "пландары оңдолушу керек": "plans need correcting",
+    "которуу кийинки аптадан башталса — туура": "fine if the change starts next week",
+    "туура келет": "matches",
+    "бул ролдун планы эмес": "not this role's plan",
+    "Азыркы үйүнө жана ролуна келтирүү, кайсы аптадан баштап?": "Bring in line with today's house and role, from which week?"
 };

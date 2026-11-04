@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowRightLeft, CheckCircle2, Loader2, Plus, Save, UserMinus, UserPlus } from 'lucide-react';
 import type { DataFile, House, Member, Role } from '../types';
+import { rosterHistory } from '../utils/rosterHistory';
 import { addHouse, addMember, applyRosterChangeFrom, fetchHouses, fetchMembers, fetchSeasonSettings, renameSeason, startNewSeason, updateHouse, updateMember } from '../services/dataService';
 import type { SeasonSettings } from '../services/dataService';
 import { runningSeason } from '../utils/seasons';
@@ -138,6 +139,7 @@ export const RosterTab: React.FC<{ data: DataFile; busy: string | null; run: Run
     const [newMember, setNewMember] = useState<Record<string, { name: string; role: Role }>>({});
     const [newHouse, setNewHouse] = useState({ name: '', slug: '' });
     const [showLeft, setShowLeft] = useState(false);
+    const [fixFrom, setFixFrom] = useState<Record<string, number>>({});
 
     const reload = async () => {
         const [h, m, st] = await Promise.all([fetchHouses(true), fetchMembers(true), fetchSeasonSettings()]);
@@ -158,6 +160,25 @@ export const RosterTab: React.FC<{ data: DataFile; busy: string | null; run: Run
 
     const sortedHouses = useMemo(() => [...(houses ?? [])].sort((a, b) => Number(b.active) - Number(a.active) || a.displayOrder - b.displayOrder), [houses]);
     if (!houses) return <div className="flex items-center justify-center gap-2 py-12" style={{ color: 'var(--text-muted)' }}><Loader2 className="w-5 h-5 animate-spin" />  {t('Жүктөлүүдө…')}</div>;
+
+    // People whose house or role changed this season, and whether their saved
+    // weeks agree with today (changes made before "from which week" existed
+    // changed only the current house/role).
+    const history = rosterHistory(seasonWeeks, members, settings?.roleTargets ?? null);
+    const fixHistory = (h: (typeof history)[number]) => run(`fix${h.member.id}`, async () => {
+        const m = h.member;
+        const from = fixFrom[m.id] ?? h.suggestedFrom;
+        const roleWrong = h.runs.some(r => r.toGlobal >= from && (r.role !== m.role || r.offPlan));
+        await applyRosterChangeFrom(m.id, from, {
+            houseId: m.houseId,
+            role: roleWrong ? m.role : undefined,
+            roleTarget: roleWrong && settings ? settings.roleTargets[m.role] : undefined
+        });
+        await reload(); onChanged();
+        return t('{0}: {1}-аптадан баштап оңдолду.', m.name, weekOptions.find(o => o.value === from)?.seasonWeek ?? from);
+    });
+    const runText = (r: (typeof history)[number]['runs'][number]) =>
+        `${r.from === r.to ? t('{0}-апта', r.from) : t('{0}–{1}-апталар', r.from, r.to)}: ${r.houseName} · ${ROLE_LABEL[r.role].toLowerCase()}`;
 
     const value = <K extends keyof Member>(m: Member, k: K): Member[K] => (drafts[m.id]?.[k] ?? m[k]) as Member[K];
     const setDraft = (id: string, patch: Partial<Member>) => setDrafts(d => ({ ...d, [id]: { ...d[id], ...patch } }));
@@ -235,6 +256,46 @@ export const RosterTab: React.FC<{ data: DataFile; busy: string | null; run: Run
                 
                 {t('Адамды башка үйгө которуу же ролун өзгөртүү үчүн тандап, кайсы аптадан баштап экенин көрсөтүп, «Сактоо» басыңыз. Мурунку апталары мурдагы үйүндө жана ролунда калат. Кеткен адамды курамдан чыгарыңыз — тарыхы сакталат.')}
             </p>
+
+            {history.length > 0 && (
+                <section aria-label={t('Бул сезондо үйү же ролу өзгөргөндөр')}>
+                    <div className="eyebrow mb-1">{t('Текшерүү')}</div>
+                    <h3 className="font-display text-[1.5rem]" style={{ color: 'var(--text-primary)' }}>{t('Бул сезондо үйү же ролу өзгөргөндөр')}</h3>
+                    <p className="text-[0.85rem] mt-1 mb-3" style={{ color: 'var(--text-secondary)' }}>
+                        {t('Ар бир апта кайсы үйдө жана кайсы ролдо сакталганы. Эгер өзгөрүү буга чейин сакталган апталарга да тиешелүү болсо, алардын биринчисин тандап «Оңдоо» басыңыз: тандалган аптадан баштап азыркы үйүнө жана ролуна (жана ролунун планына) келтирилет, андан мурункуларга тийбейт.')}
+                    </p>
+                    <ul>
+                        {history.map(h => (
+                            <li key={h.member.id} className="py-3" style={{ borderTop: '1px solid var(--border)' }}>
+                                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                                    <span className="font-bold" style={{ color: 'var(--text-primary)' }}>{h.member.name}</span>
+                                    <span className="text-[0.82rem]" style={{ color: 'var(--text-muted)' }}>{t('азыр: {0} · {1}', houses.find(x => x.id === h.member.houseId)?.name ?? '—', ROLE_LABEL[h.member.role].toLowerCase())}</span>
+                                    <span className="text-[0.82rem]" style={{ color: h.status === 'plan' ? 'var(--danger)' : h.status === 'move' ? 'var(--text-muted)' : 'var(--success)' }}>
+                                        {h.status === 'plan' ? t('пландары оңдолушу керек') : h.status === 'move' ? t('которуу кийинки аптадан башталса — туура') : t('туура келет')}
+                                    </span>
+                                </div>
+                                <ol className="mt-1.5 text-[0.85rem] space-y-0.5" style={{ color: 'var(--text-secondary)' }}>
+                                    {h.runs.map(r => (
+                                        <li key={r.fromGlobal}>
+                                            {runText(r)}
+                                            {r.offPlan && <span style={{ color: 'var(--danger)' }}> — {t('бул ролдун планы эмес')}</span>}
+                                        </li>
+                                    ))}
+                                </ol>
+                                <div className="mt-2 flex flex-wrap items-center gap-2 text-[0.85rem]" style={{ color: 'var(--text-secondary)' }}>
+                                    <span>{t('Азыркы үйүнө жана ролуна келтирүү, кайсы аптадан баштап?')}</span>
+                                    <select value={fixFrom[h.member.id] ?? h.suggestedFrom} onChange={e => setFixFrom(f => ({ ...f, [h.member.id]: Number(e.target.value) }))} className="px-2 py-1 text-[0.88rem]" style={input}>
+                                        {weekOptions.filter(o => !o.upcoming).map(o => <option key={o.value} value={o.value}>{t('{0}-апта', o.seasonWeek)}</option>)}
+                                    </select>
+                                    <button className={`btn ${h.status === 'plan' ? 'btn-primary' : 'btn-ghost'}`} disabled={busy === `fix${h.member.id}`} onClick={() => fixHistory(h)}>
+                                        {busy === `fix${h.member.id}` ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}{t('Оңдоо')}
+                                    </button>
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                </section>
+            )}
 
             {sortedHouses.map(h => {
                 const people = members.filter(m => m.houseId === h.id && m.active).sort((a, b) => a.displayOrder - b.displayOrder);
