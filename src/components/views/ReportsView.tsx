@@ -30,9 +30,10 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ data, selectedPeriod, 
     const [mode, setMode] = useState<'period' | 'total'>('period');
     return (
         <div className="space-y-6">
-            <div className="flex w-full sm:inline-flex sm:w-auto p-1 rounded-full" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }} role="tablist">
+            {/* Text tabs with a gold underline, like every other switch on the site. */}
+            <div className="chip-row" role="tablist">
                 {([['period', t('4 апталык отчет')], ['total', t('Жалпы рейтинг')]] as const).map(([k, label]) => (
-                    <button key={k} role="tab" aria-selected={mode === k} onClick={() => setMode(k)} className={`chip flex-1 sm:flex-none justify-center whitespace-nowrap ${mode === k ? 'is-active' : ''}`} style={{ border: 'none', padding: '0.5rem 0.6rem', letterSpacing: '0.12em' }}>{label}</button>
+                    <button key={k} role="tab" aria-selected={mode === k} onClick={() => setMode(k)} className={`chip ${mode === k ? 'is-active' : ''}`} style={{ marginRight: '1.75rem', fontSize: '0.78rem' }}>{label}</button>
                 ))}
             </div>
             {mode === 'period' ? <PeriodReport data={data} selectedPeriod={selectedPeriod} setSelectedPeriod={setSelectedPeriod} /> : <TotalReport data={data} />}
@@ -66,25 +67,28 @@ const PeriodReport: React.FC<ReportsViewProps> = ({ data, selectedPeriod, setSel
                 </button>
                 <div className="text-center">
                     <div className="eyebrow">{t('{0}-мезгил / {1}', period + 1, totalPeriods)}</div>
-                    <div className="font-display font-bold text-[1.6rem] tabular" style={{ color: 'var(--text-primary)' }}>{t('{0}–{1}-апталар', first, last)}</div>
+                    <div className="font-display font-bold text-[1.6rem] tabular" style={{ color: 'var(--text-primary)' }}>{first === last ? t('{0}-апта', first) : t('{0}–{1}-апталар', first, last)}</div>
                 </div>
                 <button className="btn btn-ghost btn-icon rounded-full" onClick={() => setSelectedPeriod(Math.min(totalPeriods - 1, period + 1))} disabled={period >= totalPeriods - 1} aria-label={t('Кийинки мезгил')} style={{ opacity: period >= totalPeriods - 1 ? 0.35 : 1 }}>
                     <ChevronRight className="w-5 h-5" />
                 </button>
             </div>
 
-            <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-3 stagger">
+            {/* One ruled plate, like the mini-card and the season records. */}
+            <div className="card overflow-hidden">
+            <div className="grid grid-cols-1 sm:grid-cols-3 stagger">
                 {[
                     { label: t('Эң мыкты үй'), value: rows[0]?.average !== null && rows[0] ? rows[0].name : '—', sub: rows[0]?.average != null ? t('Рейтинг: {0}', rows[0].average) : '' },
                     { label: t('Эң тез өсүү'), value: rising?.name ?? '—', sub: rising ? `${rising.scores[0]} → ${rising.scores.at(-1)}` : t('Өсүү байкалган жок') },
                     { label: t('Мезгил'), value: t('{0} апта', weeks.length), sub: t('{0} үй катышты', rows.length) }
                 ].map(s => (
-                    <div key={s.label} className="card card-pad">
+                    <div key={s.label} className="px-5 py-4 sm:p-6 min-w-0" style={{ boxShadow: '1px 0 0 var(--border), 0 1px 0 var(--border)' }}>
                         <div className="eyebrow">{s.label}</div>
                         <div className="font-display font-bold text-[1.6rem] mt-1 truncate" style={{ color: 'var(--text-primary)' }}>{s.value}</div>
                         <div className="text-[0.8rem]" style={{ color: 'var(--text-muted)' }}>{s.sub}</div>
                     </div>
                 ))}
+            </div>
             </div>
 
             <section className="card overflow-hidden">
@@ -113,8 +117,8 @@ const PeriodReport: React.FC<ReportsViewProps> = ({ data, selectedPeriod, setSel
                                         </td>
                                         {weeks.map((w, k) => <td key={w.weekNumber} className="hidden md:table-cell tabular" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>{r.cells[k] !== null ? r.cells[k]!.toFixed(1) : '—'}</td>)}
                                         <td className="font-display font-bold text-[1.2rem] tabular" style={{ textAlign: 'right', color: 'var(--text-primary)' }}>{r.average ?? '—'}</td>
-                                        <td className="hidden sm:table-cell tabular font-bold" style={{ textAlign: 'right', color: 'var(--success)' }}>{r.best !== null ? r.best.toFixed(1) : '—'}</td>
-                                        <td className="hidden sm:table-cell tabular font-bold" style={{ textAlign: 'right', color: 'var(--danger)' }}>{r.worst !== null ? r.worst.toFixed(1) : '—'}</td>
+                                        <td className="hidden sm:table-cell tabular font-bold" style={{ textAlign: 'right', color: r.best !== null && r.best !== r.worst ? 'var(--success)' : 'var(--text-secondary)' }}>{r.best !== null ? r.best.toFixed(1) : '—'}</td>
+                                        <td className="hidden sm:table-cell tabular font-bold" style={{ textAlign: 'right', color: r.worst !== null && r.best !== r.worst ? 'var(--danger)' : 'var(--text-secondary)' }}>{r.worst !== null ? r.worst.toFixed(1) : '—'}</td>
                                         <td style={{ textAlign: 'right', paddingRight: '1.25rem' }}>
                                             <span className="inline-flex items-center gap-1 font-bold text-[0.82rem] tabular whitespace-nowrap" style={{ color: r.change === null ? 'var(--text-muted)' : T.color }} title={T.label}>
                                                 {r.change === null ? '—' : <><T.icon className="w-4 h-4" />{r.change > 0 ? '+' : ''}{r.change.toFixed(1)}</>}
@@ -181,8 +185,8 @@ const TotalReport: React.FC<{ data: DataFile }> = ({ data }) => {
                                 </span>
                                 <span className="font-display font-bold text-[1.5rem] tabular" style={{ color: 'var(--text-primary)' }}>{r.total}</span>
                             </div>
-                            <div className="mt-2 ml-10 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--gridline)' }}>
-                                <div className="h-full rounded-full animate-grow-x" style={{ width: `${(r.total / max) * 100}%`, backgroundColor: TEAM_COLORS[r.colorIndex % TEAM_COLORS.length] }} />
+                            <div className="mt-2 ml-10 h-[3px] overflow-hidden" style={{ backgroundColor: 'var(--border)' }}>
+                                <div className="h-full animate-grow-x" style={{ width: `${(r.total / max) * 100}%`, backgroundColor: TEAM_COLORS[r.colorIndex % TEAM_COLORS.length] }} />
                             </div>
                         </li>
                     ))}

@@ -38,6 +38,8 @@ const Change: React.FC<{ now: number; before: number }> = ({ now, before }) => {
     return <span className="tabular" style={{ color }}>{pct > 0 ? '▲' : pct < 0 ? '▼' : '='} {Math.abs(pct)}%</span>;
 };
 
+const cell: React.CSSProperties = { boxShadow: '1px 0 0 var(--border), 0 1px 0 var(--border)' };
+
 export const CommunityView: React.FC<CommunityViewProps> = ({ data, allData, insights, awards, seasonName, onOpenProfile, onShareWeek, onShareSeason }) => {
     const totals = useMemo(() => seasonTotals(data, insights), [data, insights]);
     const last = data.weeks.length - 1;
@@ -116,7 +118,10 @@ export const CommunityView: React.FC<CommunityViewProps> = ({ data, allData, ins
             {records.length > 0 && (
                 <section>
                     <SectionHeader eyebrow={t('Сезон {0}', seasonName)} title={t('Сезондун рекорддору')} />
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {/* One ruled plate (like the mini-card): the hairlines on each
+                        cell's right and bottom edge are clipped by the card. */}
+                    <div className="card overflow-hidden">
+                    <div className={`grid grid-cols-1 sm:grid-cols-2 ${records.length % 3 === 0 || records.length > 4 ? 'lg:grid-cols-3' : ''}`}>
                         {records.map(r => {
                             const body = (
                                 <>
@@ -127,9 +132,10 @@ export const CommunityView: React.FC<CommunityViewProps> = ({ data, allData, ins
                                 </>
                             );
                             return r.memberId
-                                ? <button key={r.label} onClick={() => onOpenProfile(r.memberId!)} className="card card-pad text-left row-link">{body}</button>
-                                : <div key={r.label} className="card card-pad">{body}</div>;
+                                ? <button key={r.label} onClick={() => onOpenProfile(r.memberId!)} className="card-pad text-left row-link min-w-0 flex flex-col" style={cell}>{body}</button>
+                                : <div key={r.label} className="card-pad min-w-0" style={cell}>{body}</div>;
                         })}
+                    </div>
                     </div>
                 </section>
             )}

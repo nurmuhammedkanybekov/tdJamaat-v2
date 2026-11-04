@@ -261,7 +261,7 @@ button, a, [role="button"] { -webkit-tap-highlight-color: transparent; }
 @media (pointer: coarse) { .chip { min-height: 2.75rem; } }
 /* A row of filter chips: one line that scrolls sideways on a phone (never a
    lone chip wrapped onto a second line); wraps normally on wider screens. */
-.chip-row { display: flex; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-inline: -1.1rem; padding-inline: 1.1rem;
+.chip-row { display: flex; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-inline: -1.1rem; padding-inline: 1.1rem; padding-bottom: 2px; /* keeps the active underline inside the scroll box */
     -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 1.1rem, #000 calc(100% - 1.75rem), transparent 100%);
     mask-image: linear-gradient(90deg, transparent 0, #000 1.1rem, #000 calc(100% - 1.75rem), transparent 100%); }
 .chip-row::-webkit-scrollbar { display: none; }
@@ -408,3 +408,9 @@ input[aria-invalid="true"] { border-color: var(--danger) !important; color: var(
 /* "New version" bar: above the phone tab bar, near the bottom on bigger screens. */
 .update-bar { bottom: calc(4.4rem + env(safe-area-inset-bottom, 0px)); }
 @media (min-width: 768px) { .update-bar { bottom: 1.5rem; } }
+
+/* Login fields: the border warms to gold while you type in them. */
+.login-field { transition: border-color 200ms ease, box-shadow 200ms ease; }
+.login-field:hover { border-color: var(--gold-dim) !important; }
+.login-field:focus { outline: none; border-color: var(--gold) !important; box-shadow: 0 0 0 3px var(--gold-soft); }
+.login-field[aria-invalid="true"]:focus { border-color: var(--danger) !important; box-shadow: 0 0 0 3px color-mix(in oklab, var(--danger) 18%, transparent); }

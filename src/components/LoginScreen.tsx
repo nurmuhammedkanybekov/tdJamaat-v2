@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Eye, EyeOff, Loader2, Lock, LogIn, Moon, Sun } from 'lucide-react';
+import { ChevronDown, Eye, EyeOff, Loader2, Lock, LogIn, Moon, Sun } from 'lucide-react';
 import { fetchHouses } from '../services/dataService';
 import { signInAsHouse, signInAsAdmin } from '../services/authService';
 import type { House } from '../types';
@@ -96,7 +96,7 @@ export const LoginScreen: React.FC<{ theme: Theme; onToggleTheme: () => void }> 
                         </p>
                     </div>
 
-                    <form onSubmit={handleSubmit} noValidate className="relative mt-8 card card-pad pb-9 space-y-5" style={{ boxShadow: 'var(--shadow-lift)' }}>
+                    <form onSubmit={handleSubmit} noValidate className="relative mt-8 card card-pad pb-10! space-y-5" style={{ boxShadow: 'var(--shadow-lift)' }}>
                         <Corners inset={6} size={22} />
                         <div className="flex justify-center" role="tablist" aria-label={t('Ким катары кирүү')}>
                             <button type="button" role="tab" aria-selected={mode === 'captain'} className={`chip ${mode === 'captain' ? 'is-active' : ''}`} onClick={() => switchMode('captain')}>{t('Капитан')}</button>
@@ -106,9 +106,12 @@ export const LoginScreen: React.FC<{ theme: Theme; onToggleTheme: () => void }> 
                         {mode === 'captain' && (
                             <label className="block">
                                 <span className="eyebrow block mb-2">{t('Үй')}</span>
-                                <select value={houseSlug} onChange={e => { setHouseSlug(e.target.value); setError(''); }} className="w-full px-3.5 py-3 text-base" style={field}>
-                                    {houses.map(house => <option key={house.id} value={house.slug}>{house.name}</option>)}
-                                </select>
+                                <span className="relative block">
+                                    <select value={houseSlug} onChange={e => { setHouseSlug(e.target.value); setError(''); }} className="login-field w-full appearance-none pl-3.5 pr-12 py-3 text-base" style={field}>
+                                        {houses.map(house => <option key={house.id} value={house.slug}>{house.name}</option>)}
+                                    </select>
+                                    <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--gold-dim)' }} />
+                                </span>
                             </label>
                         )}
 
@@ -123,7 +126,7 @@ export const LoginScreen: React.FC<{ theme: Theme; onToggleTheme: () => void }> 
                                     onChange={e => { setPassword(e.target.value); setError(''); }}
                                     aria-invalid={!!error || undefined}
                                     aria-describedby={error ? 'login-error' : undefined}
-                                    className="w-full pl-3.5 pr-12 py-3 text-base"
+                                    className="login-field w-full pl-3.5 pr-12 py-3 text-base"
                                     style={field}
                                 />
                                 <button

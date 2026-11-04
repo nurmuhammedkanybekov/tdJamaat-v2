@@ -61,9 +61,11 @@ export const ViewNavigator: React.FC<ViewNavigatorProps> = ({ activeView, setAct
                             role="tab"
                             aria-selected={active}
                             onClick={() => setActiveView(key)}
-                            className="flex flex-col items-center justify-center gap-1.5 pt-3 pb-2.5 min-h-[3.6rem] transition-colors"
+                            className="relative flex flex-col items-center justify-center gap-1.5 pt-3 pb-2.5 min-h-[3.6rem] transition-[color,transform] duration-200 active:scale-[0.94]"
                             style={{ color: active ? 'var(--gold)' : 'var(--text-muted)' }}
                         >
+                            {/* The same gold hairline as the desktop tabs, on top of the bar. */}
+                            <span aria-hidden="true" className="absolute top-[-1px] left-1/2 h-px w-8 -translate-x-1/2 transition-opacity duration-300" style={{ backgroundColor: 'var(--gold)', opacity: active ? 1 : 0 }} />
                             <Icon className="w-[1.2rem] h-[1.2rem]" strokeWidth={1.3} />
                             <span className="text-[0.54rem] min-[360px]:text-[0.58rem] tracking-[0.02em] min-[360px]:tracking-[0.08em] min-[400px]:tracking-[0.14em] uppercase leading-none max-w-full truncate">{short}</span>
                         </button>

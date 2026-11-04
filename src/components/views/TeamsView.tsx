@@ -63,7 +63,7 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
                         const active = it.id === team.id;
                         return (
                             <button key={it.id} role="tab" aria-selected={active} onClick={() => setHouseId(it.id)} className={`chip ${active ? 'is-active' : ''}`} style={{ padding: '0.5rem 0.95rem', fontSize: '0.85rem' }}>
-                                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: active ? '#fff' : c }} />
+                                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: c, boxShadow: active ? `0 0 0 3px color-mix(in oklab, ${c} 22%, transparent)` : undefined }} />
                                 {it.name}
                             </button>
                         );
@@ -108,24 +108,29 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
             {/* Mini card */}
             <section>
                 <SectionHeader eyebrow={t('Командалык иштер')} title={t('Мини-карта')} sub={t('Ар бир иш 100% аткарылса {0} упай кошулат (эң көп {1}). Ашыкчасы эсептелбейт.', MINI_CARD_POINTS, MINI_CARD_POINTS * 7)} />
-                <div className="grid grid-cols-2 min-[460px]:grid-cols-3 md:grid-cols-4 xl:grid-cols-7 gap-3 stagger">
-                    {cardKeys.map(key => {
-                        const v = team.miniCard[key];
-                        const pct = calculatePerformancePercentage(v.actual, v.target);
-                        return (
-                            <div key={key} className="card p-3.5">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-[0.78rem] font-bold" style={{ color: 'var(--text-muted)' }} title={cardName(key)}>{cardLabel(key)}</span>
-                                    {pct >= 100 && <CheckCircle2 className="w-4 h-4" style={{ color: 'var(--success)' }} />}
+                {/* One engraved plate with hairline cells, not seven separate boxes. The
+                    outer edges of the hairlines are clipped by the card. */}
+                <div className="card overflow-hidden">
+                    <div className="grid grid-cols-2 min-[460px]:grid-cols-3 md:grid-cols-4 xl:grid-cols-7 stagger">
+                        {cardKeys.map(key => {
+                            const v = team.miniCard[key];
+                            const pct = calculatePerformancePercentage(v.actual, v.target);
+                            const done = pct >= 100;
+                            return (
+                                <div key={key} className="p-3.5 sm:p-5 flex flex-col" style={{ boxShadow: '1px 0 0 var(--border), 0 1px 0 var(--border)' }}>
+                                    <div className="flex items-center justify-between gap-2">
+                                        <span className="eyebrow" style={{ letterSpacing: '0.18em', color: done ? 'var(--gold)' : 'var(--text-muted)' }} title={cardName(key)}>{cardLabel(key)}</span>
+                                        {done && <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--gold)' }} aria-hidden="true" />}
+                                    </div>
+                                    <div className="font-display text-[1.75rem] sm:text-[2rem] tabular leading-none mt-2.5 sm:mt-3" style={{ color: done ? 'var(--gold)' : 'var(--text-primary)' }}>
+                                        {v.actual}<span className="text-[1rem]" style={{ color: 'var(--text-muted)' }}> / {v.target}</span>
+                                    </div>
+                                    <div className="mt-auto pt-3 sm:pt-4"><ProgressBar pct={pct} height={2} /></div>
+                                    <div className="text-[0.72rem] mt-1.5 tabular" style={{ color: perfColor(pct) }}>{Math.round(pct)}%</div>
                                 </div>
-                                <div className="font-display font-bold text-[1.7rem] tabular leading-none mt-2" style={{ color: 'var(--text-primary)' }}>
-                                    {v.actual}<span className="text-[0.95rem] font-semibold" style={{ color: 'var(--text-muted)' }}> / {v.target}</span>
-                                </div>
-                                <div className="mt-3"><ProgressBar pct={pct} height={5} /></div>
-                                <div className="text-[0.75rem] font-bold mt-1.5 tabular" style={{ color: perfColor(pct) }}>{Math.round(pct)}%</div>
-                            </div>
-                        );
-                    })}
+                            );
+                        })}
+                    </div>
                 </div>
             </section>
 
