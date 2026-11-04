@@ -23,6 +23,10 @@ export const ROLE_LABEL: Record<Role, string> = { imam: t('Капитан'), zam
  *  - not submitted, week LOCKED by the admin → yes, as zeros (a house that
  *    never submits can't escape the average by staying silent).
  */
+/** Every house has entered the week, or the admin has locked it: its results are final. */
+export const weekComplete = (week: Pick<WeekData, 'locked' | 'teams'>): boolean =>
+    week.locked || week.teams.every(team => team.submitted);
+
 export const weekCounts = (week: Pick<WeekData, 'locked'>, team: Pick<Team, 'submitted'>): boolean =>
     team.submitted || week.locked;
 

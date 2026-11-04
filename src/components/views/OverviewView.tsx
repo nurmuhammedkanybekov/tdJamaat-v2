@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { ChevronDown } from 'lucide-react';
 import type { DataFile, Role } from '../../types';
 import type { Insights, MemberSeries, MemberWeek } from '../../utils/insights';
 import { movement, ROLE_LABEL, weekOf } from '../../utils/insights';
@@ -57,6 +58,12 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ data, weekIndex, ins
 
     const people = useMemo(() => personStandings(insights, weekIndex, scope, 'all', weeksSoFar), [insights, weekIndex, scope, weeksSoFar]);
     const filtered = roleFilter === 'all' ? people : people.filter(p => p.s.role === roleFilter);
+    // People whose house hasn't entered the week yet: one line instead of a
+    // long run of "—" rows (it can be opened).
+    const listed = filtered.filter(p => p.value !== null || p.excused);
+    const waiting = filtered.filter(p => p.value === null && !p.excused);
+    const waitingHouses = [...new Set(waiting.map(p => p.week?.houseName ?? p.s.houseName))];
+    const [showWaiting, setShowWaiting] = useState(false);
     const houses = useMemo(() => houseStandings(insights, weekIndex, scope, city), [insights, weekIndex, scope, city]);
     // Movement arrows are about the whole jamaat's weekly ranking, so only
     // there (the city filter re-ranks houses within the city).
@@ -138,11 +145,11 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ data, weekIndex, ins
                         ))}
                     </div>
                     <ol>
-                        {filtered.map(({ s, rank, value, weeks, week: w, excused }) => (
+                        {(showWaiting ? [...listed, ...waiting] : listed).map(({ s, rank, value, weeks, week: w, excused }) => (
                             <li key={s.id}>
                                 <button
                                     onClick={() => onOpenProfile(s.id)}
-                                    className="row-link w-full flex items-center gap-3 sm:gap-4 px-2 -mx-2 py-3 text-left"
+                                    className="row-link w-[calc(100%+1rem)] flex items-center gap-3 sm:gap-4 px-2 -mx-2 py-3 text-left"
                                     style={{ borderBottom: '1px solid var(--border)' }}
                                 >
                                     <span className="w-6 text-[0.75rem] tabular flex-shrink-0" style={{ color: 'var(--gold-dim)' }}>{rank ? pad2(rank) : '—'}</span>
@@ -160,6 +167,22 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ data, weekIndex, ins
                             </li>
                         ))}
                     </ol>
+                    {waiting.length > 0 && (
+                        <button
+                            onClick={() => setShowWaiting(v => !v)}
+                            aria-expanded={showWaiting}
+                            className="w-full flex items-center gap-3 py-3.5 text-left transition-colors hover:text-[var(--gold)]"
+                            style={{ color: 'var(--text-muted)', borderBottom: '1px solid var(--border)' }}
+                        >
+                            <span className="w-6 text-[0.75rem]">—</span>
+                            <span className="flex-1 min-w-0 text-[0.9rem]">
+                                <span className="italic">{scope === 'week' ? t('Киргизиле элек') : t('Азырынча эсеп жок')}</span>
+                                {scope === 'week' && <span> · {waitingHouses.join(', ')}</span>}
+                                <span> · {t('{0} адам', waiting.length)}</span>
+                            </span>
+                            <ChevronDown className={`w-4 h-4 flex-shrink-0 transition-transform ${showWaiting ? 'rotate-180' : ''}`} />
+                        </button>
+                    )}
                     {scope === 'season' && (
                         <p className="text-[0.82rem] italic mt-5" style={{ color: 'var(--text-muted)' }}>{t('Орточо упай. Орун алуу үчүн жок дегенде {0} аптага катышуу керек.', minWeeks)}</p>
                     )}

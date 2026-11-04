@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import type { DataFile } from '../../types';
 import type { Insights } from '../../utils/insights';
+import { weekComplete } from '../../utils/insights';
 import type { Award, Tier } from '../../utils/badges';
 import { BADGES, TIER_LABEL } from '../../utils/badges';
 import { BadgeMedal } from '../BadgeMedal';
@@ -57,7 +58,15 @@ export const AwardsView: React.FC<AwardsViewProps> = ({ data, weekIndex, awards,
         <div className="space-y-20">
             {/* This week's citations */}
             <section>
-                <SectionHeader eyebrow={t('{0}-апта', week.weekNumber)} title={t('Аптанын сыйлыктары')} sub={thisWeek.length ? undefined : t('Бул аптанын маалыматы толгондо сыйлыктар ушул жерде чыгат.')} />
+                <SectionHeader
+                    eyebrow={t('{0}-апта', week.weekNumber)}
+                    title={t('Аптанын сыйлыктары')}
+                    sub={!thisWeek.length
+                        ? t('Бул аптанын маалыматы толгондо сыйлыктар ушул жерде чыгат.')
+                        : !weekComplete(week)
+                            ? t('Азырынча: {0} / {1} үй киргизди. Калгандары киргизгенде сыйлыктар өзгөрүшү мүмкүн.', week.teams.filter(it => it.submitted).length, week.teams.length)
+                            : undefined}
+                />
                 {thisWeek.length > 0 && (
                     <div className="grid grid-cols-1 md:grid-cols-2 md:gap-x-16">
                         {thisWeek.map((a, i) => {
@@ -95,7 +104,7 @@ export const AwardsView: React.FC<AwardsViewProps> = ({ data, weekIndex, awards,
                         <ol>
                             {personLeaders.map((l, i) => (
                                 <li key={l.id}>
-                                    <button onClick={() => onOpenProfile(l.id)} className="row-link w-full flex items-baseline gap-3 py-3 px-2 -mx-2 text-left">
+                                    <button onClick={() => onOpenProfile(l.id)} className="row-link w-[calc(100%+1rem)] flex items-baseline gap-3 py-3 px-2 -mx-2 text-left">
                                         <span className="w-5 text-[0.75rem] tabular" style={{ color: 'var(--gold-dim)' }}>{String(i + 1).padStart(2, '0')}</span>
                                         <span className="font-display text-[1.3rem]" style={{ color: i === 0 ? 'var(--gold)' : 'var(--text-primary)' }}>{l.name}</span>
                                         <span className="text-[0.78rem] italic hidden sm:inline" style={{ color: 'var(--text-muted)' }}>{l.houseName}</span>

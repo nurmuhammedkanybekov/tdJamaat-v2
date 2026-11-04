@@ -10,7 +10,7 @@ import type { AuthUser } from './services/authService';
 import { getStoredTheme, setScreen, setTheme as persistTheme } from './theme';
 import type { Theme } from './theme';
 import { useInstallPrompt, useUpdateAvailable } from './pwa';
-import { buildInsights, weekOf } from './utils/insights';
+import { buildInsights, weekComplete, weekOf } from './utils/insights';
 import { computeAwards } from './utils/badges';
 import { defaultSeasonId, seasonView } from './utils/seasons';
 
@@ -224,7 +224,11 @@ const TeamPerformanceTracker: React.FC = () => {
     const weekPeople = [...insights.members.values()].map(m => weekOf(m.weeks, weekIndex)).filter(w => w && w.submitted);
     const submittedHouses = currentWeekData.teams.filter(it => it.submitted).length;
     const monument = activeView === 'overview' ? {
-        kicker: t('{0}-апта · аптанын үйү', currentWeekData.weekNumber),
+        // Until every house has entered (or the week is locked) the leader is
+        // only provisional: say so instead of crowning a "house of the week".
+        kicker: weekComplete(currentWeekData)
+            ? t('{0}-апта · аптанын үйү', currentWeekData.weekNumber)
+            : t('{0}-апта · азырынча алдыда', currentWeekData.weekNumber),
         title: leader?.name ?? t('Маалымат күтүлүүдө'),
         value: leaderWeek ? fmt(leaderWeek.avg) : '—',
         sub: t('үй рейтинги · {0} адам · {1}/{2} үй киргизди', weekPeople.length, submittedHouses, currentWeekData.teams.length)

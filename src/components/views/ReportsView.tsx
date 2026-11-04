@@ -75,7 +75,7 @@ const PeriodReport: React.FC<ReportsViewProps> = ({ data, selectedPeriod, setSel
 
             <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-3 stagger">
                 {[
-                    { label: t('Эң мыкты үй'), value: rows[0]?.name ?? '—', sub: rows[0] ? t('Рейтинг: {0}', rows[0].average) : '' },
+                    { label: t('Эң мыкты үй'), value: rows[0]?.average !== null && rows[0] ? rows[0].name : '—', sub: rows[0]?.average != null ? t('Рейтинг: {0}', rows[0].average) : '' },
                     { label: t('Эң тез өсүү'), value: rising?.name ?? '—', sub: rising ? `${rising.scores[0]} → ${rising.scores.at(-1)}` : t('Өсүү байкалган жок') },
                     { label: t('Мезгил'), value: t('{0} апта', weeks.length), sub: t('{0} үй катышты', rows.length) }
                 ].map(s => (
@@ -107,12 +107,12 @@ const PeriodReport: React.FC<ReportsViewProps> = ({ data, selectedPeriod, setSel
                                 const T = TREND[r.trend];
                                 return (
                                     <tr key={r.id}>
-                                        <td className="font-display font-bold text-[1.1rem] tabular" style={{ paddingLeft: '1.25rem', color: i === 0 ? 'var(--gold)' : 'var(--text-muted)' }}>{pad2(i + 1)}</td>
+                                        <td className="font-display font-bold text-[1.1rem] tabular" style={{ paddingLeft: '1.25rem', color: i === 0 && r.average !== null ? 'var(--gold)' : 'var(--text-muted)' }}>{r.average !== null ? pad2(i + 1) : '—'}</td>
                                         <td className="font-bold" style={{ color: 'var(--text-primary)' }}>
                                             <span className="inline-flex items-center gap-2"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: TEAM_COLORS[r.colorIndex % TEAM_COLORS.length] }} />{r.name}</span>
                                         </td>
                                         {weeks.map((w, k) => <td key={w.weekNumber} className="hidden md:table-cell tabular" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>{r.cells[k] !== null ? r.cells[k]!.toFixed(1) : '—'}</td>)}
-                                        <td className="font-display font-bold text-[1.2rem] tabular" style={{ textAlign: 'right', color: 'var(--text-primary)' }}>{r.average}</td>
+                                        <td className="font-display font-bold text-[1.2rem] tabular" style={{ textAlign: 'right', color: 'var(--text-primary)' }}>{r.average ?? '—'}</td>
                                         <td className="hidden sm:table-cell tabular font-bold" style={{ textAlign: 'right', color: 'var(--success)' }}>{r.best !== null ? r.best.toFixed(1) : '—'}</td>
                                         <td className="hidden sm:table-cell tabular font-bold" style={{ textAlign: 'right', color: 'var(--danger)' }}>{r.worst !== null ? r.worst.toFixed(1) : '—'}</td>
                                         <td style={{ textAlign: 'right', paddingRight: '1.25rem' }}>

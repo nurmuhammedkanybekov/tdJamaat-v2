@@ -6,6 +6,13 @@ import { dataFile, house, person, week } from '../test/factory';
 const locked = <T extends { locked: boolean }>(w: T): T => ({ ...w, locked: true });
 
 describe('weeks a house has not submitted', () => {
+    it('a house with no counted week yet shows "—" (not 0) and is listed last', () => {
+        const weeks = [week(1, [house('A', [person('a', 'member', 1)]), house('B', [person('b', 'member', 0)], { submitted: false })])];
+        const rows = reportRows(weeks, [{ id: 'B', name: 'B' }, { id: 'A', name: 'A' }]);
+        expect(rows.map(r => r.id)).toEqual(['A', 'B']);
+        expect(rows[1].average).toBeNull();
+    });
+
     it('count only once the admin has locked the week', () => {
         expect(weekCounts({ locked: false }, { submitted: false })).toBe(false);
         expect(weekCounts({ locked: true }, { submitted: false })).toBe(true);

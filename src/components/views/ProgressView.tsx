@@ -118,7 +118,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ data, insights, onOp
                         <ol className="stagger">
                             {risers.map(({ s, now, delta }, i) => (
                                 <li key={s.id}>
-                                    <button onClick={() => onOpenProfile(s.id)} className="row-link w-full flex items-center gap-3 py-2.5 px-2 -mx-2 rounded-[8px] text-left" style={{ borderTop: i ? '1px solid var(--border)' : undefined }}>
+                                    <button onClick={() => onOpenProfile(s.id)} className="row-link w-[calc(100%+1rem)] flex items-center gap-3 py-2.5 px-2 -mx-2 rounded-[8px] text-left" style={{ borderTop: i ? '1px solid var(--border)' : undefined }}>
                                         <Avatar name={s.name} role={s.role} photoUrl={s.photoUrl} size="sm" />
                                         <span className="flex-1 min-w-0">
                                             <span className="block font-bold truncate" style={{ color: 'var(--text-primary)' }}>{s.name}</span>

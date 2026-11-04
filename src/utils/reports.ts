@@ -18,7 +18,8 @@ export interface ReportRow {
     cells: Array<number | null>;
     /** The counted weeks only. */
     scores: number[];
-    average: number;
+    /** Average of the counted weeks; null when none counts yet ("—"). */
+    average: number | null;
     best: number | null;
     worst: number | null;
     /** Last counted week minus the first counted week of the period (null under 2 weeks). */
@@ -44,10 +45,10 @@ export const reportRows = (weeks: WeekData[], houses: Array<{ id: string; name: 
             colorIndex,
             cells,
             scores,
-            average: scores.length ? round1(scores.reduce((a, b) => a + b, 0) / scores.length) : 0,
+            average: scores.length ? round1(scores.reduce((a, b) => a + b, 0) / scores.length) : null,
             best: scores.length ? Math.max(...scores) : null,
             worst: scores.length ? Math.min(...scores) : null,
             change,
             trend: change === null || change === 0 ? 'stable' : change > 0 ? 'up' : 'down'
         };
-    }).sort((a, b) => b.average - a.average);
+    }).sort((a, b) => (b.average ?? -1) - (a.average ?? -1));
