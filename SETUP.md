@@ -57,6 +57,16 @@ In the Supabase dashboard, open **SQL Editor** and run, in order:
     Then, in Supabase → **Authentication → Sign In / Providers → Email**,
     turn **off** "Allow new users to sign up". (Even if left on, a
     self-made account gets no access.)
+12. `supabase/private-photos-2026-11.sql` — member photos become private:
+    only a logged-in captain or the admin can open them (before, anyone
+    who knew the project address could list them). Run it **after**
+    deploying the website version that loads photos with signed links.
+    Deletes nothing. Safe to re-run.
+13. `supabase/protect-history-2026-11.sql` — the database refuses to delete
+    a house, a person or a week that has results (the website never does;
+    this guards against a wrong click in the Supabase table editor), and
+    checks every entered number (0 … 10,000,000) itself. Changes no data.
+    Safe to re-run.
 
 ## 3. Configure the app's environment
 
@@ -152,6 +162,18 @@ say `"ok": true`.
   week); saved weeks keep the target they were saved with.
 - **Backup:** **Админ панели** → **Камдык көчүрмө** downloads the whole
   database as a JSON file. Worth doing once a week.
+- **Restoring a backup** (after losing the database, or to move to a new
+  project). The backup file has every table, including seasons and the
+  change history. On your computer:
+  ```
+  node scripts/backup-to-sql.js tdjamaat-backup.json > restore.sql
+  ```
+  Then in a **new, empty** Supabase project run the SQL files of step 2
+  **except `seed.sql`**, and after them `restore.sql`. It prints the row
+  counts at the end and refuses to run on a database that already has
+  data, so it can never overwrite the live one. Login accounts are not in
+  a backup: create them again (step 4), then point the website at the new
+  project (step 3). Download a fresh backup every week after locking.
 - **End of season:** admin → menu → **Админ панели** → **Сезон** → end the season and
   name the next one. The finished season's weeks are locked (optional) and
   stay in the archive; the next season starts at week 1. Then, in

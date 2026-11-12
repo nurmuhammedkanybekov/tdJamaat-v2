@@ -1,3 +1,4 @@
+import { PHOTO_BUCKET, signPhotoUrls } from './photos';
 import { supabase } from '../lib/supabase';
 import type { DataFile, House, Member, MetricValues, MiniCard, Role, Season } from '../types';
 import { buildDataFile } from './buildDataFile';
@@ -75,9 +76,10 @@ export const fetchMembers = async (includeInactive = false): Promise<Member[]> =
     if (!includeInactive) query = query.eq('active', true);
     const { data, error } = await query;
     if (error) fail(error);
-    return (data ?? []).map(m => ({
+    const photos = await signPhotoUrls((data ?? []).map(m => m.photo_url as string | null));
+    return (data ?? []).map((m, i) => ({
         id: m.id, houseId: m.house_id, name: m.name, role: m.role as Role,
-        photoUrl: m.photo_url, displayOrder: m.display_order, active: m.active
+        photoUrl: photos[i], displayOrder: m.display_order, active: m.active
     }));
 };
 
@@ -233,8 +235,11 @@ export const fetchDataFile = async (): Promise<DataFile> => {
         fetchSeasonSettings(),
         fetchSeasons()
     ]);
+    // Photos are private: swap the stored URLs for signed links.
+    const photos = await signPhotoUrls(members.map(m => m.photo_url));
+    const signedMembers = members.map((m, i) => ({ ...m, photo_url: photos[i] }));
     return buildDataFile(
-        { houses, members, weeks, metrics, activities, seasons },
+        { houses, members: signedMembers, weeks, metrics, activities, seasons },
         settings,
         { normalizeMetrics, normalizeMiniCard, zeroMetrics: ZERO_METRICS }
     );
@@ -274,18 +279,23 @@ export const openWeek = async (weekNumber: number) => {
 // Admin: full copy of every table as one JSON file — a backup to keep after
 // each week, and the way to restore if anything ever goes wrong.
 export const exportBackup = async (): Promise<Blob> => {
-    const [houses, members, weeks, weekly_metrics, house_activity] = await Promise.all([
+    // Everything needed to rebuild the database: scripts/backup-to-sql.js turns
+    // this file into SQL for an empty project (SETUP.md, "Restoring a backup").
+    const [houses, members, weeks, weekly_metrics, house_activity, seasons, audit_log] = await Promise.all([
         fetchAll('houses', 'display_order'),
         fetchAll('members', 'display_order'),
         fetchAll('weeks', 'week_number'),
         fetchAll('weekly_metrics', 'week_number'),
-        fetchAll('house_activity', 'week_number')
+        fetchAll('house_activity', 'week_number'),
+        fetchAll('seasons', 'first_week').catch(() => []),   // older databases have no seasons / history
+        fetchAll('audit_log', 'id').catch(() => [])
     ]);
     const { data: season_settings } = await supabase.from('season_settings').select('*');
     const payload = {
         exported_at: new Date().toISOString(),
         app: 'tdJamaat',
-        tables: { houses, members, weeks, weekly_metrics, house_activity, season_settings: season_settings ?? [] }
+        format: 2,
+        tables: { houses, members, weeks, weekly_metrics, house_activity, season_settings: season_settings ?? [], seasons, audit_log }
     };
     return new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
 };
@@ -389,7 +399,6 @@ export const applyRosterChangeFrom = async (
 // storage + members RLS in supabase/photo-upload-setup.sql enforce that).
 // ---------------------------------------------------------------------------
 
-const PHOTO_BUCKET = 'member-photos';
 
 export const uploadMemberPhoto = async (houseId: string, memberId: string, file: File): Promise<string> => {
     const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
@@ -420,7 +429,7 @@ export const uploadMemberPhoto = async (houseId: string, memberId: string, file:
     const photoUrl = `${data.publicUrl}?v=${Date.now()}`;
 
     await updateMember(memberId, { photoUrl });
-    return photoUrl;
+    return (await signPhotoUrls([photoUrl]))[0] ?? photoUrl;
 };
 
 // ---------------------------------------------------------------------------
