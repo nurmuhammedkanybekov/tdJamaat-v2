@@ -411,6 +411,8 @@ supabase/              run in the SQL editor, in the order listed in SETUP.md
   excused-weeks-2026-10.sql   excused weeks (weekly_metrics.excused)
   roster-changes-2026-11.sql  mid-season moves / new roles; a saved week belongs to its house
   private-site-2026-11.sql    results readable by captains/admin only; roles from app_metadata
+  private-photos-2026-11.sql  member photos readable by captains/admin only (signed links)
+  protect-history-2026-11.sql no cascading deletes of results; entered numbers checked
   update-2026-09-names.sql   one-time fixup, already applied — don't re-run
 api/keepalive.js       daily Vercel cron so the free Supabase project never pauses
 public/
@@ -418,6 +420,7 @@ public/
   manifest.webmanifest, sw.js   installable app (never caches the data)
 docs/                  README screenshots
 scripts/
+  backup-to-sql.js     turns a downloaded backup into SQL for an empty database (restore)
   create-auth-users.js provisions the captain (per house) and admin login accounts
   syr_sozdor.example.json  template for the (gitignored) real passwords file
 ```
