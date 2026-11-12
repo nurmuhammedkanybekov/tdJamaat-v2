@@ -22,6 +22,8 @@ import { AppHeader } from './components/AppHeader';
 import { ViewNavigator } from './components/ViewNavigator';
 import { TABS } from './components/navigation';
 import { LoginScreen } from './components/LoginScreen';
+import { PublicPages } from './public/PublicPages';
+import { go, usePublicRoute } from './public/route';
 import type { ShareTarget } from './components/ShareSheet';
 import type { CompareInit } from './components/CompareSheet';
 import { AdminDeskPanel, CaptainDesk } from './components/Desk';
@@ -81,6 +83,10 @@ const TeamPerformanceTracker: React.FC = () => {
     const { theme, toggleTheme, screen, toggleScreen } = useThemeState();
     const { route, setView: setActiveView, openProfile, closeProfile } = useHashRoute();
     const activeView = route.view;
+    // The open pages (Quran, zikr, prayer times) and the captains' entrance.
+    const pub = usePublicRoute();
+    const openPage = !!pub && pub.page !== 'login';
+    useEffect(() => { if (authUser && pub?.page === 'login') window.location.replace('#/overview'); }, [authUser, pub]);
 
     const [modal, setModal] = useState<Modal>(null);
     // Read by the background refresh, which must not run while someone is
@@ -123,7 +129,7 @@ const TeamPerformanceTracker: React.FC = () => {
     const weekIndex = selectedWeek === null ? weekCount - 1 : Math.min(selectedWeek, weekCount - 1);
     const isWeekly = activeView === 'overview' || activeView === 'teams' || activeView === 'awards';
     const goWeek = (i: number) => setSelectedWeek(i >= weekCount - 1 ? null : Math.max(0, i));
-    useKeyboardNav(!!data && weekCount > 0 && modal === null && !route.memberId, {
+    useKeyboardNav(!!data && weekCount > 0 && modal === null && !route.memberId && !openPage, {
         prev: isWeekly && weekIndex > 0 ? () => goWeek(weekIndex - 1) : undefined,
         next: isWeekly && weekIndex < weekCount - 1 ? () => goWeek(weekIndex + 1) : undefined,
         tab: i => { if (TABS[i]) setActiveView(TABS[i].key); }
@@ -140,12 +146,17 @@ const TeamPerformanceTracker: React.FC = () => {
         idle(() => prefetchLazy());
     }, [hasData]);
     useEffect(() => {
+        if (openPage) return;
         const tab = TABS.find(it => it.key === activeView);
         document.title = authUser && tab && activeView !== 'overview' ? `${tab.label} · tdJamaat` : 'tdJamaat';
-    }, [activeView, authUser]);
+    }, [activeView, authUser, openPage]);
 
+    // Open to everyone, signed in or not — and shown without waiting for the login check.
+    if (openPage) return <PublicPages route={pub} theme={theme} onToggleTheme={toggleTheme} signedIn={!!authUser} />;
     if (!authChecked) return <LoadingScreen />;
-    if (!authUser) return <LoginScreen theme={theme} onToggleTheme={toggleTheme} />;
+    if (!authUser) return pub?.page === 'login'
+        ? <LoginScreen theme={theme} onToggleTheme={toggleTheme} onBack={() => go('')} />
+        : <PublicPages route={null} theme={theme} onToggleTheme={toggleTheme} signedIn={false} />;
     if (loading) return <LoadingScreen />;
     if (error || !allData || !data || !insights || allData.weeks.length === 0) {
         return (

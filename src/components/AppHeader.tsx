@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
     ChevronLeft, ChevronRight, Clock3, Columns2, Download, ExternalLink, History, Info, Lock, LogIn, LogOut,
-    Menu, Monitor, Moon, PenLine, Play, Settings2, Share2, Sun
+    Menu, Monitor, Moon, PenLine, Play, Settings2, Share2, Sun, BookOpen, CircleDot
 } from 'lucide-react';
 import type { AuthUser } from '../services/authService';
 import type { Theme } from '../theme';
@@ -133,7 +133,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         { key: 'formula', label: t('Упай формуласы'), icon: Info, onClick: onFormula },
         { key: 'share', label: t('Жыйынтыкты бөлүшүү'), icon: Share2, onClick: onShare },
         ...(installMode !== 'none' ? [{ key: 'install', label: t('Телефонго орнотуу'), icon: Download, onClick: onInstall }] : []),
-        { key: 'tasbih', label: t('Санарип тасбих'), icon: ExternalLink, href: 'https://addua.vercel.app/' },
+        { key: 'quran', label: t('Куран'), icon: BookOpen, onClick: () => { window.location.hash = '#/quran'; } },
+        { key: 'zikr', label: t('Зикир'), icon: CircleDot, onClick: () => { window.location.hash = '#/zikr'; } },
         authUser
             ? { key: 'logout', label: t('Чыгуу'), icon: LogOut, onClick: onLogout, tone: 'danger' as const }
             : { key: 'login', label: t('Кирүү'), icon: LogIn, onClick: onLogin }

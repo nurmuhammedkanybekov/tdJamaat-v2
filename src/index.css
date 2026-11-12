@@ -551,3 +551,32 @@ html.screen .nav-short { display: inline !important; }
     background: repeating-conic-gradient(from 0deg, color-mix(in oklab, var(--gold) 16%, transparent) 0deg 5deg, transparent 5deg 20deg);
     -webkit-mask-image: radial-gradient(circle, #000 18%, transparent 68%); mask-image: radial-gradient(circle, #000 18%, transparent 68%);
     animation: spin-slow 60s linear infinite; }
+
+/* ------------------------------------------------------------------
+   The open pages: the Quran and the zikr counter.
+   The Quran is set in the King Fahd Complex's own Hafs typeface — the
+   text file is written for it, so no other face may stand in for it
+   (font-display: block keeps the words hidden until it has arrived).
+   ------------------------------------------------------------------ */
+@font-face {
+    font-family: 'UthmanicHafs';
+    font-style: normal;
+    font-weight: 400;
+    font-display: block;
+    src: url('/fonts/UthmanicHafs1Ver18.woff2') format('woff2');
+}
+.quran-text { font-family: 'UthmanicHafs', 'Amiri Quran', 'Scheherazade New', 'Traditional Arabic', serif; font-weight: 400; letter-spacing: 0; font-feature-settings: normal; font-kerning: normal; }
+/* A phone's line is too short to justify without tearing the words apart. */
+.quran-body { line-height: 2.3; text-align: center; word-spacing: 0.06em; overflow-wrap: break-word; }
+@media (min-width: 720px) { .quran-body { text-align: justify; text-align-last: center; } }
+.quran-body > span[data-ayah] { scroll-margin-top: 5rem; }
+.quran-page { display: flex; align-items: center; gap: 0.9rem; margin: 1.1rem 0; font-family: var(--font-serif); font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; line-height: 1; color: var(--text-muted); text-align: center; }
+.quran-page::before, .quran-page::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+.zikr-tap { cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; outline: none; }
+.zikr-tap:focus-visible { box-shadow: inset 0 0 0 2px var(--gold-soft); }
+.zikr-number { display: inline-block; animation: zikr-pop 180ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+@keyframes zikr-pop { from { transform: scale(0.9); opacity: 0.55; } to { transform: scale(1); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .zikr-number { animation: none; } }
+/* On a wide screen the front door's sky fades out at the sides instead of ending in an edge. */
+@media (min-width: 720px) { .portal-hero .sky { -webkit-mask-image: linear-gradient(to right, transparent, #000 22%, #000 78%, transparent); mask-image: linear-gradient(to right, transparent, #000 22%, #000 78%, transparent); } }

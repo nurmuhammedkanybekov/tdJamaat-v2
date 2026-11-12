@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ChevronDown, Eye, EyeOff, Loader2, Lock, LogIn, Moon, Sun } from 'lucide-react';
+import { ArrowLeft, ChevronDown, Eye, EyeOff, Loader2, Lock, LogIn, Moon, Sun } from 'lucide-react';
 import { fetchHouses } from '../services/dataService';
 import { signInAsHouse, signInAsAdmin } from '../services/authService';
 import type { House } from '../types';
@@ -16,7 +16,7 @@ const LAST_HOUSE = 'tdjamaat-login-house';
 
 const readLastHouse = () => { try { return localStorage.getItem(LAST_HOUSE) ?? ''; } catch { return ''; } };
 
-export const LoginScreen: React.FC<{ theme: Theme; onToggleTheme: () => void }> = ({ theme, onToggleTheme }) => {
+export const LoginScreen: React.FC<{ theme: Theme; onToggleTheme: () => void; onBack?: () => void }> = ({ theme, onToggleTheme, onBack }) => {
     const [mode, setMode] = useState<Mode>('captain');
     const [houses, setHouses] = useState<House[]>([]);
     const [houseSlug, setHouseSlug] = useState(readLastHouse);
@@ -71,6 +71,7 @@ export const LoginScreen: React.FC<{ theme: Theme; onToggleTheme: () => void }> 
         <main className="hero min-h-[100dvh] flex flex-col page-gutter overflow-hidden" style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top))', paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
             <StarField count={70} />
             <div className="flex items-center justify-end h-14 gap-1" style={{ color: 'var(--text-secondary)' }}>
+                {onBack && <button onClick={onBack} aria-label={t('Артка')} className={`${iconBtn} mr-auto -ml-2`}><ArrowLeft className="w-5 h-5" strokeWidth={1.5} /></button>}
                 <button
                     onClick={() => setLang(isEnglish() ? 'ky' : 'en')}
                     lang={isEnglish() ? 'ky' : 'en'}

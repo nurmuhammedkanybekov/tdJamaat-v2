@@ -5,8 +5,10 @@
 //  - Built assets (/assets/*, hashed file names) and fonts/icons: cache
 //    first — their names change on every deploy, so a cached copy is never
 //    stale.
+//  - The Quran text (/quran/*.json) never changes: cache first, so a surah
+//    that was opened once can be read with no connection.
 //  - Supabase (the data) is never cached here: scores must always be live.
-const CACHE = 'tdjamaat-v2';
+const CACHE = 'tdjamaat-v3';
 const SHELL = ['/', '/favicon.svg', '/manifest.webmanifest'];
 
 self.addEventListener('install', event => {
@@ -43,7 +45,7 @@ self.addEventListener('fetch', event => {
 
     event.respondWith(
         caches.match(req).then(hit => hit || fetch(req).then(res => {
-            if (res.ok && (url.pathname.startsWith('/assets/') || /\.(svg|png|woff2?|webmanifest)$/.test(url.pathname))) {
+            if (res.ok && (url.pathname.startsWith('/assets/') || /\.(svg|png|woff2?|webmanifest)$/.test(url.pathname) || /^\/quran\/(index|\d+)\.json$/.test(url.pathname))) {
                 const copy = res.clone();
                 caches.open(CACHE).then(cache => cache.put(req, copy));
             }

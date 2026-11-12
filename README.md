@@ -48,8 +48,21 @@ visual redesign.
 
 ## Features
 
-- **Private: captains and the admin only.** Nothing is shown before
-  logging in. Each house's captain has one password, sees the results and
+- **An open front door (no login).** Today's prayer times, the Quran and
+  a zikr counter are for anyone who opens the site:
+  - *Quran* — the Arabic text of the Madinah mushaf (Hafs), as published
+    by the King Fahd Complex, in the Complex's own typeface: 114 surahs
+    with search, page marks, adjustable text size, and "continue where I
+    stopped". A surah opened once can be read offline.
+    See [`public/quran/README.md`](public/quran/README.md) for the source.
+  - *Zikr* — ten zikrs (tasbih, tahmid, takbir, tahlil, istighfar,
+    salawat…) and the 33·33·34 tasbih after prayer. The whole screen is
+    the button; a ring fills to the chosen target (33, 99, 100, 1000 or
+    no limit) with a gentle vibration on completion. Today's total, the
+    last seven days and the all-time count are kept **on the device
+    only** — nothing is sent anywhere, and it has no part in the scores.
+- **The results are private: captains and the admin only.** No result is
+  shown before logging in. Each house's captain has one password, sees the results and
   can only write that house's own weeks; a separate admin login manages
   the roster and can edit anything. Enforced by Postgres row-level
   security (roles live in `app_metadata`, which users can't change), not
@@ -379,6 +392,8 @@ Every push and pull request runs the same three checks on GitHub Actions
 ```
 src/
   TeamPerformanceTracker.tsx   app shell: puts the hooks, views and modals together
+  public/              the pages open without login: Portal (front door), QuranPage,
+                       ZikrPage, their frame and hash routes (#/quran, #/zikr, #/namaz, #/login)
   components/          shared UI (AppHeader, ProfileSheet, CompareSheet, ShareSheet,
                        AdminPanel, AdminSeason, HistorySheet, DataEntryForm,
                        BadgeMedal, Ornament, ui.tsx, …)
@@ -429,12 +444,15 @@ scripts/
 
 - `master` — what runs on [tdjamaat.vercel.app](https://tdjamaat.vercel.app).
 - `nurmss` — day-to-day work; merged into `master` when it's ready.
-- `nurmss-<topic>` — design experiments waiting for a decision
-  (e.g. `nurmss-font`). They are merged only once approved.
+- `nurmss-<topic>` — experiments waiting for a decision (e.g.
+  `nurmss-next`: the open Quran / zikr pages and the safety work). They
+  are merged only once approved.
 
 ## Access & security
 
-- The site is **private**: nothing can be seen without logging in, and the
+- Three pages are open to everyone: prayer times, the Quran and the zikr
+  counter. They read no data from the database.
+- The results are **private**: none can be seen without logging in, and the
   database itself returns nothing to a visitor (only house names, for the
   login screen, and week numbers). It is also not indexed by search
   engines (noindex meta, robots.txt and an `X-Robots-Tag` header).
