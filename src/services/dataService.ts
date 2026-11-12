@@ -300,12 +300,23 @@ export const exportBackup = async (): Promise<Blob> => {
     return new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
 };
 
-export const upsertMemberMetrics = async (memberId: string, weekNumber: number, actual: MetricValues, target: MetricValues, excused = false) => {
-    const row: Record<string, unknown> = { member_id: memberId, week_number: weekNumber, actual, target, updated_at: new Date().toISOString() };
-    if (excusedSupported()) row.excused = excused; // only once the column exists (see excusedColumn)
+export interface MemberWeek { memberId: string; actual: MetricValues; target: MetricValues; excused: boolean }
+
+// A house's people for one week, saved in ONE request: the database takes
+// all of them or none, so a connection that drops half-way can never leave a
+// week with some people saved and others not.
+export const upsertWeekMetrics = async (weekNumber: number, people: MemberWeek[]) => {
+    if (people.length === 0) return;
+    const now = new Date().toISOString();
+    const withExcused = excusedSupported(); // only once the column exists (see excusedColumn)
+    const rows = people.map(p => {
+        const row: Record<string, unknown> = { member_id: p.memberId, week_number: weekNumber, actual: p.actual, target: p.target, updated_at: now };
+        if (withExcused) row.excused = p.excused;
+        return row;
+    });
     const { error } = await supabase
         .from('weekly_metrics')
-        .upsert(row, { onConflict: 'member_id,week_number' });
+        .upsert(rows, { onConflict: 'member_id,week_number' });
     if (error) fail(error);
 };
 

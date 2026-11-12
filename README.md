@@ -48,13 +48,21 @@ visual redesign.
 
 ## Features
 
-- **An open front door (no login).** Today's prayer times, the Quran and
-  a zikr counter are for anyone who opens the site:
+- **An open front door (no login).** Today's prayer times, the Quran, the
+  tasbihat and a zikr counter are for anyone who opens the site:
   - *Quran* — the Arabic text of the Madinah mushaf (Hafs), as published
     by the King Fahd Complex, in the Complex's own typeface: 114 surahs
     with search, page marks, adjustable text size, and "continue where I
     stopped". A surah opened once can be read offline.
     See [`public/quran/README.md`](public/quran/README.md) for the source.
+  - *Tasbihat* — what is read after each of the five prayers, taken
+    unchanged from the community's «Санарип таспихат»
+    ([addua.vercel.app](https://addua.vercel.app)): the prayer whose time
+    it is now is offered first; directions are set apart from the words;
+    every line that is read several times is its own tap counter; the
+    meaning opens under the paragraph; the text size is adjustable and the
+    screen stays on while reading. See
+    [`src/public/tasbihat/README.md`](src/public/tasbihat/README.md).
   - *Zikr* — ten zikrs (tasbih, tahmid, takbir, tahlil, istighfar,
     salawat…) and the 33·33·34 tasbih after prayer. The whole screen is
     the button; a ring fills to the chosen target (33, 99, 100, 1000 or
@@ -393,7 +401,8 @@ Every push and pull request runs the same three checks on GitHub Actions
 src/
   TeamPerformanceTracker.tsx   app shell: puts the hooks, views and modals together
   public/              the pages open without login: Portal (front door), QuranPage,
-                       ZikrPage, their frame and hash routes (#/quran, #/zikr, #/namaz, #/login)
+                       TasbihatPage (+ tasbihat/ texts), ZikrPage, their frame and hash
+                       routes (#/quran, #/tasbihat, #/zikr, #/namaz, #/login)
   components/          shared UI (AppHeader, ProfileSheet, CompareSheet, ShareSheet,
                        AdminPanel, AdminSeason, HistorySheet, DataEntryForm,
                        BadgeMedal, Ornament, ui.tsx, …)
@@ -450,8 +459,8 @@ scripts/
 
 ## Access & security
 
-- Three pages are open to everyone: prayer times, the Quran and the zikr
-  counter. They read no data from the database.
+- Four pages are open to everyone: prayer times, the Quran, the tasbihat
+  and the zikr counter. They read no data from the database.
 - The results are **private**: none can be seen without logging in, and the
   database itself returns nothing to a visitor (only house names, for the
   login screen, and week numbers). It is also not indexed by search

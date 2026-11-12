@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
     ChevronLeft, ChevronRight, Clock3, Columns2, Download, ExternalLink, History, Info, Lock, LogIn, LogOut,
-    Menu, Monitor, Moon, PenLine, Play, Settings2, Share2, Sun, BookOpen, CircleDot
+    Menu, Monitor, Moon, PenLine, Play, Settings2, Share2, Sun, BookOpen, CircleDot, ScrollText
 } from 'lucide-react';
 import type { AuthUser } from '../services/authService';
 import type { Theme } from '../theme';
@@ -134,6 +134,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         { key: 'share', label: t('Жыйынтыкты бөлүшүү'), icon: Share2, onClick: onShare },
         ...(installMode !== 'none' ? [{ key: 'install', label: t('Телефонго орнотуу'), icon: Download, onClick: onInstall }] : []),
         { key: 'quran', label: t('Куран'), icon: BookOpen, onClick: () => { window.location.hash = '#/quran'; } },
+        { key: 'tasbihat', label: t('Тасбихат'), icon: ScrollText, onClick: () => { window.location.hash = '#/tasbihat'; } },
         { key: 'zikr', label: t('Зикир'), icon: CircleDot, onClick: () => { window.location.hash = '#/zikr'; } },
         authUser
             ? { key: 'logout', label: t('Чыгуу'), icon: LogOut, onClick: onLogout, tone: 'danger' as const }

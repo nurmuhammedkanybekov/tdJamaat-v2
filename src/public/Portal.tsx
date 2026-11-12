@@ -1,7 +1,7 @@
 // The front door, open to everyone: today's prayer times at a glance, the
 // Quran, the zikr counter — and the captains' entrance to the results.
 import React from 'react';
-import { ArrowRight, BookOpen, Clock3, Lock } from 'lucide-react';
+import { ArrowRight, BookOpen, Clock3, Lock, ScrollText } from 'lucide-react';
 import type { Theme } from '../theme';
 import { Crown, Tumar } from '../components/Ornament';
 import { HornBand, SkyLayer, StarField } from '../components/motion';
@@ -12,6 +12,7 @@ import { PRAYER_NAMES, PRAYER_ORDER, clock, nextPrayer, prayerTimes, untilText }
 import { skyAt } from '../utils/sky';
 import { loadZikr, todayTotal } from '../utils/zikr';
 import { loadLastRead } from './quranStore';
+import { currentPrayer } from './tasbihat';
 import { t } from '../i18n';
 import { PublicFrame } from './PublicFrame';
 import { go } from './route';
@@ -60,8 +61,9 @@ export const Portal: React.FC<{ theme: Theme; onToggleTheme: () => void; signedI
             <HornBand className="mb-6" />
             <div className="space-y-3.5">
                 <Door icon={<BookOpen className="w-5 h-5" strokeWidth={1.5} />} title={t('Куран')} note={last ? t('Улантуу: {0}, {1}-аят', last.name, last.ayah) : t('Мадина мусхафы, 114 сүрө')} to={last ? `#/quran/${last.surah}` : '#/quran'} delay={100} />
-                <Door icon={<Tumar size={22} />} title={t('Зикир')} note={zikrToday > 0 ? t('Бүгүн: {0}', zikrToday) : t('Тасбих, салават, истигфар')} to="#/zikr" delay={200} />
-                <Door icon={<Clock3 className="w-5 h-5" strokeWidth={1.5} />} title={t('Намаз убактылары')} note={t('Бүгүн жана кийинки 7 күн')} to="#/namaz" delay={300} />
+                <Door icon={<ScrollText className="w-5 h-5" strokeWidth={1.5} />} title={t('Тасбихат')} note={t('Азыр: {0} намазынан кийин', PRAYER_NAMES[currentPrayer(city, now)])} to="#/tasbihat" delay={160} />
+                <Door icon={<Tumar size={22} />} title={t('Зикир')} note={zikrToday > 0 ? t('Бүгүн: {0}', zikrToday) : t('Тасбих, салават, истигфар')} to="#/zikr" delay={220} />
+                <Door icon={<Clock3 className="w-5 h-5" strokeWidth={1.5} />} title={t('Намаз убактылары')} note={t('Бүгүн жана кийинки 7 күн')} to="#/namaz" delay={280} />
             </div>
             <button onClick={() => go(signedIn ? '#/overview' : '#/login')} className="mt-8 w-full flex items-center justify-center gap-2 py-3 text-[0.72rem] tracking-[0.2em] uppercase transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}>
                 <Lock className="w-3.5 h-3.5" />{signedIn ? t('Жыйынтыктарга өтүү') : t('Капитандар үчүн кирүү')}

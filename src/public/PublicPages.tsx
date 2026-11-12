@@ -10,6 +10,7 @@ import type { PublicRoute } from './route';
 
 const PrayerSheet = lazy(withReload(() => import('../components/PrayerSheet').then(m => ({ default: m.PrayerSheet }))));
 const QuranPage = lazy(withReload(() => import('./QuranPage').then(m => ({ default: m.QuranPage }))));
+const TasbihatPage = lazy(withReload(() => import('./TasbihatPage').then(m => ({ default: m.TasbihatPage }))));
 const ZikrPage = lazy(withReload(() => import('./ZikrPage').then(m => ({ default: m.ZikrPage }))));
 
 const Waiting: React.FC = () => (
@@ -23,9 +24,10 @@ export const PublicPages: React.FC<{ route: PublicRoute | null; theme: Theme; on
     const [, setCityTick] = useState(0);
     const page = route?.page;
     useEffect(() => {
-        document.title = page === 'quran' ? `${t('Куран')} · tdJamaat` : page === 'zikr' ? `${t('Зикир')} · tdJamaat` : page === 'namaz' ? `${t('Намаз убактылары')} · tdJamaat` : 'tdJamaat';
+        document.title = page === 'quran' ? `${t('Куран')} · tdJamaat` : page === 'zikr' ? `${t('Зикир')} · tdJamaat` : page === 'tasbihat' ? `${t('Тасбихат')} · tdJamaat` : page === 'namaz' ? `${t('Намаз убактылары')} · tdJamaat` : 'tdJamaat';
     }, [page]);
     if (page === 'quran') return <Suspense fallback={<Waiting />}><QuranPage arg={route!.arg} theme={theme} onToggleTheme={onToggleTheme} /></Suspense>;
+    if (page === 'tasbihat') return <Suspense fallback={<Waiting />}><TasbihatPage arg={route!.arg} theme={theme} onToggleTheme={onToggleTheme} /></Suspense>;
     if (page === 'zikr') return <Suspense fallback={<Waiting />}><ZikrPage arg={route!.arg} theme={theme} onToggleTheme={onToggleTheme} /></Suspense>;
     return (
         <>

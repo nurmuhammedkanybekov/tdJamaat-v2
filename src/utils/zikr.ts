@@ -57,17 +57,19 @@ export const loadZikr = (): ZikrStore => {
 };
 export const saveZikr = (s: ZikrStore) => { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch { /* storage blocked: counts live for this visit only */ } };
 
-/** Add `by` (may be negative: undo) to a zikr today. Never goes below zero. */
-export const addCount = (s: ZikrStore, id: string, by: number, now = new Date()): ZikrStore => {
+/** Add `by` (may be negative: undo) to a zikr today. Never goes below zero.
+ *  `slot` is the running counter it belongs to: the zikr's own, or one of the
+ *  after-prayer set's (so that set never disturbs a count in progress). */
+export const addCount = (s: ZikrStore, id: string, by: number, now = new Date(), slot = id): ZikrStore => {
     const key = dayKey(now);
-    const cur = s.current[id] ?? 0, today = s.days[key]?.[id] ?? 0;
+    const cur = s.current[slot] ?? 0, today = s.days[key]?.[id] ?? 0;
     const step = by < 0 ? -Math.min(-by, cur, today) : by;
     if (step === 0) return s;
     const days = { ...s.days, [key]: { ...s.days[key], [id]: today + step } };
     // old days are dropped so the store never grows without end
     const keys = Object.keys(days).sort();
     for (const k of keys.slice(0, Math.max(0, keys.length - KEEP_DAYS))) delete days[k];
-    return { ...s, days, current: { ...s.current, [id]: cur + step } };
+    return { ...s, days, current: { ...s.current, [slot]: cur + step } };
 };
 
 /** Start the counter again (what was counted today stays counted). */

@@ -753,5 +753,17 @@ export const EN: Record<string, string> = {
     "Аллах аруу, Ага мактоо": "Glory and praise be to Allah",
     "Улуу Аллах аруу": "Glory be to Allah the Almighty",
     "Күч-кубат Аллахтан гана": "There is no power or strength except with Allah",
-    "Бизге Аллах жетиштүү, Ал кандай жакшы коргоочу": "Allah is sufficient for us, and He is the best guardian"
+    "Бизге Аллах жетиштүү, Ал кандай жакшы коргоочу": "Allah is sufficient for us, and He is the best guardian",
+    "Тасбихат": "Tasbihat",
+    "Азыр: {0} намазынан кийин": "Now: after {0}",
+    "{0} намазынын тасбихаты": "Tasbihat of {0}",
+    "Намаздан кийин окулат": "Read after the prayer",
+    "Ан-Наария салаваты": "Salawat an-Nariyah",
+    "Текст «Санарип таспихаттан» (addua.vercel.app) өзгөртүүсүз алынды.": "The text is taken unchanged from “Sanarip Taspihat” (addua.vercel.app); it is in Kyrgyz letters.",
+    "Саноо: {0} / {1}": "Count: {0} / {1}",
+    "Мааниси": "Meaning",
+    "Басыңыз": "Tap",
+    "Эсепти нөлдөн баштайбы?": "Start the count from zero?",
+    "{0} намазы": "{0} prayer",
+    "Кийинки: {0}": "Next: {0}"
 };

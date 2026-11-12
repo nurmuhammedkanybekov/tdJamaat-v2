@@ -8,6 +8,7 @@ import { AFTER_PRAYER, ZIKRS, addCount, allTime, lastDays, loadZikr, resetCurren
 import { t } from '../i18n';
 import { PublicFrame } from './PublicFrame';
 import { go } from './route';
+import { useWakeLock } from './useWakeLock';
 
 const TARGETS = [33, 99, 100, 1000, 0];
 const buzz = (pattern: number | number[]) => { try { navigator.vibrate?.(pattern); } catch { /* no vibration on this device */ } };
@@ -30,37 +31,38 @@ const Ring: React.FC<{ value: number; target: number; full?: boolean; children: 
     );
 };
 
-const Counter: React.FC<{ zikr: Zikr; store: ZikrStore; update: (fn: (s: ZikrStore) => ZikrStore) => void; sequence?: { index: number; onDone: () => void } }> = ({ zikr, store, update, sequence }) => {
+const Counter: React.FC<{ zikr: Zikr; store: ZikrStore; update: (fn: (s: ZikrStore) => ZikrStore) => ZikrStore; sequence?: { index: number; onDone: () => void } }> = ({ zikr, store, update, sequence }) => {
     const target = sequence ? AFTER_PRAYER[sequence.index].count : targetOf(store, zikr);
-    const count = store.current[zikr.id] ?? 0;
+    // The after-prayer set counts in its own slot, so a count in progress on
+    // the zikr's own page is left as it was.
+    const slot = sequence ? `namaz:${sequence.index}` : zikr.id;
+    const count = store.current[slot] ?? 0;
+    // Set when the after-prayer step is complete: further taps wait for the next zikr.
+    const finished = useRef(false);
     const rounds = target > 0 ? Math.floor(count / target) : 0;
     const inRound = target > 0 ? count % target : count;
     const [pulse, setPulse] = useState(0);
     const [done, setDone] = useState(false);
 
-    // Keep the screen on while counting, where the phone allows it.
-    useEffect(() => {
-        let lock: { release: () => Promise<void> } | null = null;
-        const nav = navigator as Navigator & { wakeLock?: { request: (type: 'screen') => Promise<{ release: () => Promise<void> }> } };
-        const request = () => { nav.wakeLock?.request('screen').then(l => { lock = l; }).catch(() => undefined); };
-        request();
-        const onVisible = () => { if (document.visibilityState === 'visible') request(); };
-        document.addEventListener('visibilitychange', onVisible);
-        return () => { document.removeEventListener('visibilitychange', onVisible); lock?.release().catch(() => undefined); };
-    }, []);
+    useWakeLock();
+    const doneTimer = useRef(0);
+    useEffect(() => () => window.clearTimeout(doneTimer.current), []);
 
     const tap = useCallback(() => {
-        const next = count + 1;
+        if (finished.current) return;
+        // Read the count from the store just written, not from the last
+        // render: two quick taps must never see the same number.
+        const next = update(s => addCount(s, zikr.id, 1, new Date(), slot)).current[slot] ?? 0;
         const reached = target > 0 && next % target === 0;
-        update(s => addCount(s, zikr.id, 1));
         setPulse(p => p + 1);
+        window.clearTimeout(doneTimer.current);
         if (reached) {
             buzz([40, 60, 120]);
             setDone(true);
-            window.setTimeout(() => setDone(false), 1400);
-            if (sequence) window.setTimeout(sequence.onDone, 900);
-        } else buzz(12);
-    }, [count, target, update, zikr.id, sequence]);
+            if (sequence) { finished.current = true; doneTimer.current = window.setTimeout(sequence.onDone, 900); }
+            else doneTimer.current = window.setTimeout(() => setDone(false), 1400);
+        } else { setDone(false); buzz(12); }
+    }, [target, update, zikr.id, slot, sequence]);
 
     // Space / Enter count too (a keyboard, or a Bluetooth clicker).
     useEffect(() => {
@@ -95,7 +97,7 @@ const Counter: React.FC<{ zikr: Zikr; store: ZikrStore; update: (fn: (s: ZikrSto
                     <div><div className="eyebrow">{t('Жалпы')}</div><div className="font-display text-[1.4rem] tabular" style={{ color: 'var(--text-primary)' }}>{allTime(store, zikr.id)}</div></div>
                 </div>
                 <div className="flex items-center justify-between gap-2 pt-3">
-                    <button onClick={() => { update(s => addCount(s, zikr.id, -1)); buzz(8); }} disabled={count === 0} className="btn btn-ghost disabled:opacity-30" aria-label={t('Бирди артка')}><Minus className="w-4 h-4" />1</button>
+                    <button onClick={() => { if (finished.current) return; setDone(false); update(s => addCount(s, zikr.id, -1, new Date(), slot)); buzz(8); }} disabled={count === 0} className="btn btn-ghost disabled:opacity-30" aria-label={t('Бирди артка')}><Minus className="w-4 h-4" />1</button>
                     {!sequence && (
                         <label className="flex items-center gap-2 text-[0.8rem]" style={{ color: 'var(--text-muted)' }}>
                             {t('Максат')}
@@ -104,7 +106,7 @@ const Counter: React.FC<{ zikr: Zikr; store: ZikrStore; update: (fn: (s: ZikrSto
                             </select>
                         </label>
                     )}
-                    <button onClick={() => { if (count === 0 || window.confirm(t('Эсепти нөлдөн баштайбы? Бүгүнкү жалпы сан сакталат.'))) update(s => resetCurrent(s, zikr.id)); }} className="btn btn-ghost" aria-label={t('Кайра баштоо')}><RotateCcw className="w-4 h-4" /><span className="hidden min-[380px]:inline">{t('Кайра')}</span></button>
+                    <button onClick={() => { if (count === 0 || window.confirm(t('Эсепти нөлдөн баштайбы? Бүгүнкү жалпы сан сакталат.'))) { setDone(false); update(s => resetCurrent(s, slot)); } }} className="btn btn-ghost" aria-label={t('Кайра баштоо')}><RotateCcw className="w-4 h-4" /><span className="hidden min-[380px]:inline">{t('Кайра')}</span></button>
                 </div>
             </div>
         </div>
@@ -117,13 +119,17 @@ export const ZikrPage: React.FC<{ arg: string | null; theme: Theme; onToggleThem
     const update = useCallback((fn: (s: ZikrStore) => ZikrStore) => {
         const next = fn(ref.current);
         ref.current = next; saveZikr(next); setStore(next);
+        return next;
     }, []);
     const week = useMemo(() => lastDays(store, 7), [store]);
     const weekMax = Math.max(1, ...week.map(d => d.total));
 
     // The after-prayer set: three counters in a row.
     const [step, setStep] = useState(0);
-    useEffect(() => { if (arg !== 'namaz') setStep(0); }, [arg]);
+    const startSet = useCallback(() => { update(s => AFTER_PRAYER.reduce((acc, _, i) => resetCurrent(acc, `namaz:${i}`), s)); setStep(0); }, [update]);
+    // Every visit to the set starts it from the beginning.
+    const inSet = arg === 'namaz';
+    useEffect(() => { startSet(); }, [inSet, startSet]);
     if (arg === 'namaz') {
         if (step >= AFTER_PRAYER.length) {
             return (
@@ -132,7 +138,10 @@ export const ZikrPage: React.FC<{ arg: string | null; theme: Theme; onToggleThem
                         <div className="mx-auto w-16 h-16 rounded-full inline-flex items-center justify-center pop-in" style={{ border: '1px solid var(--gold)', color: 'var(--gold)' }}><Check className="w-7 h-7" /></div>
                         <div className="font-display text-[2.2rem] mt-6" style={{ color: 'var(--text-primary)' }}>{t('Тасбих толду')}</div>
                         <div className="text-[0.95rem] mt-2 tabular" style={{ color: 'var(--text-muted)' }}>33 + 33 + 34 = 100</div>
-                        <button onClick={() => go('#/zikr')} className="btn btn-primary mt-8">{t('Даяр')}</button>
+                        <div className="flex flex-wrap justify-center gap-3 mt-8">
+                            <button onClick={startSet} className="btn btn-ghost"><RotateCcw className="w-4 h-4" />{t('Кайра')}</button>
+                            <button onClick={() => go('#/zikr')} className="btn btn-primary">{t('Даяр')}</button>
+                        </div>
                     </div>
                 </PublicFrame>
             );
@@ -140,7 +149,7 @@ export const ZikrPage: React.FC<{ arg: string | null; theme: Theme; onToggleThem
         const z = ZIKRS.find(x => x.id === AFTER_PRAYER[step].id)!;
         return (
             <PublicFrame title={t('Намаздан кийинки тасбих')} back="#/zikr" theme={theme} onToggleTheme={onToggleTheme}>
-                <Counter key={z.id + step} zikr={z} store={store} update={update} sequence={{ index: step, onDone: () => { update(s => resetCurrent(s, z.id)); setStep(n => n + 1); } }} />
+                <Counter key={z.id + step} zikr={z} store={store} update={update} sequence={{ index: step, onDone: () => setStep(n => n + 1) }} />
             </PublicFrame>
         );
     }
@@ -178,7 +187,7 @@ export const ZikrPage: React.FC<{ arg: string | null; theme: Theme; onToggleThem
                 </div>
             </section>
 
-            <button onClick={() => { setStep(0); go('#/zikr/namaz'); }} className="card lift w-full text-left mt-4 p-5 flex items-center gap-4" style={{ borderTop: '2px solid var(--gold)' }}>
+            <button onClick={() => go('#/zikr/namaz')} className="card lift w-full text-left mt-4 p-5 flex items-center gap-4" style={{ borderTop: '2px solid var(--gold)' }}>
                 <span className="flex-1 min-w-0">
                     <span className="block font-display text-[1.45rem]" style={{ color: 'var(--text-primary)' }}>{t('Намаздан кийинки тасбих')}</span>
                     <span className="block text-[0.85rem] tabular" style={{ color: 'var(--text-muted)' }}>{t('Субханаллах 33 · Алхамдулиллах 33 · Аллаху акбар 34')}</span>

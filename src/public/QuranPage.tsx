@@ -8,7 +8,7 @@ import type { Theme } from '../theme';
 import { t } from '../i18n';
 import { PublicFrame } from './PublicFrame';
 import { go } from './route';
-import { loadLastRead, loadSize, saveLastRead, saveSize } from './quranStore';
+import { loadLastRead, loadSize, saveLastRead, saveSize, searchKey } from './quranStore';
 
 interface Surah { n: number; ar: string; name: string; ayahs: number; place: 'makkah' | 'madinah'; page: number; juz: number; basmala: boolean }
 /** [text, page, juz, sajda] */
@@ -48,7 +48,8 @@ const SurahList: React.FC<{ theme: Theme; onToggleTheme: () => void }> = ({ them
     const shown = useMemo(() => {
         const s = q.trim().toLowerCase();
         if (!index || !s) return index ?? [];
-        return index.filter(x => String(x.n) === s || x.name.toLowerCase().replace(/[^a-z]/g, '').includes(s.replace(/[^a-z]/g, '')) && /[a-z]/.test(s) || x.ar.includes(q.trim()));
+        const key = searchKey(s);
+        return index.filter(x => String(x.n) === s || (key.length > 0 && searchKey(x.name).includes(key)) || x.ar.includes(q.trim()));
     }, [index, q]);
     return (
         <PublicFrame title={t('Куран')} back="" theme={theme} onToggleTheme={onToggleTheme}>
@@ -112,9 +113,15 @@ const Reader: React.FC<{ n: number; theme: Theme; onToggleTheme: () => void }> =
     // Return to where the reader stopped; then remember the verse at the top.
     useEffect(() => {
         if (!ayahs || !surah) return;
-        if (startAt.current && startAt.current > 1) document.getElementById(`a${startAt.current}`)?.scrollIntoView({ block: 'center' });
-        else window.scrollTo(0, 0);
+        const resume = startAt.current;
         startAt.current = null;
+        window.scrollTo(0, 0);
+        // The place is found only once the typeface has arrived: until then
+        // the lines are not where they will be.
+        if (resume && resume > 1) {
+            const jump = () => document.getElementById(`a${resume}`)?.scrollIntoView({ block: 'center' });
+            (document.fonts?.ready ?? Promise.resolve()).then(jump, jump);
+        }
         let timer = 0;
         const onScroll = () => {
             window.clearTimeout(timer);

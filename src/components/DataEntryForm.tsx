@@ -13,7 +13,7 @@ import {
     openWeek,
     exportBackup,
     upsertHouseActivity,
-    upsertMemberMetrics,
+    upsertWeekMetrics,
     uploadMemberPhoto,
     excusedSupported,
     DEFAULT_MINICARD,
@@ -425,9 +425,7 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                 return !row || JSON.stringify(row.actual) !== JSON.stringify(d.actual) || row.excused !== d.excused
                     || (isAdmin && JSON.stringify(row.target) !== JSON.stringify(d.target));
             });
-            await Promise.all(
-                changed.map(member => upsertMemberMetrics(member.id, weekNumber, drafts[member.id].actual, drafts[member.id].target, drafts[member.id].excused))
-            );
+            await upsertWeekMetrics(weekNumber, changed.map(member => ({ memberId: member.id, actual: drafts[member.id].actual, target: drafts[member.id].target, excused: drafts[member.id].excused })));
             clearDraft(selectedHouseId, weekNumber);
             dirty.current = false;
             setSuccess(true);
