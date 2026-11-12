@@ -2,11 +2,11 @@ import { useEffect, useState } from 'react';
 
 // The open part of the site (no login): #/zikr, #/zikr/<id>, #/quran,
 // #/quran/<surah>, #/tasbihat, #/tasbihat/<prayer>, #/namaz — and #/login
-// for the captains' entrance.
-export type PublicPage = 'zikr' | 'quran' | 'tasbihat' | 'namaz' | 'login';
+// for the captains' entrance. #/home is the front door itself.
+export type PublicPage = 'home' | 'zikr' | 'quran' | 'tasbihat' | 'namaz' | 'login';
 export interface PublicRoute { page: PublicPage; arg: string | null }
 
-const PAGES: PublicPage[] = ['zikr', 'quran', 'tasbihat', 'namaz', 'login'];
+const PAGES: PublicPage[] = ['home', 'zikr', 'quran', 'tasbihat', 'namaz', 'login'];
 
 export const parsePublic = (hash: string): PublicRoute | null => {
     const [page, arg] = hash.replace(/^#\/?/, '').split('?')[0].split('/');

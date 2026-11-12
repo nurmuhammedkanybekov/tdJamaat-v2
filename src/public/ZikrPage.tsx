@@ -72,7 +72,7 @@ const Counter: React.FC<{ zikr: Zikr; store: ZikrStore; update: (fn: (s: ZikrSto
     }, [tap]);
 
     return (
-        <div className="flex flex-col" style={{ minHeight: 'calc(100dvh - 5.5rem)' }}>
+        <div className="flex flex-col lg:max-w-[40rem] lg:mx-auto zikr-stage">
             {/* The whole upper area is the button. */}
             <button onClick={tap} className="zikr-tap flex-1 flex flex-col items-center justify-center text-center select-none py-6 w-full" aria-label={t('Саноо: {0}', zikr.reading)}>
                 {sequence && <div className="eyebrow mb-3" style={{ color: 'var(--gold)' }}>{t('Намаздан кийин · {0} / 3', sequence.index + 1)}</div>}
@@ -86,7 +86,8 @@ const Counter: React.FC<{ zikr: Zikr; store: ZikrStore; update: (fn: (s: ZikrSto
                             : target > 0 ? <>/ {target}{rounds > 0 && <span style={{ color: 'var(--gold)' }}> · ×{rounds}</span>}</> : t('чексиз')}
                     </span>
                 </Ring>
-                <div className="text-[0.82rem] mt-6" style={{ color: 'var(--text-muted)' }}>{t('Саноо үчүн экрандын каалаган жерин басыңыз')}</div>
+                <div className="text-[0.82rem] mt-6 lg:hidden" style={{ color: 'var(--text-muted)' }}>{t('Саноо үчүн экрандын каалаган жерин басыңыз')}</div>
+                <div className="text-[0.82rem] mt-6 hidden lg:block" style={{ color: 'var(--text-muted)' }}>{t('Саноо үчүн басыңыз — же клавиатурадан Боштук баскычын')}</div>
             </button>
 
             {/* Controls: small, at the bottom, away from the counting thumb. */}
@@ -164,7 +165,9 @@ export const ZikrPage: React.FC<{ arg: string | null; theme: Theme; onToggleThem
     }
 
     return (
-        <PublicFrame title={t('Зикир')} back="" theme={theme} onToggleTheme={onToggleTheme}>
+        <PublicFrame title={t('Зикир')} back="" theme={theme} onToggleTheme={onToggleTheme} width="full">
+            <div className="lg:grid lg:grid-cols-[23rem_minmax(0,1fr)] lg:gap-14 lg:items-start">
+            <div className="lg:sticky lg:top-24">
             {/* Today, the last seven days, the run of days. */}
             <section className="card card-pad mt-5">
                 <div className="flex items-end justify-between gap-4">
@@ -194,8 +197,10 @@ export const ZikrPage: React.FC<{ arg: string | null; theme: Theme; onToggleThem
                 </span>
                 <ChevronRight className="w-5 h-5" style={{ color: 'var(--gold)' }} />
             </button>
+            <p className="hidden lg:block text-[0.8rem] italic mt-5" style={{ color: 'var(--text-muted)' }}>{t('Сандар ушул телефондо гана сакталат жана эч кимге жөнөтүлбөйт.')}</p>
+            </div>
 
-            <ul className="mt-6">
+            <ul className="mt-6 lg:mt-5" style={{ borderBottom: '1px solid var(--border)' }}>
                 {ZIKRS.map(z => {
                     const today = todayOf(store, z.id), target = targetOf(store, z);
                     return (
@@ -205,7 +210,7 @@ export const ZikrPage: React.FC<{ arg: string | null; theme: Theme; onToggleThem
                                     <span className="block font-display text-[1.25rem] leading-tight" style={{ color: 'var(--text-primary)' }}>{z.reading}</span>
                                     <span className="block text-[0.82rem] italic truncate" style={{ color: 'var(--text-muted)' }}>{z.meaning}</span>
                                 </span>
-                                <span dir="rtl" lang="ar" className="quran-text text-[1.35rem] hidden min-[420px]:block max-w-[11rem] truncate" style={{ color: 'var(--text-secondary)' }}>{z.arabic}</span>
+                                <span dir="rtl" lang="ar" className="quran-text text-[1.35rem] lg:text-[1.6rem] hidden min-[420px]:block max-w-[11rem] lg:max-w-[22rem] truncate" style={{ color: 'var(--text-secondary)' }}>{z.arabic}</span>
                                 <span className="w-14 text-right flex-shrink-0">
                                     <span className="block font-display text-[1.3rem] tabular leading-none" style={{ color: today > 0 ? 'var(--gold)' : 'var(--text-muted)' }}>{today}</span>
                                     <span className="block text-[0.68rem] tabular mt-0.5" style={{ color: 'var(--text-muted)' }}>{target > 0 ? `/ ${target}` : '∞'}</span>
@@ -215,7 +220,8 @@ export const ZikrPage: React.FC<{ arg: string | null; theme: Theme; onToggleThem
                     );
                 })}
             </ul>
-            <p className="text-[0.8rem] italic mt-6" style={{ color: 'var(--text-muted)' }}>{t('Сандар ушул телефондо гана сакталат жана эч кимге жөнөтүлбөйт.')}</p>
+            </div>
+            <p className="lg:hidden text-[0.8rem] italic mt-6" style={{ color: 'var(--text-muted)' }}>{t('Сандар ушул телефондо гана сакталат жана эч кимге жөнөтүлбөйт.')}</p>
         </PublicFrame>
     );
 };

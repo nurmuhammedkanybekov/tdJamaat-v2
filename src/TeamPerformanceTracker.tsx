@@ -73,6 +73,9 @@ const SectionLoading: React.FC = () => (
     </div>
 );
 
+const KNOWN_DEVICE = 'tdjamaat-known-device';
+const knownDevice = () => { try { return localStorage.getItem(KNOWN_DEVICE) === '1' || !!localStorage.getItem('tdjamaat-login-house'); } catch { return false; } };
+
 type Modal = null | 'story' | 'entry' | 'formula' | 'share' | 'admin' | 'history' | 'install' | 'prayer' | 'compare';
 
 const fmt = (n: number) => (Math.round(n * 10) / 10).toString();
@@ -87,6 +90,9 @@ const TeamPerformanceTracker: React.FC = () => {
     const pub = usePublicRoute();
     const openPage = !!pub && pub.page !== 'login';
     useEffect(() => { if (authUser && pub?.page === 'login') window.location.replace('#/overview'); }, [authUser, pub]);
+    // A device a captain or the admin has used before opens on the login
+    // screen, as it always did; everyone else is met by the front door.
+    useEffect(() => { if (authUser) { try { localStorage.setItem(KNOWN_DEVICE, '1'); } catch { /* not critical */ } } }, [authUser]);
 
     const [modal, setModal] = useState<Modal>(null);
     // Read by the background refresh, which must not run while someone is
@@ -154,8 +160,8 @@ const TeamPerformanceTracker: React.FC = () => {
     // Open to everyone, signed in or not — and shown without waiting for the login check.
     if (openPage) return <PublicPages route={pub} theme={theme} onToggleTheme={toggleTheme} signedIn={!!authUser} />;
     if (!authChecked) return <LoadingScreen />;
-    if (!authUser) return pub?.page === 'login'
-        ? <LoginScreen theme={theme} onToggleTheme={toggleTheme} onBack={() => go('')} />
+    if (!authUser) return pub?.page === 'login' || (!pub && knownDevice())
+        ? <LoginScreen theme={theme} onToggleTheme={toggleTheme} onBack={() => go('#/home')} />
         : <PublicPages route={null} theme={theme} onToggleTheme={toggleTheme} signedIn={false} />;
     if (loading) return <LoadingScreen />;
     if (error || !allData || !data || !insights || allData.weeks.length === 0) {

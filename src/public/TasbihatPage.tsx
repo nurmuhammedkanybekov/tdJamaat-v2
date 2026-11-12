@@ -27,8 +27,8 @@ const List: React.FC<{ theme: Theme; onToggleTheme: () => void }> = ({ theme, on
     const times = prayerTimes(city, now);
     const current = currentPrayer(city, now);
     return (
-        <PublicFrame title={t('Тасбихат')} back="" theme={theme} onToggleTheme={onToggleTheme}>
-            <button onClick={() => go(`#/tasbihat/${current}`)} className="card lift w-full text-left mt-5 p-5 flex items-center gap-4" style={{ borderTop: '2px solid var(--gold)' }}>
+        <PublicFrame title={t('Тасбихат')} back="" theme={theme} onToggleTheme={onToggleTheme} width="wide">
+            <button onClick={() => go(`#/tasbihat/${current}`)} className="card lift w-full text-left mt-5 p-5 lg:p-7 flex items-center gap-4" style={{ borderTop: '2px solid var(--gold)' }}>
                 <span className="flex-1 min-w-0">
                     <span className="eyebrow block" style={{ color: 'var(--gold)' }}>{t('Азыр')}</span>
                     <span className="block font-display text-[1.6rem] leading-tight mt-0.5" style={{ color: 'var(--text-primary)' }}>{t('{0} намазынын тасбихаты', PRAYER_NAMES[current])}</span>
@@ -36,7 +36,7 @@ const List: React.FC<{ theme: Theme; onToggleTheme: () => void }> = ({ theme, on
                 </span>
                 <ChevronRight className="w-5 h-5 flex-shrink-0" style={{ color: 'var(--gold)' }} />
             </button>
-            <ol className="mt-6">
+            <ol className="mt-6 lg:grid lg:grid-cols-2 lg:gap-x-12">
                 {TASBIHAT_ORDER.map((id, i) => (
                     <li key={id} style={{ borderTop: '1px solid var(--border)' }}>
                         <button onClick={() => go(`#/tasbihat/${id}`)} className="row-link w-full text-left py-4 px-1 flex items-center gap-4" aria-current={id === current ? 'true' : undefined}>
@@ -175,7 +175,7 @@ const Reader: React.FC<{ id: string; theme: Theme; onToggleTheme: () => void }> 
     const title = at >= 0 ? t('{0} намазы', PRAYER_NAMES[id as TasbihatId]) : t('Ан-Наария салаваты');
 
     return (
-        <PublicFrame title={title} back="#/tasbihat" theme={theme} onToggleTheme={onToggleTheme}>
+        <PublicFrame title={title} back="#/tasbihat" theme={theme} onToggleTheme={onToggleTheme} width="wide">
             <div ref={bar} className="tasbihat-progress" aria-hidden="true" />
             {failed && (
                 <div className="text-center py-16">
@@ -185,9 +185,17 @@ const Reader: React.FC<{ id: string; theme: Theme; onToggleTheme: () => void }> 
             )}
             {!data && !failed && <div className="py-24 flex justify-center" aria-busy="true"><div className="skeleton h-1 w-24" /></div>}
             {data && (
+                <div className="lg:grid lg:grid-cols-[13rem_minmax(0,42rem)] lg:gap-14 lg:justify-center">
+                {/* On a wide screen: the parts of the text, to jump between. */}
+                <nav className="hidden lg:block sticky top-24 self-start pt-8 max-h-[calc(100dvh-8rem)] overflow-y-auto" aria-label={t('Бөлүмдөр')}>
+                    <div className="eyebrow mb-3">{t('Бөлүмдөр')}</div>
+                    {data.blocks.map((b, i) => (b.t === 'h' ? (
+                        <a key={i} href={`#s${i}`} onClick={e => { e.preventDefault(); document.getElementById(`s${i}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }} className="block py-1.5 text-[0.88rem] leading-snug transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-secondary)' }}>{(b.v ?? '').toLowerCase().replace(/[a-zа-яёңөү]/i, ch => ch.toUpperCase())}</a>
+                    ) : null))}
+                </nav>
                 <article className="tasbihat pt-6 pb-28" style={{ fontSize: `${size}rem` }} lang="ky">
                     {data.blocks.map((b, i) => (
-                        b.t === 'h' ? <h2 key={i} className="tasbihat-head">{b.v}</h2> : <Paragraph key={i} block={b} />
+                        b.t === 'h' ? <h2 key={i} id={`s${i}`} className="tasbihat-head">{b.v}</h2> : <Paragraph key={i} block={b} />
                     ))}
                     {id === NAARIA && <OpenCounter />}
                     {next && (
@@ -196,6 +204,7 @@ const Reader: React.FC<{ id: string; theme: Theme; onToggleTheme: () => void }> 
                         </button>
                     )}
                 </article>
+                </div>
             )}
             <div className="fixed left-0 right-0 bottom-0 z-20 page-gutter" style={{ paddingBottom: 'max(0.6rem, env(safe-area-inset-bottom))', paddingTop: '0.6rem', backgroundColor: 'color-mix(in oklab, var(--page-plane) 94%, transparent)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderTop: '1px solid var(--border)' }}>
                 <div className="mx-auto max-w-[40rem] flex items-center justify-center gap-1">

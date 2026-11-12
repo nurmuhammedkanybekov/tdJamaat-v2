@@ -5,6 +5,7 @@ import type { Theme } from '../theme';
 import { withReload } from '../lazyLoad';
 import { t } from '../i18n';
 import { Portal } from './Portal';
+import { SignedInContext } from './signedIn';
 import { go } from './route';
 import type { PublicRoute } from './route';
 
@@ -26,13 +27,18 @@ export const PublicPages: React.FC<{ route: PublicRoute | null; theme: Theme; on
     useEffect(() => {
         document.title = page === 'quran' ? `${t('Куран')} · tdJamaat` : page === 'zikr' ? `${t('Зикир')} · tdJamaat` : page === 'tasbihat' ? `${t('Тасбихат')} · tdJamaat` : page === 'namaz' ? `${t('Намаз убактылары')} · tdJamaat` : 'tdJamaat';
     }, [page]);
-    if (page === 'quran') return <Suspense fallback={<Waiting />}><QuranPage arg={route!.arg} theme={theme} onToggleTheme={onToggleTheme} /></Suspense>;
-    if (page === 'tasbihat') return <Suspense fallback={<Waiting />}><TasbihatPage arg={route!.arg} theme={theme} onToggleTheme={onToggleTheme} /></Suspense>;
-    if (page === 'zikr') return <Suspense fallback={<Waiting />}><ZikrPage arg={route!.arg} theme={theme} onToggleTheme={onToggleTheme} /></Suspense>;
+    const content = page === 'quran' ? <QuranPage arg={route!.arg} theme={theme} onToggleTheme={onToggleTheme} />
+        : page === 'tasbihat' ? <TasbihatPage arg={route!.arg} theme={theme} onToggleTheme={onToggleTheme} />
+            : page === 'zikr' ? <ZikrPage arg={route!.arg} theme={theme} onToggleTheme={onToggleTheme} />
+                : (
+                    <>
+                        <Portal theme={theme} onToggleTheme={onToggleTheme} signedIn={signedIn} />
+                        {page === 'namaz' && <PrayerSheet onClose={() => go('#/home')} onCityChange={() => setCityTick(n => n + 1)} />}
+                    </>
+                );
     return (
-        <>
-            <Portal theme={theme} onToggleTheme={onToggleTheme} signedIn={signedIn} />
-            {page === 'namaz' && <Suspense fallback={null}><PrayerSheet onClose={() => go(signedIn ? '#/overview' : '')} onCityChange={() => setCityTick(n => n + 1)} /></Suspense>}
-        </>
+        <SignedInContext.Provider value={signedIn}>
+            <Suspense fallback={<Waiting />}>{content}</Suspense>
+        </SignedInContext.Provider>
     );
 };

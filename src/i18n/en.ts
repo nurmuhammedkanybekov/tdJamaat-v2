@@ -706,7 +706,6 @@ export const EN: Record<string, string> = {
     "Тасбих, салават, истигфар": "Tasbih, salawat, istighfar",
     "Бүгүн жана кийинки 7 күн": "Today and the next 7 days",
     "Жыйынтыктарга өтүү": "Go to the results",
-    "Капитандар үчүн кирүү": "Captains' entrance",
     "Жүктөлгөн жок. Интернетти текшериңиз.": "Could not load. Check your connection.",
     "Улантуу": "Continue",
     "{0}-аят": "Verse {0}",
@@ -765,5 +764,13 @@ export const EN: Record<string, string> = {
     "Басыңыз": "Tap",
     "Эсепти нөлдөн баштайбы?": "Start the count from zero?",
     "{0} намазы": "{0} prayer",
-    "Кийинки: {0}": "Next: {0}"
+    "Кийинки: {0}": "Next: {0}",
+    "Күндүн айланасы: намаз убактылары": "The circle of the day: prayer times",
+    "Ассалому алейкум": "Assalamu alaykum",
+    "Намаз": "Prayer times",
+    "Капитандар жана админ үчүн": "For captains and the admin",
+    "Үйлөрдүн жыйынтыктары": "The houses' results",
+    "Апталык рейтинг, сыйлыктар жана маалымат киргизүү.": "Weekly ranking, awards and data entry.",
+    "Жыйынтыктар": "Results",
+    "Саноо үчүн басыңыз — же клавиатурадан Боштук баскычын": "Click to count — or press Space"
 };

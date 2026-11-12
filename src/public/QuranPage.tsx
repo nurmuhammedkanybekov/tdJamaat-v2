@@ -52,9 +52,10 @@ const SurahList: React.FC<{ theme: Theme; onToggleTheme: () => void }> = ({ them
         return index.filter(x => String(x.n) === s || (key.length > 0 && searchKey(x.name).includes(key)) || x.ar.includes(q.trim()));
     }, [index, q]);
     return (
-        <PublicFrame title={t('Куран')} back="" theme={theme} onToggleTheme={onToggleTheme}>
+        <PublicFrame title={t('Куран')} back="" theme={theme} onToggleTheme={onToggleTheme} width="full">
+            <div className="lg:flex lg:items-stretch lg:gap-4 lg:mt-4">
             {last && (
-                <button onClick={() => go(`#/quran/${last.surah}`)} className="card lift w-full text-left mt-5 p-5 flex items-center gap-4" style={{ borderTop: '2px solid var(--gold)' }}>
+                <button onClick={() => go(`#/quran/${last.surah}`)} className="card lift w-full lg:w-[24rem] text-left mt-5 p-5 flex items-center gap-4" style={{ borderTop: '2px solid var(--gold)' }}>
                     <span className="flex-1 min-w-0">
                         <span className="eyebrow block" style={{ color: 'var(--gold)' }}>{t('Улантуу')}</span>
                         <span className="block font-display text-[1.45rem]" style={{ color: 'var(--text-primary)' }}>{last.name}</span>
@@ -63,13 +64,14 @@ const SurahList: React.FC<{ theme: Theme; onToggleTheme: () => void }> = ({ them
                     <ChevronRight className="w-5 h-5" style={{ color: 'var(--gold)' }} />
                 </button>
             )}
-            <label className="relative block mt-5">
+            <label className="relative block mt-5 lg:flex-1 lg:self-end">
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--text-muted)' }} />
                 <input value={q} onChange={e => setQ(e.target.value)} placeholder={t('Сүрөнүн аты же номери')} className="login-field w-full pl-10 pr-3 py-3 text-base" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)' }} />
             </label>
+            </div>
             {failed && <Problem onRetry={() => window.location.reload()} />}
             {!index && !failed && <div className="py-16 flex justify-center"><div className="skeleton h-1 w-24" /></div>}
-            <ol className="mt-3">
+            <ol className="mt-3 lg:grid lg:grid-cols-2 xl:grid-cols-3 lg:gap-x-12">
                 {shown.map(s => (
                     <li key={s.n} style={{ borderBottom: '1px solid var(--border)' }}>
                         <button onClick={() => go(`#/quran/${s.n}`)} className="row-link w-full text-left py-3.5 px-1 flex items-center gap-4">
@@ -139,7 +141,7 @@ const Reader: React.FC<{ n: number; theme: Theme; onToggleTheme: () => void }> =
     const resize = (by: number) => setSize(s => { const next = Math.min(3.2, Math.max(1.3, Math.round((s + by) * 10) / 10)); saveSize(next); return next; });
 
     return (
-        <PublicFrame title={surah ? `${surah.n}. ${surah.name}` : t('Куран')} back="#/quran" theme={theme} onToggleTheme={onToggleTheme} wide>
+        <PublicFrame title={surah ? `${surah.n}. ${surah.name}` : t('Куран')} back="#/quran" theme={theme} onToggleTheme={onToggleTheme} width="wide" plain>
             {failed && <Problem onRetry={() => { setFailed(false); loadSurah(n).then(setAyahs).catch(() => setFailed(true)); }} />}
             {!ayahs && !failed && <div className="py-24 flex justify-center"><div className="skeleton h-1 w-24" /></div>}
             {ayahs && surah && (

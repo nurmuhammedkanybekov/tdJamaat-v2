@@ -48,6 +48,16 @@ visual redesign.
 
 ## Features
 
+- **Made for every screen.** On a phone the open pages are single
+  columns with a back arrow; on a computer they are a site: section links
+  in the header, the front page in two columns, lists in grids, the
+  tasbihat with a table of contents beside the text.
+- **The day as a dial.** The front page draws the day as a 24-hour ring
+  shaped like a түндүк: the six prayer times set around it, the sun or
+  moon standing at the present moment, the next prayer in the middle.
+- **The captains' entrance is in plain sight**: a «Кирүү» button in the
+  header and a card on the front page. A device that has logged in before
+  opens straight on the login screen, as it always did.
 - **An open front door (no login).** Today's prayer times, the Quran, the
   tasbihat and a zikr counter are for anyone who opens the site:
   - *Quran* — the Arabic text of the Madinah mushaf (Hafs), as published
