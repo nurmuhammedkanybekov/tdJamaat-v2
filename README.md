@@ -14,6 +14,10 @@ of personal metrics, plus a few team activities, once a week; the app turns
 that into scores, rankings, awards and trend charts the whole community can
 see. The interface is in Kyrgyz, with an English version.
 
+**Want your own version for another community?** Read the step-by-step
+[community guide](docs/COMMUNITY-GUIDE.md) (also as a
+[PDF](docs/tdJamaat-community-guide.pdf)).
+
 Rebuilt from the original [tdJamaat](https://github.com/Muslim04/tdJamaat)
 as an independent project on a normalized data model — real houses and
 members instead of a JSON blob re-typed every week — with per-house
