@@ -1,12 +1,6 @@
 ---
-title: "tdJamaat — a guide for communities who want their own version"
-subtitle: "How the website works, what you can change, and how to set it up"
+title: "tdJamaat Documentation"
 ---
-
-*Written for a women's Muslim community that asked to build its own version.
-It describes the original tdJamaat website as it is today (November 2026),
-and it is written so that a coordinator can read it end to end, and a helper
-with a computer can follow the setup steps without guessing.*
 
 # 0. Read this first
 
@@ -41,29 +35,20 @@ shared in a WhatsApp or Telegram group.
 | Also **rename** the things you count, translate the texts, change colours and name | the same person, editing a few text files | 1–2 days |
 | **Different** things to count (more or fewer than 8 personal and 7 team items), a different scoring formula, different roles | a web developer (React + TypeScript) | several days |
 
-**Credit and permission.** The idea, the eight-metric scoring formula and the
-first working version of tdJamaat were created by **Muslim**
-([@Muslim04](https://github.com/Muslim04)); the current version was rebuilt
-by **Nur Kanybekov**. Please keep that credit, and ask both of them before
-you publish or share your version further. The code is not published under
-an open-source licence yet, so permission is not automatic — a short message
-asking is the right way. The prayer-time calculation uses the open-source
-`adhan` library (MIT licence), and the fonts are open (SIL OFL).
-
 ---
 
 # 1. What the website does
 
 <p align="center">
-<img src="desktop.jpg" alt="The weekly overview on a laptop" width="100%">
+<img src="shot-desktop.jpg" alt="The weekly overview on a laptop" width="100%">
 </p>
 <p align="center">
-<img src="phone-overview.jpg" alt="Overview on a phone" width="30%"> &nbsp;
-<img src="phone-houses.jpg" alt="A house on a phone" width="30%"> &nbsp;
-<img src="phone-profile.jpg" alt="A member's profile on a phone" width="30%">
+<img src="shot-phone-week.jpg" alt="The week on a phone" width="30%"> &nbsp;
+<img src="shot-phone-houses.jpg" alt="A house on a phone" width="30%"> &nbsp;
+<img src="shot-phone-profile.jpg" alt="A member's profile on a phone" width="30%">
 </p>
 
-*(Invented demo data, light theme. There is also a black-and-gold dark theme.)*
+*(Invented demo data, light theme, Kyrgyz interface — an English version and a black-and-gold dark theme are built in.)*
 
 ## 1.1 The people who use it
 
@@ -164,7 +149,7 @@ Other things you will meet:
 
 # 3. How the scoring works
 
-You do not have to keep our scoring. But you should understand it, because it
+You do not have to keep the original scoring. But you should understand it, because it
 is the part most communities want to adjust.
 
 ## 3.1 One person's score
@@ -188,9 +173,9 @@ points earned at exactly 100% of the plan).
    that is quick to multiply) cannot carry a whole week.
 3. **Points for the item** = credited percentage ÷ 100 × weight.
 4. **Score of the person** = the sum over all eight items. Doing exactly 100%
-   of everything gives **220** points with our weights.
+   of everything gives **220** points with the original weights.
 
-Our eight items, with the weights and what the community counts:
+The original eight items, with their weights and the units they are counted in:
 
 | Code | Meaning | Weight | Plan: captain / deputy / member |
 |---|---|---|---|
@@ -204,8 +189,8 @@ Our eight items, with the weights and what the community counts:
 | ТСП | Tasbihat (days) | 25 | 10 / 7 / 7 |
 
 *(Weights are the same for everyone; what changes with the role is the plan.
-The units in the second column are how our community counts them — yours may
-differ.)*
+The units in the second column are only an example — your community decides
+its own.)*
 
 **A worked example.** A regular member, plans as in the table (К-К 7, СВТ 700,
 КТП 30, ТХЖ 1, ДТА 1, ИСТГ 200, НФ 7, ТСП 7). In one week she read 7 pages,
@@ -268,18 +253,18 @@ rewrites history.
 Before anyone touches a computer, the community should agree on this
 worksheet. It takes one meeting. Everything later follows from it.
 
-| # | Question | Our answer, for reference | Where this is changed |
+| # | Question | In the original | Where this is changed |
 |---|---|---|---|
 | 1 | **Name** of the website | tdJamaat | Text files (section 8.1) |
-| 2 | How many **houses** (teams), and their names | 5 houses named after Hungarian places | Seed file / admin screen |
+| 2 | How many **houses** (teams), and their names | a handful of named houses | Seed file / admin screen |
 | 3 | The **members** of each house and who is **captain / deputy** | 5–8 per house | Seed file / admin screen |
-| 4 | **What do you count** personally each week? (we have 8 things) | Quran, salawat, book, tahajjud, fasting, dhikr, nafl, tasbihat | Names: text files. A different *number* of things: developer |
-| 5 | What do the houses do **together**? (we have 7 things) | Fajr, Isha, a book, sport… | Same as above |
+| 4 | **What do you count** personally each week? (the original has 8 things) | Quran, salawat, book, tahajjud, fasting, dhikr, nafl, tasbihat | Names: text files. A different *number* of things: developer |
+| 5 | What do the houses do **together**? (the original has 7 things) | Fajr, Isha, a book, sport… | Same as above |
 | 6 | The **plans** (minimum per role) for each thing | table in 3.1 | **Admin screen** — no code |
 | 7 | The **weights** — how many points each thing is worth | table in 3.1 | One file (section 8.3) |
 | 8 | The **roles** and their names | captain, deputy, member | Labels: one file. A different number of roles: developer |
 | 9 | **Language** of the screens | Kyrgyz + English | Section 8.2 |
-| 10 | **Cities** (for prayer times) | Budapest, Debrecen | One file (8.4), or remove the feature |
+| 10 | **Cities** (for prayer times) | two cities | One file (8.4), or remove the feature |
 | 11 | **Admin(s)** — who, and who holds the password | — | Setup step F |
 | 12 | **Season rhythm** — how long is a season? | about a year | Decided by the admin, no code |
 | 13 | **Photos?** | allowed | See section 10 before you decide |
@@ -310,7 +295,7 @@ what it costs, and what can break.
 
 | Part | What it is | Cost |
 |---|---|---|
-| **The website** | A React + TypeScript app, built with Vite. Everything runs in the visitor's browser. There is **no server of ours** to maintain. | free |
+| **The website** | A React + TypeScript app, built with Vite. Everything runs in the visitor's browser. There is **no server of your own** to maintain. | free |
 | **Supabase** | Hosts the **database** (PostgreSQL), the **login accounts** and the **photo storage**. The most important part: its *row-level security rules* decide who may read and write what. | free plan (at the time of writing: 500 MB database, far more than a community needs — check Supabase's current limits) |
 | **Vercel** | Hosts the website files and gives you the web address. Also runs the daily keep-alive (below). | free "Hobby" plan — check Vercel's current terms for non-commercial use |
 | **GitHub** | Stores the code; Vercel can publish it automatically. | free |
@@ -373,9 +358,11 @@ the check before moving on.
 
 ## Step A. Get a clean copy of the code
 
-Ask the tdJamaat team for a **clean copy** of the code. Do **not** copy or
-"fork" our public repository on GitHub: its history contains our community's
-names and early development data, and a clean start is better for you.
+Start from a **clean copy** of the code — the files only, **without version
+history** (whoever sent you this documentation will provide it). Do **not**
+"fork" someone else's repository: its history can contain another
+community's names and early development data, and a clean start is better for
+you.
 
 Create a new **private** repository on GitHub (the green *New* button → name
 it → **Private**) and put the code in it. Then, on the helper's computer:
@@ -393,7 +380,7 @@ npm install
 
 Do the minimum now; you can polish later (section 8).
 
-1. **Open `supabase/seed.sql`** and replace our houses and members with yours.
+1. **Open `supabase/seed.sql`** and replace the example houses and members with yours.
    It has a pattern you copy for each house:
 
    ```sql
@@ -469,11 +456,11 @@ it into the editor, press **Run**. Each should end with *"Success"*.
 | 10 | `roster-changes-2026-11.sql` | Moving people between houses and changing roles during a season |
 | 11 | `private-site-2026-11.sql` | **Makes the site private** — nothing readable without login |
 
-Do **not** run `update-2026-09-names.sql`: it is a one-time repair of *our*
-old data.
+Do **not** run `update-2026-09-names.sql`: it is a one-time repair of the original
+community's old data, and is not for new projects.
 
-We ran exactly this sequence on an empty test database with a different
-roster (a local copy that imitates Supabase) and it completed with no errors. If a file does report an error in *your*
+This exact sequence was run on an empty test database with a different
+roster (a local copy that imitates Supabase) and completed with no errors. If a file does report an error in *your*
 project, stop, and send the error text and the name of the file to your
 helper — do not skip ahead, because later files depend on earlier ones.
 
@@ -586,10 +573,10 @@ the job is.
 | The logo / icon | `public/favicon.svg`, `public/apple-touch-icon.png`, and the three PNGs in `public/icons/` (192, 512, maskable 512). The in-page mark is drawn in `src/components/Ornament.tsx` (component `Mark`). |
 | The address printed on the share pictures | `src/utils/shareCards.ts` — it uses the real address of the site automatically; the text after `||` is only a fallback |
 | Package name, homepage | `package.json` |
-| **Colours** | `src/index.css`, top of the file: a block of named colour tokens for the **light** theme (`--gold`, `--page-plane`, `--surface`…) and a second block for the **dark** theme. Change the tokens, not the components. Our identity is *black-and-gold, one metal, lots of air*; if you want your own mood, change the gold tokens (for example to a rose-gold or a deep green) and keep the contrast between text and background high — the file notes the contrast ratios we checked. |
+| **Colours** | `src/index.css`, top of the file: a block of named colour tokens for the **light** theme (`--gold`, `--page-plane`, `--surface`…) and a second block for the **dark** theme. Change the tokens, not the components. The original look is *black-and-gold, one metal, lots of air*; if you want your own mood, change the gold tokens (for example to a rose-gold or a deep green) and keep the contrast between text and background high — the file notes the contrast ratios that were checked. |
 | **House colours** | `--team-color-1…8` and `--role-*` tokens in the same file — chosen so the houses stay distinguishable, including for colour-blind readers |
-| **Fonts** | `package.json` (the `@fontsource/…` packages), `src/main.tsx` (imports) and the `--font-*` lines in `src/index.css`. The fonts we use cover Latin and Cyrillic. |
-| **Ornaments** | `src/components/Ornament.tsx`, `src/components/motion.tsx`, `src/utils/ornament.ts` and `src/utils/sky.ts`. Ours are Kyrgyz motifs (түндүк — the crown of a yurt, тумар — an amulet shape, кочкор мүйүз — a ram's horn) drawn as thin gold lines. **Replace these with motifs of your own community**; they are what makes the site feel like *yours*. |
+| **Fonts** | `package.json` (the `@fontsource/…` packages), `src/main.tsx` (imports) and the `--font-*` lines in `src/index.css`. The original fonts cover Latin and Cyrillic. |
+| **Ornaments** | `src/components/Ornament.tsx`, `src/components/motion.tsx`, `src/utils/ornament.ts` and `src/utils/sky.ts`. The original uses Kyrgyz motifs (түндүк — the crown of a yurt, тумар — an amulet shape, кочкор мүйүз — a ram's horn) drawn as thin gold lines. **Replace these with motifs of your own community**; they are what makes the site feel like *yours*. |
 
 ## 8.2 Language — *medium*
 
@@ -623,10 +610,10 @@ Numbers, dates and the Hijri date follow the browser/language automatically.
 | Names of the 8 personal items and 7 team activities | `src/utils/metrics.ts` | Four maps: Kyrgyz names, English names/codes, for both lists. The *stored keys* (К-К, СВТ…) stay as they are inside the database and the code; only what people **see** is mapped here. |
 | Names of the roles | `ROLE_LABEL` in `src/utils/insights.ts` (and the role filter in `src/components/views/Standings.tsx`) | The internal words `imam / zam / member` never show on screen. |
 | Weights (points per item) | `weights` in `src/utils/scoring.ts` | One table. If you change them, the tests in `src/utils/scoring.test.ts` (and a few others) will fail on purpose — update the expected numbers. The "formula" sheet and the plan-score (220) update themselves. |
-| Points per team activity | `MINI_CARD_POINTS` in the same file | We use 5. |
+| Points per team activity | `MINI_CARD_POINTS` in the same file | The original uses 5. |
 | The over-plan curve | `creditedPercentage` in the same file | Replace it by a flat cap (`Math.min(pct, 100)`) if you do not want any extra credit above 100%. |
-| Cities, houses-per-city grouping | `src/utils/standings.ts` (top) | We have two cities with houses split between them. If you have **one** place, you can delete the city filter. |
-| The "known names" for house transliteration | `src/utils/houseName.ts` | Ours shows house names in Latin letters. Remove or replace the table with your names. |
+| Cities, houses-per-city grouping | `src/utils/standings.ts` (top) | The original has two cities with houses split between them. If you have **one** place, you can delete the city filter. |
+| The "known names" for house transliteration | `src/utils/houseName.ts` | The original shows house names in Latin letters. Remove or replace the table with your names. |
 | The formula sheet's worked example | `src/components/FormulaDisplay.tsx` | A short example in the "Формула" window; adjust to your items. |
 
 **Keeping the 8 + 7 slots but giving them your own meaning** is the cheap way
@@ -734,7 +721,7 @@ When customising, **do not**:
 
 ---
 
-# 10. Privacy and safety — please read, especially for a women's community
+# 10. Privacy and safety
 
 You are going to store **personal information about acts of worship**. That
 is sensitive. The website was built carefully for it, but the community must
@@ -754,10 +741,11 @@ also decide what to collect.
    person's results; she only writes her own. If your community wants each
    house to see *only itself*, that is a design change (a developer).
 2. **Photos are not private in this version.** The photo bucket is public: a
-   person who has, or guesses, a photo's address can open it. For a women's
+   person who has, or guesses, a photo's address can open it. For a private
    community we recommend **not using photos**: agree that nobody uploads any
-   (or skip `photo-upload-setup.sql` in step D). A private-photo version exists as an
-   improvement; ask the tdJamaat team if you want it.
+   (or skip `photo-upload-setup.sql` in step D). A private-photo version is a
+   straightforward improvement for a developer (private storage bucket and
+   signed links).
 3. **Use first names or nicknames** if the community prefers, and agree that
    with everyone. Nobody needs a surname to be ranked.
 4. **Collect the minimum and ask first.** Tell members exactly what is
@@ -918,6 +906,4 @@ Supabase directly; the database policies enforce who may do what.
 
 ---
 
-*Guide version: 13 November 2026, written against the original tdJamaat
-website (the version running at tdjamaat.vercel.app on that date).
-Questions, corrections or permission requests: contact the tdJamaat team.*
+*Written against the original tdJamaat website, November 2026.*

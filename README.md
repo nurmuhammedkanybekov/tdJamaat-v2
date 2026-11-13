@@ -15,8 +15,8 @@ that into scores, rankings, awards and trend charts the whole community can
 see. The interface is in Kyrgyz, with an English version.
 
 **Want your own version for another community?** Read the step-by-step
-[community guide](docs/COMMUNITY-GUIDE.md) (also as a
-[PDF](docs/tdJamaat-community-guide.pdf)).
+[documentation](docs/DOCUMENTATION.md) (also as a
+[PDF](docs/tdJamaat-Documentation.pdf)).
 
 Rebuilt from the original [tdJamaat](https://github.com/Muslim04/tdJamaat)
 as an independent project on a normalized data model — real houses and
