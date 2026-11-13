@@ -96,7 +96,7 @@ Other things you will meet:
 - **Typo warning**: a number ten times the plan and three times what the
   person normally enters asks "are you sure?" before saving.
 - **Excused weeks**: a captain can mark someone as excused (ill, travelling).
-  She is left out of the average and the ranking for that week, and her streak
+  They are left out of the average and the ranking for that week, and their streak
   is neither broken nor extended.
 - **Seasons**: the admin ends a season with one button; results are archived
   and the next season starts again at week 1.
@@ -126,12 +126,12 @@ Other things you will meet:
    can be entered by mistake in a future week.
 2. **During the week**, members do their things and tell their captain what
    they did, in whatever way the community already uses.
-3. **Captain enters the results.** She logs in, taps **Маалымат кошуу**, and
-   the form opens on the latest week. For each member of her house she types
+3. **Captain enters the results.** The captain logs in, taps **Маалымат кошуу**, and
+   the form opens on the latest week. For each member of the house they type
    what was done (**Факт**) next to the plan (**План**, locked — only the
    admin changes plans). The form shows live what is still missing for each
-   person. She also fills in the house's team activities (the "mini-card").
-   She taps **Сактоо**. She can come back and correct it any time until the
+   person. They also fill in the house's team activities (the "mini-card").
+   They tap **Сактоо**. They can come back and correct it any time until the
    admin locks the week.
 4. **Everyone sees the result** as soon as it is saved. The Week tab shows
    which houses have already entered. A house that has not entered yet shows
@@ -193,7 +193,7 @@ The units in the second column are only an example — your community decides
 its own.)*
 
 **A worked example.** A regular member, plans as in the table (К-К 7, СВТ 700,
-КТП 30, ТХЖ 1, ДТА 1, ИСТГ 200, НФ 7, ТСП 7). In one week she read 7 pages,
+КТП 30, ТХЖ 1, ДТА 1, ИСТГ 200, НФ 7, ТСП 7). In one week they read 7 pages,
 said 1400 salawat, read 15 pages of a book, prayed tahajjud once, did not fast,
 and did the rest exactly to plan:
 
@@ -236,11 +236,11 @@ entered counts as **0** for it.
 ## 3.4 Who sets the plans
 
 Plans (targets) are set **by the admin only**, per role, in the website
-(**Админ панели → Пландар**). A person's plan carries forward from her previous
+(**Админ панели → Пландар**). A person's plan carries forward from their previous
 week within a season, so the admin can give one person a custom plan (for
 example during an illness) by changing it for that week. A captain cannot
 change a plan — and this is enforced by the database, not just hidden on the
-screen, so a captain cannot lower her own members' plans to improve her
+screen, so a captain cannot lower their own house's plans to improve their
 percentages.
 
 Past weeks keep the plan they were saved with; changing a plan later never
@@ -307,7 +307,7 @@ small job that reads one row from the database once a day, so that a quiet
 week (a holiday, a break between seasons) cannot pause it.
 
 **Why security does not depend on the website.** The rules that say "a
-captain may only write her own house" live **inside the database**. Even if
+captain may only write their own house" live **inside the database**. Even if
 someone bypassed the website and talked to the database directly, the
 database would refuse. This is the most valuable property of the design —
 please do not weaken it when you customise (see section 8.7).
@@ -338,7 +338,7 @@ and must never be put in the website, in GitHub, in a chat or in an email.
 
 Use a shared community email, or at least tell a second person which account
 owns each of these. If the one person who owns them leaves, the website goes
-with her.
+with them.
 
 **On the helper's computer** (Windows, macOS or Linux)
 
@@ -385,17 +385,17 @@ Do the minimum now; you can polish later (section 8).
 
    ```sql
    insert into houses (name, slug, display_order) values
-     ('Rose',    'rose',    1),
-     ('Jasmine', 'jasmine', 2);
+     ('North', 'north', 1),
+     ('South', 'south', 2);
 
    insert into members (house_id, name, role, display_order)
    select id, m.name, m.role, m.ord
    from houses, (values
-     ('Aisha',   'imam',   1),
-     ('Maryam',  'zam',    2),
-     ('Khadija', 'member', 3)
+     ('Member 1', 'imam',   1),
+     ('Member 2', 'zam',    2),
+     ('Member 3', 'member', 3)
    ) as m(name, role, ord)
-   where houses.slug = 'rose';
+   where houses.slug = 'north';
    ```
 
    - `slug` is the house's **login name**: lowercase Latin letters, no spaces.
@@ -502,7 +502,7 @@ VITE_SUPABASE_ANON_KEY=the anon key
    *You should see* `Created admin` and `Created <House name>` for each
    house. You can run the script again any time: it **updates** passwords of
    existing accounts, which is how you give a house a new password later.
-4. Give every captain **her own house's password only**, privately. The
+4. Give every captain **their own house's password only**, privately. The
    admin password stays with the admin(s).
 
 Behind the scenes each house gets an account with an invisible technical
@@ -524,7 +524,7 @@ be in. Then:
 2. Menu → **Маалымат кошуу** — enter some test numbers for a house.
 3. Look at the Week, Houses and Season tabs.
 4. Log out, log in as **Капитан**, choose a house, use its password; check
-   that she can enter her own house but cannot change plans.
+   that they can enter their own house but cannot change plans.
 
 *Stop the server with* `Ctrl + C`. *(The test numbers live in your real
 database; to clear them, delete the rows in Supabase's Table Editor, or ask
@@ -552,7 +552,7 @@ automatically.
 
 ## Step I. Hand it over
 
-Send each captain: the web address, her **house name**, her **password**, and
+Send each captain: the web address, their **house name**, their **password**, and
 the one-page "weekly routine" from section 9. Keep a copy of the passwords
 and of this setup in the community's safe place. Done.
 
@@ -694,14 +694,14 @@ When customising, **do not**:
 
 | Situation | What to do |
 |---|---|
-| A captain changes | Give the house a **new password**: edit `scripts/syr_sozdor.json` and run `node --env-file=.env.admin scripts/create-auth-users.js` again. The old password stops working at once. A phone that is already logged in stays logged in until she logs out, so ask her to log out. |
-| A new member joins | **Курам** → add the member to a house with a role. She counts from the week she joins; she is never shown as a zero for earlier weeks. |
-| Someone leaves | **Курам** → take her off the roster. Her history stays in past weeks. |
+| A captain changes | Give the house a **new password**: edit `scripts/syr_sozdor.json` and run `node --env-file=.env.admin scripts/create-auth-users.js` again. The old password stops working at once. A phone that is already logged in stays logged in until the captain logs out, so ask them to log out. |
+| A new member joins | **Курам** → add the member to a house with a role. They count from the week they join; they are never shown as a zero for earlier weeks. |
+| Someone leaves | **Курам** → take them off the roster. Their history stays in past weeks. |
 | Someone moves house or changes role mid-season | **Курам** → change house/role **from a chosen week**. Earlier weeks stay where they were earned; a new captain starts from the captain plans. |
 | A new house is added | **Курам** → add house (name + login name), then create its login: add its slug to `syr_sozdor.json` and run the script again. |
 | A plan has to change for everyone | **Пландар** — it applies from then on (optionally from a chosen week); saved weeks keep their plan. |
-| A plan has to change for one person (illness…) | Open that house and week, change her **План**, save. It carries forward to later weeks. |
-| Someone is ill or away | The captain ticks her as **excused** for that week. |
+| A plan has to change for one person (illness…) | Open that house and week, change their **План**, save. It carries forward to later weeks. |
+| Someone is ill or away | The captain ticks them as **excused** for that week. |
 | The season ends | **Сезон** → end the season and name the next one (finished weeks are archived and can be locked). Then, in **Курам**, move people to their new houses/roles and open week 1. |
 
 ## 9.2 For a captain
@@ -709,7 +709,7 @@ When customising, **do not**:
 1. Open the web address. Choose **Капитан**, choose **your house**, type your
    house's password. (The list shows house names only.)
 2. Tap **Маалымат кошуу**. The form opens on the latest week.
-3. For each member type what she did next to **Факт**. The plan (**План**) is
+3. For each member type what they did next to **Факт**. The plan (**План**) is
    locked. Under each name you see what is still missing to reach the plan.
 4. Fill in the house's team activities.
 5. Tap **Сактоо**. You can come back and fix a mistake until the admin locks
@@ -731,14 +731,14 @@ also decide what to collect.
 
 - Nothing is visible without logging in, and the database itself returns
   nothing to a visitor. The site also asks search engines not to index it.
-- A captain can only **write** her own house. The admin can write everything.
+- A captain can only **write** their own house. The admin can write everything.
 - Passwords are stored by Supabase (hashed); they are never in the website's
   code.
 
 **What you should know**
 
 1. **All captains see all houses.** A captain reads every house's and every
-   person's results; she only writes her own. If your community wants each
+   person's results; they only write their own. If your community wants each
    house to see *only itself*, that is a design change (a developer).
 2. **Photos are not private in this version.** The photo bucket is public: a
    person who has, or guesses, a photo's address can open it. For a private
@@ -749,7 +749,7 @@ also decide what to collect.
 3. **Use first names or nicknames** if the community prefers, and agree that
    with everyone. Nobody needs a surname to be ranked.
 4. **Collect the minimum and ask first.** Tell members exactly what is
-   recorded about them, who sees it, and that she may ask to be removed. If
+   recorded about them, who sees it, and that they may ask to be removed. If
    the community is in the European Union (or anywhere with a data-protection
    law), data about religious practice is a *special category* with stricter
    rules — read your local rules, or ask someone who knows them, before you
@@ -778,7 +778,7 @@ also decide what to collect.
 | "Invalid login credentials" | The script in step F was not run, the password differs from `syr_sozdor.json`, or the house's login name (slug) was changed | Run the script again; check the slug in the `houses` table |
 | Login works but the screen stays empty or says an error | The account was created before the privacy file, or by an older script | Run the script again (it repairs the account), then log out and in |
 | Captain: "week not open" / cannot save | The admin has not opened the week | Admin: **Жаңы апта ачуу** |
-| Captain: a permission error when saving | She is logged into a different house than the data she is editing, or the week is locked | Check the house shown in the header; ask the admin about the lock |
+| Captain: a permission error when saving | They are logged into a different house than the data they are editing, or the week is locked | Check the house shown in the header; ask the admin about the lock |
 | A page of Vercel's own login before the website | Deployment Protection is on | **Settings → Deployment Protection** → off for production |
 | The site stopped working after a quiet period | Supabase paused the free project | Open the project in Supabase and **Restore**; then check `/api/keepalive` and that the Vercel cron job exists |
 | "New version available" button | A new version was published | Tap it. It never reloads by itself, so nothing being typed is lost. |
@@ -828,7 +828,7 @@ also decide what to collect.
 | **Чоң экран** | "Big screen": the projector mode |
 | **RLS (row-level security)** | The rules inside the database that decide who may read or write which rows |
 | **Anon key / service-role key** | The public key (in the website) / the master key (one computer, never shared) |
-| **Slug** | A house's short login name in Latin letters, for example `rose` |
+| **Slug** | A house's short login name in Latin letters, for example `north` |
 | **Supabase / Vercel / GitHub** | The database + accounts / the web host / the code store |
 | **Deploy** | Publishing the website |
 | **SQL Editor** | The page in Supabase where you paste the `.sql` files |
@@ -891,14 +891,14 @@ Supabase directly; the database policies enforce who may do what.
 - `private-site-2026-11.sql` — reading is limited to logged-in captains and the
   admin (only house names and week numbers stay readable, for the login screen
   and the keep-alive), and the role moves to `app_metadata`, which a user
-  cannot change about herself.
+  cannot change about themselves.
 
 ## 14.5 Questions to ask before you copy anything
 
 1. Do we really need **houses and a competition**, or only a private personal
    tracker? (Competition motivates some and pressures others — decide on
    purpose, and consider a version without rankings for people who prefer it.)
-2. Who is the **admin**, and who is her second?
+2. Who is the **admin**, and who is the second?
 3. What will we do when a number is disputed? (The change history shows who
    changed what and when.)
 4. What happens to the data if the community stops using it? (Backups; delete
