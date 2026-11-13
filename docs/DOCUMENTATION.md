@@ -612,7 +612,7 @@ Numbers, dates and the Hijri date follow the browser/language automatically.
 | Weights (points per item) | `weights` in `src/utils/scoring.ts` | One table. If you change them, the tests in `src/utils/scoring.test.ts` (and a few others) will fail on purpose — update the expected numbers. The "formula" sheet and the plan-score (220) update themselves. |
 | Points per team activity | `MINI_CARD_POINTS` in the same file | The original uses 5. |
 | The over-plan curve | `creditedPercentage` in the same file | Replace it by a flat cap (`Math.min(pct, 100)`) if you do not want any extra credit above 100%. |
-| Cities, houses-per-city grouping | `src/utils/standings.ts` (top) | The original has two cities with houses split between them. If you have **one** place, you can delete the city filter. |
+| Cities, houses-per-city grouping | `src/utils/standings.ts` (top) | Which house belongs to which city, for the "city" filter on the Week and Season tabs (in the template: `north` and `east` are city A, every other house is city B). If you have **one** place, you can delete the filter. |
 | The "known names" for house transliteration | `src/utils/houseName.ts` | The original shows house names in Latin letters. Remove or replace the table with your names. |
 | The formula sheet's worked example | `src/components/FormulaDisplay.tsx` | A short example in the "Формула" window; adjust to your items. |
 
@@ -630,7 +630,9 @@ prayer-times page are computed **on the device**, with no service to pay for.
 They are in `src/utils/prayer.ts` (the cities with latitude/longitude and time
 zone, the calculation method, the madhab for Asr, and a minute-by-minute
 adjustment table `ADJUST` to match a local mosque's timetable), `src/utils/sky.ts`
-and `src/components/PrayerSheet.tsx`. Edit the city list and the calculation
+and `src/components/PrayerSheet.tsx`. **The template ships with two placeholder cities (A and B) on the
+equator: their times are not real. Replace them before you use this feature.**
+Edit the city list and the calculation
 settings, or ask a developer to remove the feature if your community does not
 want it (it is not needed for the scoring).
 
