@@ -11,6 +11,8 @@ import { computeAwards } from './utils/badges';
 import { defaultSeasonId, seasonView } from './utils/seasons';
 import { adminDesk, houseDesk } from './utils/desk';
 import { useHashRoute } from './hooks/useHashRoute';
+import { useAppRoute } from './app/route';
+import { AppPages } from './app/AppPages';
 import { useAuthUser } from './hooks/useAuthUser';
 import { useThemeState } from './hooks/useThemeState';
 import { useResults } from './hooks/useResults';
@@ -83,6 +85,7 @@ const TeamPerformanceTracker: React.FC = () => {
     const { authUser, checked: authChecked } = useAuthUser();
     const { theme, toggleTheme, screen, toggleScreen } = useThemeState();
     const { route, setView: setActiveView, openProfile, closeProfile } = useHashRoute();
+    const appRoute = useAppRoute();
     const activeView = route.view;
 
     const [modal, setModal] = useState<Modal>(null);
@@ -147,6 +150,11 @@ const TeamPerformanceTracker: React.FC = () => {
         document.title = authUser && tab && activeView !== 'overview' ? `${tab.label} · tdJamaat` : 'tdJamaat';
     }, [activeView, authUser]);
 
+    // The everyday pages (Бүгүн, Куран, Тасбихат, Зикир): open to everyone.
+    if (appRoute) {
+        const ctxHouse = authUser?.houseId ? houses.find(h => h.id === authUser.houseId)?.name ?? null : null;
+        return <AppPages route={appRoute} theme={theme} onToggleTheme={toggleTheme} ctx={{ signedIn: !!authUser, role: authUser?.role, houseId: authUser?.houseId ?? null, houseName: ctxHouse, data: allData }} />;
+    }
     if (!authChecked) return <LoadingScreen />;
     if (!authUser) return <LoginScreen theme={theme} onToggleTheme={toggleTheme} />;
     if (authUser.role === 'inspector') return <Suspense fallback={<LoadingScreen />}><InspectorScreen theme={theme} onToggleTheme={toggleTheme} /></Suspense>;

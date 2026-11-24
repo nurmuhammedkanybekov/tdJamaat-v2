@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-    BookOpenCheck, ChevronLeft, ChevronRight, Clock3, Sparkles, Columns2, Download, ExternalLink, History, Info, Lock, LogIn, LogOut,
+    BookOpen, BookOpenCheck, ChevronLeft, CircleDot, ScrollText, SunMedium, ChevronRight, Clock3, Sparkles, Columns2, Download, ExternalLink, History, Info, Lock, LogIn, LogOut,
     Menu, Monitor, Moon, PenLine, Play, Settings2, Share2, Sun
 } from 'lucide-react';
 import type { AuthUser } from '../services/authService';
@@ -125,6 +125,10 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     const todayTimes = prayerTimes(city, now);
 
     const items: MenuItem[] = [
+        { key: 'today', label: t('Бүгүн'), icon: SunMedium, onClick: () => { window.location.hash = '#/today'; } },
+        { key: 'quran', label: t('Куран'), icon: BookOpen, onClick: () => { window.location.hash = '#/quran'; } },
+        { key: 'tasbihat', label: t('Тасбихат'), icon: ScrollText, onClick: () => { window.location.hash = '#/tasbihat'; } },
+        { key: 'zikr', label: t('Зикир'), icon: CircleDot, onClick: () => { window.location.hash = '#/zikr'; } },
         ...(authUser ? [
             { key: 'entry', label: t('Маалымат кошуу'), icon: PenLine, onClick: onDataEntry },
             { key: 'tazalyk', label: t('Тазалык'), icon: Sparkles, onClick: onTazalyk },
@@ -138,7 +142,6 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         { key: 'formula', label: t('Упай формуласы'), icon: Info, onClick: onFormula },
         { key: 'share', label: t('Жыйынтыкты бөлүшүү'), icon: Share2, onClick: onShare },
         ...(installMode !== 'none' ? [{ key: 'install', label: t('Телефонго орнотуу'), icon: Download, onClick: onInstall }] : []),
-        { key: 'tasbih', label: t('Санарип тасбих'), icon: ExternalLink, href: 'https://addua.vercel.app/' },
         authUser
             ? { key: 'logout', label: t('Чыгуу'), icon: LogOut, onClick: onLogout, tone: 'danger' as const }
             : { key: 'login', label: t('Кирүү'), icon: LogIn, onClick: onLogin }
@@ -156,6 +159,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                         <span className="font-display text-[1.45rem] leading-none tracking-[0.02em]">tdJamaat</span>
                     </div>
                     <div className="flex items-center">
+                        <a href="#/today" className="mr-1 px-2.5 h-10 inline-flex items-center gap-1.5 text-[0.7rem] tracking-[0.2em] uppercase transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-secondary)' }}>
+                            <SunMedium className="w-4 h-4" strokeWidth={1.5} /><span className="hidden min-[400px]:inline">{t('Бүгүн')}</span>
+                        </a>
                         {authUser && (
                             // The wrapper does the hiding: .btn sets display itself and would override Tailwind's `hidden`.
                             <span className="hidden sm:inline-flex mr-2">

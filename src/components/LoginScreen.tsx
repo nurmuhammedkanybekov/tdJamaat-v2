@@ -166,6 +166,16 @@ export const LoginScreen: React.FC<{ theme: Theme; onToggleTheme: () => void }> 
                     <p className="text-center text-[0.82rem] mt-6" style={{ color: 'var(--text-muted)' }}>
                         {t('Сыр сөздү билбесеңиз, админге кайрылыңыз.')}
                     </p>
+
+                    {/* The everyday pages need no account. */}
+                    <nav className="mt-8 pt-5 text-center" style={{ borderTop: '1px solid var(--border)' }} aria-label={t('Баарына ачык')}>
+                        <div className="eyebrow">{t('Баарына ачык')}</div>
+                        <div className="mt-3 flex flex-wrap justify-center gap-x-5 gap-y-2 text-[0.95rem]">
+                            {([['#/today', t('Бүгүн')], ['#/quran', t('Куран')], ['#/tasbihat', t('Тасбихат')], ['#/zikr', t('Зикир')]] as const).map(([href, label]) => (
+                                <a key={href} href={href} className="font-display text-[1.15rem] transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-secondary)' }}>{label}</a>
+                            ))}
+                        </div>
+                    </nav>
                 </div>
             </div>
         </main>

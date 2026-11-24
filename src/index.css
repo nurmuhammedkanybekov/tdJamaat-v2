@@ -573,3 +573,62 @@ html.screen .nav-short { display: inline !important; }
 .jattoo-badge[data-tier="silver"] .jattoo-badge-dot { background: var(--metal-silver); }
 .jattoo-badge[data-tier="gold"] .jattoo-badge-dot, .jattoo-badge[data-tier="seal"] .jattoo-badge-dot { background: var(--gold); }
 .jattoo-badge[data-tier="seal"] { border-color: var(--gold); }
+
+/* ------------------------------------------------------------------
+   The open pages: the Quran and the zikr counter.
+   The Quran is set in the King Fahd Complex's own Hafs typeface — the
+   text file is written for it, so no other face may stand in for it
+   (font-display: block keeps the words hidden until it has arrived).
+   ------------------------------------------------------------------ */
+@font-face {
+    font-family: 'UthmanicHafs';
+    font-style: normal;
+    font-weight: 400;
+    font-display: block;
+    src: url('/fonts/UthmanicHafs1Ver18.woff2') format('woff2');
+}
+.quran-text { font-family: 'UthmanicHafs', 'Amiri Quran', 'Scheherazade New', 'Traditional Arabic', serif; font-weight: 400; letter-spacing: 0; font-feature-settings: normal; font-kerning: normal; }
+/* A phone's line is too short to justify without tearing the words apart. */
+.quran-body { line-height: 2.3; text-align: center; word-spacing: 0.06em; overflow-wrap: break-word; }
+@media (min-width: 720px) { .quran-body { text-align: justify; text-align-last: center; } }
+.quran-body > span[data-ayah] { scroll-margin-top: 5rem; }
+.quran-page { display: flex; align-items: center; gap: 0.9rem; margin: 1.1rem 0; font-family: var(--font-serif); font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; line-height: 1; color: var(--text-muted); text-align: center; }
+.quran-page::before, .quran-page::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+.zikr-tap { cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; outline: none; }
+.zikr-tap:focus-visible { box-shadow: inset 0 0 0 2px var(--gold-soft); }
+.zikr-number { display: inline-block; animation: zikr-pop 180ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+@keyframes zikr-pop { from { transform: scale(0.9); opacity: 0.55; } to { transform: scale(1); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .zikr-number { animation: none; } }
+
+/* Тасбихат: a text to read aloud — the words large and even, the directions
+   small and in gold, a counter on each line that is read more than once. */
+.tasbihat { line-height: 1.75; color: var(--text-primary); overflow-wrap: break-word; }
+.tasbihat-head { scroll-margin-top: 5.5rem; display: flex; align-items: center; gap: 0.9rem; margin: 2.4rem 0 1.1rem; font-family: var(--font-serif); font-size: 0.7rem; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; line-height: 1.3; color: var(--gold); text-align: center; }
+.tasbihat-head::before, .tasbihat-head::after { content: ''; flex: 1; height: 1px; background: var(--gold-dim); opacity: 0.6; }
+.tasbihat-p { margin-top: 0.85em; }
+.tasbihat-p.is-lead { font-size: 0.86em; color: var(--text-secondary); margin-top: 1.3em; }
+.tasbihat-note { font-size: 0.78em; font-style: italic; color: var(--gold); }
+.tasbihat-repeat { display: flex; align-items: stretch; gap: 0.4rem; margin: 0.35em 0; }
+.tasbihat-repeat-tap { flex: 1; min-width: 0; display: flex; align-items: center; gap: 0.9rem; padding: 0.6em 0.8em; text-align: inherit; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--surface); cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; transition: border-color 200ms ease, background-color 200ms ease; }
+.tasbihat-repeat-tap:active { background: var(--accent-soft); }
+.tasbihat-repeat.is-done .tasbihat-repeat-tap { border-color: var(--gold); cursor: default; }
+.tasbihat-count { flex-shrink: 0; min-width: 3.6em; text-align: right; font-size: 0.8em; color: var(--text-muted); display: inline-flex; align-items: baseline; justify-content: flex-end; gap: 0.15em; }
+.tasbihat-repeat.is-done .tasbihat-count { color: var(--gold); align-items: center; }
+.tasbihat-reset { flex-shrink: 0; align-self: center; width: 2.4rem; height: 2.4rem; display: inline-flex; align-items: center; justify-content: center; color: var(--text-muted); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.tasbihat-reset:hover { color: var(--gold); }
+.tasbihat-meaning { margin-top: 0.4rem; padding: 0.7rem 0 0.7rem 1rem; border-left: 2px solid var(--gold-dim); font-size: 0.86em; font-style: italic; line-height: 1.65; color: var(--text-secondary); text-align: left; }
+.tasbihat-progress { position: fixed; left: 0; right: 0; top: 0; height: 2px; z-index: 40; background: var(--gold); transform: scaleX(0); transform-origin: left; }
+
+/* The zikr counter fills the screen under the header (phone), or the space under the heading (wide). */
+.zikr-stage { min-height: calc(100dvh - 5.5rem); }
+@media (min-width: 1024px) { .zikr-stage { min-height: calc(100dvh - 13rem); } }
+
+/* The Quran reader: an ayah tapped in the mushaf view, and the ayah a link
+   pointed to (a soft gold wash that fades). */
+.mushaf-ayah { cursor: pointer; border-radius: 2px; transition: background-color 200ms ease; -webkit-tap-highlight-color: transparent; }
+.mushaf-ayah.is-picked { background-color: var(--accent-soft); }
+.ayah-flash { animation: ayah-flash 2.4s ease-out; }
+@keyframes ayah-flash { from { background-color: color-mix(in oklab, var(--gold) 22%, transparent); } to { background-color: transparent; } }
+.ayah-row { scroll-margin-top: 4.5rem; }
+@media (min-width: 768px) { .ayah-row { scroll-margin-top: 7.5rem; } }

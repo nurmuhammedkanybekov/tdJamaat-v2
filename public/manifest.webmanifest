@@ -1,9 +1,9 @@
 {
   "name": "tdJamaat",
   "short_name": "tdJamaat",
-  "description": "Жамааттын апталык жыйынтыктары жана үйлөрдүн рейтинги",
+  "description": "Жамааттын колдонмосу: намаз убактылары, Куран, тасбихат, зикир жана үйлөрдүн апталык жыйынтыктары",
   "lang": "ky",
-  "start_url": "/",
+  "start_url": "/#/today",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
