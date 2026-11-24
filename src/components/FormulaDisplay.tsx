@@ -1,5 +1,6 @@
 import React from 'react';
 import { MINI_CARD_POINTS, creditedPercentage, weights } from '../utils/scoring';
+import { TAZALYK_MAX } from '../utils/tazalyk';
 import { PLAN_SCORE } from '../utils/insights';
 import { Sheet } from './ui';
 import { t } from '../i18n';
@@ -60,11 +61,13 @@ export const FormulaSheet: React.FC<{ onClose: () => void }> = ({ onClose }) => 
                 <Formula>{t('Жалпы упай = Σ бардык көрсөткүчтөрдүн упайы')}</Formula>
             </Step>
             <Step n={6} title={t('Үйлөрдүн рейтинги')}>
-                <Formula>{t('Үй рейтинги = Мүчөлөрдүн орточо упайы + Мини-карта')}</Formula>
+                <Formula>{t('Үй рейтинги = Мүчөлөрдүн орточо упайы + Мини-карта + Тазалык')}</Formula>
                 <p className="text-[0.82rem] mt-2" style={{ color: 'var(--text-muted)' }}>{t('Үйлөрдө адам саны ар башка, ошондуктан жалпы эмес,')} <b>{t('орточо')}</b>  {t('упай алынат.')}</p>
                 <Formula>{t('Мини-карта = Σ (Факт ÷ План, эң көп 100%) × {0}', MINI_CARD_POINTS)}</Formula>
                 <p className="text-[0.82rem] mt-2" style={{ color: 'var(--text-muted)' }}>{t('Үй ал аптанын маалыматын киргизе элек болсо, апта ачык турганда «—» көрсөтүлөт жана эсепке кирбейт. Админ аптаны кулпулагандан кийин, киргизбеген үй ал апта үчүн 0 алат.')}</p>
                 <p className="text-[0.82rem] mt-2" style={{ color: 'var(--text-muted)' }}>{t('7 иштин ар бири толук аткарылса {0} упай, бардыгы — {1} упай. Ар бир иш 100% менен чектелет: мисалы, СПОРТ планы 1 болсо, 7 жолу кылуу 700% болуп кетпейт.', MINI_CARD_POINTS, MINI_CARD_POINTS * 7)}</p>
+                <Formula>{t('Тазалык = (пункттардын баасы ÷ (5 × пункт саны)) × {0}', TAZALYK_MAX)}</Formula>
+                <p className="text-[0.82rem] mt-2" style={{ color: 'var(--text-muted)' }}>{t('Тазалык админ күйгүзгөн апталарда гана кошулат: ар бир пункт 0–5 менен бааланат, үй эң көп {0} упай алат. Бааланбаган үй ал аптада 0 алат.', TAZALYK_MAX)}</p>
             </Step>
             <section className="pt-5" style={{ borderTop: '1px solid var(--border)' }}>
                 <div className="eyebrow mb-2" style={{ color: 'var(--gold)' }}>{t('Мисал')}</div>

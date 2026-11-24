@@ -4,14 +4,18 @@ import type { DataFile } from '../../types';
 import type { Insights, MemberSeries, MemberWeek } from '../../utils/insights';
 import { METRICS, PLAN_SCORE, movement, ROLE_LABEL, weekOf } from '../../utils/insights';
 import { MINI_CARD_POINTS, TEAM_COLORS, calculatePerformancePercentage } from '../../utils/scoring';
+import { TAZALYK_MAX } from '../../utils/tazalyk';
 import { Avatar } from '../Avatar';
 import { CountUp } from '../motion';
 import { Movement, ProgressBar, SectionHeader, Sparkline } from '../ui';
 import { perfColor, heatBg } from '../../utils/style';
 import { t } from '../../i18n';
+
 import { houseBreakdown } from '../../utils/breakdown';
 import { PointsBreakdown } from '../PointsBreakdown';
 import { cardLabel, cardName, metricLabel, metricName } from '../../utils/metrics';
+
+const TAZ_WHO: Record<string, string> = { inspector: t('Тазалык текшерүүчү'), leader: t('Капитан'), admin: t('Админ') };
 
 interface TeamsViewProps {
     data: DataFile;
@@ -95,7 +99,10 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
                                 {series && <Movement delta={movement(series.weeks, weekIndex)} size="md" />}
                             </div>
                             {hw?.submitted && (
-                                <div className="text-[0.78rem] italic mt-1.5 tabular" style={{ color: 'var(--text-muted)' }}>{t('орточо {0} + мини-карта {1}', fmt(hw.memberAvg), fmt(hw.cardBonus))}</div>
+                                <div className="text-[0.78rem] italic mt-1.5 tabular" style={{ color: 'var(--text-muted)' }}>
+                                    {t('орточо {0} + мини-карта {1}', fmt(hw.memberAvg), fmt(hw.cardBonus))}
+                                    {hw.tazalyk !== null && <> {hw.tazalykPending ? t('+ тазалык бааланган жок') : t('+ тазалык {0}', fmt(hw.tazalyk))}</>}
+                                </div>
                             )}
                         </div>
                         {series && <Sparkline values={series.weeks.filter(w => w.weekIndex <= weekIndex && w.submitted).map(w => w.avg)} color={color} width={110} height={40} />}
@@ -107,6 +114,32 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
                     )}
                 </div>
             </section>
+
+            {/* Тазалык: only in the weeks the admin counts it */}
+            {team.tazalyk !== undefined && (
+                <section>
+                    <SectionHeader eyebrow={t('Үйдүн тазалыгы')} title={t('Тазалык')} sub={team.tazalyk ? (team.tazalyk.by ? t('Баалаган: {0}', TAZ_WHO[team.tazalyk.by] ?? team.tazalyk.by) : undefined) : t('Бул апта азырынча бааланган жок.')} />
+                    {team.tazalyk && (
+                        <div className="flex flex-col sm:flex-row sm:items-stretch gap-5 sm:gap-8">
+                            <div className="flex-shrink-0">
+                                <span className="font-display text-[3.4rem] leading-none tabular gold-sheen">{fmt(team.tazalyk.total)}</span>
+                                <span className="text-[1rem] tabular" style={{ color: 'var(--text-muted)' }}> / {TAZALYK_MAX}</span>
+                            </div>
+                            <ul className="flex-1 min-w-0">
+                                {Object.entries(team.tazalyk.scores).map(([item, v], i) => (
+                                    <li key={item} className="flex items-center justify-between gap-4 py-2" style={{ borderTop: i ? '1px solid var(--border)' : undefined }}>
+                                        <span className="text-[0.92rem]" style={{ color: 'var(--text-secondary)' }}>{item}</span>
+                                        <span className="inline-flex gap-[3px]" aria-label={`${v} / 5`}>
+                                            {Array.from({ length: 5 }).map((_, k) => <span key={k} className="w-2.5 h-2.5 rotate-45" style={{ border: '1px solid var(--gold-dim)', backgroundColor: k < v ? 'var(--gold)' : 'transparent' }} />)}
+                                        </span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+                    {team.tazalyk?.note && <p className="text-[0.88rem] italic mt-3" style={{ color: 'var(--text-muted)' }}>{team.tazalyk.note}</p>}
+                </section>
+            )}
 
             {/* Mini card */}
             <section>

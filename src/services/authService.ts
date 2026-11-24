@@ -10,7 +10,7 @@ import { t } from '../i18n';
 // themselves, so it is never trusted for access).
 const EMAIL_DOMAIN = 'tdjamaat.internal';
 
-export type SessionRole = 'admin' | 'leader';
+export type SessionRole = 'admin' | 'leader' | 'inspector';
 
 export interface AuthUser {
     role: SessionRole;
@@ -22,6 +22,13 @@ export const signInAsHouse = async (houseSlug: string, password: string) => {
         email: `${houseSlug}@${EMAIL_DOMAIN}`,
         password
     });
+    if (error) throw error;
+    return data;
+};
+
+// The Тазалык inspector: one account whose only job is rating the houses.
+export const signInAsInspector = async (password: string) => {
+    const { data, error } = await supabase.auth.signInWithPassword({ email: `inspector@${EMAIL_DOMAIN}`, password });
     if (error) throw error;
     return data;
 };
@@ -53,7 +60,7 @@ export const signOut = async () => {
 };
 
 type RoleMeta = { role?: SessionRole; house_id?: string };
-const hasRole = (m: RoleMeta | undefined) => m?.role === 'admin' || m?.role === 'leader';
+const hasRole = (m: RoleMeta | undefined) => m?.role === 'admin' || m?.role === 'leader' || m?.role === 'inspector';
 
 // app_metadata is what the database trusts. Accounts created before it was
 // filled in only have user_metadata; the database then lets them see nothing

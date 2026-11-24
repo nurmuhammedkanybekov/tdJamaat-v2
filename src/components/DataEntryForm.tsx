@@ -1,3 +1,4 @@
+import { DEFAULT_TAZALYK_ITEMS } from '../utils/tazalyk';
 import { useModal } from '../hooks/useModal';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Save, AlertCircle, CheckCircle, X, Camera, Loader2, Lock, Plus, Download } from 'lucide-react';
@@ -13,7 +14,7 @@ import {
     openWeek,
     exportBackup,
     upsertHouseActivity,
-    upsertMemberMetrics,
+    upsertWeekMetrics,
     uploadMemberPhoto,
     excusedSupported,
     DEFAULT_MINICARD,
@@ -118,7 +119,7 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
     // Every person (any house, also those who left): a past week can include
     // people who have since moved or left (see rosterForWeek).
     const [allMembers, setAllMembers] = useState<Member[]>([]);
-    const [settings, setSettings] = useState<SeasonSettings>({ roleTargets: DEFAULT_TARGETS, miniCard: DEFAULT_MINICARD });
+    const [settings, setSettings] = useState<SeasonSettings>({ roleTargets: DEFAULT_TARGETS, miniCard: DEFAULT_MINICARD, tazalykItems: DEFAULT_TAZALYK_ITEMS });
     const [history, setHistory] = useState<HouseHistory | null>(null);
     const [miniCard, setMiniCard] = useState<MiniCard>(DEFAULT_MINICARD);
     const [drafts, setDrafts] = useState<Record<string, MemberDraft>>({});
@@ -425,9 +426,7 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                 return !row || JSON.stringify(row.actual) !== JSON.stringify(d.actual) || row.excused !== d.excused
                     || (isAdmin && JSON.stringify(row.target) !== JSON.stringify(d.target));
             });
-            await Promise.all(
-                changed.map(member => upsertMemberMetrics(member.id, weekNumber, drafts[member.id].actual, drafts[member.id].target, drafts[member.id].excused))
-            );
+            await upsertWeekMetrics(weekNumber, changed.map(member => ({ memberId: member.id, actual: drafts[member.id].actual, target: drafts[member.id].target, excused: drafts[member.id].excused })));
             clearDraft(selectedHouseId, weekNumber);
             dirty.current = false;
             setSuccess(true);

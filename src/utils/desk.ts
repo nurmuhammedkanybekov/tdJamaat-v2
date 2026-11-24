@@ -114,6 +114,8 @@ export interface AdminDesk {
     houses: AdminDeskHouse[];
     /** Houses that haven't entered the week yet. */
     waiting: { id: string; name: string }[];
+    /** Тазалык, when the week counts it: how many houses are rated. */
+    tazalyk: { rated: number; total: number } | null;
 }
 
 export const adminDesk = (week: WeekData, insights?: Insights, weekIndex?: number): AdminDesk => ({
@@ -127,5 +129,6 @@ export const adminDesk = (week: WeekData, insights?: Insights, weekIndex?: numbe
         const hw = series && weekIndex !== undefined ? weekOf(series.weeks, weekIndex) : undefined;
         return { id: it.id, name: it.name, colorIndex: series?.colorIndex ?? i, entered: it.submitted, rating: hw?.submitted ? hw.avg : null };
     }),
-    waiting: week.teams.filter(it => !it.submitted).map(it => ({ id: it.id, name: it.name }))
+    waiting: week.teams.filter(it => !it.submitted).map(it => ({ id: it.id, name: it.name })),
+    tazalyk: week.tazalyk ? { rated: week.teams.filter(it => it.tazalyk).length, total: week.teams.length } : null
 });

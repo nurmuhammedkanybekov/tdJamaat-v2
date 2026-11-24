@@ -40,7 +40,8 @@ out.push([
 ].join('\n'));
 // The triggers (week locks, target rules, change history) are for live use:
 // a restore must put the rows back exactly as they were.
-for (const t of ['weekly_metrics', 'house_activity', 'members']) out.push(`alter table ${t} disable trigger user;`);
+const withTazalyk = !!tables.house_tazalyk?.length;
+for (const t of ['weekly_metrics', 'house_activity', 'members', 'weeks', ...(withTazalyk ? ['house_tazalyk'] : [])]) out.push(`alter table ${t} disable trigger user;`);
 // Settings and seasons come from the backup, not from the setup files' defaults.
 if (tables.season_settings?.length) out.push('delete from season_settings;');
 if (tables.seasons?.length) out.push('delete from seasons;');
@@ -51,8 +52,9 @@ out.push(insert('members', tables.members));
 out.push(insert('weeks', tables.weeks));
 out.push(insert('weekly_metrics', tables.weekly_metrics));
 out.push(insert('house_activity', tables.house_activity));
+if (withTazalyk) out.push(insert('house_tazalyk', tables.house_tazalyk));
 if (tables.audit_log?.length) out.push(insert('audit_log', tables.audit_log));
-for (const t of ['weekly_metrics', 'house_activity', 'members']) out.push(`alter table ${t} enable trigger user;`);
+for (const t of ['weekly_metrics', 'house_activity', 'members', 'weeks', ...(withTazalyk ? ['house_tazalyk'] : [])]) out.push(`alter table ${t} enable trigger user;`);
 // Serial counters continue after the restored rows.
 out.push(`select setval(pg_get_serial_sequence('seasons', 'id'), greatest((select coalesce(max(id), 1) from seasons), 1));`);
 out.push(`select setval(pg_get_serial_sequence('audit_log', 'id'), greatest((select coalesce(max(id), 1) from audit_log), 1));`);

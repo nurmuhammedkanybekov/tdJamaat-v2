@@ -180,6 +180,11 @@ export const AdminDeskPanel: React.FC<{
                             ? t('Баары киргизди. Эми аптаны бекитсеңиз болот — жыйынтыктар акыркы болот.')
                             : t('Калды: {0}', desk.waiting.map(h => h.name).join(', '))}
                 </p>
+                {desk.tazalyk && (
+                    <p className="text-[0.84rem] mt-1.5" style={{ color: desk.tazalyk.rated === desk.tazalyk.total ? 'var(--success)' : 'var(--text-muted)' }}>
+                        {t('Тазалык: {0} / {1} үй бааланды', desk.tazalyk.rated, desk.tazalyk.total)}
+                    </p>
+                )}
             </div>
             {/* Every house: a tile that opens its data entry; the missing ones first. */}
             <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5" style={{ borderTop: '1px solid var(--border)' }}>

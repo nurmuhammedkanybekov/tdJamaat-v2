@@ -2,9 +2,11 @@ import { PHOTO_BUCKET, signPhotoUrls } from './photos';
 import { supabase } from '../lib/supabase';
 import type { DataFile, House, Member, MetricValues, MiniCard, Role, Season } from '../types';
 import { buildDataFile } from './buildDataFile';
-import type { ActivityRow, HouseRow, MemberRow, MetricRow as FullMetricRow, WeekRow } from './buildDataFile';
+import type { ActivityRow, HouseRow, MemberRow, MetricRow as FullMetricRow, TazalykRow, WeekRow } from './buildDataFile';
 import { t } from '../i18n';
 import { houseDisplayName } from '../utils/houseName';
+import { DEFAULT_TAZALYK_ITEMS } from '../utils/tazalyk';
+import type { TazalykScores } from '../utils/tazalyk';
 
 const ZERO_METRICS: MetricValues = {
     'К-К': 0, 'СВТ': 0, 'КТП': 0, 'ТХЖ': 0, 'ДТА': 0, 'ИСТГ': 0, 'НФ': 0, 'ТСП': 0
@@ -32,9 +34,16 @@ export const DEFAULT_MINICARD: MiniCard = {
 export interface SeasonSettings {
     roleTargets: Record<Role, MetricValues>;
     miniCard: MiniCard; // targets, with actual = 0
+    /** The Тазалык checklist (supabase/tazalyk-2026-11.sql). */
+    tazalykItems: string[];
 }
 
-const FALLBACK_SETTINGS: SeasonSettings = { roleTargets: DEFAULT_TARGETS, miniCard: DEFAULT_MINICARD };
+const FALLBACK_SETTINGS: SeasonSettings = { roleTargets: DEFAULT_TARGETS, miniCard: DEFAULT_MINICARD, tazalykItems: DEFAULT_TAZALYK_ITEMS };
+
+const readItems = (value: unknown): string[] => {
+    const list = Array.isArray(value) ? value.map(v => String(v ?? '').trim()).filter(Boolean) : [];
+    return list.length ? [...new Set(list)] : DEFAULT_TAZALYK_ITEMS;
+};
 
 // supabase-js hands back database errors as plain objects
 // ({ message, details, hint, code }), NOT Error instances. Throwing them
@@ -102,7 +111,7 @@ export const fetchSeasonSettings = async (): Promise<SeasonSettings> => {
         const t = Number(data.activity_targets?.[key]);
         miniCard[key] = { actual: 0, target: Number.isFinite(t) ? t : DEFAULT_MINICARD[key].target };
     }
-    return { roleTargets, miniCard };
+    return { roleTargets, miniCard, tazalykItems: readItems(data.tazalyk_items) };
 };
 
 // ---------------------------------------------------------------------------
@@ -226,20 +235,21 @@ export const fetchSeasons = async (): Promise<Season[]> => {
 };
 
 export const fetchDataFile = async (): Promise<DataFile> => {
-    const [houses, members, weeks, metrics, activities, settings, seasons] = await Promise.all([
+    const [houses, members, weeks, metrics, activities, settings, seasons, tazalyk] = await Promise.all([
         fetchAll<HouseRow>('houses', 'display_order'),
         fetchAll<MemberRow>('members', 'display_order'), // inactive too — they still belong to past weeks
         fetchAll<WeekRow>('weeks', 'week_number'),
         fetchAll<FullMetricRow>('weekly_metrics', 'week_number'),
         fetchAll<ActivityRow>('house_activity', 'week_number'),
         fetchSeasonSettings(),
-        fetchSeasons()
+        fetchSeasons(),
+        fetchTazalykRows()
     ]);
     // Photos are private: swap the stored URLs for signed links.
     const photos = await signPhotoUrls(members.map(m => m.photo_url));
     const signedMembers = members.map((m, i) => ({ ...m, photo_url: photos[i] }));
     return buildDataFile(
-        { houses, members: signedMembers, weeks, metrics, activities, seasons },
+        { houses, members: signedMembers, weeks, metrics, activities, seasons, tazalyk },
         settings,
         { normalizeMetrics, normalizeMiniCard, zeroMetrics: ZERO_METRICS }
     );
@@ -281,31 +291,43 @@ export const openWeek = async (weekNumber: number) => {
 export const exportBackup = async (): Promise<Blob> => {
     // Everything needed to rebuild the database: scripts/backup-to-sql.js turns
     // this file into SQL for an empty project (SETUP.md, "Restoring a backup").
-    const [houses, members, weeks, weekly_metrics, house_activity, seasons, audit_log] = await Promise.all([
+    const [houses, members, weeks, weekly_metrics, house_activity, seasons, audit_log, house_tazalyk] = await Promise.all([
         fetchAll('houses', 'display_order'),
         fetchAll('members', 'display_order'),
         fetchAll('weeks', 'week_number'),
         fetchAll('weekly_metrics', 'week_number'),
         fetchAll('house_activity', 'week_number'),
         fetchAll('seasons', 'first_week').catch(() => []),   // older databases have no seasons / history
-        fetchAll('audit_log', 'id').catch(() => [])
+        fetchAll('audit_log', 'id').catch(() => []),
+        fetchAll('house_tazalyk', 'week_number').catch(() => [])
     ]);
     const { data: season_settings } = await supabase.from('season_settings').select('*');
     const payload = {
         exported_at: new Date().toISOString(),
         app: 'tdJamaat',
         format: 2,
-        tables: { houses, members, weeks, weekly_metrics, house_activity, season_settings: season_settings ?? [], seasons, audit_log }
+        tables: { houses, members, weeks, weekly_metrics, house_activity, season_settings: season_settings ?? [], seasons, audit_log, house_tazalyk }
     };
     return new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
 };
 
-export const upsertMemberMetrics = async (memberId: string, weekNumber: number, actual: MetricValues, target: MetricValues, excused = false) => {
-    const row: Record<string, unknown> = { member_id: memberId, week_number: weekNumber, actual, target, updated_at: new Date().toISOString() };
-    if (excusedSupported()) row.excused = excused; // only once the column exists (see excusedColumn)
+export interface MemberWeek { memberId: string; actual: MetricValues; target: MetricValues; excused: boolean }
+
+// A house's people for one week, saved in ONE request: the database takes
+// all of them or none, so a connection that drops half-way can never leave a
+// week with some people saved and others not.
+export const upsertWeekMetrics = async (weekNumber: number, people: MemberWeek[]) => {
+    if (people.length === 0) return;
+    const now = new Date().toISOString();
+    const withExcused = excusedSupported(); // only once the column exists (see excusedColumn)
+    const rows = people.map(p => {
+        const row: Record<string, unknown> = { member_id: p.memberId, week_number: weekNumber, actual: p.actual, target: p.target, updated_at: now };
+        if (withExcused) row.excused = p.excused;
+        return row;
+    });
     const { error } = await supabase
         .from('weekly_metrics')
-        .upsert(row, { onConflict: 'member_id,week_number' });
+        .upsert(rows, { onConflict: 'member_id,week_number' });
     if (error) fail(error);
 };
 
@@ -452,15 +474,15 @@ const isMissingSchema = (error: DbError) =>
 
 export interface AuditEntry {
     id: number;
-    tableName: 'weekly_metrics' | 'house_activity';
+    tableName: 'weekly_metrics' | 'house_activity' | 'house_tazalyk';
     houseId: string | null;
     memberId: string | null;
     weekNumber: number;
     action: 'INSERT' | 'UPDATE' | 'DELETE';
     actorRole: string | null;
     actorHouseId: string | null;
-    oldData: { actual?: Record<string, number>; activity?: Record<string, { actual?: number; target?: number }>; target?: Record<string, number>; excused?: boolean } | null;
-    newData: { actual?: Record<string, number>; activity?: Record<string, { actual?: number; target?: number }>; target?: Record<string, number>; excused?: boolean } | null;
+    oldData: { actual?: Record<string, number>; activity?: Record<string, { actual?: number; target?: number }>; target?: Record<string, number>; excused?: boolean; tazalyk?: Record<string, number> } | null;
+    newData: { actual?: Record<string, number>; activity?: Record<string, { actual?: number; target?: number }>; target?: Record<string, number>; excused?: boolean; tazalyk?: Record<string, number> } | null;
     changedAt: string;
 }
 
@@ -552,4 +574,75 @@ export const startNewSeason = async (name: string, lockFinished: boolean) => {
 export const renameSeason = async (id: number, name: string) => {
     const { error } = await supabase.from('seasons').update({ name }).eq('id', id);
     if (error) fail(error);
+};
+
+
+// ---------------------------------------------------------------------------
+// Тазалык (supabase/tazalyk-2026-11.sql) and week dates
+// ---------------------------------------------------------------------------
+
+// Before the migration the table doesn't exist: no Тазалык anywhere.
+export const fetchTazalykRows = async (): Promise<TazalykRow[]> => {
+    const rows: TazalykRow[] = [];
+    for (let from = 0; ; from += PAGE) {
+        const { data, error } = await supabase.from('house_tazalyk').select('house_id, week_number, scores, note, saved_by_role').order('week_number').range(from, from + PAGE - 1);
+        if (error) {
+            if (!isMissingSchema(error)) console.warn('[tdJamaat] Тазалык unavailable:', error.message);
+            return [];
+        }
+        rows.push(...((data ?? []) as TazalykRow[]));
+        if (!data || data.length < PAGE) return rows;
+    }
+};
+
+/** Rate one house for one week (the inspector, that house's captain, or the admin). */
+export const saveTazalyk = async (houseId: string, weekNumber: number, scores: TazalykScores, note: string | null) => {
+    const { error } = await supabase
+        .from('house_tazalyk')
+        .upsert({ house_id: houseId, week_number: weekNumber, scores, note: note?.trim() || null }, { onConflict: 'house_id,week_number' });
+    if (error) fail(error);
+};
+
+/** Admin: does Тазалык count in this week's house rating? */
+export const setWeekTazalyk = async (weekNumber: number, on: boolean) => {
+    const { error } = await supabase.from('weeks').update({ tazalyk: on }).eq('week_number', weekNumber);
+    if (error) fail(error);
+};
+
+/** Admin: the Тазалык checklist. */
+export const saveTazalykItems = async (items: string[]) => {
+    const clean = [...new Set(items.map(i => i.trim()).filter(Boolean))];
+    if (clean.length === 0) throw new Error(t('Жок дегенде бир пункт керек.'));
+    const { error } = await supabase.from('season_settings').update({ tazalyk_items: clean, updated_at: new Date().toISOString() }).eq('id', 1);
+    if (error) fail(error);
+};
+
+/** Admin: week `firstWeek` began on this Thursday; every later week follows. */
+export const setWeekDates = async (firstWeek: number, thursday: string) => {
+    const { error } = await supabase.rpc('set_week_dates', { first_week: firstWeek, first_start: thursday });
+    if (error) fail(error);
+};
+
+export interface TazalykBoard {
+    houses: House[];
+    weeks: Array<{ weekNumber: number; startDate: string | null; endDate: string | null; locked: boolean; tazalyk: boolean }>;
+    items: string[];
+    rows: TazalykRow[];
+    seasons: Season[];
+}
+
+/** What the inspector needs (and may read): houses, weeks, the checklist, the ratings. */
+export const fetchTazalykBoard = async (): Promise<TazalykBoard> => {
+    const [houses, weeksRes, settings, rows, seasons] = await Promise.all([
+        fetchHouses(),
+        supabase.from('weeks').select('*').order('week_number'),
+        fetchSeasonSettings(),
+        fetchTazalykRows(),
+        fetchSeasons()
+    ]);
+    if (weeksRes.error) fail(weeksRes.error);
+    const weeks = ((weeksRes.data ?? []) as WeekRow[]).map(w => ({
+        weekNumber: w.week_number, startDate: w.start_date, endDate: w.end_date, locked: w.locked === true, tazalyk: w.tazalyk === true
+    }));
+    return { houses, weeks, items: settings.tazalykItems, rows, seasons };
 };

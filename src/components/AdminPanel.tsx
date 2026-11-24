@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { AlertCircle, CalendarPlus, CheckCircle2, Download, Loader2, Lock, LockOpen, Save, Target } from 'lucide-react';
+import { AlertCircle, CalendarDays, CalendarPlus, CheckCircle2, Download, Loader2, Lock, LockOpen, Plus, Save, Sparkles, Target, X } from 'lucide-react';
 import type { DataFile, MetricValues, MiniCard, Role } from '../types';
 import type { SeasonSettings } from '../services/dataService';
-import { applyTargetsFromWeek, exportBackup, fetchSeasonSettings, openWeek, saveSeasonSettings, setWeekLocked, DEFAULT_MINICARD, DEFAULT_TARGETS } from '../services/dataService';
+import { applyTargetsFromWeek, exportBackup, fetchSeasonSettings, openWeek, saveSeasonSettings, saveTazalykItems, setWeekDates, setWeekLocked, setWeekTazalyk, DEFAULT_MINICARD, DEFAULT_TARGETS } from '../services/dataService';
+import { formatWeekRange, isThursday, thursdayOf } from '../utils/weekDates';
+import { TAZALYK_MAX } from '../utils/tazalyk';
 import { requireActiveSession } from '../services/authService';
 import { METRICS, ROLE_LABEL } from '../utils/insights';
 import { NumberInput } from './NumberInput';
@@ -43,12 +45,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
     const latestWeek = data.weeks.length ? Math.max(...data.weeks.map(w => w.globalWeek)) : 0;
     const label = (n: number) => weekLabel(data, n);
     const [applyFrom, setApplyFrom] = useState(latestWeek);
+    // Week dates: the Thursday the running season's first week began.
+    const seasonFirst = [...data.seasons].sort((a, b) => b.firstWeek - a.firstWeek)[0]?.firstWeek ?? (data.weeks[0]?.globalWeek ?? 1);
+    const firstWeekData = data.weeks.find(w => w.globalWeek === seasonFirst);
+    const [firstThursday, setFirstThursday] = useState<string>(firstWeekData?.startDate ?? thursdayOf(new Date()));
+    const [items, setItems] = useState<string[]>([]);
+    const [newItem, setNewItem] = useState('');
 
     useEffect(() => {
         fetchSeasonSettings().then(s => {
             setSettings(s);
             setRoleTargets(s.roleTargets);
             setCardTargets(Object.fromEntries(Object.entries(s.miniCard).map(([k, v]) => [k, v.target])) as Record<keyof MiniCard, number>);
+            setItems(s.tazalykItems);
         });
     }, []);
 
@@ -99,6 +108,26 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
                         </button>
                     </div>
 
+                    {/* The jamaat week runs Thursday → Wednesday. */}
+                    <div className="card card-pad mb-5">
+                        <div className="flex items-center gap-2 font-bold" style={{ color: 'var(--text-primary)' }}><CalendarDays className="w-4 h-4" style={{ color: 'var(--gold)' }} />{t('Апталардын даталары')}</div>
+                        <p className="text-[0.8rem] mt-1" style={{ color: 'var(--text-muted)' }}>{t('Апта бейшембиден шаршембиге чейин. Сезондун {0} башталган бейшембини тандаңыз — калган апталар өзү эсептелет.', label(seasonFirst))}</p>
+                        <div className="flex flex-wrap items-center gap-2 mt-3">
+                            <input type="date" value={firstThursday} onChange={e => setFirstThursday(e.target.value)} className="login-field px-3 py-2 text-[0.95rem]" style={{ ...inputStyle, colorScheme: 'light dark' }} aria-label={t('Биринчи бейшемби')} />
+                            <button
+                                className="btn btn-ghost"
+                                disabled={busy === 'dates' || !isThursday(firstThursday)}
+                                onClick={() => run('dates', async () => { await setWeekDates(seasonFirst, firstThursday); onChanged(); return t('Даталар сакталды.'); })}
+                            >
+                                {busy === 'dates' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}{t('Сактоо')}
+                            </button>
+                            {firstThursday && !isThursday(firstThursday) && <span className="text-[0.8rem]" style={{ color: 'var(--danger)' }}>{t('Бул күн бейшемби эмес.')}</span>}
+                        </div>
+                    </div>
+
+                    <p className="text-[0.8rem] mb-3" style={{ color: 'var(--text-muted)' }}>
+                        <Sparkles className="w-3.5 h-3.5 inline -mt-0.5" style={{ color: 'var(--gold)' }} />  {t('«Тазалык» күйгүзүлгөн апталарда үйлөрдүн рейтингине тазалык упайы кошулат (эң көп {0}).', TAZALYK_MAX)}
+                    </p>
                     <p className="text-[0.8rem] mb-3" style={{ color: 'var(--text-muted)' }}>
                         <Lock className="w-3.5 h-3.5 inline -mt-0.5" />  {t('Кулпуланган аптаны капитандар өзгөртө алышпайт (админ гана өзгөртө алат). Аны каалаган убакта кайра ачса болот.')}
                     </p>
@@ -109,8 +138,22 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
                                 <li key={w.globalWeek} className="flex items-center gap-3 px-4 py-3" style={{ borderTop: i ? '1px solid var(--border)' : undefined }}>
                                     <div className="flex-1 min-w-0">
                                         <div className="font-display font-bold text-[1.2rem]" style={{ color: 'var(--text-primary)' }}>{label(w.globalWeek)}</div>
-                                        <div className="text-[0.76rem]" style={{ color: submitted === w.teams.length ? 'var(--success)' : 'var(--text-muted)' }}>{t('{0} / {1} үй киргизди', submitted, w.teams.length)}</div>
+                                        <div className="text-[0.76rem]" style={{ color: submitted === w.teams.length ? 'var(--success)' : 'var(--text-muted)' }}>{t('{0} / {1} үй киргизди', submitted, w.teams.length)}{w.startDate ? ` · ${formatWeekRange(w.startDate ?? null, w.endDate ?? null)}` : ''}</div>
                                     </div>
+                                    <button
+                                        className={`btn ${w.tazalyk ? 'btn-gold' : 'btn-ghost'}`}
+                                        aria-pressed={!!w.tazalyk}
+                                        title={t('Бул аптада Тазалык рейтингге кошулабы')}
+                                        disabled={busy === `taz${w.globalWeek}`}
+                                        onClick={() => run(`taz${w.globalWeek}`, async () => {
+                                            await setWeekTazalyk(w.globalWeek, !w.tazalyk);
+                                            onChanged();
+                                            return w.tazalyk ? t('{0}: Тазалык эсептелбейт.', label(w.globalWeek)) : t('{0}: Тазалык эсептелет.', label(w.globalWeek));
+                                        })}
+                                    >
+                                        {busy === `taz${w.globalWeek}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                                        <span className="hidden min-[420px]:inline">{t('Тазалык')}</span>
+                                    </button>
                                     <button
                                         className={`btn ${w.locked ? 'btn-gold' : 'btn-ghost'}`}
                                         disabled={busy === `lock${w.globalWeek}`}
@@ -143,6 +186,23 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
                                 
                                 {t('Сезондун минималдуу пландары. Жаңы мүчөлөр жана жаңы апталар ушул пландардан башталат.')}
                             </p>
+                            <h3 className="font-display font-bold text-[1.3rem] mb-1" style={{ color: 'var(--text-primary)' }}>{t('Тазалык пункттары')}</h3>
+                            <p className="text-[0.8rem] mb-3" style={{ color: 'var(--text-muted)' }}>{t('Ар бир пункт 0–5 менен бааланат; бардыгы эң көп {0} упайга айланат. Пункттун атын өзгөртсөңүз, анын мурунку баалары эсептелбей калат.', TAZALYK_MAX)}</p>
+                            <ul className="card mb-3">
+                                {items.map((item, i) => (
+                                    <li key={i} className="flex items-center gap-2 px-3 py-2" style={{ borderTop: i ? '1px solid var(--border)' : undefined }}>
+                                        <input value={item} onChange={e => setItems(list => list.map((x, k) => (k === i ? e.target.value : x)))} className="flex-1 min-w-0 px-2 py-1.5 text-[0.95rem]" style={inputStyle} aria-label={t('Пункт {0}', i + 1)} />
+                                        <button className="btn btn-ghost btn-icon" disabled={items.length <= 1} onClick={() => setItems(list => list.filter((_, k) => k !== i))} aria-label={t('Өчүрүү')}><X className="w-4 h-4" /></button>
+                                    </li>
+                                ))}
+                            </ul>
+                            <div className="flex flex-wrap items-center gap-2 mb-8">
+                                <input value={newItem} onChange={e => setNewItem(e.target.value)} placeholder={t('Жаңы пункт')} className="flex-1 min-w-[10rem] px-3 py-2 text-[0.95rem]" style={inputStyle} />
+                                <button className="btn btn-ghost" disabled={!newItem.trim()} onClick={() => { setItems(list => [...list, newItem.trim()]); setNewItem(''); }}><Plus className="w-4 h-4" />{t('Кошуу')}</button>
+                                <button className="btn btn-primary" disabled={busy === 'items'} onClick={() => run('items', async () => { await saveTazalykItems(items); onChanged(); return t('Тазалык пункттары сакталды.'); })}>
+                                    {busy === 'items' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}{t('Сактоо')}
+                                </button>
+                            </div>
                             <h3 className="font-display font-bold text-[1.3rem] mb-2" style={{ color: 'var(--text-primary)' }}>{t('Ролдор боюнча (жеке)')}</h3>
                             <div className="card overflow-x-auto mb-6">
                                 <table className="data-table" style={{ minWidth: 560 }}>

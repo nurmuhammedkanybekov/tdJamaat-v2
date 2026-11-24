@@ -31,6 +31,9 @@ const describe = (e: AuditEntry): { actual: Change[]; target: Change[] } => {
     if (e.tableName === 'weekly_metrics') {
         return { actual: diff(e.oldData?.actual, e.newData?.actual), target: diff(e.oldData?.target, e.newData?.target) };
     }
+    if (e.tableName === 'house_tazalyk') {
+        return { actual: diff(e.oldData?.tazalyk, e.newData?.tazalyk), target: [] };
+    }
     const flat = (src: AuditEntry['oldData'], field: 'actual' | 'target') =>
         src?.activity ? Object.fromEntries(Object.entries(src.activity).map(([k, v]) => [k, Number(v?.[field] ?? 0)])) : undefined;
     return { actual: diff(flat(e.oldData, 'actual'), flat(e.newData, 'actual')), target: diff(flat(e.oldData, 'target'), flat(e.newData, 'target')) };
@@ -112,9 +115,9 @@ export const HistorySheet: React.FC<HistorySheetProps> = ({ authUser, data, onCl
                                     // Excused flag (supabase/excused-weeks-2026-10.sql): show when it was set or removed.
                                     const wasExcused = e.oldData?.excused === true, isExcused = e.newData?.excused === true;
                                     const excusedChange = e.tableName === 'weekly_metrics' && wasExcused !== isExcused ? (isExcused ? 'on' : 'off') : null;
-                                    const subject = e.tableName === 'weekly_metrics' ? memberName.get(e.memberId ?? '') ?? t('Белгисиз мүчө') : t('Мини-карта');
+                                    const subject = e.tableName === 'weekly_metrics' ? memberName.get(e.memberId ?? '') ?? t('Белгисиз мүчө') : e.tableName === 'house_tazalyk' ? t('Тазалык') : t('Мини-карта');
                                     const actorIsAdmin = e.actorRole === 'admin';
-                                    const actor = actorIsAdmin ? t('Админ') : e.actorHouseId ? houseName.get(e.actorHouseId) ?? t('Капитан') : t('База');
+                                    const actor = actorIsAdmin ? t('Админ') : e.actorRole === 'inspector' ? t('Тазалык текшерүүчү') : e.actorHouseId ? houseName.get(e.actorHouseId) ?? t('Капитан') : t('База');
                                     return (
                                         <li key={e.id} className="px-4 py-3" style={{ borderTop: i ? '1px solid var(--border)' : undefined }}>
                                             <div className="flex items-start gap-3">
@@ -128,7 +131,7 @@ export const HistorySheet: React.FC<HistorySheetProps> = ({ authUser, data, onCl
                                                     </div>
                                                     <div className="text-[0.76rem] flex items-center gap-1.5 flex-wrap" style={{ color: 'var(--text-muted)' }}>
                                                         <span>{weekLabel(data, e.weekNumber)}</span>·
-                                                        {e.tableName === 'house_activity' && <><span>{houseName.get(e.houseId ?? '') ?? ''}</span>·</>}
+                                                        {e.tableName !== 'weekly_metrics' && <><span>{houseName.get(e.houseId ?? '') ?? ''}</span>·</>}
                                                         <span className="inline-flex items-center gap-1">{actorIsAdmin ? <ShieldCheck className="w-3 h-3" /> : <Home className="w-3 h-3" />}{actor}</span>·
                                                         <span>{e.action === 'INSERT' ? t('биринчи жолу киргизилди') : e.action === 'DELETE' ? t('өчүрүлдү') : t('өзгөртүлдү')}</span>
                                                     </div>
@@ -143,7 +146,7 @@ export const HistorySheet: React.FC<HistorySheetProps> = ({ authUser, data, onCl
                                                         <div className="flex flex-wrap gap-1.5 mt-2">
                                                             {actual.map(c => (
                                                                 <span key={`a${c.key}`} className="inline-flex items-center gap-1 text-[0.76rem] px-2 py-0.5 rounded-full tabular" style={{ backgroundColor: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
-                                                                    <b style={{ color: 'var(--text-primary)' }}>{e.tableName === 'house_activity' ? cardLabel(c.key as keyof MiniCard) : metricLabel(c.key as keyof MetricValues)}</b> {c.from ?? '—'} <ArrowRight className="w-3 h-3" /> <b style={{ color: (c.to ?? 0) > (c.from ?? 0) ? 'var(--success)' : 'var(--danger)' }}>{c.to ?? '—'}</b>
+                                                                    <b style={{ color: 'var(--text-primary)' }}>{e.tableName === 'house_activity' ? cardLabel(c.key as keyof MiniCard) : e.tableName === 'house_tazalyk' ? c.key : metricLabel(c.key as keyof MetricValues)}</b> {c.from ?? '—'} <ArrowRight className="w-3 h-3" /> <b style={{ color: (c.to ?? 0) > (c.from ?? 0) ? 'var(--success)' : 'var(--danger)' }}>{c.to ?? '—'}</b>
                                                                 </span>
                                                             ))}
                                                             {target.map(c => (

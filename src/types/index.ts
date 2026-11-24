@@ -7,6 +7,8 @@
 // per-week view shaped close to the original, so scoring.ts and rankings.ts
 // barely had to change.
 
+import type { TazalykEntry } from '../utils/tazalyk';
+
 export type Role = 'imam' | 'zam' | 'member';
 
 export interface MetricValues {
@@ -80,6 +82,9 @@ export interface Team {
     members: TeamMember[];
     /** The house has saved something for this week (members or mini-card). */
     submitted: boolean;
+    /** Тазалык this week: undefined = the week doesn't count Тазалык;
+     *  null = it counts, but the house hasn't been rated yet. */
+    tazalyk?: TazalykEntry | null;
 }
 
 export interface Season {
@@ -103,6 +108,11 @@ export interface WeekData {
     date: string;
     /** Admin locked this week: leaders can no longer edit it. */
     locked: boolean;
+    /** 'YYYY-MM-DD' (Thursday … Wednesday), null if not set yet. */
+    startDate?: string | null;
+    endDate?: string | null;
+    /** Тазалык counts in the house rating this week (the admin decides). */
+    tazalyk?: boolean;
     teams: Team[];
 }
 

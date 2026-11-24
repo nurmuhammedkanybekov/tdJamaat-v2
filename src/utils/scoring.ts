@@ -113,5 +113,9 @@ export const calculateMemberAverage = (team: Team): number => {
         : Math.round((counted.reduce((sum, m) => sum + calculateMemberScore(m), 0) / counted.length) * 10) / 10;
 };
 
+// Тазалык (cleanliness, up to 25) is added in the weeks the admin switched
+// it on; a house not rated yet gets 0 until it is (src/utils/tazalyk.ts).
+export const tazalykBonus = (team: Team): number => team.tazalyk?.total ?? 0;
+
 export const calculateHouseRating = (team: Team): number =>
-    Math.round((calculateMemberAverage(team) + calculateMiniCardBonus(team.miniCard)) * 10) / 10;
+    Math.round((calculateMemberAverage(team) + calculateMiniCardBonus(team.miniCard) + tazalykBonus(team)) * 10) / 10;

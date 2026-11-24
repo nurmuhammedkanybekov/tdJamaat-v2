@@ -3,7 +3,7 @@
 // already load, with the same scoring rules (src/utils/scoring.ts), so a
 // number on a profile page always matches the number in the tables.
 import type { DataFile, MetricValues, Role, Team, TeamMember, WeekData } from '../types';
-import { calculateMemberAverage, calculateMemberScore, calculateMiniCardBonus, calculatePerformancePercentage, weights } from './scoring';
+import { calculateMemberAverage, calculateMemberScore, calculateMiniCardBonus, calculatePerformancePercentage, tazalykBonus, weights } from './scoring';
 import { t } from '../i18n';
 
 export const METRICS = Object.keys(weights) as Array<keyof MetricValues>;
@@ -70,6 +70,10 @@ export interface HouseWeek {
     memberAvg: number;
     /** Mini-card bonus alone (0 … 7 × MINI_CARD_POINTS). */
     cardBonus: number;
+    /** Тазалык points (0 … 25); null when the week doesn't count Тазалык. */
+    tazalyk: number | null;
+    /** The week counts Тазалык but this house hasn't been rated yet. */
+    tazalykPending: boolean;
     rank: number | null;
     /** The week counts (see weekCounts): submitted, or locked by the admin (then as zeros). */
     submitted: boolean;
@@ -154,7 +158,9 @@ export const buildInsights = (data: DataFile): Insights => {
         const hrows = week.teams.map((team, colorIndex) => {
             const memberAvg = calculateMemberAverage(team);
             const cardBonus = calculateMiniCardBonus(team.miniCard);
-            const avg = round1(memberAvg + cardBonus);
+            const tazalyk = team.tazalyk === undefined ? null : tazalykBonus(team);
+            const tazalykPending = team.tazalyk === null;
+            const avg = round1(memberAvg + cardBonus + (tazalyk ?? 0));
             const keys = Object.keys(team.miniCard) as Array<keyof typeof team.miniCard>;
             const cardPcts = keys.map(k => calculatePerformancePercentage(team.miniCard[k].actual, team.miniCard[k].target));
             const miniCardPct = cardPcts.length ? cardPcts.reduce((a, b) => a + Math.min(b, 100), 0) / cardPcts.length : 0;
@@ -162,7 +168,7 @@ export const buildInsights = (data: DataFile): Insights => {
             const present = rows.filter(r => r.houseId === team.id && !r.excused);
             const allPerfect = team.submitted && present.length > 0 && present.every(r => r.perfect);
             const excusedCount = team.members.filter(m => m.excused).length;
-            return { team, colorIndex, hw: { weekIndex, weekNumber: week.weekNumber, avg, memberAvg, cardBonus, rank: null as number | null, submitted: weekCounts(week, team), memberCount: team.members.length, excusedCount, miniCardPct, miniCardComplete, allPerfect } };
+            return { team, colorIndex, hw: { weekIndex, weekNumber: week.weekNumber, avg, memberAvg, cardBonus, tazalyk, tazalykPending, rank: null as number | null, submitted: weekCounts(week, team), memberCount: team.members.length, excusedCount, miniCardPct, miniCardComplete, allPerfect } };
         });
         const hranked = rankBy(hrows.filter(h => h.hw.submitted), h => h.hw.avg);
         hrows.forEach(h => {

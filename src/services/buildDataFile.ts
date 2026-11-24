@@ -13,16 +13,22 @@
 //    during that season, at zero (never today's roster).
 import type { DataFile, MetricValues, MiniCard, Role, Season, Team, TeamMember, WeekData } from '../types';
 import { houseDisplayName } from '../utils/houseName';
+import { DEFAULT_TAZALYK_ITEMS, normalizeScores, tazalykPoints } from '../utils/tazalyk';
+import type { TazalykEntry } from '../utils/tazalyk';
+import { formatWeekRange } from '../utils/weekDates';
 
 export type HouseRow = { id: string; name: string; display_order: number; active: boolean };
 export type MemberRow = { id: string; house_id: string; name: string; role: Role; photo_url: string | null; display_order: number; active: boolean };
-export type WeekRow = { week_number: number; start_date: string | null; end_date: string | null; locked?: boolean | null };
+export type WeekRow = { week_number: number; start_date: string | null; end_date: string | null; locked?: boolean | null; tazalyk?: boolean | null };
 export type MetricRow = { member_id: string; week_number: number; actual: unknown; target: unknown; house_id?: string | null; role?: Role | null; excused?: boolean | null };
 export type ActivityRow = { house_id: string; week_number: number; activity: unknown };
+export type TazalykRow = { house_id: string; week_number: number; scores: unknown; note?: string | null; saved_by_role?: string | null };
 
 export interface BuildSettings {
     roleTargets: Record<Role, MetricValues>;
     miniCard: MiniCard;
+    /** The Тазалык checklist (season_settings.tazalyk_items). */
+    tazalykItems?: string[];
 }
 
 export interface BuildHelpers {
@@ -31,17 +37,13 @@ export interface BuildHelpers {
     zeroMetrics: MetricValues;
 }
 
-const formatWeekDate = (start: string | null, end: string | null): string => {
-    if (start && end) return `${start} -- ${end}`;
-    return start || end || '';
-};
 
 /** The season a database week number belongs to (latest matching season). */
 export const seasonForWeek = (seasons: Season[], week: number): Season | undefined =>
     [...seasons].sort((a, b) => b.firstWeek - a.firstWeek).find(s => week >= s.firstWeek && (s.lastWeek === null || week <= s.lastWeek));
 
 export const buildDataFile = (
-    rows: { houses: HouseRow[]; members: MemberRow[]; weeks: WeekRow[]; metrics: MetricRow[]; activities: ActivityRow[]; seasons: Season[] },
+    rows: { houses: HouseRow[]; members: MemberRow[]; weeks: WeekRow[]; metrics: MetricRow[]; activities: ActivityRow[]; seasons: Season[]; tazalyk?: TazalykRow[] },
     settings: BuildSettings,
     h: BuildHelpers
 ): DataFile => {
@@ -56,6 +58,15 @@ export const buildDataFile = (
     const metricsByWeek = new Map<number, MetricRow[]>();
     metrics.forEach(r => metricsByWeek.set(r.week_number, [...(metricsByWeek.get(r.week_number) ?? []), r]));
     const activityByKey = new Map(activities.map(r => [`${r.house_id}|${r.week_number}`, r]));
+    const tazalykByKey = new Map((rows.tazalyk ?? []).map(r => [`${r.house_id}|${r.week_number}`, r]));
+    const tazalykItems = settings.tazalykItems ?? DEFAULT_TAZALYK_ITEMS;
+    const tazalykOf = (houseId: string, week: WeekRow): TazalykEntry | null | undefined => {
+        if (!week.tazalyk) return undefined;
+        const row = tazalykByKey.get(`${houseId}|${week.week_number}`);
+        if (!row) return null;
+        const scores = normalizeScores(row.scores, tazalykItems);
+        return { scores, total: tazalykPoints(scores, tazalykItems), note: row.note ?? null, by: row.saved_by_role ?? null };
+    };
     const seasonOfWeek = new Map(weeks.map(w => [w.week_number, seasonForWeek(seasons, w.week_number) ?? seasons[seasons.length - 1]]));
 
     // Per season: who was in which house (from saved rows), for finished seasons.
@@ -117,7 +128,8 @@ export const buildDataFile = (
                 name: houseDisplayName(house.name),
                 miniCard: h.normalizeMiniCard(activityRow?.activity, settings.miniCard),
                 members: teamMembers,
-                submitted: submittedRows.length > 0 || !!activityRow
+                submitted: submittedRows.length > 0 || !!activityRow,
+                tazalyk: tazalykOf(house.id, week)
             };
         });
 
@@ -126,8 +138,11 @@ export const buildDataFile = (
             globalWeek: week.week_number,
             seasonId: season.id,
             seasonWeek: week.week_number - season.firstWeek + 1,
-            date: formatWeekDate(week.start_date, week.end_date),
+            date: formatWeekRange(week.start_date, week.end_date),
+            startDate: week.start_date,
+            endDate: week.end_date,
             locked: week.locked === true,
+            tazalyk: week.tazalyk === true,
             teams
         };
     });

@@ -30,7 +30,7 @@ import { TeamsView } from './components/views/TeamsView';
 import { AwardsView } from './components/views/AwardsView';
 import { CommunityView } from './components/views/CommunityView';
 import { OrnamentDivider, SunMark } from './components/Ornament';
-import { LoadingScreen, StateCard } from './components/ui';
+import { LoadingScreen, Sheet, StateCard } from './components/ui';
 import { t } from './i18n';
 import { prefetch, withReload } from './lazyLoad';
 
@@ -56,6 +56,8 @@ const HistorySheet = lazy(() => loadHistory().then(m => ({ default: m.HistoryShe
 const FormulaSheet = lazy(() => withReload(() => import('./components/FormulaDisplay'))().then(m => ({ default: m.FormulaSheet })));
 const InstallSheet = lazy(() => withReload(() => import('./components/InstallSheet'))().then(m => ({ default: m.InstallSheet })));
 const WeekStory = lazy(() => withReload(() => import('./components/WeekStory'))().then(m => ({ default: m.WeekStory })));
+const TazalykPanel = lazy(() => withReload(() => import('./components/TazalykPanel'))().then(m => ({ default: m.TazalykPanel })));
+const InspectorScreen = lazy(() => withReload(() => import('./components/InspectorScreen'))().then(m => ({ default: m.InspectorScreen })));
 const PrayerSheet = lazy(() => withReload(() => import('./components/PrayerSheet'))().then(m => ({ default: m.PrayerSheet })));
 // Prefetch uses the plain imports: a failure there must not reload the page.
 const prefetchLazy = () => prefetch(
@@ -71,7 +73,7 @@ const SectionLoading: React.FC = () => (
     </div>
 );
 
-type Modal = null | 'story' | 'entry' | 'formula' | 'share' | 'admin' | 'history' | 'install' | 'prayer' | 'compare';
+type Modal = null | 'story' | 'entry' | 'formula' | 'share' | 'admin' | 'history' | 'install' | 'prayer' | 'compare' | 'tazalyk';
 
 const fmt = (n: number) => (Math.round(n * 10) / 10).toString();
 const clock = (d: Date) => d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -146,6 +148,7 @@ const TeamPerformanceTracker: React.FC = () => {
 
     if (!authChecked) return <LoadingScreen />;
     if (!authUser) return <LoginScreen theme={theme} onToggleTheme={toggleTheme} />;
+    if (authUser.role === 'inspector') return <Suspense fallback={<LoadingScreen />}><InspectorScreen theme={theme} onToggleTheme={toggleTheme} /></Suspense>;
     if (loading) return <LoadingScreen />;
     if (error || !allData || !data || !insights || allData.weeks.length === 0) {
         return (
@@ -250,6 +253,7 @@ const TeamPerformanceTracker: React.FC = () => {
                 onFormula={() => setModal('formula')}
                 onAdmin={() => setModal('admin')}
                 onHistory={() => setModal('history')}
+                onTazalyk={() => setModal('tazalyk')}
                 onShare={() => { setShareTarget({ type: 'week' }); setModal('share'); }}
                 onPrayer={() => setModal('prayer')}
                 onCompare={() => openCompare({ kind: 'person' })}
@@ -345,6 +349,15 @@ const TeamPerformanceTracker: React.FC = () => {
             )}
             {modal === 'story' && <Suspense fallback={null}><WeekStory data={data} weekIndex={weekIndex} insights={insights} awards={awards} onShare={() => { setShareTarget({ type: 'week' }); setModal('share'); }} onClose={() => setModal(null)} /></Suspense>}
             {modal === 'prayer' && <Suspense fallback={null}><PrayerSheet onClose={() => setModal(null)} /></Suspense>}
+            {modal === 'tazalyk' && authUser && (
+                <Suspense fallback={null}>
+                    <Sheet title={t('Тазалык')} onClose={() => setModal(null)} width="42rem">
+                        <div className="px-5 sm:px-7 py-5">
+                            <TazalykPanel houseIds={authUser.role === 'admin' ? undefined : authUser.houseId ? [authUser.houseId] : []} canEdit isAdmin={authUser.role === 'admin'} onSaved={() => loadData(true)} />
+                        </div>
+                    </Sheet>
+                </Suspense>
+            )}
             {modal === 'compare' && <Suspense fallback={null}><CompareSheet data={data} insights={insights} awards={awards} weekIndex={weekIndex} init={compareInit} onClose={() => setModal(null)} /></Suspense>}
             {modal === 'history' && authUser && <Suspense fallback={null}><HistorySheet authUser={authUser} data={allData} onClose={() => setModal(null)} /></Suspense>}
             <Suspense fallback={null}>

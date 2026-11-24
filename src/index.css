@@ -551,3 +551,11 @@ html.screen .nav-short { display: inline !important; }
     background: repeating-conic-gradient(from 0deg, color-mix(in oklab, var(--gold) 16%, transparent) 0deg 5deg, transparent 5deg 20deg);
     -webkit-mask-image: radial-gradient(circle, #000 18%, transparent 68%); mask-image: radial-gradient(circle, #000 18%, transparent 68%);
     animation: spin-slow 60s linear infinite; }
+
+/* Тазалык: a rating of 0–5 as six small engraved squares. */
+.taz-cell { width: 2.05rem; height: 2.05rem; display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 0.95rem; font-variant-numeric: lining-nums; color: var(--text-muted); border: 1px solid var(--border-strong); background: transparent; transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease; touch-action: manipulation; }
+.taz-cell[data-filled] { border-color: var(--gold-dim); color: var(--gold); background: var(--gold-soft); }
+.taz-cell[data-on] { background: var(--gold); border-color: var(--gold); color: var(--gold-ink); }
+.taz-cell:not(:disabled):hover { border-color: var(--gold); }
+.taz-cell:disabled { cursor: default; }
+@media (max-width: 380px) { .taz-cell { width: 1.8rem; height: 1.8rem; } }

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ChevronDown, Eye, EyeOff, Loader2, Lock, LogIn, Moon, Sun } from 'lucide-react';
 import { fetchHouses } from '../services/dataService';
-import { signInAsHouse, signInAsAdmin } from '../services/authService';
+import { signInAsHouse, signInAsAdmin, signInAsInspector } from '../services/authService';
 import type { House } from '../types';
 import type { Theme } from '../theme';
 import { Corners, Crown, Mark, Medallion } from './Ornament';
@@ -11,7 +11,7 @@ import { isEnglish, setLang, t } from '../i18n';
 // The site is private: nothing is shown until a captain or the admin logs in.
 // The database enforces it too (supabase/private-site-2026-11.sql) — before
 // logging in, only the house names can be read, for the picker below.
-type Mode = 'captain' | 'admin';
+type Mode = 'captain' | 'admin' | 'inspector';
 const LAST_HOUSE = 'tdjamaat-login-house';
 
 const readLastHouse = () => { try { return localStorage.getItem(LAST_HOUSE) ?? ''; } catch { return ''; } };
@@ -45,6 +45,7 @@ export const LoginScreen: React.FC<{ theme: Theme; onToggleTheme: () => void }> 
         setLoading(true);
         try {
             if (mode === 'admin') await signInAsAdmin(password);
+            else if (mode === 'inspector') await signInAsInspector(password);
             else {
                 await signInAsHouse(houseSlug, password);
                 try { localStorage.setItem(LAST_HOUSE, houseSlug); } catch { /* not critical */ }
@@ -107,6 +108,7 @@ export const LoginScreen: React.FC<{ theme: Theme; onToggleTheme: () => void }> 
                         <Corners inset={6} size={22} />
                         <div className="flex justify-center" role="tablist" aria-label={t('Ким катары кирүү')}>
                             <button type="button" role="tab" aria-selected={mode === 'captain'} className={`chip ${mode === 'captain' ? 'is-active' : ''}`} onClick={() => switchMode('captain')}>{t('Капитан')}</button>
+                            <button type="button" role="tab" aria-selected={mode === 'inspector'} className={`chip ${mode === 'inspector' ? 'is-active' : ''}`} onClick={() => switchMode('inspector')}>{t('Тазалык')}</button>
                             <button type="button" role="tab" aria-selected={mode === 'admin'} className={`chip ${mode === 'admin' ? 'is-active' : ''}`} onClick={() => switchMode('admin')} style={{ marginRight: 0 }}>{t('Админ')}</button>
                         </div>
 

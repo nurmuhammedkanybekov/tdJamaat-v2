@@ -90,6 +90,11 @@ async function main() {
     }
     await upsertAuthUser(`admin@${EMAIL_DOMAIN}`, passwords.admin, { role: 'admin' }, 'admin');
 
+    // The Тазалык inspector (optional): rates every house's Тазалык, sees no results.
+    if (passwords.inspector) {
+        await upsertAuthUser(`inspector@${EMAIL_DOMAIN}`, passwords.inspector, { role: 'inspector' }, 'Тазалык inspector');
+    }
+
     // One account per house, matched by slug
     const { data: houses, error } = await supabase.from('houses').select('id, slug, name');
     if (error) throw error;

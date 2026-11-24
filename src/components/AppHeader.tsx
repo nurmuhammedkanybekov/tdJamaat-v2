@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-    ChevronLeft, ChevronRight, Clock3, Columns2, Download, ExternalLink, History, Info, Lock, LogIn, LogOut,
+    ChevronLeft, ChevronRight, Clock3, Sparkles, Columns2, Download, ExternalLink, History, Info, Lock, LogIn, LogOut,
     Menu, Monitor, Moon, PenLine, Play, Settings2, Share2, Sun
 } from 'lucide-react';
 import type { AuthUser } from '../services/authService';
@@ -29,6 +29,7 @@ interface AppHeaderProps {
     onFormula: () => void;
     onAdmin: () => void;
     onHistory: () => void;
+    onTazalyk: () => void;
     onShare: () => void;
     onPrayer: () => void;
     onCompare: () => void;
@@ -107,7 +108,7 @@ const IconButton: React.FC<{ label: string; onClick: () => void; children: React
 );
 
 export const AppHeader: React.FC<AppHeaderProps> = ({
-    authUser, houseName, theme, onToggleTheme, screen, onToggleScreen, onLogin, onLogout, onDataEntry, onFormula, onAdmin, onHistory, onShare, onPrayer, onCompare,
+    authUser, houseName, theme, onToggleTheme, screen, onToggleScreen, onLogin, onLogout, onDataEntry, onFormula, onAdmin, onHistory, onTazalyk, onShare, onPrayer, onCompare,
     installMode, onInstall, week, monument, onStory, seasonLabel, kicker, seasonName, season
 }) => {
     const isAdmin = authUser?.role === 'admin';
@@ -124,6 +125,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     const items: MenuItem[] = [
         ...(authUser ? [
             { key: 'entry', label: t('Маалымат кошуу'), icon: PenLine, onClick: onDataEntry },
+            { key: 'tazalyk', label: t('Тазалык'), icon: Sparkles, onClick: onTazalyk },
             { key: 'history', label: t('Өзгөртүүлөр тарыхы'), icon: History, onClick: onHistory },
             ...(isAdmin ? [{ key: 'admin', label: t('Админ панели'), icon: Settings2, onClick: onAdmin }] : [])
         ] : []),
