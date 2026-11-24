@@ -54,6 +54,23 @@ out.push(insert('weekly_metrics', tables.weekly_metrics));
 out.push(insert('house_activity', tables.house_activity));
 if (withTazalyk) out.push(insert('house_tazalyk', tables.house_tazalyk));
 if (tables.audit_log?.length) out.push(insert('audit_log', tables.audit_log));
+// Later setup files (Жаттоо, members' sign-in): restored when the backup has
+// rows for them (their SQL files must have run in the new project first). A
+// member's Google account is not part of a backup: they sign in again.
+const later = [
+    ['memorization', tables.memorization],
+    ['memorization_goals', tables.memorization_goals],
+    ['member_accounts', (tables.member_accounts ?? []).map(r => ({ ...r, user_id: null, linked_at: null }))],
+    ['member_practice', tables.member_practice]
+].filter(([, rows]) => rows && rows.length);
+for (const [t, rows] of later) {
+    out.push(`alter table ${t} disable trigger user;`);
+    out.push(insert(t, rows));
+    out.push(`alter table ${t} enable trigger user;`);
+}
+for (const t of ['memorization', 'memorization_goals']) {
+    if (later.some(([x]) => x === t)) out.push(`select setval(pg_get_serial_sequence('${t}', 'id'), greatest((select coalesce(max(id), 1) from ${t}), 1));`);
+}
 for (const t of ['weekly_metrics', 'house_activity', 'members', 'weeks', ...(withTazalyk ? ['house_tazalyk'] : [])]) out.push(`alter table ${t} enable trigger user;`);
 // Serial counters continue after the restored rows.
 out.push(`select setval(pg_get_serial_sequence('seasons', 'id'), greatest((select coalesce(max(id), 1) from seasons), 1));`);

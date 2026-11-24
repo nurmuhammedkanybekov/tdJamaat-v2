@@ -67,6 +67,23 @@ In the Supabase dashboard, open **SQL Editor** and run, in order:
     this guards against a wrong click in the Supabase table editor), and
     checks every entered number (0 … 10,000,000) itself. Changes no data.
     Safe to re-run.
+14. `supabase/tazalyk-2026-11.sql` — **Тазалык** (cleanliness, up to 25
+    points per house in the weeks the admin switches it on), the jamaat
+    week dates (Thursday → Wednesday), and the **inspector** login (see
+    step 4). Nothing changes until the admin switches Тазалык on for a
+    week. Safe to re-run.
+15. `supabase/jattoo-2026-11.sql` — **Жаттоо** (memorization): captains
+    write what a person recited (Quran, hadith, dua, zikr, the 99 Names)
+    and goals; badges, no points. Safe to re-run.
+16. `supabase/members-2026-11.sql` — **members sign in with Google**: a
+    member sees their own house and results only, and the app's daily
+    counts reach the captain's form. Needs step 4b (Google) to be useful.
+    Captains, the inspector and the admin are not affected. Safe to re-run.
+
+Run 14 → 15 → 16 in this order, **before** deploying the website version
+that uses them (the website copes without them, but shows those parts
+only once their file has run). Each file ends with a check you can read
+in the results panel.
 
 ## 3. Configure the app's environment
 
@@ -112,6 +129,42 @@ script again (step 4.3). The old password stops working at once; a phone
 that is already logged in stays logged in until it logs out or its
 session expires, so change it on that phone too if needed.
 
+**The inspector (Тазалык).** One more login, for the person who rates
+Тазалык for every house. Add an `inspector` password to
+`scripts/syr_sozdor.json` and run the script again (step 4.3). They log
+in on the **Тазалык** tab of the login screen and see only the houses,
+the weeks and the Тазалык checklist — no results.
+
+## 4b. Members: Google sign-in
+
+Members (not captains) sign in with their own Google account. Once, in
+about 15 minutes:
+
+1. **Google Cloud** — https://console.cloud.google.com → create a project
+   (e.g. "tdJamaat") → **APIs & Services → OAuth consent screen**: user
+   type **External**, app name *tdJamaat*, your support email; scopes:
+   leave the defaults (email, profile, openid). Then **Publish app**
+   (status "In production") — otherwise only listed test users can sign
+   in. These basic scopes need no Google review.
+2. **APIs & Services → Credentials → Create credentials → OAuth client
+   ID** → type *Web application*. Under **Authorized redirect URIs** add
+   `https://<project-ref>.supabase.co/auth/v1/callback` (Supabase shows
+   this exact address on the Google provider page). Create, and copy the
+   **Client ID** and **Client secret**.
+3. **Supabase → Authentication → Sign In / Providers → Google**: switch
+   it on, paste the Client ID and secret, save.
+4. **Supabase → Authentication → URL Configuration**: **Site URL** =
+   your site (e.g. `https://tdjamaat.vercel.app`); under **Redirect URLs**
+   add the same address with `/**` at the end (and
+   `http://localhost:5173/**` for testing locally).
+5. Run `supabase/members-2026-11.sql` (step 2.16) if you haven't.
+
+Then a captain opens **menu → Мүчөлөрдүн кирүүсү** and writes each
+person's Gmail address. The person opens the site, taps **Google менен
+кирүү**, and lands on **Бүгүн** with their own results. Anyone else who
+signs in with Google is tied to no one and sees nothing. Changing an
+address unties the old account at once.
+
 ## 5. Run it locally
 
 ```
@@ -154,6 +207,14 @@ say `"ok": true`.
 - **House leaders:** log in → **Маалымат кошуу** → the form opens on the
   latest week → enter results (**Факт**) → **Сактоо**. Targets (**План**)
   are locked for leaders.
+  Members who use the app: a line above the members offers their app
+  numbers for the week (СВТ, ИСТГ, ТСП, К-К) — **Формага коюу** puts them
+  in (a number is only raised, never lowered); check and save as usual.
+- **Week dates, once:** **Админ панели** → **Апталар** → the Thursday the
+  season's first week began. Every week then runs Thursday → Wednesday.
+- **Тазалык:** on the same tab, switch Тазалык on for the weeks it counts.
+  The inspector (or a captain for their own house) rates it; the
+  checklist is edited under **Пландар**.
 - **Custom target for one person** (e.g. illness): admin opens that house
   and week, changes the **План** box, saves. It carries forward to later
   weeks that house enters.

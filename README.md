@@ -48,6 +48,23 @@ visual redesign.
 
 ## Features
 
+- **The jamaat's everyday app** (open without an account, installable):
+  **Бүгүн** — the prayer times where you are and the next one, the
+  tasbihat whose time it is, an ayah of the day with its meaning, where you
+  stopped in the Quran, your week; **Куран** — the Madinah mushaf in the
+  King Fahd Complex's own typeface, ayah by ayah with the Kyrgyz meaning
+  (Sh. Hakimov, QuranEnc) or as continuous mushaf text, search by name or
+  `2:255`, juz, saved ayahs, offline once read; **Тасбихат** — what is read
+  after each prayer, with meanings and the closing Quran passage in Arabic;
+  **Зикир** — counters with each zikr's virtue and its hadith reference,
+  and the after-prayer set. Everything counted adds up into the jamaat
+  week (Thursday → Wednesday) in the captain's own terms.
+- **Members sign in with Google** (their captain writes their Gmail
+  address): they see their own results and their house only, and their
+  app numbers reach the captain's entry form with one tap.
+- **Тазалык** (cleanliness, up to 25 points a week, in the weeks the admin
+  chooses), rated by an inspector login or the house's captain, and
+  **Жаттоо** (memorization: Quran, hadith, duas…) with goals and badges.
 - **Private: captains and the admin only.** Nothing is shown before
   logging in. Each house's captain has one password, sees the results and
   can only write that house's own weeks; a separate admin login manages
@@ -429,15 +446,23 @@ scripts/
 
 - `master` — what runs on [tdjamaat.vercel.app](https://tdjamaat.vercel.app).
 - `nurmss` — day-to-day work; merged into `master` when it's ready.
-- `nurmss-<topic>` — design experiments waiting for a decision
-  (e.g. `nurmss-font`). They are merged only once approved.
+- `nurmss-<topic>` — work waiting for a decision (e.g. `nurmss-v3`, the
+  everyday app, Тазалык, Жаттоо and members' sign-in). Merged only once
+  approved.
 
 ## Access & security
 
-- The site is **private**: nothing can be seen without logging in, and the
+- The **results** are **private**: nothing of them can be seen without logging in, and the
   database itself returns nothing to a visitor (only house names, for the
   login screen, and week numbers). It is also not indexed by search
-  engines (noindex meta, robots.txt and an `X-Robots-Tag` header).
+  engines (noindex meta, robots.txt and an `X-Robots-Tag` header). The
+  everyday pages (Бүгүн, Куран, Тасбихат, Зикир) hold no jamaat data and
+  are open to anyone; a visitor's counts stay on their own phone.
+- **Members** sign in with Google and are tied to a person only through
+  the Gmail address their captain wrote; any other Google account sees
+  nothing. A member reads their own house only, and writes only their own
+  daily app counts. The **inspector** login reads houses and weeks and
+  rates Тазалык — no results.
 - Each **house** has its own password, for its **captain** only, and can
   only write that house's own weekly data (a saved week belongs to the
   house it was earned in, even after someone moves).

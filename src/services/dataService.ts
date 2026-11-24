@@ -294,7 +294,7 @@ export const openWeek = async (weekNumber: number) => {
 export const exportBackup = async (): Promise<Blob> => {
     // Everything needed to rebuild the database: scripts/backup-to-sql.js turns
     // this file into SQL for an empty project (SETUP.md, "Restoring a backup").
-    const [houses, members, weeks, weekly_metrics, house_activity, seasons, audit_log, house_tazalyk] = await Promise.all([
+    const [houses, members, weeks, weekly_metrics, house_activity, seasons, audit_log, house_tazalyk, memorization, memorization_goals, member_accounts, member_practice] = await Promise.all([
         fetchAll('houses', 'display_order'),
         fetchAll('members', 'display_order'),
         fetchAll('weeks', 'week_number'),
@@ -302,14 +302,19 @@ export const exportBackup = async (): Promise<Blob> => {
         fetchAll('house_activity', 'week_number'),
         fetchAll('seasons', 'first_week').catch(() => []),   // older databases have no seasons / history
         fetchAll('audit_log', 'id').catch(() => []),
-        fetchAll('house_tazalyk', 'week_number').catch(() => [])
+        fetchAll('house_tazalyk', 'week_number').catch(() => []),
+        // Tables of later setup files: empty when a file has not run yet.
+        fetchAll('memorization', 'id').catch(() => []),
+        fetchAll('memorization_goals', 'id').catch(() => []),
+        fetchAll('member_accounts', 'member_id').catch(() => []),
+        fetchAll('member_practice', 'day').catch(() => [])
     ]);
     const { data: season_settings } = await supabase.from('season_settings').select('*');
     const payload = {
         exported_at: new Date().toISOString(),
         app: 'tdJamaat',
         format: 2,
-        tables: { houses, members, weeks, weekly_metrics, house_activity, season_settings: season_settings ?? [], seasons, audit_log, house_tazalyk }
+        tables: { houses, members, weeks, weekly_metrics, house_activity, season_settings: season_settings ?? [], seasons, audit_log, house_tazalyk, memorization, memorization_goals, member_accounts, member_practice }
     };
     return new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
 };
