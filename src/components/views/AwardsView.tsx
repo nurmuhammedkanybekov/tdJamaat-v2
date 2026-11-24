@@ -8,6 +8,7 @@ import { BadgeMedal } from '../BadgeMedal';
 import { SectionHeader } from '../ui';
 import { useIsPhone } from '../../hooks/useMediaQuery';
 import { t } from '../../i18n';
+import { JattooAwards } from '../Jattoo';
 
 interface AwardsViewProps {
     data: DataFile;
@@ -191,6 +192,7 @@ export const AwardsView: React.FC<AwardsViewProps> = ({ data, weekIndex, awards,
                     );
                 })()}
             </section>
+            <JattooAwards data={data} onOpenProfile={onOpenProfile} />
         </div>
     );
 };

@@ -8,6 +8,7 @@
 // barely had to change.
 
 import type { TazalykEntry } from '../utils/tazalyk';
+import type { JattooGoal, JattooRecord } from '../utils/jattoo';
 
 export type Role = 'imam' | 'zam' | 'member';
 
@@ -120,4 +121,6 @@ export interface DataFile {
     weeks: WeekData[];
     /** Every season, oldest first. */
     seasons: Season[];
+    /** Жаттоо (memorization), all time; undefined until supabase/jattoo-2026-11.sql has run. */
+    jattoo?: { records: JattooRecord[]; goals: JattooGoal[] };
 }

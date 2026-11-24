@@ -14,6 +14,7 @@ import { t } from '../../i18n';
 import { houseBreakdown } from '../../utils/breakdown';
 import { PointsBreakdown } from '../PointsBreakdown';
 import { cardLabel, cardName, metricLabel, metricName } from '../../utils/metrics';
+import { JattooHouse } from '../Jattoo';
 
 const TAZ_WHO: Record<string, string> = { inspector: t('Тазалык текшерүүчү'), leader: t('Капитан'), admin: t('Админ') };
 
@@ -253,6 +254,7 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
                     <p className="italic" style={{ color: 'var(--text-muted)' }}>{t('Бул апта үчүн маалымат азырынча киргизиле элек.')}</p>
                 )}
             </section>
+            {team && <JattooHouse data={data} houseId={team.id} memberIds={team.members.map(m => m.id)} onOpenProfile={onOpenProfile} />}
         </div>
     );
 };

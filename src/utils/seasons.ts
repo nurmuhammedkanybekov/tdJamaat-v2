@@ -11,6 +11,7 @@ export const runningSeason = (seasons: Season[]): Season | undefined => seasons.
  */
 export const seasonView = (data: DataFile, seasonId: number): DataFile => ({
     seasons: data.seasons,
+    jattoo: data.jattoo,
     weeks: data.weeks.filter(w => w.seasonId === seasonId).map(w => ({ ...w, weekNumber: w.seasonWeek }))
 });
 

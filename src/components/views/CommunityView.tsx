@@ -11,6 +11,7 @@ import { seasonView } from '../../utils/seasons';
 import { Medallion, OrnamentDivider } from '../Ornament';
 import { SectionHeader } from '../ui';
 import { t } from '../../i18n';
+import { JattooCommunity } from '../Jattoo';
 
 interface CommunityViewProps {
     /** Opens the share window with the jamaat's week image. */
@@ -184,6 +185,7 @@ export const CommunityView: React.FC<CommunityViewProps> = ({ data, allData, ins
                     ))}
                 </div>
             </section>
+            <JattooCommunity data={allData} />
         </div>
     );
 };

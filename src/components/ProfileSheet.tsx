@@ -16,6 +16,7 @@ import { t } from '../i18n';
 import { metricLabel, metricName } from '../utils/metrics';
 import { averageBreakdown, weekBreakdown } from '../utils/breakdown';
 import { PointsBreakdown } from './PointsBreakdown';
+import { JattooProfile } from './Jattoo';
 
 const fmt = (n: number) => (Math.round(n * 10) / 10).toString();
 
@@ -250,6 +251,7 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({ series, data, insigh
                                 ))}
                             </ol>
                         </section>
+                        <JattooProfile data={data} memberId={series.id} />
                     </div>
                 </div>
             </div>

@@ -559,3 +559,17 @@ html.screen .nav-short { display: inline !important; }
 .taz-cell:not(:disabled):hover { border-color: var(--gold); }
 .taz-cell:disabled { cursor: default; }
 @media (max-width: 380px) { .taz-cell { width: 1.8rem; height: 1.8rem; } }
+
+/* Жаттоо: people as quiet text buttons, the form's two modes as text tabs,
+   and memorization badges as a gold diamond + name. */
+.jattoo-person { padding: 0.45rem 0.8rem; font-size: 0.92rem; color: var(--text-secondary); border: 1px solid var(--border); transition: border-color 160ms ease, color 160ms ease, background-color 160ms ease; }
+.jattoo-person:hover { border-color: var(--gold-dim); color: var(--text-primary); }
+.jattoo-person[data-on] { border-color: var(--gold); color: var(--text-primary); background: var(--gold-soft); }
+.jattoo-tab { position: relative; padding: 0.3rem 0; font-size: 0.72rem; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-muted); }
+.jattoo-tab[data-on] { color: var(--gold); }
+.jattoo-tab[data-on]::after { content: ''; position: absolute; left: 0; right: 0; bottom: -2px; height: 2px; background: var(--gold); }
+.jattoo-badge { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.3rem 0.75rem 0.3rem 0.6rem; font-size: 0.82rem; color: var(--text-primary); border: 1px solid var(--border-strong); white-space: nowrap; }
+.jattoo-badge-dot { width: 0.55rem; height: 0.55rem; transform: rotate(45deg); background: var(--metal-bronze); }
+.jattoo-badge[data-tier="silver"] .jattoo-badge-dot { background: var(--metal-silver); }
+.jattoo-badge[data-tier="gold"] .jattoo-badge-dot, .jattoo-badge[data-tier="seal"] .jattoo-badge-dot { background: var(--gold); }
+.jattoo-badge[data-tier="seal"] { border-color: var(--gold); }

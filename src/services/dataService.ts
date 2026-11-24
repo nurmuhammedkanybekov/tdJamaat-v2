@@ -7,6 +7,7 @@ import { t } from '../i18n';
 import { houseDisplayName } from '../utils/houseName';
 import { DEFAULT_TAZALYK_ITEMS } from '../utils/tazalyk';
 import type { TazalykScores } from '../utils/tazalyk';
+import type { JattooCategory, JattooGoal, JattooRecord } from '../utils/jattoo';
 
 const ZERO_METRICS: MetricValues = {
     'К-К': 0, 'СВТ': 0, 'КТП': 0, 'ТХЖ': 0, 'ДТА': 0, 'ИСТГ': 0, 'НФ': 0, 'ТСП': 0
@@ -235,7 +236,7 @@ export const fetchSeasons = async (): Promise<Season[]> => {
 };
 
 export const fetchDataFile = async (): Promise<DataFile> => {
-    const [houses, members, weeks, metrics, activities, settings, seasons, tazalyk] = await Promise.all([
+    const [houses, members, weeks, metrics, activities, settings, seasons, tazalyk, jattoo] = await Promise.all([
         fetchAll<HouseRow>('houses', 'display_order'),
         fetchAll<MemberRow>('members', 'display_order'), // inactive too — they still belong to past weeks
         fetchAll<WeekRow>('weeks', 'week_number'),
@@ -243,16 +244,18 @@ export const fetchDataFile = async (): Promise<DataFile> => {
         fetchAll<ActivityRow>('house_activity', 'week_number'),
         fetchSeasonSettings(),
         fetchSeasons(),
-        fetchTazalykRows()
+        fetchTazalykRows(),
+        fetchJattoo()
     ]);
     // Photos are private: swap the stored URLs for signed links.
     const photos = await signPhotoUrls(members.map(m => m.photo_url));
     const signedMembers = members.map((m, i) => ({ ...m, photo_url: photos[i] }));
-    return buildDataFile(
+    const file = buildDataFile(
         { houses, members: signedMembers, weeks, metrics, activities, seasons, tazalyk },
         settings,
         { normalizeMetrics, normalizeMiniCard, zeroMetrics: ZERO_METRICS }
     );
+    return jattoo ? { ...file, jattoo } : file;
 };
 
 // ---------------------------------------------------------------------------
@@ -645,4 +648,74 @@ export const fetchTazalykBoard = async (): Promise<TazalykBoard> => {
         weekNumber: w.week_number, startDate: w.start_date, endDate: w.end_date, locked: w.locked === true, tazalyk: w.tazalyk === true
     }));
     return { houses, weeks, items: settings.tazalykItems, rows, seasons };
+};
+
+
+// ---------------------------------------------------------------------------
+// Жаттоо (supabase/jattoo-2026-11.sql)
+// ---------------------------------------------------------------------------
+
+type JattooRow = { id: number; member_id: string; house_id: string | null; category: JattooCategory; title: string; surah: number | null; ayah_from: number | null; ayah_to: number | null; amount: number; recited_on: string; note: string | null };
+type GoalRow = { id: number; member_id: string; category: JattooCategory; title: string; surah: number | null; ayah_from: number | null; ayah_to: number | null; target: number; due_date: string | null; start_date: string };
+
+const toRecord = (r: JattooRow): JattooRecord => ({
+    id: r.id, memberId: r.member_id, houseId: r.house_id, category: r.category, title: r.title, surah: r.surah,
+    ayahFrom: r.ayah_from, ayahTo: r.ayah_to, amount: r.amount, recitedOn: r.recited_on, note: r.note
+});
+const toGoal = (r: GoalRow): JattooGoal => ({
+    id: r.id, memberId: r.member_id, category: r.category, title: r.title, surah: r.surah, ayahFrom: r.ayah_from,
+    ayahTo: r.ayah_to, target: r.target, dueDate: r.due_date, startDate: r.start_date
+});
+
+/** Every record and goal; null before the migration (Жаттоо is then hidden). */
+export const fetchJattoo = async (): Promise<{ records: JattooRecord[]; goals: JattooGoal[] } | null> => {
+    const [rec, goals] = await Promise.all([
+        supabase.from('memorization').select('*').order('recited_on').limit(10000),
+        supabase.from('memorization_goals').select('*').order('id').limit(5000)
+    ]);
+    if (rec.error || goals.error) {
+        const e = (rec.error ?? goals.error)!;
+        if (!isMissingSchema(e)) console.warn('[tdJamaat] Жаттоо unavailable:', e.message);
+        return null;
+    }
+    return { records: ((rec.data ?? []) as JattooRow[]).map(toRecord), goals: ((goals.data ?? []) as GoalRow[]).map(toGoal) };
+};
+
+export interface JattooInput {
+    memberId: string;
+    category: JattooCategory;
+    title: string;
+    surah?: number | null;
+    ayahFrom?: number | null;
+    ayahTo?: number | null;
+    amount?: number;
+    recitedOn?: string;
+    note?: string | null;
+}
+
+export const addJattooRecord = async (r: JattooInput) => {
+    const { error } = await supabase.from('memorization').insert({
+        member_id: r.memberId, category: r.category, title: r.title.trim(), surah: r.surah ?? null,
+        ayah_from: r.ayahFrom ?? null, ayah_to: r.ayahTo ?? null, amount: Math.max(1, Math.round(r.amount ?? 1)),
+        recited_on: r.recitedOn, note: r.note?.trim() || null
+    });
+    if (error) fail(error);
+};
+
+export const deleteJattooRecord = async (id: number) => {
+    const { error } = await supabase.from('memorization').delete().eq('id', id);
+    if (error) fail(error);
+};
+
+export const addJattooGoal = async (g: JattooInput & { target?: number; dueDate?: string | null }) => {
+    const { error } = await supabase.from('memorization_goals').insert({
+        member_id: g.memberId, category: g.category, title: g.title.trim(), surah: g.surah ?? null,
+        ayah_from: g.ayahFrom ?? null, ayah_to: g.ayahTo ?? null, target: Math.max(1, Math.round(g.target ?? 1)), due_date: g.dueDate || null
+    });
+    if (error) fail(error);
+};
+
+export const deleteJattooGoal = async (id: number) => {
+    const { error } = await supabase.from('memorization_goals').delete().eq('id', id);
+    if (error) fail(error);
 };
