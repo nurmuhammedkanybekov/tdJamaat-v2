@@ -5,6 +5,7 @@ import { signInAsHouse, signInAsAdmin, signInAsInspector } from '../services/aut
 import type { House } from '../types';
 import type { Theme } from '../theme';
 import { Corners, Crown, Mark, Medallion } from './Ornament';
+import { signInWithGoogle } from '../services/memberService';
 import { StarField } from './motion';
 import { isEnglish, setLang, t } from '../i18n';
 
@@ -167,8 +168,17 @@ export const LoginScreen: React.FC<{ theme: Theme; onToggleTheme: () => void }> 
                         {t('Сыр сөздү билбесеңиз, админге кайрылыңыз.')}
                     </p>
 
+                    {/* Members sign in with Google (their captain writes their Gmail address). */}
+                    <div className="mt-8 pt-5 text-center" style={{ borderTop: '1px solid var(--border)' }}>
+                        <div className="eyebrow">{t('Мүчөлөр үчүн')}</div>
+                        <button type="button" onClick={() => { signInWithGoogle().catch(err => setError(t('Кирүү мүмкүн болгон жок: {0}', err instanceof Error ? err.message : String(err)))); }} className="btn btn-ghost mt-3" style={{ minHeight: '2.9rem' }}>
+                            <span className="font-semibold" aria-hidden="true" style={{ color: 'var(--gold)' }}>G</span>{t('Google менен кирүү')}
+                        </button>
+                        <p className="text-[0.8rem] mt-2" style={{ color: 'var(--text-muted)' }}>{t('Капитаныңыз Gmail дарегиңизди жазып койгон болушу керек.')}</p>
+                    </div>
+
                     {/* The everyday pages need no account. */}
-                    <nav className="mt-8 pt-5 text-center" style={{ borderTop: '1px solid var(--border)' }} aria-label={t('Баарына ачык')}>
+                    <nav className="mt-6 pt-5 text-center" style={{ borderTop: '1px solid var(--border)' }} aria-label={t('Баарына ачык')}>
                         <div className="eyebrow">{t('Баарына ачык')}</div>
                         <div className="mt-3 flex flex-wrap justify-center gap-x-5 gap-y-2 text-[0.95rem]">
                             {([['#/today', t('Бүгүн')], ['#/quran', t('Куран')], ['#/tasbihat', t('Тасбихат')], ['#/zikr', t('Зикир')]] as const).map(([href, label]) => (

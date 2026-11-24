@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-    BookOpen, BookOpenCheck, ChevronLeft, CircleDot, ScrollText, SunMedium, ChevronRight, Clock3, Sparkles, Columns2, Download, ExternalLink, History, Info, Lock, LogIn, LogOut,
+    BookOpen, BookOpenCheck, KeyRound, ChevronLeft, CircleDot, ScrollText, SunMedium, ChevronRight, Clock3, Sparkles, Columns2, Download, ExternalLink, History, Info, Lock, LogIn, LogOut,
     Menu, Monitor, Moon, PenLine, Play, Settings2, Share2, Sun
 } from 'lucide-react';
 import type { AuthUser } from '../services/authService';
@@ -32,6 +32,8 @@ interface AppHeaderProps {
     onTazalyk: () => void;
     /** Жаттоо (only once supabase/jattoo-2026-11.sql has run). */
     onJattoo?: () => void;
+    /** Members' Google sign-in addresses. */
+    onAccounts?: () => void;
     onShare: () => void;
     onPrayer: () => void;
     onCompare: () => void;
@@ -110,7 +112,7 @@ const IconButton: React.FC<{ label: string; onClick: () => void; children: React
 );
 
 export const AppHeader: React.FC<AppHeaderProps> = ({
-    authUser, houseName, theme, onToggleTheme, screen, onToggleScreen, onLogin, onLogout, onDataEntry, onFormula, onAdmin, onHistory, onTazalyk, onJattoo, onShare, onPrayer, onCompare,
+    authUser, houseName, theme, onToggleTheme, screen, onToggleScreen, onLogin, onLogout, onDataEntry, onFormula, onAdmin, onHistory, onTazalyk, onJattoo, onAccounts, onShare, onPrayer, onCompare,
     installMode, onInstall, week, monument, onStory, seasonLabel, kicker, seasonName, season
 }) => {
     const isAdmin = authUser?.role === 'admin';
@@ -133,6 +135,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             { key: 'entry', label: t('Маалымат кошуу'), icon: PenLine, onClick: onDataEntry },
             { key: 'tazalyk', label: t('Тазалык'), icon: Sparkles, onClick: onTazalyk },
             ...(onJattoo ? [{ key: 'jattoo', label: t('Жаттоо'), icon: BookOpenCheck, onClick: onJattoo }] : []),
+            ...(onAccounts ? [{ key: 'accounts', label: t('Мүчөлөрдүн кирүүсү'), icon: KeyRound, onClick: onAccounts }] : []),
             { key: 'history', label: t('Өзгөртүүлөр тарыхы'), icon: History, onClick: onHistory },
             ...(isAdmin ? [{ key: 'admin', label: t('Админ панели'), icon: Settings2, onClick: onAdmin }] : [])
         ] : []),

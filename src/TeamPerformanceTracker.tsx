@@ -58,6 +58,7 @@ const HistorySheet = lazy(() => loadHistory().then(m => ({ default: m.HistoryShe
 const FormulaSheet = lazy(() => withReload(() => import('./components/FormulaDisplay'))().then(m => ({ default: m.FormulaSheet })));
 const InstallSheet = lazy(() => withReload(() => import('./components/InstallSheet'))().then(m => ({ default: m.InstallSheet })));
 const WeekStory = lazy(() => withReload(() => import('./components/WeekStory'))().then(m => ({ default: m.WeekStory })));
+const MemberAccountsSheet = lazy(() => withReload(() => import('./components/MemberAccounts'))().then(m => ({ default: m.MemberAccountsSheet })));
 const JattooSheet = lazy(() => withReload(() => import('./components/Jattoo'))().then(m => ({ default: m.JattooSheet })));
 const TazalykPanel = lazy(() => withReload(() => import('./components/TazalykPanel'))().then(m => ({ default: m.TazalykPanel })));
 const InspectorScreen = lazy(() => withReload(() => import('./components/InspectorScreen'))().then(m => ({ default: m.InspectorScreen })));
@@ -76,7 +77,7 @@ const SectionLoading: React.FC = () => (
     </div>
 );
 
-type Modal = null | 'story' | 'entry' | 'formula' | 'share' | 'admin' | 'history' | 'install' | 'prayer' | 'compare' | 'tazalyk' | 'jattoo';
+type Modal = null | 'story' | 'entry' | 'formula' | 'share' | 'admin' | 'history' | 'install' | 'prayer' | 'compare' | 'tazalyk' | 'jattoo' | 'accounts';
 
 const fmt = (n: number) => (Math.round(n * 10) / 10).toString();
 const clock = (d: Date) => d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -264,6 +265,7 @@ const TeamPerformanceTracker: React.FC = () => {
                 onHistory={() => setModal('history')}
                 onTazalyk={() => setModal('tazalyk')}
                 onJattoo={allData?.jattoo ? () => setModal('jattoo') : undefined}
+                onAccounts={() => setModal('accounts')}
                 onShare={() => { setShareTarget({ type: 'week' }); setModal('share'); }}
                 onPrayer={() => setModal('prayer')}
                 onCompare={() => openCompare({ kind: 'person' })}
@@ -359,6 +361,11 @@ const TeamPerformanceTracker: React.FC = () => {
             )}
             {modal === 'story' && <Suspense fallback={null}><WeekStory data={data} weekIndex={weekIndex} insights={insights} awards={awards} onShare={() => { setShareTarget({ type: 'week' }); setModal('share'); }} onClose={() => setModal(null)} /></Suspense>}
             {modal === 'prayer' && <Suspense fallback={null}><PrayerSheet onClose={() => setModal(null)} /></Suspense>}
+            {modal === 'accounts' && authUser && allData && (
+                <Suspense fallback={null}>
+                    <MemberAccountsSheet data={allData} houseId={authUser.role === 'admin' ? null : authUser.houseId} onClose={() => setModal(null)} />
+                </Suspense>
+            )}
             {modal === 'jattoo' && authUser && allData && (
                 <Suspense fallback={null}>
                     <JattooSheet data={allData} houseId={authUser.role === 'admin' ? null : authUser.houseId} onChanged={() => loadData(true)} onClose={() => setModal(null)} />

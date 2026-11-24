@@ -69,7 +69,10 @@ const hasRole = (m: RoleMeta | undefined) => m?.role === 'admin' || m?.role === 
 export const getAuthUserFromSession = (session: Session | null): AuthUser | null => {
     if (!session?.user) return null;
     const app = session.user.app_metadata as RoleMeta | undefined;
-    const meta = hasRole(app) ? app! : (session.user.user_metadata as RoleMeta | undefined);
+    // The old place for the role (user_metadata) is trusted only for the site's
+    // own accounts: anyone can write their own user_metadata (a Google sign-in).
+    const internal = (session.user.email ?? '').endsWith(`@${EMAIL_DOMAIN}`);
+    const meta = hasRole(app) ? app! : internal ? (session.user.user_metadata as RoleMeta | undefined) : undefined;
     if (!meta || !hasRole(meta)) return null;
     return { role: meta.role!, houseId: meta.house_id ?? null };
 };
@@ -80,7 +83,7 @@ export const getInitialAuthUser = async (): Promise<AuthUser | null> => {
     let session = data.session;
     // A session from before the role moved to app_metadata: refresh once so
     // the token carries it (otherwise the database shows this captain nothing).
-    if (session && !hasRole(session.user.app_metadata as RoleMeta) && hasRole(session.user.user_metadata as RoleMeta)) {
+    if (session && (session.user.email ?? '').endsWith(`@${EMAIL_DOMAIN}`) && !hasRole(session.user.app_metadata as RoleMeta) && hasRole(session.user.user_metadata as RoleMeta)) {
         const refreshed = await supabase.auth.refreshSession();
         if (!refreshed.error && refreshed.data.session) session = refreshed.data.session;
     }

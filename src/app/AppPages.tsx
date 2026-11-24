@@ -6,6 +6,7 @@ import { t } from '../i18n';
 import type { AppRoute } from './route';
 import type { AppCtx } from './context';
 import { AppContext } from './context';
+import { useMember } from './useMember';
 
 const TodayPage = lazy(withReload(() => import('./TodayPage').then(m => ({ default: m.TodayPage }))));
 const QuranPage = lazy(withReload(() => import('./QuranPage').then(m => ({ default: m.QuranPage }))));
@@ -23,10 +24,11 @@ const TITLES: Record<AppRoute['page'], () => string> = {
 };
 
 export const AppPages: React.FC<{ route: AppRoute; theme: Theme; onToggleTheme: () => void; ctx: AppCtx }> = ({ route, theme, onToggleTheme, ctx }) => {
+    const member = useMember();
     useEffect(() => { document.title = `${TITLES[route.page]()} · tdJamaat`; }, [route.page]);
     const props = { theme, onToggleTheme };
     return (
-        <AppContext.Provider value={ctx}>
+        <AppContext.Provider value={{ ...ctx, member }}>
             <Suspense fallback={<Waiting />}>
                 {route.page === 'quran' ? <QuranPage arg={route.arg} {...props} />
                     : route.page === 'tasbihat' ? <TasbihatPage arg={route.arg} {...props} />

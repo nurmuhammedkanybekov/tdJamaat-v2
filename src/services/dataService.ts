@@ -472,7 +472,7 @@ export class NotSetUpError extends Error {
 
 // 42P01 = table missing (Postgres), PGRST205/PGRST204 = table/column not in
 // the API's schema cache, 42703 = column missing.
-const isMissingSchema = (error: DbError) =>
+export const isMissingSchema = (error: DbError) =>
     ['42P01', 'PGRST205', 'PGRST204', '42703'].includes(error.code ?? '') || /does not exist|schema cache/i.test(error.message ?? '');
 
 export interface AuditEntry {

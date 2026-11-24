@@ -25,6 +25,8 @@ import { ayahOfDay, loadIndex, loadSurah, loadTranslation, translationLang } fro
 import { loadLastRead } from './quranStore';
 import { loadPractice, pagesOn, tasbihatDone } from './practice';
 import { MyWeek } from './MyWeek';
+import { MemberResults } from './MemberResults';
+import { signInWithGoogle, signOutMember } from '../services/memberService';
 import { useWeekTotals } from './useWeekTotals';
 
 const PrayerSheet = lazy(withReload(() => import('../components/PrayerSheet').then(m => ({ default: m.PrayerSheet }))));
@@ -76,14 +78,39 @@ const DailyAyah: React.FC<{ now: Date }> = ({ now }) => {
 
 /** For a captain or the admin: the latest week of the jamaat. */
 const Jamaat: React.FC = () => {
-    const { signedIn, data, houseId, houseName, role } = useContext(AppContext);
+    const { signedIn, data, houseId, houseName, role, member } = useContext(AppContext);
     const week = data?.weeks[data.weeks.length - 1];
     const ranking = useMemo(() => {
         if (!week) return [];
         return week.teams.filter(tm => tm.submitted).map(tm => ({ id: tm.id, name: tm.name, rating: calculateHouseRating(tm) })).sort((a, b) => b.rating - a.rating);
     }, [week]);
     if (!signedIn) {
-        return <RowLink onClick={() => go('#/overview')} title={t('Капитандар үчүн кирүү')} sub={t('Үйлөрдүн апталык жыйынтыктары')} />;
+        if (member?.status === 'linked') {
+            return (
+                <div>
+                    <div className="pt-4 flex items-baseline justify-between gap-3">
+                        <span className="font-display text-[1.4rem]" style={{ color: 'var(--text-primary)' }}>{member.link.name} <span className="text-[1rem]" style={{ color: 'var(--text-muted)' }}>· {member.link.houseName}</span></span>
+                        <button onClick={() => { signOutMember().catch(() => undefined); }} className="text-[0.7rem] tracking-[0.16em] uppercase transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}>{t('Чыгуу')}</button>
+                    </div>
+                    <MemberResults link={member.link} />
+                </div>
+            );
+        }
+        if (member?.status === 'unlinked') {
+            return (
+                <div className="pt-4">
+                    <p className="text-[0.95rem] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{t('Бул Google аккаунту азырынча эч бир мүчөгө байланган эмес. Капитаныңызга ушул даректи айтыңыз:')}</p>
+                    <p className="font-display text-[1.3rem] mt-2 break-all" style={{ color: 'var(--gold)' }}>{member.email}</p>
+                    <button onClick={() => { signOutMember().catch(() => undefined); }} className="btn btn-ghost mt-4">{t('Чыгуу')}</button>
+                </div>
+            );
+        }
+        return (
+            <div>
+                <RowLink onClick={() => { signInWithGoogle().catch(() => undefined); }} title={t('Мүчө катары кирүү')} sub={t('Google аккаунту менен — өз жыйынтыгыңыз жана сандарыңыз капитанга өзү жетет')} />
+                <RowLink onClick={() => go('#/overview')} title={t('Капитандар үчүн кирүү')} sub={t('Үйлөрдүн апталык жыйынтыктары')} />
+            </div>
+        );
     }
     if (!week) return <RowLink onClick={() => go('#/overview')} title={t('Жыйынтыктар')} />;
     const mine = houseId ? ranking.findIndex(r => r.id === houseId) : -1;
@@ -121,6 +148,7 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
     const zikr = loadZikr();
     const last = loadLastRead();
     const totals = useWeekTotals();
+    const synced = useContext(AppContext).member?.status === 'linked';
     const pick = (c: City) => { setCity(c); saveCity(c); };
     const zikrToday = todayTotal(zikr), days = streak(zikr);
 
@@ -178,7 +206,7 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
                 </Section>
 
                 <Section eyebrow={t('Менин аптам')}>
-                    <MyWeek totals={totals} />
+                    <MyWeek totals={totals} synced={synced} />
                 </Section>
 
                 <Section eyebrow={t('Жамаат')}>

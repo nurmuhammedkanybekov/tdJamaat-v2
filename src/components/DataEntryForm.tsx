@@ -31,6 +31,9 @@ import type { MemberDraft } from '../utils/drafts';
 import type { TypoWarning } from '../utils/typos';
 import { Avatar } from './Avatar';
 import { NumberInput } from './NumberInput';
+import { AppNumbersBar } from './AppNumbers';
+import { APP_METRICS } from '../services/memberService';
+import type { AppNumbers } from '../services/memberService';
 import { requireActiveSession } from '../services/authService';
 import type { AuthUser } from '../services/authService';
 import { t } from '../i18n';
@@ -305,6 +308,24 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
             [memberId]: { ...prev[memberId], [field]: { ...prev[memberId][field], [metric]: value } }
         }));
     };
+
+    // The members' app counts for this week: raise a number, never lower it.
+    const applyAppNumbers = (numbers: Map<string, AppNumbers>): number => {
+        let changed = 0;
+        const next = { ...drafts };
+        for (const [memberId, n] of numbers) {
+            const d = next[memberId];
+            if (!d || d.excused) continue;
+            const actual = { ...d.actual };
+            for (const [metric, field] of APP_METRICS) {
+                if (n[field] > (actual[metric] ?? 0)) { actual[metric] = n[field]; changed++; }
+            }
+            next[memberId] = { ...d, actual };
+        }
+        if (changed) { dirty.current = true; setDrafts(next); }
+        return changed;
+    };
+    const weekDates = data?.weeks.find(w => w.globalWeek === weekNumber);
 
     const handlePhotoSelect = async (memberId: string, file: File | undefined) => {
         if (!file || !selectedHouseId) return;
@@ -592,6 +613,7 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                                         <p>{photoError}</p>
                                     </div>
                                 )}
+                                {!weekLocked && <AppNumbersBar memberIds={members.map(m => m.id)} start={weekDates?.startDate} end={weekDates?.endDate} onApply={applyAppNumbers} />}
                                 {members.length === 0 ? (
                                     <p className="text-sm p-4" style={{ color: 'var(--text-muted)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)' }}>
                                         

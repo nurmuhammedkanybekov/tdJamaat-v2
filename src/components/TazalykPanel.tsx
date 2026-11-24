@@ -53,7 +53,10 @@ const HouseRow: React.FC<{
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [done, setDone] = useState(false);
-    useEffect(() => { setScores(savedScores); setNote(saved?.note ?? ''); setDone(false); setError(null); }, [savedScores, saved, week]);
+    // Fresh numbers from the database replace the form; "saved" stays until
+    // something is changed again (the label shows it only while nothing is).
+    useEffect(() => { setScores(savedScores); setNote(saved?.note ?? ''); setError(null); }, [savedScores, saved]);
+    useEffect(() => { setDone(false); }, [week]);
 
     const dirty = JSON.stringify(scores) !== JSON.stringify(savedScores) || (note.trim() || '') !== (saved?.note ?? '');
     const total = tazalykPoints(scores, board.items);

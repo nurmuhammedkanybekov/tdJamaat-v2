@@ -2,7 +2,7 @@
 // button. Each zikr says why it is said (a hadith, with where to find it).
 // Counts stay on this device (src/utils/zikr.ts) and add up into the jamaat
 // week for the captain (MyWeek).
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useContext, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Check, ChevronDown, ChevronRight, Minus, RotateCcw } from 'lucide-react';
 import type { Theme } from '../theme';
 import type { Zikr, ZikrStore } from '../utils/zikr';
@@ -12,6 +12,7 @@ import { AppFrame, Section } from './AppFrame';
 import { go } from './route';
 import { useWakeLock } from './useWakeLock';
 import { MyWeek } from './MyWeek';
+import { AppContext } from './context';
 import { useWeekTotals } from './useWeekTotals';
 
 /** Why it is said — one tap away, so the counting screen stays calm. */
@@ -148,6 +149,7 @@ export const ZikrPage: React.FC<{ arg: string | null; theme: Theme; onToggleThem
     }, []);
     const week = useMemo(() => lastDays(store, 7), [store]);
     const totals = useWeekTotals();
+    const synced = useContext(AppContext).member?.status === 'linked';
     const weekMax = Math.max(1, ...week.map(d => d.total));
 
     // The after-prayer set: three counters in a row.
@@ -243,7 +245,7 @@ export const ZikrPage: React.FC<{ arg: string | null; theme: Theme; onToggleThem
                         </div>
                     </Section>
                     <Section eyebrow={t('Менин аптам')}>
-                        <MyWeek totals={totals} />
+                        <MyWeek totals={totals} synced={synced} />
                     </Section>
                     <p className="text-[0.8rem] italic mt-6" style={{ color: 'var(--text-muted)' }}>{t('Сандар ушул телефондо сакталат. Капитанга өзүңүз жөнөтөсүз.')}</p>
                 </div>

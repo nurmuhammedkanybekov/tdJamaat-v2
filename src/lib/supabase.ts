@@ -8,4 +8,6 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Supabase URL and Anon Key must be provided in environment variables');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// PKCE: a Google sign-in comes back as ?code=… (exchanged here), which leaves
+// the site's own #/… addresses alone. Password sign-ins are unaffected.
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, { auth: { flowType: 'pkce' } });
