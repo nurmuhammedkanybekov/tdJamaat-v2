@@ -50,7 +50,7 @@ export const HouseTable: React.FC<{ insights: Insights; weekIndex: number; scope
                                 {showMovement && !waiting && <Movement delta={movement(h.weeks, weekIndex)} />}
                             </span>
                             {/* The rating as a line in the house's colour, measured from zero. */}
-                            <span className="race-track" aria-hidden="true">
+                            <span className="race-track" aria-hidden="true" style={waiting ? { visibility: 'hidden' } : undefined}>
                                 {value !== null && !waiting && <span className="race-fill animate-grow-x" style={{ width: `${(value / max) * 100}%`, animationDelay: `${150 + i * 90}ms` }} />}
                             </span>
                             <span className="race-value text-right">
