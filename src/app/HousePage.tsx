@@ -120,7 +120,7 @@ const AllChats: React.FC<{ data: DataFile; own: string | null }> = ({ data, own 
                         <span className="w-10 h-10 rounded-full inline-flex items-center justify-center flex-shrink-0" style={{ border: '1px solid var(--gold)', color: 'var(--gold)' }}><MessageCircle className="w-4 h-4" strokeWidth={1.5} /></span>
                         <span className="flex-1 min-w-0">
                             <span className="block font-display text-[1.35rem] leading-tight" style={{ color: 'var(--text-primary)' }}>{tm.name}</span>
-                            <span className="block text-[0.8rem] italic" style={{ color: 'var(--text-muted)' }}>{tm.id === own ? t('сиздин үйүңүз — жаза аласыз') : t('окуу жана өчүрүү')}</span>
+                            <span className="block text-[0.8rem] italic" style={{ color: 'var(--text-muted)' }}>{tm.id === own ? t('сиздин үйүңүз') : t('админ катары')}</span>
                         </span>
                         <ChevronRight className="w-4 h-4" style={{ color: 'var(--gold)' }} />
                     </button>

@@ -33,7 +33,7 @@ const STARTERS = [
     () => t('Ушул аптанын планын бирге аткаралы!')
 ];
 
-export const HouseChat: React.FC<{ self: Self; canModerate: boolean; theme: Theme; onToggleTheme: () => void; /** The admin looking into another house: reads and moderates, does not write. */ readOnly?: boolean }> = ({ self, canModerate, theme, onToggleTheme, readOnly }) => {
+export const HouseChat: React.FC<{ self: Self; canModerate: boolean; theme: Theme; onToggleTheme: () => void; /** The admin in another house: writes as the admin (needs supabase/admin-chat-2026-11.sql). */ readOnly?: boolean }> = ({ self, canModerate, theme, onToggleTheme, readOnly }) => {
     const { data } = useMemberData();
     const week = data?.weeks.length ? data.weeks[data.weeks.length - 1].globalWeek : null;
     const [messages, setMessages] = useState<ChatMessage[] | null | undefined>(undefined);
@@ -70,7 +70,7 @@ export const HouseChat: React.FC<{ self: Self; canModerate: boolean; theme: Them
         if (!clean || sending) return;
         setSending(true); setError('');
         try { await sendMessage(self.houseId, self.memberId, clean); setText(''); stick.current = true; load(); input.current?.focus(); }
-        catch (e) { setError((e as Error)?.message ?? t('Жөнөтүлгөн жок')); }
+        catch (e) { const msg = (e as Error)?.message ?? ''; setError(readOnly && /row-level security|violates/i.test(msg) ? t('Башка үйгө жазуу үчүн админ supabase/admin-chat-2026-11.sql файлын иштетиши керек.') : msg || t('Жөнөтүлгөн жок')); }
         finally { setSending(false); }
     };
     const amin = async (m: ChatMessage) => {
@@ -100,7 +100,7 @@ export const HouseChat: React.FC<{ self: Self; canModerate: boolean; theme: Them
                     <Mark size={44} className="mx-auto" style={{ color: 'var(--gold)' }} />
                     <div className="eyebrow mt-3" style={{ color: 'var(--gold)' }}>{t('Үйдүн сөзү')}</div>
                     <h1 className="font-display text-[2rem] leading-tight mt-1" style={{ color: 'var(--text-primary)' }}>{self.houseName}</h1>
-                    <p className="text-[0.8rem] mt-1" style={{ color: 'var(--text-muted)' }}>{readOnly ? t('Сиз бул үйдүн сөзүн админ катары окуйсуз: жаза албайсыз, бирок билдирүүнү өчүрө аласыз.') : t('Үйдүн адамдары, капитан жана админ гана көрөт.')}</p>
+                    <p className="text-[0.8rem] mt-1" style={{ color: 'var(--text-muted)' }}>{readOnly ? t('Сиз бул үйгө админ катары жазасыз; билдирүүлөрдү өчүрө аласыз.') : t('Үйдүн адамдары, капитан жана админ гана көрөт.')}</p>
                     <div className="mt-2"><NotifyToggle /></div>
                     <HornBand className="mt-3" />
                 </header>
@@ -110,8 +110,7 @@ export const HouseChat: React.FC<{ self: Self; canModerate: boolean; theme: Them
                 {messages === null && (
                     <p className="mt-8 px-4 py-3 text-[0.9rem]" style={{ borderLeft: '2px solid var(--gold)', color: 'var(--text-secondary)' }}>{t('Үйдүн сөзү азырынча ачыла элек — админ supabase/house-chat-2026-11.sql файлын иштетиши керек.')}</p>
                 )}
-                {messages && messages.length === 0 && readOnly && <p className="text-center pt-10 italic" style={{ color: 'var(--text-muted)' }}>{t('Бул үйдө азырынча билдирүү жок.')}</p>}
-                {messages && messages.length === 0 && !readOnly && (
+                {messages && messages.length === 0 && (
                     <div className="text-center pt-10">
                         <p className="font-display text-[1.4rem]" style={{ color: 'var(--text-primary)' }}>{t('Биринчи сөз сизден болсун')}</p>
                         <div className="flex flex-wrap justify-center gap-2 mt-5">
@@ -136,12 +135,12 @@ export const HouseChat: React.FC<{ self: Self; canModerate: boolean; theme: Them
                                 {!mine && <div className="w-9 flex-shrink-0">{!sameRun && <Avatar name={who?.name ?? '?'} role={who?.role ?? 'member'} photoUrl={who?.photoUrl ?? null} size="sm" />}</div>}
                                 <div className="chat-body">
                                     {!mine && !sameRun && (
-                                        <div className="chat-name">{who?.name ?? t('Мүчө')}{m.authorRole === 'leader' && <span className="chat-tag">{t('капитан')}</span>}{m.authorRole === 'admin' && <span className="chat-tag">{t('админ')}</span>}</div>
+                                        <div className="chat-name">{who?.name ?? (m.authorRole === 'admin' ? t('Админ') : t('Мүчө'))}{m.authorRole === 'leader' && <span className="chat-tag">{t('капитан')}</span>}{m.authorRole === 'admin' && <span className="chat-tag">{t('админ')}</span>}</div>
                                     )}
                                     <div className="chat-bubble">{m.body}</div>
                                     <div className="chat-meta">
                                         <span className="tabular">{hm(at)}</span>
-                                        <button onClick={() => { if (!readOnly) amin(m); }} disabled={readOnly} aria-pressed={said} className={`chat-amin ${said ? 'is-on' : ''}`} aria-label={t('Аамин')}>
+                                        <button onClick={() => amin(m)} aria-pressed={said} className={`chat-amin ${said ? 'is-on' : ''}`} aria-label={t('Аамин')}>
                                             {t('Аамин')}{m.amins.length > 0 && <span className="tabular"> · {m.amins.length}</span>}
                                         </button>
                                         {(mine || canModerate) && <button onClick={() => remove(m)} aria-label={t('Өчүрүү')} className="chat-delete"><Trash2 className="w-3.5 h-3.5" /></button>}
@@ -154,7 +153,7 @@ export const HouseChat: React.FC<{ self: Self; canModerate: boolean; theme: Them
             </div>
 
             {/* Writing, at the bottom within thumb reach. */}
-            {messages !== null && !readOnly && (
+            {messages !== null && (
                 <div className="fixed left-0 right-0 bottom-0 z-30 page-gutter" style={{ paddingBottom: 'max(0.6rem, env(safe-area-inset-bottom))', paddingTop: '0.6rem', backgroundColor: 'color-mix(in oklab, var(--page-plane) 94%, transparent)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderTop: '1px solid var(--border)' }}>
                     {error && <p className="max-w-[42rem] mx-auto text-[0.82rem] mb-2" style={{ color: 'var(--danger)' }}>{error}</p>}
                     <form className="max-w-[42rem] mx-auto flex items-end gap-2" onSubmit={e => { e.preventDefault(); send(); }}>

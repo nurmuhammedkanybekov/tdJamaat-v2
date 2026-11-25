@@ -1092,10 +1092,6 @@ export const EN: Record<string, string> = {
     "«{0}» дареги эч бир мүчөгө жазылган эмес.": "«{0}» is not written to any member.",
     "Капитан же админ: Меню → «Мүчөлөрдүн кирүүсү» → ушул адамга так ушул Gmail дарегин жазып, «Сактоо» басыңыз. Анан бул бетти жаңыртыңыз.": "Captain or admin: Menu → «Members' sign-in» → write exactly this Gmail address for the person and press «Save». Then reload this page.",
     "Бул бет Google аркылуу кирүүнүн ар бир кадамын текшерет. Кызыл белги кайсы жерде токтогонун көрсөтөт — скриншот жиберсеңиз болот.": "This page checks each step of the Google sign-in. A red mark shows where it stops — you can send a screenshot.",
-    "Сиз бул үйдүн сөзүн админ катары окуйсуз: жаза албайсыз, бирок билдирүүнү өчүрө аласыз.": "You are reading this house's conversation as the admin: you cannot write here, but you can remove a message.",
-    "Бул үйдө азырынча билдирүү жок.": "No messages in this house yet.",
-    "сиздин үйүңүз — жаза аласыз": "your house — you can write",
-    "окуу жана өчүрүү": "read and remove",
     "Үйлөрдүн сөзү": "Houses' conversations",
     "Бардык үйлөрдүн сөзү": "All houses' conversations",
     "Кыбла": "Qibla",
@@ -1111,5 +1107,9 @@ export const EN: Record<string, string> = {
     "Компаска уруксат берилген жок. Браузердин жөндөөлөрүнөн уруксат бериңиз.": "Compass access was not allowed. Allow it in the browser settings.",
     "Бул түзмөктө компас жок — даражаны колдонуңуз.": "This device has no compass — use the degrees.",
     "Компас күтүлүүдө… Телефонду сегиз сымал кыймылдатып көрүңүз.": "Waiting for the compass… Move the phone in a figure eight.",
-    "Телефондун компасы темирден жана магниттен алыс так иштейт.": "A phone's compass is most accurate away from metal and magnets."
+    "Телефондун компасы темирден жана магниттен алыс так иштейт.": "A phone's compass is most accurate away from metal and magnets.",
+    "Башка үйгө жазуу үчүн админ supabase/admin-chat-2026-11.sql файлын иштетиши керек.": "To write in another house, the admin must run supabase/admin-chat-2026-11.sql.",
+    "Сиз бул үйгө админ катары жазасыз; билдирүүлөрдү өчүрө аласыз.": "You write in this house as the admin; you can remove messages.",
+    "сиздин үйүңүз": "your house",
+    "админ катары": "as the admin"
 };
