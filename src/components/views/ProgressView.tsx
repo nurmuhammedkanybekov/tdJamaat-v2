@@ -7,14 +7,13 @@ import type { Insights } from '../../utils/insights';
 import { ROLE_LABEL, weekOf } from '../../utils/insights';
 import { TEAM_COLORS } from '../../utils/scoring';
 import { Avatar } from '../Avatar';
-import { ChartTooltip, Plate, SectionHeader, Sparkline } from '../ui';
+import { ChartTooltip, SectionHeader } from '../ui';
 import { axisTick, scoreDomain } from '../../utils/style';
-import { placeSuffix, t } from '../../i18n';
+import { t } from '../../i18n';
 
 interface ProgressViewProps {
     data: DataFile;
     insights: Insights;
-    onOpenProfile: (memberId: string) => void;
     onCompare: (kind: 'person' | 'house') => void;
 }
 
@@ -53,7 +52,7 @@ const EndLabels: React.FC<{ items: EndLabel[] }> = ({ items }) => {
     );
 };
 
-export const ProgressView: React.FC<ProgressViewProps> = ({ data, insights, onOpenProfile, onCompare }) => {
+export const ProgressView: React.FC<ProgressViewProps> = ({ data, insights, onCompare }) => {
     const isPhone = useIsPhone();
     const calm = useMediaQuery('(prefers-reduced-motion: reduce)');
     // The house whose legend chip is under the pointer (or focused): its line
@@ -72,11 +71,6 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ data, insights, onOp
         houses.forEach(h => { const hw = weekOf(h.weeks, i); point[h.id] = hw && hw.submitted ? hw.avg : null; });
         return point;
     });
-    const rankData = data.weeks.map((w, i) => {
-        const point: Record<string, number | string | null> = { week: t('{0}-апта', w.weekNumber) };
-        houses.forEach(h => { const hw = weekOf(h.weeks, i); point[h.id] = hw?.rank ?? null; });
-        return point;
-    });
 
     const lastIndex = data.weeks.length - 1;
 
@@ -90,20 +84,6 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ data, insights, onOp
     });
     // Room on the right for the longest house name.
     const labelRoom = Math.min(130, 30 + Math.max(0, ...endLabels.map(l => l.name.length)) * 8);
-    // The latest week is still open and this house hasn't entered it yet.
-    const latestOpenMissing = (h: (typeof houses)[number]) => {
-        const hw = weekOf(h.weeks, lastIndex);
-        return !!hw && !hw.submitted;
-    };
-    // People who gained the most since the previous week
-    const risers = [...insights.members.values()]
-        .map(s => {
-            const now = weekOf(s.weeks, lastIndex), prev = weekOf(s.weeks, lastIndex - 1);
-            return now && prev && now.submitted && prev.submitted ? { s, now, delta: now.score - prev.score } : null;
-        })
-        .filter((x): x is NonNullable<typeof x> => !!x && x.delta > 0)
-        .sort((a, b) => b.delta - a.delta)
-        .slice(0, 5);
 
     const legend = (
         <div className="flex flex-wrap gap-1.5">
@@ -122,7 +102,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ data, insights, onOp
     );
 
     return (
-        <div className="space-y-8 sm:space-y-10">
+        <div>
             <section className="plate">
                 <SectionHeader eyebrow={t('Үй рейтинги')} title={t('Үйлөрдүн апталык прогресси')} sub={t('Үйдү жашыруу же көрсөтүү үчүн атын басыңыз.')} action={<button className="btn btn-ghost" onClick={() => onCompare('house')}><Columns2 className="w-3.5 h-3.5" />  {t('Салыштыруу')}</button>} />
                 {legend}
@@ -148,91 +128,44 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ data, insights, onOp
                 </div>
             </section>
 
-            <div className="grid grid-cols-1 gap-8 xl:grid-cols-2">
-                <section className="plate">
-                    <SectionHeader eyebrow={t('Ар бир аптадагы орун')} title={t('Орундардын жарышы')} />
-                    <div className="-ml-3 sm:ml-0">
-                        <ResponsiveContainer width="100%" height={isPhone ? 240 : 300}>
-                            <LineChart data={rankData} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
-                                <CartesianGrid stroke="var(--gridline)" vertical={false} />
-                                <XAxis dataKey="week" tick={axisTick} axisLine={false} tickLine={false} />
-                                <YAxis reversed domain={[1, Math.max(1, houses.length)]} ticks={Array.from({ length: Math.max(1, houses.length) }, (_, i) => i + 1)} interval={0} padding={{ top: 10, bottom: 10 }} allowDecimals={false} tick={axisTick} axisLine={false} tickLine={false} width={30} tickFormatter={v => `${v}`} />
-                                <Tooltip content={<ChartTooltip unit={placeSuffix} />} cursor={{ stroke: 'var(--border-strong)' }} />
-                                {houses.filter(h => !hidden.has(h.id)).map(h => (
-                                    <Line key={h.id} type="monotone" dataKey={h.id} name={h.name} stroke={TEAM_COLORS[h.colorIndex % TEAM_COLORS.length]} strokeWidth={focus === h.id ? 2.4 : 1.6}
-                                        strokeOpacity={focus && focus !== h.id ? 0.15 : 1} style={{ transition: 'stroke-opacity 250ms ease' }}
-                                        dot={{ r: 2.75, strokeWidth: 0, fill: TEAM_COLORS[h.colorIndex % TEAM_COLORS.length], opacity: focus && focus !== h.id ? 0.15 : 1 }} connectNulls isAnimationActive={!calm} />
-                                ))}
-                            </LineChart>
-                        </ResponsiveContainer>
-                    </div>
-                    {/* Which line is which house (the legend above is far away on a phone). */}
-                    <div className="mt-3">{legend}</div>
-                </section>
-
-                <section className="plate">
-                    <SectionHeader eyebrow={t('{0}-апта', data.weeks[lastIndex].weekNumber)} title={t('Эң көп өскөндөр')} sub={t('Мурунку аптага караганда эң көп упай кошкондор.')} />
-                    {risers.length === 0 ? (
-                        <p className="text-[0.88rem]" style={{ color: 'var(--text-muted)' }}>{t('Салыштыруу үчүн эки апталык маалымат керек.')}</p>
-                    ) : (
-                        <ol className="stagger">
-                            {risers.map(({ s, now, delta }, i) => (
-                                <li key={s.id}>
-                                    <button onClick={() => onOpenProfile(s.id)} className="row-link w-[calc(100%+1rem)] flex items-center gap-3 py-2.5 px-2 -mx-2 text-left" style={{ borderTop: i ? '1px solid var(--border)' : undefined }}>
-                                        <Avatar name={s.name} role={now.member.role} photoUrl={s.photoUrl} size="sm" />
-                                        <span className="flex-1 min-w-0">
-                                            <span className="block font-bold truncate" style={{ color: 'var(--text-primary)' }}>{s.name}</span>
-                                            <span className="block text-[0.75rem] truncate" style={{ color: 'var(--text-muted)' }}>{now.houseName} · <i>{ROLE_LABEL[now.member.role]}</i></span>
-                                        </span>
-                                        <span className="font-display text-[1.25rem] tabular" style={{ color: 'var(--success)' }}>+{fmt(delta)}</span>
-                                    </button>
-                                </li>
-                            ))}
-                        </ol>
-                    )}
-                </section>
-            </div>
-
-            <section>
-                <SectionHeader eyebrow={t('Үйлөр')} title={t('Апталар боюнча статистика')} />
-                {/* One ledger, not five look-alike cards: each house's line of weeks
-                    drawn wide, and its three numbers in the display face. */}
-                <Plate tight>
-                    <div className="hidden sm:grid grid-cols-[minmax(0,1.3fr)_minmax(0,1.6fr)_repeat(3,5.5rem)] gap-4 pt-3 pb-2 eyebrow" style={{ borderBottom: '1px solid var(--border)' }}>
-                        <span>{t('Үй')}</span><span>{t('Апталар')}</span>
-                        <span className="text-right">{t('Акыркы')}</span><span className="text-right">{t('Өзгөрүү')}</span><span className="text-right">{t('Рекорд')}</span>
-                    </div>
-                    <ol className="stagger">
-                        {houses.map((h, i) => {
-                            const counted = h.weeks.filter(w => w.submitted);
-                            const cur = counted[counted.length - 1];
-                            const prev = counted[counted.length - 2];
-                            const change = cur && prev ? cur.avg - prev.avg : 0;
-                            const best = counted.reduce((b, w) => Math.max(b, w.avg), 0);
-                            const color = TEAM_COLORS[h.colorIndex % TEAM_COLORS.length];
-                            const missing = latestOpenMissing(h);
-                            return (
-                                <li key={h.id} className="py-4 sm:grid sm:grid-cols-[minmax(0,1.3fr)_minmax(0,1.6fr)_repeat(3,5.5rem)] sm:gap-4 sm:items-center" style={{ borderTop: i ? '1px solid var(--border)' : undefined }}>
-                                    <div className="flex items-center gap-3 min-w-0">
-                                        <span className="w-5 h-[2px] flex-shrink-0" style={{ backgroundColor: color }} />
-                                        <span className="min-w-0">
-                                            <span className="block font-display text-[1.35rem] leading-tight truncate" style={{ color: 'var(--text-primary)' }}>{h.name}</span>
-                                            <span className="block text-[0.75rem] italic" style={{ color: 'var(--text-muted)' }}>{t('{0} аптага катышты', counted.length)}{missing ? ` · ${t('{0}-апта күтүлүүдө', data.weeks[data.weeks.length - 1].weekNumber)}` : ''}</span>
-                                        </span>
-                                    </div>
-                                    <div className="mt-3 sm:mt-0"><Sparkline values={counted.map(w => w.avg)} color={color} width={220} height={34} /></div>
-                                    <div className="grid grid-cols-3 sm:contents mt-3 sm:mt-0">
-                                        <div className="sm:text-right"><div className="eyebrow sm:hidden">{cur ? t('{0}-апта', cur.weekNumber) : t('Акыркы апта')}</div><div className="font-display text-[1.4rem] tabular" style={{ color: 'var(--text-primary)' }}>{cur ? fmt(cur.avg) : '—'}</div></div>
-                                        <div className="sm:text-right"><div className="eyebrow sm:hidden">{t('Өзгөрүү')}</div><div className="font-display text-[1.4rem] tabular" style={{ color: change > 0 ? 'var(--success)' : change < 0 ? 'var(--danger)' : 'var(--text-muted)' }}>{prev ? `${change > 0 ? '+' : ''}${fmt(change)}` : '—'}</div></div>
-                                        <div className="sm:text-right"><div className="eyebrow sm:hidden">{t('Рекорд')}</div><div className="font-display text-[1.4rem] tabular" style={{ color: 'var(--gold)' }}>{counted.length ? fmt(best) : '—'}</div></div>
-                                    </div>
-                                </li>
-                            );
-                        })}
-                    </ol>
-                </Plate>
-                <p className="text-[0.75rem] italic mt-3" style={{ color: 'var(--text-muted)' }}>{t('Өзгөрүү — мурунку катышкан аптага караганда; рекорд — сезондогу эң жогорку орточо.')}</p>
-            </section>
         </div>
+    );
+};
+
+/** The people who gained most since the previous week. */
+export const Risers: React.FC<{ data: DataFile; insights: Insights; onOpenProfile: (memberId: string) => void }> = ({ data, insights, onOpenProfile }) => {
+    const lastIndex = data.weeks.length - 1;
+    const risers = [...insights.members.values()]
+        .map(s => {
+            const now = weekOf(s.weeks, lastIndex), prev = weekOf(s.weeks, lastIndex - 1);
+            return now && prev && now.submitted && prev.submitted ? { s, now, delta: now.score - prev.score } : null;
+        })
+        .filter((x): x is NonNullable<typeof x> => !!x && x.delta > 0)
+        .sort((a, b) => b.delta - a.delta)
+        .slice(0, 5);
+    const top = risers[0]?.delta ?? 1;
+    return (
+        <section>
+            <SectionHeader eyebrow={t('{0}-апта', data.weeks[lastIndex].weekNumber)} title={t('Эң көп өскөндөр')} sub={t('Мурунку аптага караганда эң көп упай кошкондор.')} />
+            {risers.length === 0 ? (
+                <p className="text-[0.88rem]" style={{ color: 'var(--text-muted)' }}>{t('Салыштыруу үчүн эки апталык маалымат керек.')}</p>
+            ) : (
+                <ol className="stagger" style={{ borderTop: '1px solid var(--gold-dim)' }}>
+                    {risers.map(({ s, now, delta }) => (
+                        <li key={s.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                            <button onClick={() => onOpenProfile(s.id)} className="row-link w-full flex items-center gap-3 py-3.5 px-1 text-left">
+                                <Avatar name={s.name} role={now.member.role} photoUrl={s.photoUrl} size="sm" />
+                                <span className="flex-1 min-w-0">
+                                    <span className="block font-display text-[1.2rem] leading-tight truncate" style={{ color: 'var(--text-primary)' }}>{s.name}</span>
+                                    <span className="block text-[0.75rem] italic truncate" style={{ color: 'var(--text-muted)' }}>{now.houseName} · {ROLE_LABEL[now.member.role]}</span>
+                                    <span className="block h-[2px] mt-2" style={{ backgroundColor: 'var(--border)' }}><span className="block h-full animate-grow-x" style={{ width: `${(delta / top) * 100}%`, backgroundColor: 'var(--success)', opacity: 0.7 }} /></span>
+                                </span>
+                                <span className="font-display text-[1.5rem] tabular pl-2" style={{ color: 'var(--success)' }}>+{fmt(delta)}</span>
+                            </button>
+                        </li>
+                    ))}
+                </ol>
+            )}
+        </section>
     );
 };

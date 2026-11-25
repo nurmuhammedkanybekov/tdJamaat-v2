@@ -21,7 +21,9 @@ import {
     DEFAULT_TARGETS
 } from '../services/dataService';
 import type { HouseHistory, SeasonSettings } from '../services/dataService';
-import { calculateMemberScore } from '../utils/scoring';
+import { MINI_CARD_POINTS, calculateMemberScore, calculateMiniCardBonus, calculatePerformancePercentage } from '../utils/scoring';
+import { perfBarColor } from '../utils/style';
+import { Beads } from './ui';
 import { ROLE_LABEL } from '../utils/insights';
 import { memberTypos, miniCardTypos, usualValues } from '../utils/typos';
 import { goalHints } from '../utils/breakdown';
@@ -57,9 +59,8 @@ const ZERO_METRICS: MetricValues = {
     'К-К': 0, 'СВТ': 0, 'КТП': 0, 'ТХЖ': 0, 'ДТА': 0, 'ИСТГ': 0, 'НФ': 0, 'ТСП': 0
 };
 
-const inputStyle: React.CSSProperties = { backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)' };
-const inputMutedStyle: React.CSSProperties = { backgroundColor: 'var(--page-plane)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--text-secondary)' };
-const fieldLabel: React.CSSProperties = { fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)' };
+const inputStyle: React.CSSProperties = { backgroundColor: 'transparent', border: 0, borderBottom: '1.5px solid var(--border-strong)', borderRadius: 0, color: 'var(--text-primary)', fontFamily: 'var(--font-display)', fontSize: '1.2rem', paddingLeft: 0 };
+const fieldLabel: React.CSSProperties = { fontSize: '0.64rem', textTransform: 'uppercase', letterSpacing: '0.28em', color: 'var(--gold)' };
 
 // Turn a failed save into something a house leader can act on. 42501 is
 // Postgres' "insufficient privilege" — what a row-level-security rejection
@@ -85,6 +86,7 @@ const describeSaveError = (err: unknown): string => {
 //  - Only weeks the admin has opened can be filled in. The admin opens the
 //    next week from this form.
 const fmtPoints = (n: number) => (Math.round(n * 10) / 10).toString();
+const MINI_POINTS_MAX = MINI_CARD_POINTS * 7;
 
 /** Under each person in the form: what is still missing to reach the plan,
  *  e.g. "ДТА +1 (+50) · К-К +3 (+19.3)". Updates as numbers are typed. */
@@ -284,10 +286,20 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
         setHistory(h => (h ? { ...h } : h)); // re-seed from the database
     };
 
-    const selectedHouseName = useMemo(() => {
-        if (!isAdmin) return null; // leader's house is fixed, no need to show a picker
-        return houses.find(h => h.id === selectedHouseId)?.name ?? '';
-    }, [isAdmin, houses, selectedHouseId]);
+
+    const houseTitle = houses.find(h => h.id === selectedHouseId)?.name
+        ?? data?.weeks.slice().reverse().flatMap(w => w.teams).find(it => it.id === selectedHouseId)?.name ?? '';
+
+    // What the house's rating will be with the numbers as they stand now —
+    // updates as the captain types (Тазалык, rated separately, not included).
+    const preview = useMemo(() => {
+        const scores = members.flatMap(m => { const d = drafts[m.id]; return d && !d.excused ? [calculateMemberScore({ ...m, actual: d.actual, target: d.target })] : []; });
+        if (scores.length === 0) return null;
+        const memberAvg = scores.reduce((a, b) => a + b, 0) / scores.length;
+        const card = calculateMiniCardBonus(miniCard);
+        const filled = members.filter(m => { const d = drafts[m.id]; return d && (d.excused || Object.values(d.actual).some(v => (v || 0) > 0)); }).length;
+        return { memberAvg, card, rating: memberAvg + card, filled };
+    }, [members, drafts, miniCard]);
 
     const handleMiniCardChange = (key: keyof MiniCard, field: 'actual' | 'target', value: number) => {
         dirty.current = true;
@@ -489,9 +501,19 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                     className="flex-shrink-0 px-4 sm:px-6 py-4 sm:py-5 flex justify-between items-center gap-3"
                     style={{ borderBottom: '1px solid var(--border)', paddingTop: 'max(1rem, env(safe-area-inset-top, 0px))' }}
                 >
-                    <h2 className="font-display text-[1.5rem] sm:text-[1.7rem] truncate" style={{ color: 'var(--text-primary)' }}>
-                        {selectedHouseName ? t('{0} — маалымат', selectedHouseName) : t('Маалымат кошуу')}
-                    </h2>
+                    <div className="min-w-0 flex-1">
+                        <div className="eyebrow" style={{ color: 'var(--gold)' }}>{t('Маалымат кошуу')}{!loading && weekNumbers.length > 0 ? ` · ${label(weekNumber)}` : ''}</div>
+                        <h2 className="font-display text-[1.7rem] sm:text-[2.2rem] leading-tight truncate mt-1" style={{ color: 'var(--text-primary)' }}>
+                            {houseTitle || t('Маалымат кошуу')}
+                        </h2>
+                    </div>
+                    {preview && !loading && (
+                        <div className="hidden sm:block text-right flex-shrink-0 pr-4" aria-live="polite">
+                            <div className="eyebrow">{t('Болжолдуу рейтинг')}</div>
+                            <div className="font-display text-[1.7rem] sm:text-[2.2rem] leading-none tabular mt-1.5" style={{ color: 'var(--gold)' }}>{fmtPoints(preview.rating)}</div>
+                            <div className="text-[0.72rem] italic tabular mt-1" style={{ color: 'var(--text-muted)' }}>{t('орточо {0} + мини-карта {1}', fmtPoints(preview.memberAvg), fmtPoints(preview.card))} · {t('тазалыксыз')}</div>
+                        </div>
+                    )}
                     <button onClick={onClose} aria-label={t('Жабуу')} className="p-2 -mr-2 flex-shrink-0" style={{ color: 'var(--text-muted)' }}>
                         <X className="w-5 h-5" />
                     </button>
@@ -559,21 +581,24 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                             )}
 
                             <div className="mb-8">
-                                <h3 className="font-display text-[1.35rem] mb-4 pb-2" style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border)' }}>{t('Мини-карта')}</h3>
-                                {/* One row per activity: name, what was done, and the plan. */}
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 rounded-[var(--radius)] overflow-hidden" style={{ border: '1px solid var(--border)' }}>
+                                <div className="entry-section-head">
+                                    <h3 className="font-display text-[1.5rem]" style={{ color: 'var(--text-primary)' }}>{t('Мини-карта')}</h3>
+                                    {preview && <span className="font-display text-[1.25rem] tabular" style={{ color: 'var(--gold)' }}>{fmtPoints(preview.card)}<span className="text-[0.8rem]" style={{ color: 'var(--text-muted)' }}> / {MINI_POINTS_MAX}</span></span>}
+                                </div>
+                                {/* One row per activity: name, its beads of the plan, what was done, and the plan. */}
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-10">
                                     {(Object.keys(DEFAULT_MINICARD) as Array<keyof MiniCard>).map(key => (
-                                        <div key={key} className="flex items-center gap-3 px-4 py-2.5" style={{ borderBottom: '1px solid var(--border)' }}>
+                                        <div key={key} className="flex items-center gap-3 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
                                             <div className="flex-1 min-w-0">
-                                                <div className="text-[0.95rem] truncate" style={{ color: 'var(--text-primary)' }}>{cardName(key)}</div>
-                                                <div className="text-[0.72rem]" style={{ color: 'var(--text-muted)' }}>{cardLabel(key)}</div>
+                                                <div className="text-[0.98rem] truncate" style={{ color: 'var(--text-primary)' }}>{cardName(key)}</div>
+                                                <div className="eyebrow mt-0.5" style={{ letterSpacing: '0.18em', color: calculatePerformancePercentage(miniCard[key].actual, miniCard[key].target) >= 100 ? 'var(--gold)' : 'var(--text-muted)' }}>{cardLabel(key)}</div>
                                             </div>
+                                            <span className="hidden sm:inline-flex"><Beads actual={miniCard[key].actual} target={miniCard[key].target} /></span>
                                             <NumberInput
                                                 value={miniCard[key].actual}
                                                 aria-invalid={typoKeys.has(`card|${key}`) || undefined}
                                                 onValueChange={v => handleMiniCardChange(key, 'actual', v)}
-                                                className="w-20 text-center py-2 text-base"
-                                                style={inputStyle}
+                                                className="entry-input w-16 text-center py-1.5 text-[1.3rem]"
                                                 aria-label={t('{0} — Факт', cardName(key))}
                                             />
                                             <span className="text-[0.9rem]" style={{ color: 'var(--text-muted)' }}>/</span>
@@ -581,12 +606,11 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                                                 <NumberInput
                                                     value={miniCard[key].target}
                                                     onValueChange={v => handleMiniCardChange(key, 'target', v)}
-                                                    className="w-16 text-center py-2 text-base"
-                                                    style={inputMutedStyle}
+                                                    className="entry-input is-plan w-12 text-center py-1.5 text-base"
                                                     aria-label={t('{0} — План', cardName(key))}
                                                 />
                                             ) : (
-                                                <span className="w-8 tabular text-[1rem]" style={{ color: 'var(--text-muted)' }} aria-label={t('{0} — План', cardName(key))}>{miniCard[key].target}</span>
+                                                <span className="w-6 font-display tabular text-[1.05rem]" style={{ color: 'var(--text-muted)' }} aria-label={t('{0} — План', cardName(key))}>{miniCard[key].target}</span>
                                             )}
                                         </div>
                                     ))}
@@ -594,15 +618,16 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                             </div>
 
                             <div>
-                                <div className="flex items-baseline justify-between mb-2 flex-wrap gap-2">
-                                    <h3 className="font-display text-[1.35rem]" style={{ color: 'var(--text-primary)' }}>{t('Мүчөлөр')}</h3>
-                                    <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{t('Сүрөттү өзгөртүү үчүн адамдын сүрөтүн басыңыз')}</p>
+                                <div className="entry-section-head">
+                                    <h3 className="font-display text-[1.5rem]" style={{ color: 'var(--text-primary)' }}>{t('Мүчөлөр')}</h3>
+                                    {preview && <span className="text-[0.8rem] italic tabular" style={{ color: 'var(--text-muted)' }}>{t('{0} / {1} толтурулду', preview.filled, members.length)}</span>}
                                 </div>
+                                <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>{t('Сүрөттү өзгөртүү үчүн адамдын сүрөтүн басыңыз')}</p>
                                 {/* The actual/target pairs had no visible label (only a
                                     hover tooltip, which doesn't exist on a phone). */}
                                 <p className="text-xs mb-3 flex items-center gap-3 flex-wrap" style={{ color: 'var(--text-muted)' }}>
-                                    <span className="inline-flex items-center gap-1.5"><span className="inline-block w-3 h-3" style={{ ...inputStyle, borderRadius: 2 }} />  {t('үстүндө — Факт')}</span>
-                                    <span className="inline-flex items-center gap-1.5"><span className="inline-block w-3 h-3" style={{ ...inputMutedStyle, borderRadius: 2, borderStyle: isAdmin ? 'solid' : 'dashed' }} />  {t('астында — План')}</span>
+                                    <span className="inline-flex items-center gap-1.5"><span className="inline-block w-4 h-[2px]" style={{ backgroundColor: 'var(--border-strong)' }} />  {t('үстүндө — Факт')}</span>
+                                    <span className="inline-flex items-center gap-1.5"><span className="inline-block w-4 h-[1px]" style={{ borderTop: '1px dashed var(--text-muted)' }} />  {t('астында — План')}</span>
                                     {!isAdmin && (
                                         <span className="inline-flex items-center gap-1"><Lock className="w-3 h-3" />  {t('Планды админ гана өзгөртөт')}</span>
                                     )}
@@ -625,7 +650,7 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                                             const draft = drafts[member.id];
                                             if (!draft) return null;
                                             return (
-                                                <div key={member.id} className="py-4" style={i > 0 ? { borderTop: '1px solid var(--border)' } : undefined}>
+                                                <div key={member.id} className="entry-member" style={i > 0 ? { borderTop: '1px solid var(--border)' } : undefined}>
                                                     <div className="flex items-center gap-3 mb-3">
                                                         <label
                                                             className="relative flex-shrink-0 cursor-pointer group"
@@ -660,7 +685,7 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                                                             />
                                                         </label>
                                                         <div className="flex-1 min-w-0">
-                                                            <div className="font-semibold truncate" style={{ color: 'var(--text-primary)' }}>{member.name}</div>
+                                                            <div className="font-display text-[1.3rem] leading-tight truncate" style={{ color: 'var(--text-primary)' }}>{member.name}</div>
                                                             <div className="text-xs italic" style={{ color: 'var(--text-muted)' }}>
                                                                 {ROLE_LABEL[member.role]}
                                                                 {elsewhere.has(member.id) && (
@@ -671,8 +696,8 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                                                             </div>
                                                         </div>
                                                         <div className="text-right flex-shrink-0">
-                                                            <div className="text-xs" style={{ color: 'var(--text-muted)' }}>{t('Упай')}</div>
-                                                            <div className="font-serif font-semibold text-lg font-variant-tabular" style={{ color: draft.excused ? 'var(--text-muted)' : 'var(--text-primary)' }}>
+                                                            <div className="eyebrow">{t('Упай')}</div>
+                                                            <div className="font-display text-[1.6rem] leading-none tabular mt-1" style={{ color: draft.excused ? 'var(--text-muted)' : 'var(--text-primary)' }}>
                                                                 {draft.excused ? '—' : calculateMemberScore({ ...member, actual: draft.actual, target: draft.target }).toFixed(1)}
                                                             </div>
                                                         </div>
@@ -699,17 +724,16 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                                                             )}
                                                         </div>
                                                     )}
-                                                    <div className="grid grid-cols-4 md:grid-cols-8 gap-2" style={draft.excused ? { opacity: 0.4 } : undefined} aria-disabled={draft.excused || undefined}>
+                                                    <div className="grid grid-cols-4 md:grid-cols-8 gap-x-2.5 gap-y-4" style={draft.excused ? { opacity: 0.4 } : undefined} aria-disabled={draft.excused || undefined}>
                                                         {(Object.keys(ZERO_METRICS) as Array<keyof MetricValues>).map(metric => (
                                                             <div key={metric} className="text-center min-w-0">
-                                                                <div className="text-xs font-semibold mb-1" style={{ color: 'var(--text-secondary)' }} title={metricName(metric)}>{metricLabel(metric)}</div>
+                                                                <div className="eyebrow mb-1.5" style={{ letterSpacing: '0.16em', color: calculatePerformancePercentage(draft.actual[metric], draft.target[metric]) >= 100 ? 'var(--gold)' : 'var(--text-secondary)' }} title={metricName(metric)}>{metricLabel(metric)}</div>
                                                                 <NumberInput
                                                                     value={draft.actual[metric]}
                                                                     readOnly={draft.excused}
                                                                     aria-invalid={typoKeys.has(`${member.id}|${metric}`) || undefined}
                                                                     onValueChange={v => handleMemberChange(member.id, 'actual', metric, v)}
-                                                                    className="w-full text-center px-0.5 py-1.5 mb-1 text-base sm:text-sm font-semibold"
-                                                                    style={inputStyle}
+                                                                    className="entry-input w-full text-center px-0.5 py-1.5 text-[1.2rem]"
                                                                     aria-label={t('{0} — {1} — Факт', member.name, metricName(metric))}
                                                                     title={t('Факт')}
                                                                 />
@@ -718,11 +742,11 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                                                                     readOnly={!isAdmin}
                                                                     tabIndex={isAdmin ? undefined : -1}
                                                                     onValueChange={v => handleMemberChange(member.id, 'target', metric, v)}
-                                                                    className={`w-full text-center px-0.5 py-1 text-sm sm:text-xs ${isAdmin ? '' : 'cursor-default'}`}
-                                                                    style={isAdmin ? inputMutedStyle : { ...inputMutedStyle, borderStyle: 'dashed' }}
+                                                                    className={`entry-input is-plan w-full text-center px-0.5 py-1 text-[0.85rem] ${isAdmin ? '' : 'is-locked cursor-default'}`}
                                                                     aria-label={t('{0} — {1} — План', member.name, metricName(metric))}
                                                                     title={t('План')}
                                                                 />
+                                                                <span className="pct-track mt-1.5" aria-hidden="true"><span style={{ width: `${Math.min(calculatePerformancePercentage(draft.actual[metric], draft.target[metric]), 100)}%`, backgroundColor: perfBarColor(calculatePerformancePercentage(draft.actual[metric], draft.target[metric])) }} /></span>
                                                             </div>
                                                         ))}
                                                     </div>
@@ -741,6 +765,13 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                     className="flex-shrink-0 px-4 sm:px-6 pt-3 sm:pt-4"
                     style={{ borderTop: '1px solid var(--border)', paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom, 0px))' }}
                 >
+                    {preview && !loading && (
+                        <div className="sm:hidden flex items-baseline justify-between gap-3 mb-3" aria-live="polite">
+                            <span className="eyebrow">{t('Болжолдуу рейтинг')}</span>
+                            <span className="text-[0.7rem] italic flex-1 text-right" style={{ color: 'var(--text-muted)' }}>{t('тазалыксыз')}</span>
+                            <span className="font-display text-[1.5rem] leading-none tabular" style={{ color: 'var(--gold)' }}>{fmtPoints(preview.rating)}</span>
+                        </div>
+                    )}
                     {error && (
                         <div role="alert" className="px-3 py-2 mb-3 flex items-start gap-2 text-sm" style={{ borderLeft: '2px solid var(--danger)', color: 'var(--danger)' }}>
                             <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />

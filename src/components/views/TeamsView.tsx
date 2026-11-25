@@ -7,8 +7,8 @@ import { MINI_CARD_POINTS, TEAM_COLORS, calculatePerformancePercentage } from '.
 import { TAZALYK_MAX } from '../../utils/tazalyk';
 import { Avatar } from '../Avatar';
 import { CountUp } from '../motion';
-import { Beads, Movement, Plate, SectionHeader, Skyline, Sparkline } from '../ui';
-import { perfColor, heatBg } from '../../utils/style';
+import { Beads, Movement, Plate, SectionHeader, Skyline } from '../ui';
+import { perfBarColor, perfColor } from '../../utils/style';
 import { t } from '../../i18n';
 
 import { houseBreakdown } from '../../utils/breakdown';
@@ -31,6 +31,7 @@ interface TeamsViewProps {
 
 const fmt = (n: number) => (Math.round(n * 10) / 10).toString();
 const pad2 = (n: number) => String(n).padStart(2, '0');
+const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
 
 export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights, initialHouseId, canEditHouse, onEditHouse, onOpenProfile }) => {
     const week = data.weeks[weekIndex];
@@ -61,116 +62,143 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
 
     return (
         <div className="space-y-6 sm:space-y-8">
-            {/* House switcher */}
+            {/* The houses as a scoreboard: each one's place and rating this
+                week; the chosen one opens below. */}
             <div className="-mx-4 sm:mx-0">
-                <div className="scroll-row scroll-fade flex gap-2 px-4 sm:px-0 sm:flex-wrap pb-1" role="tablist" aria-label={t('Үйлөр')}>
+                <div className="house-strip scroll-row px-4 sm:px-0" role="tablist" aria-label={t('Үйлөр')}>
                     {week.teams.map(it => {
                         const hs = insights.houses.get(it.id);
                         const c = TEAM_COLORS[(hs?.colorIndex ?? 0) % TEAM_COLORS.length];
+                        const w = hs ? weekOf(hs.weeks, weekIndex) : undefined;
                         const active = it.id === team.id;
                         return (
-                            <button key={it.id} role="tab" aria-selected={active} onClick={() => setHouseId(it.id)} className={`chip ${active ? 'is-active' : ''}`} style={{ padding: '0.5rem 0.95rem', fontSize: '0.85rem' }}>
-                                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: c, boxShadow: active ? `0 0 0 3px color-mix(in oklab, ${c} 22%, transparent)` : undefined }} />
-                                {it.name}
+                            <button key={it.id} role="tab" aria-selected={active} onClick={() => setHouseId(it.id)} className={`house-strip-item ${active ? 'is-active' : ''}`} style={{ '--house': c } as React.CSSProperties}>
+                                <span className="eyebrow" style={{ color: active ? 'var(--gold)' : 'var(--text-muted)', letterSpacing: '0.24em' }}>{w?.rank ? t('{0}-орун', w.rank) : t('күтүлүүдө')}</span>
+                                <span className="block font-display text-[1.35rem] leading-tight truncate mt-1" style={{ color: 'var(--text-primary)' }}>{it.name}</span>
+                                <span className="block font-display text-[1rem] tabular mt-0.5" style={{ color: active ? 'var(--gold)' : 'var(--text-muted)' }}>{w?.submitted ? fmt(w.avg) : '—'}</span>
                             </button>
                         );
                     })}
                 </div>
             </div>
 
-            {/* House summary, in the house's own colour. */}
-            <section key={team.id} className="plate desk-plate animate-view-in" style={{ borderTop: `2px solid ${color}` }}>
-                <Corners inset={6} size={20} />
-                <div className="card-pad flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
-                    <div className="flex-1 min-w-0">
-                        <div className="eyebrow flex items-center gap-2" style={{ color: 'var(--gold)' }}>{t('{0} · {1}-апта', hw?.rank ? t('{0}-орун', hw.rank) : t('Рейтингде жок'), week.weekNumber)}</div>
-                        <h2 className="font-display text-[2.2rem] sm:text-[2.6rem] leading-tight" style={{ color: 'var(--text-primary)' }}>{team.name}</h2>
-                        <div className="flex items-center gap-3 mt-1 text-[0.82rem] flex-wrap" style={{ color: 'var(--text-muted)' }}>
-                            <span>{t('{0} адам{1}', team.members.length, hw && hw.excusedCount > 0 ? t(' · {0} себептүү', hw.excusedCount) : '')}</span>
+            {/* The house itself: its place, its name, its number — and how the
+                number is made, and how it has moved week by week. */}
+            <section key={team.id} className="house-hero animate-view-in" style={{ '--house': color } as React.CSSProperties}>
+                <Corners inset={6} size={22} />
+                {canEditHouse(team.id) && (
+                    <div className="house-hero-edit hidden sm:block">
+                        <button onClick={() => onEditHouse(team.id)} className="btn btn-primary"><PenLine className="w-4 h-4" />  {t('Өзгөртүү')}</button>
+                    </div>
+                )}
+
+                <div className="relative grid grid-cols-[auto_1fr] sm:grid-cols-[auto_1fr_auto] items-end gap-x-5 sm:gap-x-10 gap-y-5">
+                    <div className="text-center">
+                        <div className="font-display leading-[0.8] tabular house-hero-rank" style={{ color: hw?.rank ? 'var(--gold)' : 'var(--text-muted)' }}>{hw?.rank ? ROMAN[hw.rank - 1] ?? hw.rank : '—'}</div>
+                        <div className="eyebrow mt-3">{t('орун')}</div>
+                    </div>
+                    <div className="min-w-0 pb-1">
+                        <div className="eyebrow" style={{ color: 'var(--gold)' }}>{t('{0}-апта', week.weekNumber)}</div>
+                        <h2 className="font-display leading-[0.95] mt-2 house-hero-name truncate" style={{ color: 'var(--text-primary)' }}>{team.name}</h2>
+                        <div className="flex items-center gap-x-4 gap-y-1 mt-3 text-[0.85rem] flex-wrap" style={{ color: 'var(--text-muted)' }}>
+                            <span className="inline-flex items-center gap-2"><span className="w-5 h-[2px]" style={{ backgroundColor: color }} />{t('{0} адам{1}', team.members.length, hw && hw.excusedCount > 0 ? t(' · {0} себептүү', hw.excusedCount) : '')}</span>
                             {team.submitted
-                                ? <span className="inline-flex items-center gap-1" style={{ color: 'var(--success)' }}><CheckCircle2 className="w-3.5 h-3.5" />  {t('маалымат киргизилди')}</span>
-                                : <span className="inline-flex items-center gap-1"><Clock3 className="w-3.5 h-3.5" />  {t('маалымат күтүлүүдө')}</span>}
+                                ? <span className="inline-flex items-center gap-1.5 italic" style={{ color: 'var(--success)' }}><CheckCircle2 className="w-3.5 h-3.5" />{t('маалымат киргизилди')}</span>
+                                : <span className="inline-flex items-center gap-1.5 italic"><Clock3 className="w-3.5 h-3.5" />{t('маалымат күтүлүүдө')}</span>}
                         </div>
                     </div>
-                    <div className="flex items-center gap-5 sm:gap-7">
-                        <div>
-                            <div className="eyebrow">{t('Үй рейтинги')}</div>
-                            <div className="flex items-baseline gap-2 mt-1">
-                                {hw?.submitted
-                                    ? <CountUp key={`${team.id}-${weekIndex}`} value={hw.avg} className="font-display text-[2.6rem] leading-none tabular gold-sheen" />
-                                    : <span className="font-display text-[2.6rem] leading-none tabular" style={{ color: 'var(--gold)' }}>—</span>}
-                                {series && <Movement delta={movement(series.weeks, weekIndex)} size="md" />}
-                            </div>
-                            {hw?.submitted && (
-                                <div className="text-[0.78rem] italic mt-1.5 tabular" style={{ color: 'var(--text-muted)' }}>
-                                    {t('орточо {0} + мини-карта {1}', fmt(hw.memberAvg), fmt(hw.cardBonus))}
-                                    {hw.tazalyk !== null && <> {hw.tazalykPending ? t('+ тазалык бааланган жок') : t('+ тазалык {0}', fmt(hw.tazalyk))}</>}
-                                </div>
-                            )}
+                    <div className="col-span-2 sm:col-span-1 sm:text-right pb-1">
+                        <div className="eyebrow">{t('Үй рейтинги')}</div>
+                        <div className="flex items-baseline sm:justify-end gap-2 mt-2">
+                            {hw?.submitted
+                                ? <CountUp key={`${team.id}-${weekIndex}`} value={hw.avg} className="font-display leading-none tabular gold-sheen house-hero-score" />
+                                : <span className="font-display leading-none tabular house-hero-score" style={{ color: 'var(--text-muted)' }}>—</span>}
+                            {series && <Movement delta={movement(series.weeks, weekIndex)} size="md" />}
                         </div>
-                        {series && <Sparkline values={series.weeks.filter(w => w.weekIndex <= weekIndex && w.submitted).map(w => w.avg)} color={color} width={110} height={40} />}
                     </div>
-                    {canEditHouse(team.id) && (
-                        <button onClick={() => onEditHouse(team.id)} className="btn btn-primary self-start sm:self-center">
-                            <PenLine className="w-4 h-4" />  {t('Өзгөртүү')}
-                        </button>
-                    )}
                 </div>
+
+                {/* How the number is made, as a sum. */}
+                {hw?.submitted && (
+                    <div className="house-sum">
+                        <SumTerm value={fmt(hw.memberAvg)} label={t('мүчөлөрдүн орточосу')} />
+                        <span className="house-sum-op">+</span>
+                        <SumTerm value={fmt(hw.cardBonus)} of={MINI_CARD_POINTS * 7} label={t('мини-карта')} />
+                        {hw.tazalyk !== null && <>
+                            <span className="house-sum-op">+</span>
+                            <SumTerm value={hw.tazalykPending ? '…' : fmt(hw.tazalyk)} of={TAZALYK_MAX} label={hw.tazalykPending ? t('тазалык күтүлүүдө') : t('тазалык')} />
+                        </>}
+                        <span className="house-sum-op">=</span>
+                        <SumTerm value={fmt(hw.avg)} label={t('үй рейтинги')} strong />
+                    </div>
+                )}
+
+                {series && <Trajectory weeks={series.weeks.filter(w => w.weekIndex <= weekIndex).slice(-10)} current={weekIndex} color={color} />}
+                {canEditHouse(team.id) && (
+                    <div className="mt-7 sm:hidden">
+                        <button onClick={() => onEditHouse(team.id)} className="btn btn-primary w-full justify-center"><PenLine className="w-4 h-4" />  {t('Өзгөртүү')}</button>
+                    </div>
+                )}
             </section>
 
-            {/* Тазалык: only in the weeks the admin counts it */}
-            {team.tazalyk !== undefined && (
-                <section>
-                    <SectionHeader eyebrow={t('Үйдүн тазалыгы')} title={t('Тазалык')} sub={team.tazalyk ? (team.tazalyk.by ? t('Баалаган: {0}', TAZ_WHO[team.tazalyk.by] ?? team.tazalyk.by) : undefined) : t('Бул апта азырынча бааланган жок.')} />
-                    {team.tazalyk && (
-                        <div className="flex flex-col sm:flex-row sm:items-stretch gap-5 sm:gap-8">
-                            <div className="flex-shrink-0">
-                                <span className="font-display text-[3.4rem] leading-none tabular gold-sheen">{fmt(team.tazalyk.total)}</span>
-                                <span className="text-[1rem] tabular" style={{ color: 'var(--text-muted)' }}> / {TAZALYK_MAX}</span>
-                            </div>
-                            <ul className="flex-1 min-w-0">
-                                {Object.entries(team.tazalyk.scores).map(([item, v], i) => (
-                                    <li key={item} className="flex items-center justify-between gap-4 py-2" style={{ borderTop: i ? '1px solid var(--border)' : undefined }}>
-                                        <span className="text-[0.92rem]" style={{ color: 'var(--text-secondary)' }}>{item}</span>
-                                        <span className="inline-flex gap-[3px]" aria-label={`${v} / 5`}>
-                                            {Array.from({ length: 5 }).map((_, k) => <span key={k} className="w-2.5 h-2.5 rotate-45" style={{ border: '1px solid var(--gold-dim)', backgroundColor: k < v ? 'var(--gold)' : 'transparent' }} />)}
+            {/* The house's shared work: the mini-card and, in the weeks it
+                counts, Тазалык — side by side. */}
+            <div className={`grid grid-cols-1 gap-10 ${team.tazalyk !== undefined ? 'lg:grid-cols-[1.5fr_1fr] lg:gap-8' : ''}`}>
+                <section className="min-w-0">
+                    <SectionHeader
+                        eyebrow={t('Командалык иштер')}
+                        title={t('Мини-карта')}
+                        sub={t('Ар бир иш 100% аткарылса {0} упай кошулат (эң көп {1}). Ашыкчасы эсептелбейт.', MINI_CARD_POINTS, MINI_CARD_POINTS * 7)}
+                        action={hw?.submitted ? <span className="font-display text-[2rem] leading-none tabular" style={{ color: 'var(--gold)' }}>{fmt(hw.cardBonus)}<span className="text-[0.95rem]" style={{ color: 'var(--text-muted)' }}> / {MINI_CARD_POINTS * 7}</span></span> : undefined}
+                    />
+                    <Plate>
+                        <ul className={`grid grid-cols-1 stagger ${team.tazalyk !== undefined ? '' : 'lg:grid-cols-2 lg:gap-x-12'}`}>
+                            {cardKeys.map(key => {
+                                const v = team.miniCard[key];
+                                const pct = calculatePerformancePercentage(v.actual, v.target);
+                                const done = pct >= 100;
+                                return (
+                                    <li key={key} className="ledger-row">
+                                        <span className="min-w-0 flex-1">
+                                            <span className="block text-[1rem] leading-tight truncate" style={{ color: 'var(--text-primary)' }}>{cardName(key)}</span>
+                                            <span className="block eyebrow mt-1" style={{ letterSpacing: '0.18em', color: done ? 'var(--gold)' : 'var(--text-muted)' }}>{cardLabel(key)}{done && ' · ✓'}</span>
+                                        </span>
+                                        <Beads actual={v.actual} target={v.target} />
+                                        <span className="w-[4.6rem] text-right font-display tabular leading-none text-[1.55rem]" style={{ color: done ? 'var(--gold)' : 'var(--text-primary)' }}>
+                                            {v.actual}<span className="text-[0.85rem]" style={{ color: 'var(--text-muted)' }}> / {v.target}</span>
                                         </span>
                                     </li>
-                                ))}
-                            </ul>
-                        </div>
-                    )}
-                    {team.tazalyk?.note && <p className="text-[0.88rem] italic mt-3" style={{ color: 'var(--text-muted)' }}>{team.tazalyk.note}</p>}
+                                );
+                            })}
+                        </ul>
+                    </Plate>
                 </section>
-            )}
 
-            {/* Mini card */}
-            <section>
-                <SectionHeader eyebrow={t('Командалык иштер')} title={t('Мини-карта')} sub={t('Ар бир иш 100% аткарылса {0} упай кошулат (эң көп {1}). Ашыкчасы эсептелбейт.', MINI_CARD_POINTS, MINI_CARD_POINTS * 7)} />
-                {/* One engraved plate; each activity as a ledger line: its beads of
-                    the plan filled in gold, the numbers in the display face. */}
-                <Plate>
-                    <ul className="grid grid-cols-1 lg:grid-cols-2 lg:gap-x-12 stagger">
-                        {cardKeys.map(key => {
-                            const v = team.miniCard[key];
-                            const pct = calculatePerformancePercentage(v.actual, v.target);
-                            const done = pct >= 100;
-                            return (
-                                <li key={key} className="ledger-row">
-                                    <span className="min-w-0 flex-1">
-                                        <span className="block text-[1rem] leading-tight truncate" style={{ color: 'var(--text-primary)' }}>{cardName(key)}</span>
-                                        <span className="block eyebrow mt-1" style={{ letterSpacing: '0.18em', color: done ? 'var(--gold)' : 'var(--text-muted)' }}>{cardLabel(key)}{done && ' · ✓'}</span>
-                                    </span>
-                                    <Beads actual={v.actual} target={v.target} />
-                                    <span className="w-[4.6rem] text-right font-display tabular leading-none text-[1.55rem]" style={{ color: done ? 'var(--gold)' : 'var(--text-primary)' }}>
-                                        {v.actual}<span className="text-[0.85rem]" style={{ color: 'var(--text-muted)' }}> / {v.target}</span>
-                                    </span>
-                                </li>
-                            );
-                        })}
-                    </ul>
-                </Plate>
-            </section>
+                {team.tazalyk !== undefined && (
+                    <section className="min-w-0">
+                        <SectionHeader eyebrow={t('Үйдүн тазалыгы')} title={t('Тазалык')} sub={team.tazalyk ? (team.tazalyk.by ? t('Баалаган: {0}', TAZ_WHO[team.tazalyk.by] ?? team.tazalyk.by) : undefined) : t('Бул апта азырынча бааланган жок.')} />
+                        {team.tazalyk && (
+                            <Plate>
+                                <div className="text-center pb-5" style={{ borderBottom: '1px solid var(--border)' }}>
+                                    <span className="font-display text-[4rem] leading-none tabular gold-sheen">{fmt(team.tazalyk.total)}</span>
+                                    <span className="font-display text-[1.2rem] tabular" style={{ color: 'var(--text-muted)' }}> / {TAZALYK_MAX}</span>
+                                </div>
+                                <ul>
+                                    {Object.entries(team.tazalyk.scores).map(([item, v], i) => (
+                                        <li key={item} className="flex items-center justify-between gap-4 py-3" style={{ borderTop: i ? '1px solid var(--border)' : undefined }}>
+                                            <span className="text-[0.95rem]" style={{ color: 'var(--text-secondary)' }}>{item}</span>
+                                            <span className="inline-flex gap-[5px]" aria-label={`${v} / 5`}>
+                                                {Array.from({ length: 5 }).map((_, k) => <span key={k} className="w-2.5 h-2.5 rotate-45" style={{ border: '1px solid var(--gold-dim)', backgroundColor: k < v ? 'var(--gold)' : 'transparent' }} />)}
+                                            </span>
+                                        </li>
+                                    ))}
+                                </ul>
+                                {team.tazalyk.note && <p className="text-[0.88rem] italic mt-3 pt-3" style={{ color: 'var(--text-muted)', borderTop: '1px solid var(--border)' }}>{team.tazalyk.note}</p>}
+                            </Plate>
+                        )}
+                    </section>
+                )}
+            </div>
 
             {/* Members */}
             <section>
@@ -209,16 +237,14 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
                                         <div className="flex items-center gap-3">
                                             <Avatar name={s.name} role={w.member.role} photoUrl={w.member.photoUrl} size="sm" />
                                             <div className="min-w-0">
-                                                <div className="font-bold truncate" style={{ color: 'var(--text-primary)' }}>{w.member.name}</div>
+                                                <div className="font-display text-[1.15rem] leading-tight truncate" style={{ color: 'var(--text-primary)' }}>{w.member.name}</div>
                                                 <div className="text-[0.75rem] italic" style={{ color: 'var(--text-muted)' }}>{ROLE_LABEL[w.member.role]}</div>
                                             </div>
                                         </div>
                                     </td>
                                     {METRICS.map(m => (
-                                        <td key={m} style={{ textAlign: 'center', padding: '0.5rem 0.25rem' }} title={`${w.member.actual[m]} / ${w.member.target[m]}`}>
-                                            <span className="inline-block min-w-[3.6rem] px-2 py-1.5 tabular text-[0.86rem] font-bold" style={{ backgroundColor: heatBg(w.pct[m]), color: w.pct[m] >= 100 ? 'var(--text-primary)' : perfColor(w.pct[m]) }}>
-                                                {Math.round(w.pct[m])}%
-                                            </span>
+                                        <td key={m} style={{ textAlign: 'center', padding: '0.5rem 0.35rem' }} title={`${metricName(m)}: ${w.member.actual[m]} / ${w.member.target[m]}`}>
+                                            {w.excused ? <span style={{ color: 'var(--text-muted)' }}>·</span> : <PctCell pct={w.pct[m]} />}
                                         </td>
                                     ))}
                                     <td className="font-display text-[1.3rem] tabular" style={{ textAlign: 'right', paddingRight: '1.5rem', color: 'var(--text-primary)' }}>{w.excused ? <span className="text-[0.8rem] italic" style={{ color: 'var(--text-muted)' }}>{t('себептүү')}</span> : fmt(w.score)}</td>
@@ -284,3 +310,76 @@ const MemberRow: React.FC<{ s: MemberSeries; w: MemberWeek; place: number; weekI
         )}
     </button>
 );
+
+/** One term of the house's sum: a number in the display face over its name. */
+const SumTerm: React.FC<{ value: string; of?: number; label: string; strong?: boolean }> = ({ value, of, label, strong }) => (
+    <span className="house-sum-term">
+        <span className="font-display tabular leading-none house-sum-value" style={{ color: strong ? 'var(--gold)' : 'var(--text-primary)' }}>
+            {value}{of !== undefined && <span className="house-sum-of"> / {of}</span>}
+        </span>
+        <span className="house-sum-label">{label}</span>
+    </span>
+);
+
+/** The house's rating week by week: a line in the house's colour, each week's
+ *  number above its point, its place below. Weeks without data break the line. */
+const Trajectory: React.FC<{ weeks: Array<{ weekIndex: number; weekNumber: number; avg: number; rank: number | null; submitted: boolean }>; current: number; color: string }> = ({ weeks, current, color }) => {
+    if (weeks.length < 2) return null;
+    const vals = weeks.filter(w => w.submitted).map(w => w.avg);
+    if (vals.length === 0) return null;
+    const lo = Math.min(...vals), hi = Math.max(...vals);
+    const span = hi - lo || 1;
+    const n = weeks.length;
+    const x = (i: number) => ((i + 0.5) / n) * 100;
+    const y = (v: number) => 82 - ((v - lo) / span) * 64; // 18 … 82 of 100
+    // Line segments between consecutive weeks that both have data.
+    const segs: string[] = [];
+    let cur: string[] = [];
+    weeks.forEach((w, i) => {
+        if (w.submitted) cur.push(`${x(i)},${y(w.avg)}`);
+        else { if (cur.length > 1) segs.push(cur.join(' ')); cur = []; }
+    });
+    if (cur.length > 1) segs.push(cur.join(' '));
+    return (
+        <div className="house-trajectory">
+            <div className="eyebrow mb-4">{t('Апта сайын')}</div>
+            <div className="relative h-[132px]">
+                <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full overflow-visible" aria-hidden="true">
+                    {segs.map((pts, i) => <polyline key={i} points={pts} fill="none" stroke={color} strokeWidth={1.6} vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round" />)}
+                </svg>
+                {weeks.map((w, i) => {
+                    const now = w.weekIndex === current;
+                    return w.submitted ? (
+                        <div key={w.weekIndex} className="absolute -translate-x-1/2" style={{ left: `${x(i)}%`, top: `${y(w.avg)}%` }}>
+                            <span className="block w-[9px] h-[9px] rounded-full -translate-y-1/2" style={{ backgroundColor: now ? color : 'var(--surface)', border: `1.5px solid ${color}`, boxShadow: now ? `0 0 0 4px color-mix(in oklab, ${color} 18%, transparent)` : undefined }} />
+                            <span className="absolute left-1/2 -translate-x-1/2 bottom-[14px] font-display tabular text-[0.95rem] whitespace-nowrap" style={{ color: now ? 'var(--text-primary)' : 'var(--text-muted)' }}>{fmt(w.avg)}</span>
+                        </div>
+                    ) : null;
+                })}
+            </div>
+            <div className="grid mt-3 pt-3" style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))`, borderTop: '1px solid var(--border)' }}>
+                {weeks.map(w => {
+                    const now = w.weekIndex === current;
+                    return (
+                        <div key={w.weekIndex} className="text-center min-w-0">
+                            <div className="text-[0.72rem] tabular truncate" style={{ color: now ? 'var(--gold)' : 'var(--text-muted)' }}>{t('{0}-апта', w.weekNumber)}</div>
+                            <div className="font-display text-[0.95rem] leading-tight tabular" style={{ color: now ? 'var(--text-primary)' : 'var(--text-secondary)' }}>{w.rank ? ROMAN[w.rank - 1] ?? w.rank : '—'}</div>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+};
+
+/** A member's share of the plan for one metric: the percent, and under it a
+ *  hairline that fills to the plan (gold once the plan is met). */
+const PctCell: React.FC<{ pct: number }> = ({ pct }) => {
+    const met = pct >= 100;
+    return (
+        <span className="inline-flex flex-col items-center gap-1.5 w-[3.4rem]">
+            <span className="tabular text-[0.9rem]" style={{ color: met ? 'var(--text-primary)' : perfColor(pct) }}>{Math.round(pct)}%</span>
+            <span className="pct-track"><span style={{ width: `${Math.min(pct, 100)}%`, backgroundColor: perfBarColor(pct) }} /></span>
+        </span>
+    );
+};
