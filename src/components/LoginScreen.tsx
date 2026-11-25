@@ -12,13 +12,18 @@ import { isEnglish, setLang, t } from '../i18n';
 // The site is private: nothing is shown until a captain or the admin logs in.
 // The database enforces it too (supabase/private-site-2026-11.sql) — before
 // logging in, only the house names can be read, for the picker below.
-type Mode = 'captain' | 'admin' | 'inspector';
+type Mode = 'member' | 'captain' | 'admin' | 'inspector';
+const MODE_KEY = 'tdjamaat-login-mode';
 const LAST_HOUSE = 'tdjamaat-login-house';
 
 const readLastHouse = () => { try { return localStorage.getItem(LAST_HOUSE) ?? ''; } catch { return ''; } };
 
 export const LoginScreen: React.FC<{ theme: Theme; onToggleTheme: () => void }> = ({ theme, onToggleTheme }) => {
-    const [mode, setMode] = useState<Mode>('captain');
+    const [mode, setMode] = useState<Mode>(() => {
+        // The tab chosen last time on this phone; a new visitor is most likely a member.
+        try { const m = localStorage.getItem(MODE_KEY); if (m === 'member' || m === 'captain' || m === 'admin' || m === 'inspector') return m; } catch { /* not critical */ }
+        return 'member';
+    });
     const [houses, setHouses] = useState<House[]>([]);
     const [houseSlug, setHouseSlug] = useState(readLastHouse);
     const [password, setPassword] = useState('');
@@ -35,7 +40,7 @@ export const LoginScreen: React.FC<{ theme: Theme; onToggleTheme: () => void }> 
         });
     }, []);
 
-    const switchMode = (next: Mode) => { setMode(next); setError(''); };
+    const switchMode = (next: Mode) => { setMode(next); setError(''); try { localStorage.setItem(MODE_KEY, next); } catch { /* not critical */ } };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -101,13 +106,14 @@ export const LoginScreen: React.FC<{ theme: Theme; onToggleTheme: () => void }> 
                             <Lock className="w-3 h-3" aria-hidden="true" />{t('Жабык сайт')}
                         </p>
                         <p className="text-[0.95rem] leading-relaxed mt-3 max-w-[22rem]" style={{ color: 'var(--text-secondary)' }}>
-                            {t('Жыйынтыктарды үйлөрдүн капитандары жана админ гана көрө алат.')}
+                            {t('Жыйынтыктар жабык: мүчө өз үйүн көрөт, капитандар жана админ — баарын.')}
                         </p>
                     </div>
 
                     <form onSubmit={handleSubmit} noValidate className="relative mt-8 card card-pad pb-10! space-y-5" style={{ boxShadow: 'var(--shadow-lift)' }}>
                         <Corners inset={6} size={22} />
                         <div className="flex justify-center" role="tablist" aria-label={t('Ким катары кирүү')}>
+                            <button type="button" role="tab" aria-selected={mode === 'member'} className={`chip ${mode === 'member' ? 'is-active' : ''}`} onClick={() => switchMode('member')}>{t('Мүчө')}</button>
                             <button type="button" role="tab" aria-selected={mode === 'captain'} className={`chip ${mode === 'captain' ? 'is-active' : ''}`} onClick={() => switchMode('captain')}>{t('Капитан')}</button>
                             <button type="button" role="tab" aria-selected={mode === 'inspector'} className={`chip ${mode === 'inspector' ? 'is-active' : ''}`} onClick={() => switchMode('inspector')} title={t('Тазалык текшерүүчү')}>CL</button>
                             <button type="button" role="tab" aria-selected={mode === 'admin'} className={`chip ${mode === 'admin' ? 'is-active' : ''}`} onClick={() => switchMode('admin')} style={{ marginRight: 0 }}>{t('Админ')}</button>
@@ -125,6 +131,16 @@ export const LoginScreen: React.FC<{ theme: Theme; onToggleTheme: () => void }> 
                             </label>
                         )}
 
+                        {mode === 'member' ? (
+                            <div className="text-center pt-1">
+                                <p className="text-[0.95rem] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{t('Өз Google аккаунтуңуз менен кириңиз: өз жыйынтыгыңызды, үйүңүздү көрөсүз, ал эми колдонмодогу сандарыңыз капитанга өзү жетет.')}</p>
+                                <button type="button" onClick={() => { setLoading(true); signInWithGoogle().catch(err => { setLoading(false); setError(t('Кирүү мүмкүн болгон жок: {0}', err instanceof Error ? err.message : String(err))); }); }} disabled={loading} className="btn btn-primary w-full mt-5" style={{ minHeight: '3rem' }}>
+                                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <span className="font-semibold text-[1.05rem]" aria-hidden="true">G</span>}{t('Google менен кирүү')}
+                                </button>
+                                <p className="text-[0.8rem] mt-3" style={{ color: 'var(--text-muted)' }}>{t('Капитаныңыз Gmail дарегиңизди жазып койгон болушу керек.')}</p>
+                                {error && <p id="login-error" role="alert" className="text-[0.88rem] px-3 py-2 mt-3 text-left" style={{ borderLeft: '2px solid var(--danger)', color: 'var(--danger)' }}>{error}</p>}
+                            </div>
+                        ) : (<>
                         <label className="block">
                             <span className="eyebrow block mb-2">{t('Сыр сөз')}</span>
                             <span className="relative block">
@@ -162,26 +178,20 @@ export const LoginScreen: React.FC<{ theme: Theme; onToggleTheme: () => void }> 
                             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogIn className="w-4 h-4" />}
                             {loading ? t('Кирүүдө…') : t('Кирүү')}
                         </button>
+                        </>)}
                     </form>
 
-                    <p className="text-center text-[0.82rem] mt-6" style={{ color: 'var(--text-muted)' }}>
-                        {t('Сыр сөздү билбесеңиз, админге кайрылыңыз.')}
-                    </p>
-
-                    {/* Members sign in with Google (their captain writes their Gmail address). */}
-                    <div className="mt-8 pt-5 text-center" style={{ borderTop: '1px solid var(--border)' }}>
-                        <div className="eyebrow">{t('Мүчөлөр үчүн')}</div>
-                        <button type="button" onClick={() => { signInWithGoogle().catch(err => setError(t('Кирүү мүмкүн болгон жок: {0}', err instanceof Error ? err.message : String(err)))); }} className="btn btn-ghost mt-3" style={{ minHeight: '2.9rem' }}>
-                            <span className="font-semibold" aria-hidden="true" style={{ color: 'var(--gold)' }}>G</span>{t('Google менен кирүү')}
-                        </button>
-                        <p className="text-[0.8rem] mt-2" style={{ color: 'var(--text-muted)' }}>{t('Капитаныңыз Gmail дарегиңизди жазып койгон болушу керек.')}</p>
-                    </div>
+                    {mode !== 'member' && (
+                        <p className="text-center text-[0.82rem] mt-6" style={{ color: 'var(--text-muted)' }}>
+                            {t('Сыр сөздү билбесеңиз, админге кайрылыңыз.')}
+                        </p>
+                    )}
 
                     {/* The everyday pages need no account. */}
                     <nav className="mt-6 pt-5 text-center" style={{ borderTop: '1px solid var(--border)' }} aria-label={t('Баарына ачык')}>
                         <div className="eyebrow">{t('Баарына ачык')}</div>
                         <div className="mt-3 flex flex-wrap justify-center gap-x-5 gap-y-2 text-[0.95rem]">
-                            {([['#/today', t('Бүгүн')], ['#/quran', t('Куран')], ['#/tasbihat', t('Тасбихат')], ['#/zikr', t('Зикир')]] as const).map(([href, label]) => (
+                            {([['#/today', t('Күнүм')], ['#/quran', t('Куран')], ['#/tasbihat', t('Тасбихат')], ['#/zikr', t('Зикир')]] as const).map(([href, label]) => (
                                 <a key={href} href={href} className="font-display text-[1.15rem] transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-secondary)' }}>{label}</a>
                             ))}
                         </div>

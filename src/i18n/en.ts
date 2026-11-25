@@ -20,7 +20,6 @@ export const EN: Record<string, string> = {
     "Сыйлыктар": "Awards",
     "Жамаат": "Jamaat",
     "Жабык сайт": "Private site",
-    "Жыйынтыктарды үйлөрдүн капитандары жана админ гана көрө алат.": "Only the houses' captains and the admin can see the results.",
     "Сыр сөздү билбесеңиз, админге кайрылыңыз.": "If you don't know the password, ask the admin.",
     "Киргизиле элек": "Not entered yet",
     "Азырынча эсеп жок": "Nothing counted yet",
@@ -1014,5 +1013,7 @@ export const EN: Record<string, string> = {
     "Бул апта": "This week",
     "Арабча текст текшерилген булагы бар жерлерде гана: Куран аяттары жана «Хисн аль-Муслимдеги» дуба. Калганы — кыргыз тамгалары менен.": "Arabic is shown only where a verified source exists: the Quran ayahs and the dua from Hisn al-Muslim. The rest stays in Kyrgyz letters.",
     "Кирилл": "Cyrillic",
-    "Арабча": "Arabic"
+    "Арабча": "Arabic",
+    "Жыйынтыктар жабык: мүчө өз үйүн көрөт, капитандар жана админ — баарын.": "The results are private: a member sees their own house; captains and the admin see everything.",
+    "Өз Google аккаунтуңуз менен кириңиз: өз жыйынтыгыңызды, үйүңүздү көрөсүз, ал эми колдонмодогу сандарыңыз капитанга өзү жетет.": "Sign in with your own Google account: you see your results and your house, and your app numbers reach your captain by themselves."
 };
