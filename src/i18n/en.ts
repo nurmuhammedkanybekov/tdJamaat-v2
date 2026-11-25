@@ -1068,5 +1068,6 @@ export const EN: Record<string, string> = {
     "Күнүмдүк": "Daily",
     "Иш куралдары": "Work tools",
     "Дагы": "More",
-    "Ачылганы": "Unlocked"
+    "Ачылганы": "Unlocked",
+    "Үйдөгү орун": "Place in the house"
 };

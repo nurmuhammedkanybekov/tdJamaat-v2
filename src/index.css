@@ -905,3 +905,5 @@ li[data-ayah].is-reciting { background-color: color-mix(in oklab, var(--gold) 8%
 /* A formula set like an inscription between two rules. */
 .formula-line { padding: 0.9rem 0.5rem; color: var(--text-primary); border-top: 1px solid var(--gold-dim); border-bottom: 1px solid var(--gold-dim); }
 .formula-line + p, .formula-line + .formula-line { margin-top: 0.75rem; }
+.house-hero-rank-empty { width: 4.6rem; height: 4.6rem; display: inline-flex; align-items: center; justify-content: center; border: 1px dashed var(--border-strong); border-radius: 50%; color: var(--text-muted); }
+@media (min-width: 640px) { .house-hero-rank-empty { width: 6.5rem; height: 6.5rem; } }

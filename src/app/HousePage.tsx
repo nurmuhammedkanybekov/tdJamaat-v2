@@ -16,8 +16,11 @@ import { AppFrame, Section, Waiting } from './AppFrame';
 import { useMemberData } from './memberData';
 import { MemberResults } from './MemberResults';
 import { Avatar } from '../components/Avatar';
-import { Sparkline } from '../components/ui';
-import { calculateHouseRating, calculateMemberScore, calculateMiniCardBonus, tazalykBonus } from '../utils/scoring';
+import { Beads } from '../components/ui';
+import { Corners } from '../components/Ornament';
+import { SumTerm, Trajectory } from '../components/HouseParts';
+import { roman } from '../utils/roman';
+import { MINI_CARD_POINTS, calculateHouseRating, calculateMemberAverage, calculateMemberScore, calculateMiniCardBonus, tazalykBonus } from '../utils/scoring';
 import { cardName } from '../utils/metrics';
 import { formatWeekRange } from '../utils/weekDates';
 import { TAZALYK_MAX } from '../utils/tazalyk';
@@ -27,7 +30,7 @@ import { signInWithGoogle } from '../services/memberService';
 import { AppContext } from './context';
 import { go } from './route';
 
-const fmt = (n: number) => (Math.round(n * 10) / 10).toFixed(1);
+const fmt = (n: number) => (Math.round(n * 10) / 10).toString();
 
 const MyPhoto: React.FC<{ houseId: string; memberId: string; name: string; photoUrl: string | null; onChanged: () => void }> = ({ houseId, memberId, name, photoUrl, onChanged }) => {
     const input = useRef<HTMLInputElement>(null);
@@ -145,10 +148,11 @@ export const HousePage: React.FC<{ arg?: string | null; theme: Theme; onToggleTh
     const latest = series[series.length - 1];
     const team = latest?.team;
     const rating = team?.submitted ? calculateHouseRating(team) : null;
-    const trend = series.filter(r => r.team!.submitted).map(r => calculateHouseRating(r.team!));
     const me = team?.members.find(m => m.id === link.memberId);
     const people = team ? [...team.members].map(m => ({ m, score: m.excused ? null : calculateMemberScore(m) })).sort((a, b) => (b.score ?? -1) - (a.score ?? -1)) : [];
     const cardKeys = team ? (Object.keys(team.miniCard) as Array<keyof MiniCard>) : [];
+    const myPlace = (() => { const i = people.findIndex(p => p.m.id === link.memberId && p.score !== null); return i >= 0 ? i + 1 : null; })();
+    const trajectory = series.slice(-10).map((r, i) => ({ weekIndex: i, weekNumber: r.week.weekNumber, avg: r.team!.submitted ? calculateHouseRating(r.team!) : 0, rank: null, submitted: r.team!.submitted }));
 
     return (
         <AppFrame page="house" title={link.houseName} kicker={t('Менин үйүм')} sub={latest ? `${t('{0}-апта', latest.week.weekNumber)}${latest.week.startDate ? ` · ${formatWeekRange(latest.week.startDate, latest.week.endDate ?? null)}` : ''}` : undefined} theme={theme} onToggleTheme={onToggleTheme}>
@@ -157,29 +161,57 @@ export const HousePage: React.FC<{ arg?: string | null; theme: Theme; onToggleTh
                 {!data && !failed && <Waiting />}
                 {data && team && (
                     <>
+                        {/* The house: its number, how it is made, and how it moved. */}
+                        <section className="house-hero mt-8" style={{ '--house': 'var(--gold)' } as React.CSSProperties}>
+                            <Corners inset={6} size={22} />
+                            <div className="text-center">
+                                <div className="eyebrow">{t('Үйдүн рейтинги')}</div>
+                                <div className="font-display tabular leading-none mt-3 text-[4.4rem] sm:text-[5.4rem] gold-sheen">{rating === null ? '—' : fmt(rating)}</div>
+                                {!team.submitted && <div className="text-[0.85rem] italic mt-2" style={{ color: 'var(--text-muted)' }}>{t('бул аптанын маалыматы али киргизиле элек')}</div>}
+                            </div>
+                            {team.submitted && (
+                                <div className="house-sum">
+                                    <SumTerm value={fmt(calculateMemberAverage(team))} label={t('мүчөлөрдүн орточосу')} />
+                                    <span className="house-sum-op">+</span>
+                                    <SumTerm value={fmt(calculateMiniCardBonus(team.miniCard))} of={MINI_CARD_POINTS * 7} label={t('мини-карта')} />
+                                    {team.tazalyk && <>
+                                        <span className="house-sum-op">+</span>
+                                        <SumTerm value={fmt(tazalykBonus(team))} of={TAZALYK_MAX} label={t('тазалык')} />
+                                    </>}
+                                </div>
+                            )}
+                            {trajectory.length > 1 && <Trajectory weeks={trajectory} current={trajectory[trajectory.length - 1].weekIndex} color="var(--gold)" />}
+                        </section>
+
+                        {/* Me: my photo, my number this week and my place in the house. */}
+                        <section className="plate mt-10">
+                            <Corners inset={6} size={20} />
+                            <div className="flex items-center justify-between gap-4">
+                                <div className="min-w-0"><MyPhoto houseId={link.houseId} memberId={link.memberId} name={link.name} photoUrl={me?.photoUrl ?? null} onChanged={reload} /></div>
+                                {myPlace && (
+                                    <div className="text-right flex-shrink-0">
+                                        <div className="eyebrow">{t('Үйдөгү орун')}</div>
+                                        <div className="font-display text-[2rem] sm:text-[2.4rem] leading-none tabular mt-1.5 whitespace-nowrap" style={{ color: 'var(--gold)' }}>{roman(myPlace)}<span className="text-[1rem]" style={{ color: 'var(--text-muted)' }}> / {people.filter(p => p.score !== null).length}</span></div>
+                                    </div>
+                                )}
+                            </div>
+                            {link.via === 'staff' && <button onClick={() => choose(null)} className="mt-3 text-[0.72rem] tracking-[0.16em] uppercase transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}>{t('Башка адамды тандоо')}</button>}
+                            <MemberResults link={link} />
+                        </section>
+
                         <ChatEntry self={link} />
                         <GoalBanner houseId={link.houseId} week={latest?.week.globalWeek ?? null} canEdit={ctx.role === 'admin' || (ctx.role === 'leader' && ctx.houseId === link.houseId)} />
-                        {/* The house's number, as the results show a week's. */}
-                        <div className="text-center pt-8">
-                            <div className="eyebrow">{t('Үйдүн рейтинги')}</div>
-                            <div className="font-display tabular leading-none mt-3 text-[4.6rem] sm:text-[5.6rem] gold-sheen">{rating === null ? '—' : fmt(rating)}</div>
-                            {trend.length > 1 && <div className="flex justify-center mt-3"><Sparkline values={trend} color="var(--gold)" width={180} height={34} label={t('Үйдүн рейтинги апта сайын')} /></div>}
-                            <div className="text-[0.85rem] mt-2" style={{ color: 'var(--text-muted)' }}>
-                                {team.submitted ? t('мини-карта +{0}', fmt(calculateMiniCardBonus(team.miniCard))) : t('бул аптанын маалыматы али киргизиле элек')}
-                                {team.tazalyk ? ` · ${t('тазалык +{0}', fmt(tazalykBonus(team)))}` : ''}
-                            </div>
-                        </div>
 
                         <Section eyebrow={t('Үйдүн адамдары')}>
                             <ol>
                                 {people.map(({ m, score }, i) => {
                                     const mine = m.id === link.memberId;
                                     return (
-                                        <li key={m.id} className="flex items-center gap-3 py-3" style={{ borderBottom: '1px solid var(--border)', backgroundColor: mine ? 'var(--accent-soft)' : undefined }}>
-                                            <span className="w-6 text-right font-display tabular" style={{ color: 'var(--gold)' }}>{score === null ? '·' : i + 1}</span>
+                                        <li key={m.id} className="flex items-center gap-3 py-3 px-2 -mx-2" style={{ borderBottom: '1px solid var(--border)', backgroundColor: mine ? 'var(--gold-soft)' : undefined }}>
+                                            <span className="w-8 text-center font-display text-[1.1rem] tabular" style={{ color: i < 3 && score !== null ? 'var(--gold)' : 'var(--text-muted)' }}>{score === null ? '·' : roman(i + 1)}</span>
                                             <Avatar name={m.name} role={m.role} photoUrl={m.photoUrl} size="sm" />
-                                            <span className="flex-1 min-w-0 font-display text-[1.2rem] truncate" style={{ color: 'var(--text-primary)' }}>{m.name}{mine && <span className="text-[0.8rem] ml-2" style={{ color: 'var(--gold)' }}>{t('сиз')}</span>}</span>
-                                            <span className="font-display text-[1.25rem] tabular" style={{ color: mine ? 'var(--gold)' : 'var(--text-primary)' }}>{score === null ? t('себептүү') : fmt(score)}</span>
+                                            <span className="flex-1 min-w-0 font-display text-[1.2rem] truncate" style={{ color: 'var(--text-primary)' }}>{m.name}{mine && <span className="eyebrow ml-2" style={{ color: 'var(--gold)' }}>{t('сиз')}</span>}</span>
+                                            <span className="font-display text-[1.3rem] tabular" style={{ color: mine ? 'var(--gold)' : 'var(--text-primary)' }}>{score === null ? <span className="text-[0.85rem] italic" style={{ color: 'var(--text-muted)' }}>{t('себептүү')}</span> : fmt(score)}</span>
                                         </li>
                                     );
                                 })}
@@ -193,11 +225,10 @@ export const HousePage: React.FC<{ arg?: string | null; theme: Theme; onToggleTh
                                         const v = team.miniCard[k];
                                         const done = v.target > 0 && v.actual >= v.target;
                                         return (
-                                            <li key={k} className="flex items-baseline gap-3 py-2.5" style={{ borderBottom: '1px solid var(--border)' }}>
-                                                <span className="text-[0.95rem]" style={{ color: 'var(--text-secondary)' }}>{cardName(k)}</span>
-                                                <span className="leader" />
-                                                <span className="tabular text-[1.05rem]" style={{ color: done ? 'var(--gold)' : 'var(--text-primary)' }}>{v.actual}</span>
-                                                <span className="tabular text-[0.85rem]" style={{ color: 'var(--text-muted)' }}>/ {v.target}</span>
+                                            <li key={k} className="flex items-center gap-3 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
+                                                <span className="flex-1 min-w-0 truncate text-[0.98rem]" style={{ color: 'var(--text-primary)' }}>{cardName(k)}</span>
+                                                <span className="hidden min-[420px]:inline-flex"><Beads actual={v.actual} target={v.target} /></span>
+                                                <span className="w-[3.6rem] text-right font-display tabular text-[1.3rem]" style={{ color: done ? 'var(--gold)' : 'var(--text-primary)' }}>{v.actual}<span className="text-[0.8rem]" style={{ color: 'var(--text-muted)' }}> / {v.target}</span></span>
                                             </li>
                                         );
                                     })}
@@ -208,19 +239,11 @@ export const HousePage: React.FC<{ arg?: string | null; theme: Theme; onToggleTh
                         {team.tazalyk && (
                             <Section eyebrow={t('Тазалык')}>
                                 <div className="flex items-baseline justify-between pt-4">
-                                    <span className="text-[0.95rem]" style={{ color: 'var(--text-secondary)' }}>{team.tazalyk.note || t('Бул аптанын баасы')}</span>
-                                    <span className="font-display text-[2rem] tabular" style={{ color: 'var(--gold)' }}>{fmt(team.tazalyk.total)}<span className="text-[1rem]" style={{ color: 'var(--text-muted)' }}> / {TAZALYK_MAX}</span></span>
+                                    <span className="text-[0.95rem] italic" style={{ color: 'var(--text-secondary)' }}>{team.tazalyk.note || t('Бул аптанын баасы')}</span>
+                                    <span className="font-display text-[2.2rem] tabular" style={{ color: 'var(--gold)' }}>{fmt(team.tazalyk.total)}<span className="text-[1rem]" style={{ color: 'var(--text-muted)' }}> / {TAZALYK_MAX}</span></span>
                                 </div>
                             </Section>
                         )}
-
-                        <Section eyebrow={t('Мен')}>
-                            <div className="pt-5">
-                                <MyPhoto houseId={link.houseId} memberId={link.memberId} name={link.name} photoUrl={me?.photoUrl ?? null} onChanged={reload} />
-                                {link.via === 'staff' && <button onClick={() => choose(null)} className="mt-3 text-[0.72rem] tracking-[0.16em] uppercase transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}>{t('Башка адамды тандоо')}</button>}
-                            </div>
-                            <MemberResults link={link} />
-                        </Section>
                     </>
                 )}
                 {data && !team && <p className="py-10 text-center" style={{ color: 'var(--text-muted)' }}>{t('Азырынча үйүңүздүн жыйынтыгы жок.')}</p>}

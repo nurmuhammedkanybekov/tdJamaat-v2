@@ -16,6 +16,8 @@ import { PointsBreakdown } from '../PointsBreakdown';
 import { cardLabel, cardName, metricLabel, metricName } from '../../utils/metrics';
 import { JattooHouse } from '../Jattoo';
 import { Corners } from '../Ornament';
+import { SumTerm, Trajectory } from '../HouseParts';
+import { ROMAN } from '../../utils/roman';
 
 const TAZ_WHO: Record<string, string> = { inspector: t('Тазалык текшерүүчү'), leader: t('Капитан'), admin: t('Админ') };
 
@@ -31,7 +33,6 @@ interface TeamsViewProps {
 
 const fmt = (n: number) => (Math.round(n * 10) / 10).toString();
 const pad2 = (n: number) => String(n).padStart(2, '0');
-const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
 
 export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights, initialHouseId, canEditHouse, onEditHouse, onOpenProfile }) => {
     const week = data.weeks[weekIndex];
@@ -88,13 +89,15 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
                 <Corners inset={6} size={22} />
                 {canEditHouse(team.id) && (
                     <div className="house-hero-edit hidden sm:block">
-                        <button onClick={() => onEditHouse(team.id)} className="btn btn-primary"><PenLine className="w-4 h-4" />  {t('Өзгөртүү')}</button>
+                        <button onClick={() => onEditHouse(team.id)} className="btn btn-primary"><PenLine className="w-4 h-4" />  {team.submitted ? t('Өзгөртүү') : t('Киргизүү')}</button>
                     </div>
                 )}
 
                 <div className="relative grid grid-cols-[auto_1fr] sm:grid-cols-[auto_1fr_auto] items-end gap-x-5 sm:gap-x-10 gap-y-5">
                     <div className="text-center">
-                        <div className="font-display leading-[0.8] tabular house-hero-rank" style={{ color: hw?.rank ? 'var(--gold)' : 'var(--text-muted)' }}>{hw?.rank ? ROMAN[hw.rank - 1] ?? hw.rank : '—'}</div>
+                        {hw?.rank
+                            ? <div className="font-display leading-[0.8] tabular house-hero-rank" style={{ color: 'var(--gold)' }}>{ROMAN[hw.rank - 1] ?? hw.rank}</div>
+                            : <div className="house-hero-rank-empty" aria-label={t('Рейтингде жок')}><Clock3 className="w-7 h-7" strokeWidth={1.2} /></div>}
                         <div className="eyebrow mt-3">{t('орун')}</div>
                     </div>
                     <div className="min-w-0 pb-1">
@@ -112,7 +115,7 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
                         <div className="flex items-baseline sm:justify-end gap-2 mt-2">
                             {hw?.submitted
                                 ? <CountUp key={`${team.id}-${weekIndex}`} value={hw.avg} className="font-display leading-none tabular gold-sheen house-hero-score" />
-                                : <span className="font-display leading-none tabular house-hero-score" style={{ color: 'var(--text-muted)' }}>—</span>}
+                                : <span className="font-display text-[1.6rem] italic leading-none" style={{ color: 'var(--text-muted)' }}>{t('күтүлүүдө')}</span>}
                             {series && <Movement delta={movement(series.weeks, weekIndex)} size="md" />}
                         </div>
                     </div>
@@ -136,7 +139,7 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
                 {series && <Trajectory weeks={series.weeks.filter(w => w.weekIndex <= weekIndex).slice(-10)} current={weekIndex} color={color} />}
                 {canEditHouse(team.id) && (
                     <div className="mt-7 sm:hidden">
-                        <button onClick={() => onEditHouse(team.id)} className="btn btn-primary w-full justify-center"><PenLine className="w-4 h-4" />  {t('Өзгөртүү')}</button>
+                        <button onClick={() => onEditHouse(team.id)} className="btn btn-primary w-full justify-center"><PenLine className="w-4 h-4" />  {team.submitted ? t('Өзгөртүү') : t('Киргизүү')}</button>
                     </div>
                 )}
             </section>
@@ -310,67 +313,6 @@ const MemberRow: React.FC<{ s: MemberSeries; w: MemberWeek; place: number; weekI
         )}
     </button>
 );
-
-/** One term of the house's sum: a number in the display face over its name. */
-const SumTerm: React.FC<{ value: string; of?: number; label: string; strong?: boolean }> = ({ value, of, label, strong }) => (
-    <span className="house-sum-term">
-        <span className="font-display tabular leading-none house-sum-value" style={{ color: strong ? 'var(--gold)' : 'var(--text-primary)' }}>
-            {value}{of !== undefined && <span className="house-sum-of"> / {of}</span>}
-        </span>
-        <span className="house-sum-label">{label}</span>
-    </span>
-);
-
-/** The house's rating week by week: a line in the house's colour, each week's
- *  number above its point, its place below. Weeks without data break the line. */
-const Trajectory: React.FC<{ weeks: Array<{ weekIndex: number; weekNumber: number; avg: number; rank: number | null; submitted: boolean }>; current: number; color: string }> = ({ weeks, current, color }) => {
-    if (weeks.length < 2) return null;
-    const vals = weeks.filter(w => w.submitted).map(w => w.avg);
-    if (vals.length === 0) return null;
-    const lo = Math.min(...vals), hi = Math.max(...vals);
-    const span = hi - lo || 1;
-    const n = weeks.length;
-    const x = (i: number) => ((i + 0.5) / n) * 100;
-    const y = (v: number) => 82 - ((v - lo) / span) * 64; // 18 … 82 of 100
-    // Line segments between consecutive weeks that both have data.
-    const segs: string[] = [];
-    let cur: string[] = [];
-    weeks.forEach((w, i) => {
-        if (w.submitted) cur.push(`${x(i)},${y(w.avg)}`);
-        else { if (cur.length > 1) segs.push(cur.join(' ')); cur = []; }
-    });
-    if (cur.length > 1) segs.push(cur.join(' '));
-    return (
-        <div className="house-trajectory">
-            <div className="eyebrow mb-4">{t('Апта сайын')}</div>
-            <div className="relative h-[132px]">
-                <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full overflow-visible" aria-hidden="true">
-                    {segs.map((pts, i) => <polyline key={i} points={pts} fill="none" stroke={color} strokeWidth={1.6} vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round" />)}
-                </svg>
-                {weeks.map((w, i) => {
-                    const now = w.weekIndex === current;
-                    return w.submitted ? (
-                        <div key={w.weekIndex} className="absolute -translate-x-1/2" style={{ left: `${x(i)}%`, top: `${y(w.avg)}%` }}>
-                            <span className="block w-[9px] h-[9px] rounded-full -translate-y-1/2" style={{ backgroundColor: now ? color : 'var(--surface)', border: `1.5px solid ${color}`, boxShadow: now ? `0 0 0 4px color-mix(in oklab, ${color} 18%, transparent)` : undefined }} />
-                            <span className="absolute left-1/2 -translate-x-1/2 bottom-[14px] font-display tabular text-[0.95rem] whitespace-nowrap" style={{ color: now ? 'var(--text-primary)' : 'var(--text-muted)' }}>{fmt(w.avg)}</span>
-                        </div>
-                    ) : null;
-                })}
-            </div>
-            <div className="grid mt-3 pt-3" style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))`, borderTop: '1px solid var(--border)' }}>
-                {weeks.map(w => {
-                    const now = w.weekIndex === current;
-                    return (
-                        <div key={w.weekIndex} className="text-center min-w-0">
-                            <div className="text-[0.72rem] tabular truncate" style={{ color: now ? 'var(--gold)' : 'var(--text-muted)' }}>{t('{0}-апта', w.weekNumber)}</div>
-                            <div className="font-display text-[0.95rem] leading-tight tabular" style={{ color: now ? 'var(--text-primary)' : 'var(--text-secondary)' }}>{w.rank ? ROMAN[w.rank - 1] ?? w.rank : '—'}</div>
-                        </div>
-                    );
-                })}
-            </div>
-        </div>
-    );
-};
 
 /** A member's share of the plan for one metric: the percent, and under it a
  *  hairline that fills to the plan (gold once the plan is met). */
