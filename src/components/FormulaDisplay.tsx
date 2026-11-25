@@ -16,7 +16,7 @@ const Formula: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 const Step: React.FC<{ n: number; title: string; children: React.ReactNode }> = ({ n, title, children }) => (
     <section className="py-5" style={{ borderTop: '1px solid var(--border)' }}>
         <div className="flex items-center gap-2.5 mb-3">
-            <span className="w-7 h-7 rounded-full flex items-center justify-center font-display font-bold text-[0.95rem]" style={{ backgroundColor: 'var(--gold-soft)', color: 'var(--gold)', border: '1px solid color-mix(in oklab, var(--gold) 40%, transparent)' }}>{n}</span>
+            <span className="w-7 h-7 rounded-full flex items-center justify-center font-display text-[0.95rem]" style={{ backgroundColor: 'var(--gold-soft)', color: 'var(--gold)', border: '1px solid color-mix(in oklab, var(--gold) 40%, transparent)' }}>{n}</span>
             <h3 className="font-bold text-[0.95rem]" style={{ color: 'var(--text-primary)' }}>{title}</h3>
         </div>
         {children}
@@ -51,7 +51,7 @@ export const FormulaSheet: React.FC<{ onClose: () => void }> = ({ onClose }) => 
                     {Object.entries(weights).map(([key, value]) => (
                         <div key={key} className="flex items-baseline justify-between px-3 py-2 rounded-[8px]" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
                             <span className="font-bold" style={{ color: 'var(--text-muted)' }} title={metricName(key as keyof MetricValues)}>{metricLabel(key as keyof MetricValues)}</span>
-                            <span className="font-display font-bold text-[1.15rem] tabular" style={{ color: 'var(--text-primary)' }}>{value}</span>
+                            <span className="font-display text-[1.15rem] tabular" style={{ color: 'var(--text-primary)' }}>{value}</span>
                         </div>
                     ))}
                 </div>

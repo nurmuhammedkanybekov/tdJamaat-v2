@@ -8,7 +8,7 @@ import { computeAwards } from '../../utils/badges';
 import { hallOfFame, seasonRecords, seasonTotals, weekOverWeek } from '../../utils/community';
 import { cardLabel, cardName, metricLabel, metricName } from '../../utils/metrics';
 import { seasonView } from '../../utils/seasons';
-import { Medallion, OrnamentDivider } from '../Ornament';
+import { Corners, Medallion, OrnamentDivider } from '../Ornament';
 import { SectionHeader } from '../ui';
 import { t } from '../../i18n';
 import { JattooCommunity } from '../Jattoo';
@@ -119,16 +119,17 @@ export const CommunityView: React.FC<CommunityViewProps> = ({ data, allData, ins
             {records.length > 0 && (
                 <section>
                     <SectionHeader eyebrow={t('Сезон {0}', seasonName)} title={t('Сезондун рекорддору')} />
-                    {/* One ruled plate (like the mini-card): the hairlines on each
-                        cell's right and bottom edge are clipped by the card. */}
-                    <div className="card overflow-hidden">
+                    {/* One engraved plate: the hairlines on each cell's right and
+                        bottom edge are clipped by the plate. */}
+                    <div className="plate desk-plate overflow-hidden">
+                    <Corners inset={6} size={20} />
                     <div className={`grid grid-cols-1 sm:grid-cols-2 ${records.length % 3 === 0 || records.length > 4 ? 'lg:grid-cols-3' : ''}`}>
                         {records.map(r => {
                             const body = (
                                 <>
                                     <div className="eyebrow">{r.label}</div>
-                                    <div className="font-display text-[2.2rem] leading-none mt-3 tabular" style={{ color: 'var(--gold)' }}>{r.value}</div>
-                                    <div className="text-[1.05rem] mt-3 truncate" style={{ color: 'var(--text-primary)' }}>{r.who}</div>
+                                    <div className="font-display text-[2.4rem] leading-none mt-3 tabular" style={{ color: 'var(--gold)' }}>{r.value}</div>
+                                    <div className="font-display text-[1.2rem] leading-tight mt-3 truncate" style={{ color: 'var(--text-primary)' }}>{r.who}</div>
                                     <div className="text-[0.8rem] italic mt-0.5" style={{ color: 'var(--text-muted)' }}>{r.detail}</div>
                                 </>
                             );
@@ -146,7 +147,8 @@ export const CommunityView: React.FC<CommunityViewProps> = ({ data, allData, ins
                 <SectionHeader eyebrow={t('Ар бир сезон')} title={t('Даңк залы')} sub={t('Сезондун эң мыктылары. Жеке орун алуу үчүн сезондун жок дегенде жарымына катышуу керек.')} />
                 <div className="space-y-10">
                     {halls.map(h => (
-                        <article key={h.seasonId} className="relative card card-pad overflow-hidden">
+                        <article key={h.seasonId} className="relative plate overflow-hidden">
+                            <Corners inset={6} size={20} />
                             <Medallion size={260} className="absolute -right-16 -top-16 pointer-events-none" style={{ color: 'var(--gold)', opacity: 0.08 }} />
                             <div className="flex items-baseline justify-between gap-3 flex-wrap">
                                 <h3 className="font-display text-[1.8rem]" style={{ color: 'var(--text-primary)' }}>{t('Сезон {0}', h.seasonName)}</h3>
@@ -166,7 +168,7 @@ export const CommunityView: React.FC<CommunityViewProps> = ({ data, allData, ins
                                             <button onClick={() => onOpenProfile(p.id)} className="w-full flex items-baseline gap-3 py-2.5 text-left row-link" style={{ borderBottom: '1px solid var(--border)' }}>
                                                 <span className="w-8 font-display text-[1.2rem]" style={{ color: 'var(--gold)' }}>{ROMAN[i]}</span>
                                                 <span className="min-w-0 flex-1">
-                                                    <span className="block truncate" style={{ color: 'var(--text-primary)' }}>{p.name}</span>
+                                                    <span className="block font-display text-[1.15rem] leading-tight truncate" style={{ color: 'var(--text-primary)' }}>{p.name}</span>
                                                     <span className="block text-[0.78rem] italic truncate" style={{ color: 'var(--text-muted)' }}>{t('{0} · {1} апта', p.houseName, p.weeks)}</span>
                                                 </span>
                                                 <span className="font-display text-[1.4rem] tabular" style={{ color: 'var(--text-primary)' }}>{p.avg}</span>

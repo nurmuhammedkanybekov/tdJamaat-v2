@@ -8,6 +8,7 @@ import { houseWeekRating, reportRows } from '../../utils/reports';
 import type { Trend } from '../../utils/reports';
 import { ChartTooltip, SectionHeader } from '../ui';
 import { axisTick, scoreDomain } from '../../utils/style';
+import { Corners } from '../Ornament';
 import { t } from '../../i18n';
 
 interface ReportsViewProps {
@@ -62,39 +63,41 @@ const PeriodReport: React.FC<ReportsViewProps> = ({ data, selectedPeriod, setSel
 
     return (
         <div className="space-y-6 sm:space-y-8">
-            <div className="card px-4 sm:px-5 py-3 flex items-center justify-between gap-3">
-                <button className="btn btn-ghost btn-icon rounded-full" onClick={() => setSelectedPeriod(Math.max(0, period - 1))} disabled={period === 0} aria-label={t('Мурунку мезгил')} style={{ opacity: period === 0 ? 0.35 : 1 }}>
+            <div className="flex items-center justify-center gap-6 py-4" style={{ borderTop: '1px solid var(--gold-dim)', borderBottom: '1px solid var(--border)' }}>
+                <button className="w-10 h-10 inline-flex items-center justify-center rounded-full transition-colors hover:text-[var(--gold)]" onClick={() => setSelectedPeriod(Math.max(0, period - 1))} disabled={period === 0} aria-label={t('Мурунку мезгил')} style={{ border: '1px solid var(--border-strong)', color: 'var(--text-secondary)', opacity: period === 0 ? 0.35 : 1 }}>
                     <ChevronLeft className="w-5 h-5" />
                 </button>
                 <div className="text-center">
                     <div className="eyebrow">{t('{0}-мезгил / {1}', period + 1, totalPeriods)}</div>
-                    <div className="font-display font-bold text-[1.6rem] tabular" style={{ color: 'var(--text-primary)' }}>{first === last ? t('{0}-апта', first) : t('{0}–{1}-апталар', first, last)}</div>
+                    <div className="font-display text-[1.9rem] leading-tight tabular" style={{ color: 'var(--text-primary)' }}>{first === last ? t('{0}-апта', first) : t('{0}–{1}-апталар', first, last)}</div>
                 </div>
-                <button className="btn btn-ghost btn-icon rounded-full" onClick={() => setSelectedPeriod(Math.min(totalPeriods - 1, period + 1))} disabled={period >= totalPeriods - 1} aria-label={t('Кийинки мезгил')} style={{ opacity: period >= totalPeriods - 1 ? 0.35 : 1 }}>
+                <button className="w-10 h-10 inline-flex items-center justify-center rounded-full transition-colors hover:text-[var(--gold)]" onClick={() => setSelectedPeriod(Math.min(totalPeriods - 1, period + 1))} disabled={period >= totalPeriods - 1} aria-label={t('Кийинки мезгил')} style={{ border: '1px solid var(--border-strong)', color: 'var(--text-secondary)', opacity: period >= totalPeriods - 1 ? 0.35 : 1 }}>
                     <ChevronRight className="w-5 h-5" />
                 </button>
             </div>
 
-            {/* One ruled plate, like the mini-card and the season records. */}
-            <div className="card overflow-hidden">
+            {/* One engraved plate: the period's three facts. */}
+            <div className="plate desk-plate overflow-hidden">
+                <Corners inset={6} size={20} />
             <div className="grid grid-cols-1 sm:grid-cols-3 stagger">
                 {[
                     { label: t('Эң мыкты үй'), value: rows[0]?.average !== null && rows[0] ? rows[0].name : '—', sub: rows[0]?.average != null ? t('Рейтинг: {0}', rows[0].average) : '' },
                     { label: t('Эң тез өсүү'), value: rising?.name ?? '—', sub: rising ? `${rising.scores[0]} → ${rising.scores.at(-1)}` : t('Өсүү байкалган жок') },
                     { label: t('Мезгил'), value: t('{0} апта', weeks.length), sub: t('{0} үй катышты', rows.length) }
                 ].map(s => (
-                    <div key={s.label} className="px-5 py-4 sm:p-6 min-w-0" style={{ boxShadow: '1px 0 0 var(--border), 0 1px 0 var(--border)' }}>
+                    <div key={s.label} className="px-5 py-5 sm:p-7 min-w-0 text-center" style={{ boxShadow: '1px 0 0 var(--border), 0 1px 0 var(--border)' }}>
                         <div className="eyebrow">{s.label}</div>
-                        <div className="font-display font-bold text-[1.6rem] mt-1 truncate" style={{ color: 'var(--text-primary)' }}>{s.value}</div>
-                        <div className="text-[0.8rem]" style={{ color: 'var(--text-muted)' }}>{s.sub}</div>
+                        <div className="font-display text-[1.9rem] leading-tight mt-2 truncate" style={{ color: s.label === t('Эң мыкты үй') ? 'var(--gold)' : 'var(--text-primary)' }}>{s.value}</div>
+                        <div className="text-[0.8rem] italic mt-1" style={{ color: 'var(--text-muted)' }}>{s.sub}</div>
                     </div>
                 ))}
             </div>
             </div>
 
-            <section className="card overflow-hidden">
-                <div className="card-pad pb-0 sm:pb-0"><SectionHeader eyebrow={t('Үй рейтинги боюнча')} title={t('Мезгилдин рейтинги')} /></div>
-                <div className="overflow-x-auto">
+            <section>
+                <SectionHeader eyebrow={t('Үй рейтинги боюнча')} title={t('Мезгилдин рейтинги')} />
+                <div className="plate is-tight overflow-x-auto">
+                    <Corners inset={6} size={20} />
                     <table className="data-table">
                         <thead>
                             <tr>
@@ -112,12 +115,12 @@ const PeriodReport: React.FC<ReportsViewProps> = ({ data, selectedPeriod, setSel
                                 const T = TREND[r.trend];
                                 return (
                                     <tr key={r.id}>
-                                        <td className="font-display font-bold text-[1.1rem] tabular" style={{ paddingLeft: '1.25rem', color: i === 0 && r.average !== null ? 'var(--gold)' : 'var(--text-muted)' }}>{r.average !== null ? pad2(i + 1) : '—'}</td>
+                                        <td className="font-display text-[1.1rem] tabular" style={{ paddingLeft: '1.25rem', color: i === 0 && r.average !== null ? 'var(--gold)' : 'var(--text-muted)' }}>{r.average !== null ? pad2(i + 1) : '—'}</td>
                                         <td className="font-bold" style={{ color: 'var(--text-primary)' }}>
-                                            <span className="inline-flex items-center gap-2"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: TEAM_COLORS[r.colorIndex % TEAM_COLORS.length] }} />{r.name}</span>
+                                            <span className="inline-flex items-center gap-2.5 font-display text-[1.15rem]" style={{ fontWeight: 400 }}><span className="w-4 h-[2px]" style={{ backgroundColor: TEAM_COLORS[r.colorIndex % TEAM_COLORS.length] }} />{r.name}</span>
                                         </td>
                                         {weeks.map((w, k) => <td key={w.weekNumber} className="hidden md:table-cell tabular" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>{r.cells[k] !== null ? r.cells[k]!.toFixed(1) : '—'}</td>)}
-                                        <td className="font-display font-bold text-[1.2rem] tabular" style={{ textAlign: 'right', color: 'var(--text-primary)' }}>{r.average ?? '—'}</td>
+                                        <td className="font-display text-[1.2rem] tabular" style={{ textAlign: 'right', color: 'var(--text-primary)' }}>{r.average ?? '—'}</td>
                                         <td className="hidden sm:table-cell tabular font-bold" style={{ textAlign: 'right', color: r.best !== null && r.best !== r.worst ? 'var(--success)' : 'var(--text-secondary)' }}>{r.best !== null ? r.best.toFixed(1) : '—'}</td>
                                         <td className="hidden sm:table-cell tabular font-bold" style={{ textAlign: 'right', color: r.worst !== null && r.best !== r.worst ? 'var(--danger)' : 'var(--text-secondary)' }}>{r.worst !== null ? r.worst.toFixed(1) : '—'}</td>
                                         <td style={{ textAlign: 'right', paddingRight: '1.25rem' }}>
@@ -134,7 +137,7 @@ const PeriodReport: React.FC<ReportsViewProps> = ({ data, selectedPeriod, setSel
             </section>
 
             {weeks.length > 1 && (
-                <section className="card card-pad">
+                <section className="plate">
                     <SectionHeader title={t('{0}–{1}-апталар боюнча график', first, last)} />
                     <div className="-ml-3 sm:ml-0">
                         <ResponsiveContainer width="100%" height={isPhone ? 260 : 340}>
@@ -166,7 +169,8 @@ const TotalReport: React.FC<{ data: DataFile }> = ({ data }) => {
     const max = Math.max(1, ...rows.map(r => r.total));
 
     return (
-        <section className="card card-pad">
+        <section className="plate">
+            <Corners inset={6} size={20} />
             <SectionHeader
                 eyebrow={t('Сезондун жыйынтыгы')}
                 title={t('Жалпы рейтинг ({0}-аптадан)', TOTAL_FROM_WEEK)}
@@ -179,12 +183,12 @@ const TotalReport: React.FC<{ data: DataFile }> = ({ data }) => {
                     {rows.map((r, i) => (
                         <li key={r.id} className="py-3" style={{ borderTop: '1px solid var(--border)' }}>
                             <div className="flex items-center gap-3">
-                                <span className="w-7 font-display font-bold text-[1.2rem] tabular" style={{ color: i === 0 ? 'var(--gold)' : 'var(--text-muted)' }}>{pad2(i + 1)}</span>
+                                <span className="w-7 font-display text-[1.2rem] tabular" style={{ color: i === 0 ? 'var(--gold)' : 'var(--text-muted)' }}>{pad2(i + 1)}</span>
                                 <span className="flex-1 min-w-0">
-                                    <span className="block font-bold truncate" style={{ color: 'var(--text-primary)' }}>{r.name}</span>
+                                    <span className="block font-display text-[1.25rem] leading-tight truncate" style={{ color: 'var(--text-primary)' }}>{r.name}</span>
                                     <span className="block text-[0.75rem]" style={{ color: 'var(--text-muted)' }}>{t('{0} апта · орточо {1}', r.weeks, r.average)}</span>
                                 </span>
-                                <span className="font-display font-bold text-[1.5rem] tabular" style={{ color: 'var(--text-primary)' }}>{r.total}</span>
+                                <span className="font-display text-[1.5rem] tabular" style={{ color: 'var(--text-primary)' }}>{r.total}</span>
                             </div>
                             <div className="mt-2 ml-10 h-[3px] overflow-hidden" style={{ backgroundColor: 'var(--border)' }}>
                                 <div className="h-full animate-grow-x" style={{ width: `${(r.total / max) * 100}%`, backgroundColor: TEAM_COLORS[r.colorIndex % TEAM_COLORS.length] }} />

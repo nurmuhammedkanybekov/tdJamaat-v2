@@ -464,7 +464,7 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
             <div className="fixed inset-0 flex items-center justify-center z-50 p-6" style={{ backgroundColor: 'color-mix(in oklab, var(--text-primary) 50%, transparent)' }}>
                 <div className="p-8 max-w-sm w-full text-center" style={{ backgroundColor: 'var(--surface)', borderRadius: 'var(--radius)' }}>
                     <CheckCircle className="w-12 h-12 mx-auto mb-4" style={{ color: 'var(--success)' }} />
-                    <h2 className="font-display text-[2rem] font-bold mb-2" style={{ color: 'var(--text-primary)' }}>{t('Ийгиликтүү сакталды!')}</h2>
+                    <h2 className="font-display text-[2rem] mb-2" style={{ color: 'var(--text-primary)' }}>{t('Ийгиликтүү сакталды!')}</h2>
                     <p style={{ color: 'var(--text-secondary)' }}>{t('{0} үчүн маалымат жаңыртылды.', label(weekNumber))}</p>
                 </div>
             </div>
@@ -482,14 +482,14 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                 rows, so the Save bar is always pinned at the bottom and can
                 never end up floating over the middle of the member list. */}
             <div
-                className="w-full sm:max-w-4xl flex flex-col h-[100dvh] sm:h-auto sm:max-h-[90vh] overflow-hidden sm:rounded-[14px] sm:border"
+                className="w-full sm:max-w-4xl flex flex-col h-[100dvh] sm:h-auto sm:max-h-[90vh] overflow-hidden sm:border"
                 style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
             >
                 <div
                     className="flex-shrink-0 px-4 sm:px-6 py-4 sm:py-5 flex justify-between items-center gap-3"
                     style={{ borderBottom: '1px solid var(--border)', paddingTop: 'max(1rem, env(safe-area-inset-top, 0px))' }}
                 >
-                    <h2 className="font-display text-[1.5rem] sm:text-[1.7rem] font-bold truncate" style={{ color: 'var(--text-primary)' }}>
+                    <h2 className="font-display text-[1.5rem] sm:text-[1.7rem] truncate" style={{ color: 'var(--text-primary)' }}>
                         {selectedHouseName ? t('{0} — маалымат', selectedHouseName) : t('Маалымат кошуу')}
                     </h2>
                     <button onClick={onClose} aria-label={t('Жабуу')} className="p-2 -mr-2 flex-shrink-0" style={{ color: 'var(--text-muted)' }}>
@@ -552,14 +552,14 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                             </div>
 
                             {weekLocked && (
-                                <div className="mb-6 px-4 py-3 rounded-[8px] flex items-start gap-2.5 text-sm" style={{ backgroundColor: 'var(--gold-soft)', border: '1px solid color-mix(in oklab, var(--gold) 35%, transparent)', color: 'var(--text-secondary)' }}>
+                                <div className="mb-6 px-4 py-3 flex items-start gap-2.5 text-sm" style={{ backgroundColor: 'var(--gold-soft)', border: '1px solid color-mix(in oklab, var(--gold) 35%, transparent)', color: 'var(--text-secondary)' }}>
                                     <Lock className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: 'var(--gold)' }} />
                                     <p>{isAdmin ? t('{0} кулпуланган: капитандар өзгөртө алышпайт, бирок админ катары сиз өзгөртө аласыз.', label(weekNumber)) : t('{0} кулпуланган — өзгөртүү үчүн админге кайрылыңыз.', label(weekNumber))}</p>
                                 </div>
                             )}
 
                             <div className="mb-8">
-                                <h3 className="font-display text-[1.35rem] font-bold mb-4 pb-2" style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border)' }}>{t('Мини-карта')}</h3>
+                                <h3 className="font-display text-[1.35rem] mb-4 pb-2" style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border)' }}>{t('Мини-карта')}</h3>
                                 {/* One row per activity: name, what was done, and the plan. */}
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 rounded-[var(--radius)] overflow-hidden" style={{ border: '1px solid var(--border)' }}>
                                     {(Object.keys(DEFAULT_MINICARD) as Array<keyof MiniCard>).map(key => (
@@ -595,7 +595,7 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
 
                             <div>
                                 <div className="flex items-baseline justify-between mb-2 flex-wrap gap-2">
-                                    <h3 className="font-display text-[1.35rem] font-bold" style={{ color: 'var(--text-primary)' }}>{t('Мүчөлөр')}</h3>
+                                    <h3 className="font-display text-[1.35rem]" style={{ color: 'var(--text-primary)' }}>{t('Мүчөлөр')}</h3>
                                     <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{t('Сүрөттү өзгөртүү үчүн адамдын сүрөтүн басыңыз')}</p>
                                 </div>
                                 {/* The actual/target pairs had no visible label (only a

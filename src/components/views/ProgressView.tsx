@@ -184,7 +184,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ data, insights, onOp
                                             <span className="block font-bold truncate" style={{ color: 'var(--text-primary)' }}>{s.name}</span>
                                             <span className="block text-[0.75rem] truncate" style={{ color: 'var(--text-muted)' }}>{now.houseName} · <i>{ROLE_LABEL[now.member.role]}</i></span>
                                         </span>
-                                        <span className="font-display font-bold text-[1.25rem] tabular" style={{ color: 'var(--success)' }}>+{fmt(delta)}</span>
+                                        <span className="font-display text-[1.25rem] tabular" style={{ color: 'var(--success)' }}>+{fmt(delta)}</span>
                                     </button>
                                 </li>
                             ))}

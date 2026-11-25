@@ -137,7 +137,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
                             return (
                                 <li key={w.globalWeek} className="flex items-center gap-3 px-4 py-3" style={{ borderTop: i ? '1px solid var(--border)' : undefined }}>
                                     <div className="flex-1 min-w-0">
-                                        <div className="font-display font-bold text-[1.2rem]" style={{ color: 'var(--text-primary)' }}>{label(w.globalWeek)}</div>
+                                        <div className="font-display text-[1.2rem]" style={{ color: 'var(--text-primary)' }}>{label(w.globalWeek)}</div>
                                         <div className="text-[0.76rem]" style={{ color: submitted === w.teams.length ? 'var(--success)' : 'var(--text-muted)' }}>{t('{0} / {1} үй киргизди', submitted, w.teams.length)}{w.startDate ? ` · ${formatWeekRange(w.startDate ?? null, w.endDate ?? null)}` : ''}</div>
                                     </div>
                                     <button
@@ -186,7 +186,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
                                 
                                 {t('Сезондун минималдуу пландары. Жаңы мүчөлөр жана жаңы апталар ушул пландардан башталат.')}
                             </p>
-                            <h3 className="font-display font-bold text-[1.3rem] mb-1" style={{ color: 'var(--text-primary)' }}>{t('Тазалык пункттары')}</h3>
+                            <h3 className="font-display text-[1.3rem] mb-1" style={{ color: 'var(--text-primary)' }}>{t('Тазалык пункттары')}</h3>
                             <p className="text-[0.8rem] mb-3" style={{ color: 'var(--text-muted)' }}>{t('Ар бир пункт 0–5 менен бааланат; бардыгы эң көп {0} упайга айланат. Пункттун атын өзгөртсөңүз, анын мурунку баалары эсептелбей калат.', TAZALYK_MAX)}</p>
                             <ul className="card mb-3">
                                 {items.map((item, i) => (
@@ -203,7 +203,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
                                     {busy === 'items' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}{t('Сактоо')}
                                 </button>
                             </div>
-                            <h3 className="font-display font-bold text-[1.3rem] mb-2" style={{ color: 'var(--text-primary)' }}>{t('Ролдор боюнча (жеке)')}</h3>
+                            <h3 className="font-display text-[1.3rem] mb-2" style={{ color: 'var(--text-primary)' }}>{t('Ролдор боюнча (жеке)')}</h3>
                             <div className="card overflow-x-auto mb-6">
                                 <table className="data-table" style={{ minWidth: 560 }}>
                                     <thead>
@@ -233,7 +233,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
                                 </table>
                             </div>
 
-                            <h3 className="font-display font-bold text-[1.3rem] mb-2" style={{ color: 'var(--text-primary)' }}>{t('Мини-карта (үй)')}</h3>
+                            <h3 className="font-display text-[1.3rem] mb-2" style={{ color: 'var(--text-primary)' }}>{t('Мини-карта (үй)')}</h3>
                             <div className="grid grid-cols-2 min-[460px]:grid-cols-4 sm:grid-cols-7 gap-2 mb-6">
                                 {(Object.keys(cardTargets) as Array<keyof MiniCard>).map(k => (
                                     <label key={k} className="card p-2.5 text-center">
