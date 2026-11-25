@@ -103,7 +103,10 @@ const Jamaat: React.FC = () => {
                 <div className="pt-4">
                     <p className="text-[0.95rem] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{t('Бул Google аккаунту азырынча эч бир мүчөгө байланган эмес. Капитаныңызга ушул даректи айтыңыз:')}</p>
                     <p className="font-display text-[1.3rem] mt-2 break-all" style={{ color: 'var(--gold)' }}>{member.email}</p>
-                    <button onClick={() => { signOutMember().catch(() => undefined); }} className="btn btn-ghost mt-4">{t('Чыгуу')}</button>
+                    <div className="flex flex-wrap gap-3 mt-4">
+                        <button onClick={() => { signOutMember().catch(() => undefined); }} className="btn btn-ghost">{t('Чыгуу')}</button>
+                        <button onClick={() => go('#/kiruu')} className="btn btn-ghost">{t('Кирүүнү текшерүү')}</button>
+                    </div>
                 </div>
             );
         }
@@ -223,6 +226,7 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
                     <div role="alert" className="mt-6 px-4 py-3 text-[0.92rem]" style={{ borderLeft: '2px solid var(--danger)', color: 'var(--text-secondary)' }}>
                         {authError.text}
                         <div className="text-[0.75rem] mt-1" style={{ color: 'var(--text-muted)' }}>{authError.detail}</div>
+                        <button onClick={() => go('#/kiruu')} className="text-[0.72rem] tracking-[0.16em] uppercase mt-2" style={{ color: 'var(--gold)' }}>{t('Кирүүнү текшерүү')} →</button>
                     </div>
                 )}
 

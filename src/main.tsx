@@ -20,6 +20,8 @@ try {
   const q = new URLSearchParams(window.location.search);
   const h = new URLSearchParams(window.location.hash.replace(/^#/, ''));
   const why = q.get('error_description') ?? h.get('error_description');
+  // For the sign-in check page (#/kiruu): what the last return from Google carried.
+  if (q.has('code') || why) sessionStorage.setItem('tdjamaat-auth-return', JSON.stringify({ at: new Date().toISOString(), code: q.has('code'), error: why ?? null, origin: window.location.origin }));
   if (why) {
     sessionStorage.setItem('tdjamaat-auth-error', why);
     window.history.replaceState(null, '', `${window.location.pathname}#/today`);

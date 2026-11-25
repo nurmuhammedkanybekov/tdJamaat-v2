@@ -14,6 +14,7 @@ const QuranPage = lazy(withReload(() => import('./QuranPage').then(m => ({ defau
 const TasbihatPage = lazy(withReload(() => import('./TasbihatPage').then(m => ({ default: m.TasbihatPage }))));
 const HousePage = lazy(withReload(() => import('./HousePage').then(m => ({ default: m.HousePage }))));
 const NewsPage = lazy(withReload(() => import('./Community').then(m => ({ default: m.NewsPage }))));
+const SignInCheck = lazy(withReload(() => import('./SignInCheck').then(m => ({ default: m.SignInCheck }))));
 const ZikrPage = lazy(withReload(() => import('./ZikrPage').then(m => ({ default: m.ZikrPage }))));
 
 const Waiting: React.FC = () => (
@@ -30,7 +31,7 @@ const StaffSync: React.FC = () => {
 };
 
 const TITLES: Record<AppRoute['page'], () => string> = {
-    today: () => t('Менин күнүм'), house: () => t('Үйүм'), news: () => t('Жамааттан кабар'), quran: () => t('Куран'), tasbihat: () => t('Тасбихат'), zikr: () => t('Зикир')
+    today: () => t('Менин күнүм'), house: () => t('Үйүм'), news: () => t('Жамааттан кабар'), quran: () => t('Куран'), tasbihat: () => t('Тасбихат'), zikr: () => t('Зикир'), kiruu: () => t('Кирүүнү текшерүү')
 };
 
 export const AppPages: React.FC<{ route: AppRoute; theme: Theme; onToggleTheme: () => void; ctx: AppCtx }> = ({ route, theme, onToggleTheme, ctx }) => {
@@ -46,6 +47,7 @@ export const AppPages: React.FC<{ route: AppRoute; theme: Theme; onToggleTheme: 
                         : route.page === 'zikr' ? <ZikrPage arg={route.arg} {...props} />
                             : route.page === 'house' ? <HousePage arg={route.arg} {...props} />
                                 : route.page === 'news' ? <NewsPage {...props} />
+                                : route.page === 'kiruu' ? <SignInCheck {...props} />
                             : <TodayPage {...props} />}
             </Suspense>
         </AppContext.Provider>

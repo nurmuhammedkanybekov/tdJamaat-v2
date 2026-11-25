@@ -28,8 +28,8 @@ export const takeAuthError = (): { text: string; detail: string } | null => {
 };
 
 /** Off to Google; back on the site's start page, signed in. */
-export const signInWithGoogle = async () => {
-    try { sessionStorage.setItem('tdjamaat-after-login', '#/today'); } catch { /* not critical */ }
+export const signInWithGoogle = async (after = '#/today') => {
+    try { sessionStorage.setItem('tdjamaat-after-login', after); } catch { /* not critical */ }
     const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: { redirectTo: `${window.location.origin}/`, queryParams: { prompt: 'select_account' } }
