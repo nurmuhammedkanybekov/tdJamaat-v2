@@ -68,15 +68,19 @@ export const CommunityView: React.FC<CommunityViewProps> = ({ data, allData, ins
             {/* Season totals */}
             <section>
                 <SectionHeader eyebrow={t('Сезон {0} · {1} апта', seasonName, data.weeks.length)} title={t('Жамааттын бул сезондогу жыйынтыгы')} action={onShareSeason && <button className="btn btn-ghost" onClick={onShareSeason}><Share2 className="w-3.5 h-3.5" />  {t('Бөлүшүү')}</button>} sub={t('{0} адам-апта эсептелди. Себептүү жана киргизиле элек апталар кирген жок.', totals.personWeeks)} />
-                {/* 1px gaps over a border-coloured background = hairlines between cells at any column count. */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-px" style={{ backgroundColor: 'var(--border)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}>
-                    {METRICS.map((m, i) => (
-                        <div key={m} className="py-6 px-3 sm:px-5 text-center" style={{ backgroundColor: 'var(--page-plane)' }}>
-                            <div className="font-display text-[2.1rem] sm:text-[2.6rem] leading-none tabular" style={{ color: i === 0 ? 'var(--gold)' : 'var(--text-primary)' }}>{big(totals.metrics[m as keyof MetricValues])}</div>
-                            <div className="text-[0.9rem] mt-2.5" style={{ color: 'var(--text-secondary)' }}>{metricName(m as keyof MetricValues)}</div>
-                            <div className="eyebrow mt-1">{metricLabel(m as keyof MetricValues)}</div>
-                        </div>
-                    ))}
+                {/* One engraved plate: the season's eight totals, the Quran first
+                    and largest; hairlines between the cells. */}
+                <div className="plate desk-plate overflow-hidden">
+                    <Corners inset={6} size={20} />
+                    <div className="grid grid-cols-2 lg:grid-cols-4">
+                        {METRICS.map((m, i) => (
+                            <div key={m} className={`community-total ${i === 0 ? 'is-first' : ''}`}>
+                                <div className="font-display leading-none tabular community-total-n" style={{ color: i === 0 ? 'var(--gold)' : 'var(--text-primary)' }}>{big(totals.metrics[m as keyof MetricValues])}</div>
+                                <div className="text-[0.92rem] mt-3" style={{ color: 'var(--text-secondary)' }}>{metricName(m as keyof MetricValues)}</div>
+                                <div className="eyebrow mt-1">{metricLabel(m as keyof MetricValues)}</div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
 
                 <h3 className="font-display text-[1.4rem] mt-12 mb-1" style={{ color: 'var(--text-primary)' }}>{t('Мини-карта: бардык үйлөр бирге')}</h3>
@@ -102,15 +106,28 @@ export const CommunityView: React.FC<CommunityViewProps> = ({ data, allData, ins
                         action={onShareWeek && <button className="btn btn-ghost" onClick={() => onShareWeek(last)}><Share2 className="w-3.5 h-3.5" />  {t('Бөлүшүү')}</button>}
                         sub={t('Эки аптаны тең киргизген {0} үй салыштырылды{1}.', wow.houses, submittedNow < latestWeek.teams.length ? t(' · {0} / {1} үй бул аптаны киргизди, калгандары киргизгенде кошулат', submittedNow, latestWeek.teams.length) : '')}
                     />
-                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-12">
-                        {METRICS.map(m => (
-                            <li key={m} className="flex items-baseline gap-3 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
-                                <span className="min-w-0 truncate" style={{ color: 'var(--text-primary)' }}>{metricName(m as keyof MetricValues)}</span>
-                                <span className="leader" />
-                                <span className="font-display text-[1.35rem] tabular flex-shrink-0" style={{ color: 'var(--text-primary)' }}>{big(thisWeek.metrics[m as keyof MetricValues])}</span>
-                                <span className="w-16 text-right text-[0.82rem] flex-shrink-0"><Change now={thisWeek.metrics[m as keyof MetricValues]} before={prevWeek.metrics[m as keyof MetricValues]} /></span>
-                            </li>
-                        ))}
+                    {/* The week's pulse: each practice's total, and how far it moved
+                        from last week as a bar either side of the centre line. */}
+                    <ul className="pulse grid grid-cols-1 lg:grid-cols-2 lg:gap-x-14" style={{ borderTop: '1px solid var(--gold-dim)' }}>
+                        {METRICS.map(m => {
+                            const now = thisWeek.metrics[m as keyof MetricValues], before = prevWeek.metrics[m as keyof MetricValues];
+                            const pct = before > 0 ? ((now - before) / before) * 100 : null;
+                            const w = pct === null ? 0 : Math.min(Math.abs(pct), 50) / 50 * 100;
+                            return (
+                                <li key={m} className="pulse-row">
+                                    <span className="min-w-0">
+                                        <span className="block truncate" style={{ color: 'var(--text-primary)' }}>{metricName(m as keyof MetricValues)}</span>
+                                        <span className="eyebrow block mt-0.5" style={{ letterSpacing: '0.18em' }}>{metricLabel(m as keyof MetricValues)}</span>
+                                    </span>
+                                    <span className="font-display text-[1.4rem] tabular text-right" style={{ color: 'var(--text-primary)' }}>{big(now)}</span>
+                                    <span className="pulse-bar" aria-hidden="true">
+                                        <span className="pulse-axis" />
+                                        {pct !== null && pct !== 0 && <span className={`pulse-fill ${pct > 0 ? 'is-up' : 'is-down'}`} style={{ width: `${w / 2}%` }} />}
+                                    </span>
+                                    <span className="text-right text-[0.85rem]"><Change now={now} before={before} /></span>
+                                </li>
+                            );
+                        })}
                     </ul>
                 </section>
             )}

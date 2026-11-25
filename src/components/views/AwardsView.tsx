@@ -6,6 +6,7 @@ import type { Award, Tier } from '../../utils/badges';
 import { BADGES, TIER_LABEL } from '../../utils/badges';
 import { BadgeMedal } from '../BadgeMedal';
 import { SectionHeader } from '../ui';
+import { Corners } from '../Ornament';
 import { useIsPhone } from '../../hooks/useMediaQuery';
 import { t } from '../../i18n';
 import { JattooAwards } from '../Jattoo';
@@ -21,16 +22,37 @@ interface AwardsViewProps {
 const TIER_POINTS: Record<Tier, number> = { seal: 4, gold: 3, silver: 2, bronze: 1 };
 const METAL: Record<Tier, string> = { gold: 'var(--metal-gold)', silver: 'var(--metal-silver)', bronze: 'var(--metal-bronze)', seal: 'var(--metal-gold)' };
 
-// Small struck-coin dots for medal counts in the leader lists.
-const Coins: React.FC<{ tiers: Record<Tier, number> }> = ({ tiers }) => (
-    <span className="flex items-center gap-3 text-[0.85rem] tabular" style={{ color: 'var(--text-secondary)' }}>
-        {(['seal', 'gold', 'silver', 'bronze'] as const).map(it => tiers[it] > 0 && (
-            <span key={it} className="inline-flex items-center gap-1.5" title={TIER_LABEL[it]}>
-                <span className="w-2.5 h-2.5 rounded-full" style={{ border: `1px solid ${METAL[it]}`, backgroundColor: it === 'seal' ? METAL[it] : 'transparent' }} />
-                {tiers[it]}
-            </span>
-        ))}
-    </span>
+type Leader = { id: string; name: string; houseName: string; points: number; tiers: Record<Tier, number>; scope: 'person' | 'house' };
+
+/** The season's medals as a table: one column per metal, struck coins in the
+ *  head, the leader in gold. A person's row opens their profile. */
+const MedalTable: React.FC<{ rows: Leader[]; onOpen?: (id: string) => void }> = ({ rows, onOpen }) => (
+    <div className="medal-table" role="table">
+        <div className="medal-row medal-head" role="row">
+            <span /><span className="eyebrow" role="columnheader">{t('Аты')}</span>
+            {(['seal', 'gold', 'silver', 'bronze'] as const).map(it => (
+                <span key={it} className="text-center" role="columnheader" title={TIER_LABEL[it]}>
+                    <span className="medal-coin" style={{ borderColor: METAL[it], backgroundColor: it === 'seal' ? METAL[it] : undefined }} />
+                    <span className="sr-only">{TIER_LABEL[it]}</span>
+                </span>
+            ))}
+        </div>
+        {rows.map((l, i) => {
+            const cells = <>
+                <span className="medal-place font-display tabular" style={{ color: i === 0 ? 'var(--gold)' : 'var(--text-muted)' }}>{i + 1}</span>
+                <span className="min-w-0 text-left">
+                    <span className="block font-display text-[1.25rem] sm:text-[1.35rem] leading-tight truncate" style={{ color: i === 0 ? 'var(--gold)' : 'var(--text-primary)' }}>{l.name}</span>
+                    {l.scope === 'person' && <span className="block text-[0.75rem] italic truncate" style={{ color: 'var(--text-muted)' }}>{l.houseName}</span>}
+                </span>
+                {(['seal', 'gold', 'silver', 'bronze'] as const).map(it => (
+                    <span key={it} className="medal-count font-display tabular" style={{ color: l.tiers[it] ? 'var(--text-primary)' : 'var(--border-strong)' }}>{l.tiers[it] || '·'}</span>
+                ))}
+            </>;
+            return onOpen
+                ? <button key={l.id} role="row" className="medal-row row-link w-full" onClick={() => onOpen(l.id)}>{cells}</button>
+                : <div key={l.id} role="row" className="medal-row">{cells}</div>;
+        })}
+    </div>
 );
 
 export const AwardsView: React.FC<AwardsViewProps> = ({ data, weekIndex, awards, onOpenProfile }) => {
@@ -48,8 +70,12 @@ export const AwardsView: React.FC<AwardsViewProps> = ({ data, weekIndex, awards,
         return [...map.values()];
     }, [thisWeek]);
 
+    // The highest honours of the week go on the plaque (up to two).
+    const featured = groups.filter(g => g.def.tier === 'gold' || g.def.tier === 'seal').slice(0, 2);
+    const rest = groups.filter(g => !featured.includes(g));
+
     const leaders = useMemo(() => {
-        const map = new Map<string, { id: string; name: string; houseName: string; points: number; tiers: Record<Tier, number>; scope: 'person' | 'house' }>();
+        const map = new Map<string, Leader>();
         upToNow.forEach(a => {
             const e = map.get(a.holderId) ?? { id: a.holderId, name: a.holderName, houseName: a.houseName, points: 0, tiers: { seal: 0, gold: 0, silver: 0, bronze: 0 }, scope: a.def.scope };
             e.points += TIER_POINTS[a.def.tier]; e.tiers[a.def.tier]++;
@@ -63,7 +89,8 @@ export const AwardsView: React.FC<AwardsViewProps> = ({ data, weekIndex, awards,
 
     return (
         <div className="space-y-20">
-            {/* This week's citations */}
+            {/* This week's citations: the highest honours set on one plaque,
+                the rest as a roll beneath. */}
             <section>
                 <SectionHeader
                     eyebrow={t('{0}-апта', week.weekNumber)}
@@ -74,26 +101,50 @@ export const AwardsView: React.FC<AwardsViewProps> = ({ data, weekIndex, awards,
                             ? t('Азырынча: {0} / {1} үй киргизди. Калгандары киргизгенде сыйлыктар өзгөрүшү мүмкүн.', week.teams.filter(it => it.submitted).length, week.teams.length)
                             : undefined}
                 />
-                {/* One card per award, with everyone who earned it this week. */}
-                {groups.length > 0 && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 md:gap-x-16">
-                        {groups.map(({ def, list }) => (
-                            <article key={def.id} className="flex gap-5 items-start py-5" style={{ borderBottom: '1px solid var(--border)' }}>
-                                <span className="flex-shrink-0 pop-in"><BadgeMedal icon={def.icon} tier={def.tier} size={92} label={def.name} /></span>
+                {featured.length > 0 && (
+                    <div className="honour-plaque">
+                        <Corners inset={8} size={26} />
+                        <div className={`grid grid-cols-1 ${featured.length > 1 ? 'md:grid-cols-2' : ''}`}>
+                            {featured.map(({ def, list }, k) => (
+                                <article key={def.id} className="honour" style={k ? { '--sep': 1 } as React.CSSProperties : undefined}>
+                                    <span className="pop-in inline-block"><BadgeMedal icon={def.icon} tier={def.tier} size={isPhone ? 128 : 168} label={def.name} /></span>
+                                    <span className="eyebrow block mt-5" style={{ color: 'var(--gold)' }}>{TIER_LABEL[def.tier]} · {def.name}</span>
+                                    <div className="mt-2 leading-tight">
+                                        {list.map((a, i) => (
+                                            <React.Fragment key={a.holderId}>
+                                                {i > 0 && <span style={{ color: 'var(--gold-dim)' }}>, </span>}
+                                                {def.scope === 'person'
+                                                    ? <button onClick={() => onOpenProfile(a.holderId)} title={a.reason} className="honour-name font-display transition-colors hover:text-[var(--gold)]">{a.holderName}</button>
+                                                    : <span className="honour-name font-display">{a.holderName}</span>}
+                                            </React.Fragment>
+                                        ))}
+                                    </div>
+                                    <p className="text-[0.9rem] italic mt-2 leading-snug max-w-[26rem] mx-auto" style={{ color: 'var(--text-secondary)' }}>
+                                        {list.length === 1 ? `${def.scope === 'person' ? `${list[0].houseName} · ` : ''}${list[0].reason}` : def.rule}
+                                    </p>
+                                </article>
+                            ))}
+                        </div>
+                    </div>
+                )}
+                {rest.length > 0 && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 md:gap-x-16 mt-6">
+                        {rest.map(({ def, list }) => (
+                            <article key={def.id} className="flex gap-5 items-center py-5" style={{ borderBottom: '1px solid var(--border)' }}>
+                                <span className="flex-shrink-0 pop-in"><BadgeMedal icon={def.icon} tier={def.tier} size={80} label={def.name} /></span>
                                 <div className="min-w-0 flex-1">
                                     <span className="eyebrow block">{TIER_LABEL[def.tier]} · {def.name}</span>
-                                    {/* Everyone who earned it this week. */}
                                     <div className="mt-1 leading-snug">
                                         {list.map((a, i) => (
                                             <React.Fragment key={a.holderId}>
                                                 {i > 0 && <span style={{ color: 'var(--gold-dim)' }}>, </span>}
                                                 {def.scope === 'person'
-                                                    ? <button onClick={() => onOpenProfile(a.holderId)} title={a.reason} className="font-display text-[1.45rem] transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-primary)' }}>{a.holderName}</button>
-                                                    : <span className="font-display text-[1.45rem]" style={{ color: 'var(--text-primary)' }}>{a.holderName}</span>}
+                                                    ? <button onClick={() => onOpenProfile(a.holderId)} title={a.reason} className="font-display text-[1.35rem] transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-primary)' }}>{a.holderName}</button>
+                                                    : <span className="font-display text-[1.35rem]" style={{ color: 'var(--text-primary)' }}>{a.holderName}</span>}
                                             </React.Fragment>
                                         ))}
                                     </div>
-                                    <span className="block text-[0.88rem] italic mt-1.5 leading-snug" style={{ color: 'var(--text-secondary)' }}>{list.length === 1 ? `${list[0].def.scope === 'person' ? `${list[0].houseName} · ` : ''}${list[0].reason}` : def.rule}</span>
+                                    <span className="block text-[0.85rem] italic mt-1 leading-snug" style={{ color: 'var(--text-secondary)' }}>{list.length === 1 ? `${def.scope === 'person' ? `${list[0].houseName} · ` : ''}${list[0].reason}` : def.rule}</span>
                                 </div>
                             </article>
                         ))}
@@ -101,40 +152,18 @@ export const AwardsView: React.FC<AwardsViewProps> = ({ data, weekIndex, awards,
                 )}
             </section>
 
-
-            {/* Season leaders */}
-            <div className="grid grid-cols-1 gap-16 lg:grid-cols-2 lg:gap-20">
+            {/* The season's medal table: people, and the houses beside them. */}
+            <div className="grid grid-cols-1 gap-16 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:gap-16">
                 <section>
                     <SectionHeader eyebrow={t('Сезон')} title={t('Эң көп сыйлык алгандар')} />
                     {personLeaders.length === 0 ? <p className="italic" style={{ color: 'var(--text-muted)' }}>{t('Азырынча жок.')}</p> : (
-                        <ol>
-                            {personLeaders.map((l, i) => (
-                                <li key={l.id}>
-                                    <button onClick={() => onOpenProfile(l.id)} className="row-link w-[calc(100%+1rem)] flex items-baseline gap-3 py-3 px-2 -mx-2 text-left">
-                                        <span className="w-5 text-[0.75rem] tabular" style={{ color: 'var(--gold-dim)' }}>{String(i + 1).padStart(2, '0')}</span>
-                                        <span className="font-display text-[1.3rem]" style={{ color: i === 0 ? 'var(--gold)' : 'var(--text-primary)' }}>{l.name}</span>
-                                        <span className="text-[0.78rem] italic hidden sm:inline" style={{ color: 'var(--text-muted)' }}>{l.houseName}</span>
-                                        <span className="leader" />
-                                        <Coins tiers={l.tiers} />
-                                    </button>
-                                </li>
-                            ))}
-                        </ol>
+                        <MedalTable rows={personLeaders} onOpen={onOpenProfile} />
                     )}
                 </section>
                 <section>
                     <SectionHeader eyebrow={t('Сезон')} title={t('Үйлөрдүн сыйлыктары')} />
                     {houseLeaders.length === 0 ? <p className="italic" style={{ color: 'var(--text-muted)' }}>{t('Азырынча жок.')}</p> : (
-                        <ol>
-                            {houseLeaders.map((l, i) => (
-                                <li key={l.id} className="flex items-baseline gap-3 py-3">
-                                    <span className="w-5 text-[0.75rem] tabular" style={{ color: 'var(--gold-dim)' }}>{String(i + 1).padStart(2, '0')}</span>
-                                    <span className="font-display text-[1.3rem]" style={{ color: i === 0 ? 'var(--gold)' : 'var(--text-primary)' }}>{l.name}</span>
-                                    <span className="leader" />
-                                    <Coins tiers={l.tiers} />
-                                </li>
-                            ))}
-                        </ol>
+                        <MedalTable rows={houseLeaders} />
                     )}
                 </section>
             </div>
@@ -151,7 +180,14 @@ export const AwardsView: React.FC<AwardsViewProps> = ({ data, weekIndex, awards,
                         </div>
                     }
                 />
-                <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-x-4 gap-y-8 mt-6">
+                <div className="cabinet">
+                    <Corners inset={6} size={20} />
+                    <div className="flex items-baseline justify-between gap-4 mb-7">
+                        <span className="eyebrow">{t('Ачылганы')}</span>
+                        <span className="font-display text-[1.5rem] tabular" style={{ color: 'var(--gold)' }}>{defs.filter(d => upToNow.some(a => a.def.id === d.id)).length}<span className="text-[0.95rem]" style={{ color: 'var(--text-muted)' }}> / {defs.length}</span></span>
+                    </div>
+                    <span className="block h-[2px] -mt-5 mb-9" style={{ backgroundColor: 'var(--border)' }}><span className="block h-full animate-grow-x" style={{ width: `${(defs.filter(d => upToNow.some(a => a.def.id === d.id)).length / Math.max(1, defs.length)) * 100}%`, backgroundColor: 'var(--gold)' }} /></span>
+                <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-x-4 gap-y-10">
                     {defs.map(d => {
                         const got = upToNow.filter(a => a.def.id === d.id);
                         const open = openDef === d.id;
@@ -165,6 +201,7 @@ export const AwardsView: React.FC<AwardsViewProps> = ({ data, weekIndex, awards,
                             </button>
                         );
                     })}
+                </div>
                 </div>
                 {openDef && (() => {
                     const d = BADGES[openDef];
