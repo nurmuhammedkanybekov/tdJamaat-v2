@@ -8,7 +8,7 @@ import { computeAwards } from '../../utils/badges';
 import { hallOfFame, seasonRecords, seasonTotals, weekOverWeek } from '../../utils/community';
 import { cardLabel, cardName, metricLabel, metricName } from '../../utils/metrics';
 import { seasonView } from '../../utils/seasons';
-import { Corners, Medallion, OrnamentDivider } from '../Ornament';
+import { OrnamentDivider } from '../Ornament';
 import { SectionHeader } from '../ui';
 import { t } from '../../i18n';
 import { JattooCommunity } from '../Jattoo';
@@ -39,7 +39,6 @@ const Change: React.FC<{ now: number; before: number }> = ({ now, before }) => {
     return <span className="tabular" style={{ color }}>{pct > 0 ? '▲' : pct < 0 ? '▼' : '='} {Math.abs(pct)}%</span>;
 };
 
-const cell: React.CSSProperties = { boxShadow: '1px 0 0 var(--border), 0 1px 0 var(--border)' };
 
 export const CommunityView: React.FC<CommunityViewProps> = ({ data, allData, insights, awards, seasonName, onOpenProfile, onShareWeek, onShareSeason }) => {
     const totals = useMemo(() => seasonTotals(data, insights), [data, insights]);
@@ -67,20 +66,27 @@ export const CommunityView: React.FC<CommunityViewProps> = ({ data, allData, ins
         <div className="space-y-16 sm:space-y-20">
             {/* Season totals */}
             <section>
-                <SectionHeader eyebrow={t('Сезон {0} · {1} апта', seasonName, data.weeks.length)} title={t('Жамааттын бул сезондогу жыйынтыгы')} action={onShareSeason && <button className="btn btn-ghost" onClick={onShareSeason}><Share2 className="w-3.5 h-3.5" />  {t('Бөлүшүү')}</button>} sub={t('{0} адам-апта эсептелди. Себептүү жана киргизиле элек апталар кирген жок.', totals.personWeeks)} />
-                {/* One engraved plate: the season's eight totals, the Quran first
-                    and largest; hairlines between the cells. */}
-                <div className="plate desk-plate overflow-hidden">
-                    <Corners inset={6} size={20} />
-                    <div className="grid grid-cols-2 lg:grid-cols-4">
-                        {METRICS.map((m, i) => (
-                            <div key={m} className={`community-total ${i === 0 ? 'is-first' : ''}`}>
-                                <div className="font-display leading-none tabular community-total-n" style={{ color: i === 0 ? 'var(--gold)' : 'var(--text-primary)' }}>{big(totals.metrics[m as keyof MetricValues])}</div>
-                                <div className="text-[0.92rem] mt-3" style={{ color: 'var(--text-secondary)' }}>{metricName(m as keyof MetricValues)}</div>
-                                <div className="eyebrow mt-1">{metricLabel(m as keyof MetricValues)}</div>
-                            </div>
-                        ))}
+                <SectionHeader eyebrow={t('Сезон {0} · {1} апта', seasonName, data.weeks.length)} title={t('Жамааттын бул сезондогу жыйынтыгы')} action={onShareSeason && <button className="btn btn-ghost" onClick={onShareSeason}><Share2 className="w-3.5 h-3.5" />  {t('Бөлүшүү')}</button>} />
+                {/* What the jamaat did together: the Quran read, set large on its
+                    own; the seven other practices as a ledger beside it. */}
+                <div className="together">
+                    <div className="together-lead">
+                        <div className="eyebrow" style={{ color: 'var(--gold)' }}>{metricLabel(METRICS[0] as keyof MetricValues)}</div>
+                        <div className="font-display tabular leading-[0.85] together-lead-n gold-sheen">{big(totals.metrics[METRICS[0] as keyof MetricValues])}</div>
+                        <div className="font-display text-[1.4rem] sm:text-[1.6rem] mt-3" style={{ color: 'var(--text-primary)' }}>{metricName(METRICS[0] as keyof MetricValues)}</div>
+                        <p className="text-[0.85rem] italic mt-1" style={{ color: 'var(--text-muted)' }}>{t('{0} адам-апта эсептелди. Себептүү жана киргизиле элек апталар кирген жок.', totals.personWeeks)}</p>
                     </div>
+                    <ul className="together-rest">
+                        {METRICS.slice(1).map(m => (
+                            <li key={m}>
+                                <span className="min-w-0">
+                                    <span className="block truncate" style={{ color: 'var(--text-primary)' }}>{metricName(m as keyof MetricValues)}</span>
+                                    <span className="eyebrow block mt-0.5" style={{ letterSpacing: '0.18em' }}>{metricLabel(m as keyof MetricValues)}</span>
+                                </span>
+                                <span className="font-display tabular text-[1.7rem] sm:text-[2rem] leading-none" style={{ color: 'var(--text-primary)' }}>{big(totals.metrics[m as keyof MetricValues])}</span>
+                            </li>
+                        ))}
+                    </ul>
                 </div>
 
                 <h3 className="font-display text-[1.4rem] mt-12 mb-1" style={{ color: 'var(--text-primary)' }}>{t('Мини-карта: бардык үйлөр бирге')}</h3>
@@ -138,24 +144,28 @@ export const CommunityView: React.FC<CommunityViewProps> = ({ data, allData, ins
                     <SectionHeader eyebrow={t('Сезон {0}', seasonName)} title={t('Сезондун рекорддору')} />
                     {/* One engraved plate: the hairlines on each cell's right and
                         bottom edge are clipped by the plate. */}
-                    <div className="plate desk-plate overflow-hidden">
-                    <Corners inset={6} size={20} />
-                    <div className={`grid grid-cols-1 sm:grid-cols-2 ${records.length % 3 === 0 || records.length > 4 ? 'lg:grid-cols-3' : ''}`}>
+                    {/* The record book: one line per record — what, how much, whose. */}
+                    <ol className="record-book">
                         {records.map(r => {
                             const body = (
                                 <>
-                                    <div className="eyebrow">{r.label}</div>
-                                    <div className="font-display text-[2.4rem] leading-none mt-3 tabular" style={{ color: 'var(--gold)' }}>{r.value}</div>
-                                    <div className="font-display text-[1.2rem] leading-tight mt-3 truncate" style={{ color: 'var(--text-primary)' }}>{r.who}</div>
-                                    <div className="text-[0.8rem] italic mt-0.5" style={{ color: 'var(--text-muted)' }}>{r.detail}</div>
+                                    <span className="eyebrow record-label">{r.label}</span>
+                                    <span className="font-display tabular record-value" style={{ color: 'var(--gold)' }}>{r.value}</span>
+                                    <span className="min-w-0 record-who">
+                                        <span className="block font-display text-[1.3rem] leading-tight truncate" style={{ color: 'var(--text-primary)' }}>{r.who}</span>
+                                        <span className="block text-[0.8rem] italic truncate" style={{ color: 'var(--text-muted)' }}>{r.detail}</span>
+                                    </span>
                                 </>
                             );
-                            return r.memberId
-                                ? <button key={r.label} onClick={() => onOpenProfile(r.memberId!)} className="card-pad text-left row-link min-w-0 flex flex-col" style={cell}>{body}</button>
-                                : <div key={r.label} className="card-pad min-w-0" style={cell}>{body}</div>;
+                            return (
+                                <li key={r.label}>
+                                    {r.memberId
+                                        ? <button onClick={() => onOpenProfile(r.memberId!)} className="record-row row-link w-full text-left">{body}</button>
+                                        : <div className="record-row">{body}</div>}
+                                </li>
+                            );
                         })}
-                    </div>
-                    </div>
+                    </ol>
                 </section>
             )}
 
@@ -164,9 +174,7 @@ export const CommunityView: React.FC<CommunityViewProps> = ({ data, allData, ins
                 <SectionHeader eyebrow={t('Ар бир сезон')} title={t('Даңк залы')} sub={t('Сезондун эң мыктылары. Жеке орун алуу үчүн сезондун жок дегенде жарымына катышуу керек.')} />
                 <div className="space-y-10">
                     {halls.map(h => (
-                        <article key={h.seasonId} className="relative plate overflow-hidden">
-                            <Corners inset={6} size={20} />
-                            <Medallion size={260} className="absolute -right-16 -top-16 pointer-events-none" style={{ color: 'var(--gold)', opacity: 0.08 }} />
+                        <article key={h.seasonId} className="hall">
                             <div className="flex items-baseline justify-between gap-3 flex-wrap">
                                 <h3 className="font-display text-[1.8rem]" style={{ color: 'var(--text-primary)' }}>{t('Сезон {0}', h.seasonName)}</h3>
                                 <span className="eyebrow">{h.finished ? t('аяктады · {0} апта', h.weeks) : t('азырынча · {0} апта', h.weeks)}</span>

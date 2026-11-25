@@ -37,36 +37,38 @@ export const HouseTable: React.FC<{ insights: Insights; weekIndex: number; scope
                 <button className="chip" aria-pressed={city === 'all'} onClick={() => setCity('all')}>{t('Бардык шаарлар')}</button>
                 {CITIES.map(c => <button key={c.id} className="chip" aria-pressed={city === c.id} onClick={() => setCity(c.id)}>{c.label}</button>)}
             </div>
-            <ol key={`${scope}-${city}-${weekIndex}`} className="stagger">
+            <ol key={`${scope}-${city}-${weekIndex}`} className="stagger" style={{ borderTop: '1px solid var(--border)' }}>
                 {rows.map(({ h, rank, value, weeks }, i) => {
                     const color = TEAM_COLORS[h.colorIndex % TEAM_COLORS.length];
                     const team = week?.teams.find(it => it.id === h.id);
                     const waiting = scope === 'week' && team && !team.submitted;
                     return (
-                        <li key={h.id} className="relative pt-[1rem] pb-[1.15rem]" style={{ borderBottom: '1px solid var(--border)' }}>
-                            <div className="flex items-baseline gap-3">
-                                <span className="w-6 text-[0.75rem] tabular" style={{ color: 'var(--gold-dim)' }}>{rank ? pad2(rank) : '—'}</span>
-                                <span className="font-display text-[1.35rem] min-w-0 truncate" style={{ color: rank === 1 ? 'var(--gold)' : 'var(--text-primary)' }}>{h.name}</span>
+                        <li key={h.id} className={`race-row ${rank === 1 ? 'is-lead' : ''}`} style={{ '--house': color } as React.CSSProperties}>
+                            <span className="race-place font-display tabular" style={{ color: rank === 1 ? 'var(--gold)' : 'var(--text-muted)' }}>{rank ?? '·'}</span>
+                            <span className="race-name min-w-0">
+                                <span className="font-display truncate" style={{ color: 'var(--text-primary)' }}>{h.name}</span>
                                 {showMovement && !waiting && <Movement delta={movement(h.weeks, weekIndex)} />}
-                                <span className="leader" />
-                                {scope === 'season' && value !== null && <span className="text-[0.75rem] italic flex-shrink-0" style={{ color: 'var(--text-muted)' }}>{t('{0} апта', weeks)}</span>}
-                                {/* How far behind the leader, for everyone but the leader. */}
-                                {!waiting && value !== null && rank !== 1 && leaderValue !== null && <span className="text-[0.75rem] italic tabular flex-shrink-0" style={{ color: 'var(--text-muted)' }}>−{(Math.round((leaderValue - value) * 10) / 10).toString()}</span>}
+                            </span>
+                            {/* The rating as a line in the house's colour, measured from zero. */}
+                            <span className="race-track" aria-hidden="true">
+                                {value !== null && !waiting && <span className="race-fill animate-grow-x" style={{ width: `${(value / max) * 100}%`, animationDelay: `${150 + i * 90}ms` }} />}
+                            </span>
+                            <span className="race-value text-right">
                                 {waiting
-                                    ? <span className="inline-flex items-center gap-1.5 text-[0.82rem] italic flex-shrink-0" style={{ color: week?.locked ? 'var(--danger)' : 'var(--text-muted)' }}>
+                                    ? <span className="inline-flex items-center gap-1.5 text-[0.82rem] italic" style={{ color: week?.locked ? 'var(--danger)' : 'var(--text-muted)' }}>
                                         {week?.locked ? <Lock className="w-3.5 h-3.5" /> : <Clock3 className="w-3.5 h-3.5" />}
                                         {week?.locked ? t('киргизилген жок') : t('күтүлүүдө')}
                                     </span>
                                     : value !== null
-                                        ? <CountUp value={value} duration={1100} className="font-display text-[1.45rem] tabular flex-shrink-0" style={{ color: rank === 1 ? 'var(--gold)' : 'var(--text-primary)' }} />
-                                        : <span className="font-display text-[1.45rem] tabular flex-shrink-0" style={{ color: 'var(--text-muted)' }}>—</span>}
-                            </div>
-                            {/* The rating as a bar in the house's colour, relative to the leader. */}
-                            {value !== null && !waiting && (
-                                <span aria-hidden="true" className="absolute left-9 right-0 bottom-[-1px] h-[2px] overflow-hidden">
-                                    <span className="block h-full animate-grow-x" style={{ width: `${(value / max) * 100}%`, backgroundColor: color, animationDelay: `${150 + i * 90}ms`, opacity: rank === 1 ? 1 : 0.75 }} />
-                                </span>
-                            )}
+                                        ? <>
+                                            <CountUp value={value} duration={1100} className="font-display tabular race-score" style={{ color: rank === 1 ? 'var(--gold)' : 'var(--text-primary)' }} />
+                                            <span className="block text-[0.72rem] italic tabular" style={{ color: 'var(--text-muted)' }}>
+                                                {rank === 1 ? t('алдыда') : leaderValue !== null ? `−${(Math.round((leaderValue - value) * 10) / 10).toString()}` : ''}
+                                                {scope === 'season' ? ` · ${t('{0} апта', weeks)}` : ''}
+                                            </span>
+                                        </>
+                                        : <span className="font-display text-[1.45rem]" style={{ color: 'var(--text-muted)' }}>—</span>}
+                            </span>
                         </li>
                     );
                 })}
@@ -76,7 +78,7 @@ export const HouseTable: React.FC<{ insights: Insights; weekIndex: number; scope
 };
 
 /** Everyone, best first, filterable by the role they had at that week. */
-export const PeopleTable: React.FC<{ insights: Insights; weekIndex: number; scope: Scope; title: string; onOpenProfile: (id: string) => void; limit?: number }> = ({ insights, weekIndex, scope, title, onOpenProfile, limit }) => {
+export const PeopleTable: React.FC<{ insights: Insights; weekIndex: number; scope: Scope; title: string; onOpenProfile: (id: string) => void; limit?: number; columns?: boolean }> = ({ insights, weekIndex, scope, title, onOpenProfile, limit, columns }) => {
     const [role, setRole] = useState<'all' | Role>('all');
     const [showWaiting, setShowWaiting] = useState(false);
     const [showAll, setShowAll] = useState(false);
@@ -102,9 +104,9 @@ export const PeopleTable: React.FC<{ insights: Insights; weekIndex: number; scop
                     <button key={r} className="chip" aria-pressed={role === r} onClick={() => setRole(r)}>{ROLE_FILTER_LABEL[r]}</button>
                 ))}
             </div>
-            <ol>
+            <ol className={columns ? 'lg:columns-2 lg:gap-x-16' : undefined}>
                 {shown.map(({ s, rank, value, weeks, week: w, excused }) => (
-                    <li key={s.id}>
+                    <li key={s.id} className="break-inside-avoid">
                         <button
                             onClick={() => onOpenProfile(s.id)}
                             className="row-link w-[calc(100%+1rem)] flex items-center gap-3 sm:gap-4 px-2 -mx-2 py-3 text-left"

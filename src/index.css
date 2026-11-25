@@ -863,12 +863,8 @@ li[data-ayah].is-reciting { background-color: color-mix(in oklab, var(--gold) 8%
 .entry-input[aria-invalid="true"] { box-shadow: none !important; border-bottom-color: var(--danger) !important; background: color-mix(in oklab, var(--danger) 8%, transparent); }
 
 /* ── Сыйлыктар: the honours ─────────────────────────────────────────── */
-.honour-plaque {
-    position: relative; background: var(--surface); border: 1px solid var(--border); border-top: 2px solid var(--gold);
-    padding: 2.4rem 1.25rem 2.2rem;
-    background-image: radial-gradient(ellipse 60% 55% at 50% 30%, color-mix(in oklab, var(--gold) 7%, transparent), transparent 70%);
-}
-@media (min-width: 640px) { .honour-plaque { padding: 3.2rem 2.5rem 2.8rem; } }
+.honour-plaque { position: relative; padding: 2.6rem 0 2.4rem; border-top: 1px solid var(--gold-dim); border-bottom: 1px solid var(--border); }
+@media (min-width: 640px) { .honour-plaque { padding: 3.4rem 0 3rem; } }
 .honour { text-align: center; padding: 0.5rem 0.5rem 0; }
 .honour + .honour { margin-top: 2.2rem; padding-top: 2.4rem; border-top: 1px solid var(--border); }
 @media (min-width: 768px) {
@@ -907,3 +903,69 @@ li[data-ayah].is-reciting { background-color: color-mix(in oklab, var(--gold) 8%
 .formula-line + p, .formula-line + .formula-line { margin-top: 0.75rem; }
 .house-hero-rank-empty { width: 4.6rem; height: 4.6rem; display: inline-flex; align-items: center; justify-content: center; border: 1px dashed var(--border-strong); border-radius: 50%; color: var(--text-muted); }
 @media (min-width: 640px) { .house-hero-rank-empty { width: 6.5rem; height: 6.5rem; } }
+
+/* ── Апта: the houses' race ─────────────────────────────────────────── */
+.race-row { display: grid; grid-template-columns: 1.6rem minmax(0, 9rem) minmax(0, 1fr) 5.6rem; align-items: center; column-gap: 1rem; padding: 1.05rem 0; border-bottom: 1px solid var(--border); }
+@media (min-width: 640px) { .race-row { grid-template-columns: 2.4rem minmax(0, 13rem) minmax(0, 1fr) 7rem; column-gap: 1.75rem; padding: 1.3rem 0; } }
+.race-row.is-lead { padding-block: 1.6rem; }
+.race-place { font-size: 1.15rem; text-align: center; }
+.race-row.is-lead .race-place { font-size: 1.6rem; }
+.race-name { display: flex; align-items: baseline; gap: 0.6rem; }
+.race-name .font-display { font-size: 1.35rem; line-height: 1.15; }
+.race-row.is-lead .race-name .font-display { font-size: 1.75rem; }
+@media (min-width: 640px) { .race-name .font-display { font-size: 1.6rem; } .race-row.is-lead .race-name .font-display { font-size: 2.2rem; } }
+.race-track { position: relative; height: 2px; background: var(--border); }
+.race-fill { position: absolute; left: 0; top: -1px; height: 4px; background: var(--house); }
+.race-row:not(.is-lead) .race-fill { opacity: .7; }
+.race-score { font-size: 1.5rem; line-height: 1; }
+.race-row.is-lead .race-score { font-size: 2.2rem; }
+@media (min-width: 640px) { .race-score { font-size: 1.85rem; } .race-row.is-lead .race-score { font-size: 2.8rem; } }
+@media (max-width: 479px) { .race-row { grid-template-columns: 1.4rem minmax(0, 1fr) 5.2rem; } .race-track { grid-column: 2 / -1; grid-row: 2; margin-top: 0.6rem; } }
+
+/* ── Profile ────────────────────────────────────────────────────────── */
+.profile-action { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-secondary); padding: 0.4rem 0; border-bottom: 1px solid transparent; transition: color .2s, border-color .2s; }
+.profile-action:hover { color: var(--gold); border-bottom-color: var(--gold-dim); }
+.profile-season { border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.profile-season > div { box-shadow: inset 1px 0 0 var(--border); }
+.profile-season > div:nth-child(2n+1) { box-shadow: none; }
+.profile-season > div:nth-child(n+3) { border-top: 1px solid var(--border); }
+@media (min-width: 640px) {
+    .profile-season > div { box-shadow: inset 1px 0 0 var(--border); border-top: 0 !important; }
+    .profile-season > div:nth-child(3n+1) { box-shadow: none; }
+    .profile-season > div:nth-child(n+4) { border-top: 1px solid var(--border) !important; }
+}
+/* The week against the plan: eight columns, the hairline at 100%. */
+.plan-columns { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 0.5rem; }
+@media (min-width: 640px) { .plan-columns { gap: 1.25rem; } }
+.plan-col { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; min-width: 0; text-align: center; }
+.plan-bar { position: relative; width: 100%; max-width: 0.9rem; height: 8.5rem; display: flex; align-items: flex-end; border-bottom: 1px solid var(--border-strong); }
+.plan-fill { width: 100%; display: block; transition: height .6s cubic-bezier(.2,.7,.2,1); }
+.plan-line { position: absolute; left: -0.9rem; right: -0.9rem; bottom: 50%; border-top: 1px dashed var(--text-muted); opacity: .6; }
+.plan-label { font-size: 0.62rem; letter-spacing: 0.14em; color: var(--text-secondary); white-space: nowrap; }
+@media (max-width: 639px) { .plan-col > span:last-child { display: none; } .plan-bar { max-width: 0.7rem; height: 7rem; } }
+/* The portrait's four figures: hairlines only between neighbours. */
+.profile-stats > div { border-left: 0 !important; }
+.profile-stats > div + div { box-shadow: inset 1px 0 0 var(--border); }
+@media (max-width: 639px) { .profile-stats > div:nth-child(3) { box-shadow: none; } .profile-stats > div:nth-child(n+3) { border-top: 1px solid var(--border); } }
+/* A section title with its number on the same line, over a gold rule. */
+.ledger-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; padding-bottom: 0.9rem; border-bottom: 1px solid var(--gold-dim); }
+/* What the jamaat did together: one figure set large, the rest a ledger. */
+.together { display: grid; grid-template-columns: 1fr; gap: 2.5rem; padding-top: 2rem; border-top: 1px solid var(--gold-dim); }
+@media (min-width: 1024px) { .together { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 5rem; align-items: start; } }
+.together-lead-n { font-size: 5.2rem; margin-top: 0.8rem; }
+@media (min-width: 640px) { .together-lead-n { font-size: 8rem; } }
+.together-rest { display: grid; grid-template-columns: 1fr; }
+@media (min-width: 640px) { .together-rest { grid-template-columns: 1fr 1fr; column-gap: 2.5rem; } }
+.together-rest li { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; padding: 1rem 0; border-bottom: 1px solid var(--border); }
+/* The record book. */
+.record-book { border-top: 1px solid var(--gold-dim); }
+.record-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "label value" "who value"; align-items: center; column-gap: 1rem; row-gap: 0.3rem; padding: 1.2rem 0.25rem; border-bottom: 1px solid var(--border); }
+.record-label { grid-area: label; }
+.record-value { grid-area: value; font-size: 2.2rem; line-height: 1; }
+.record-who { grid-area: who; }
+@media (min-width: 768px) {
+    .record-row { grid-template-columns: 15rem 9rem minmax(0, 1fr); grid-template-areas: "label value who"; column-gap: 2rem; padding: 1.35rem 0.25rem; }
+    .record-value { font-size: 2.6rem; }
+}
+/* Hall of Fame: one season per article, rules instead of a box. */
+.hall { padding: 2rem 0 2.2rem; border-top: 1px solid var(--gold-dim); border-bottom: 1px solid var(--border); }

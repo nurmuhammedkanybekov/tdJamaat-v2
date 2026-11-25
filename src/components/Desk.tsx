@@ -1,7 +1,6 @@
 // The desk: the first thing a captain or the admin sees on the overview —
 // their own house's week (or, for the admin, who is still missing) and the
 // one action that matters next. Numbers come from src/utils/desk.ts.
-import { Corners } from './Ornament';
 import React, { useState } from 'react';
 import { ArrowRight, Check, CheckCircle2, Clock3, Lock, PenLine, Send, Settings } from 'lucide-react';
 import type { AdminDesk, HouseDesk } from '../utils/desk';
@@ -44,7 +43,6 @@ export const CaptainDesk: React.FC<{
     );
     return (
         <section className="plate desk-plate animate-view-in" aria-label={t('Сиздин үй')}>
-            <Corners inset={6} size={20} />
             <div className="card-pad flex flex-col sm:flex-row sm:items-center gap-5 sm:gap-8">
                 <div className="flex-1 min-w-0">
                     <div className="eyebrow" style={{ color: 'var(--gold)' }}>{t('Сиздин үй · {0}-апта', desk.weekNumber)}</div>
@@ -151,7 +149,6 @@ export const AdminDeskPanel: React.FC<{
     const allIn = !desk.locked && desk.waiting.length === 0;
     return (
         <section className="plate desk-plate animate-view-in" aria-label={t('Админ')}>
-            <Corners inset={6} size={20} />
             <div className="card-pad pb-5! sm:pb-6!">
                 <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0">

@@ -6,7 +6,6 @@ import type { Award, Tier } from '../../utils/badges';
 import { BADGES, TIER_LABEL } from '../../utils/badges';
 import { BadgeMedal } from '../BadgeMedal';
 import { SectionHeader } from '../ui';
-import { Corners } from '../Ornament';
 import { useIsPhone } from '../../hooks/useMediaQuery';
 import { t } from '../../i18n';
 import { JattooAwards } from '../Jattoo';
@@ -103,7 +102,6 @@ export const AwardsView: React.FC<AwardsViewProps> = ({ data, weekIndex, awards,
                 />
                 {featured.length > 0 && (
                     <div className="honour-plaque">
-                        <Corners inset={8} size={26} />
                         <div className={`grid grid-cols-1 ${featured.length > 1 ? 'md:grid-cols-2' : ''}`}>
                             {featured.map(({ def, list }, k) => (
                                 <article key={def.id} className="honour" style={k ? { '--sep': 1 } as React.CSSProperties : undefined}>
@@ -181,7 +179,6 @@ export const AwardsView: React.FC<AwardsViewProps> = ({ data, weekIndex, awards,
                     }
                 />
                 <div className="cabinet">
-                    <Corners inset={6} size={20} />
                     <div className="flex items-baseline justify-between gap-4 mb-7">
                         <span className="eyebrow">{t('Ачылганы')}</span>
                         <span className="font-display text-[1.5rem] tabular" style={{ color: 'var(--gold)' }}>{defs.filter(d => upToNow.some(a => a.def.id === d.id)).length}<span className="text-[0.95rem]" style={{ color: 'var(--text-muted)' }}> / {defs.length}</span></span>

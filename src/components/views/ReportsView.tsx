@@ -8,7 +8,6 @@ import { houseWeekRating, reportRows } from '../../utils/reports';
 import type { Trend } from '../../utils/reports';
 import { ChartTooltip, SectionHeader } from '../ui';
 import { axisTick, scoreDomain } from '../../utils/style';
-import { Corners } from '../Ornament';
 import { t } from '../../i18n';
 
 interface ReportsViewProps {
@@ -78,7 +77,6 @@ const PeriodReport: React.FC<ReportsViewProps> = ({ data, selectedPeriod, setSel
 
             {/* One engraved plate: the period's three facts. */}
             <div className="plate desk-plate overflow-hidden">
-                <Corners inset={6} size={20} />
             <div className="grid grid-cols-1 sm:grid-cols-3 stagger">
                 {[
                     { label: t('Эң мыкты үй'), value: rows[0]?.average !== null && rows[0] ? rows[0].name : '—', sub: rows[0]?.average != null ? t('Рейтинг: {0}', rows[0].average) : '' },
@@ -97,7 +95,6 @@ const PeriodReport: React.FC<ReportsViewProps> = ({ data, selectedPeriod, setSel
             <section>
                 <SectionHeader eyebrow={t('Үй рейтинги боюнча')} title={t('Мезгилдин рейтинги')} />
                 <div className="plate is-tight overflow-x-auto">
-                    <Corners inset={6} size={20} />
                     <table className="data-table">
                         <thead>
                             <tr>
@@ -170,7 +167,6 @@ const TotalReport: React.FC<{ data: DataFile }> = ({ data }) => {
 
     return (
         <section className="plate">
-            <Corners inset={6} size={20} />
             <SectionHeader
                 eyebrow={t('Сезондун жыйынтыгы')}
                 title={t('Жалпы рейтинг ({0}-аптадан)', TOTAL_FROM_WEEK)}

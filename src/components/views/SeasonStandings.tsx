@@ -7,7 +7,6 @@ import { CITIES, houseStandings } from '../../utils/standings';
 import type { City } from '../../utils/standings';
 import { TEAM_COLORS } from '../../utils/scoring';
 import { CountUp } from '../motion';
-import { Corners } from '../Ornament';
 import { SectionHeader } from '../ui';
 import { t } from '../../i18n';
 
@@ -38,7 +37,6 @@ export const SeasonStandings: React.FC<{ insights: Insights; weekIndex: number; 
             </div>
 
             <div className="league">
-                <Corners inset={6} size={20} />
                 <div className="league-head" aria-hidden="true">
                     <span />
                     <span>{t('Үй')}</span>

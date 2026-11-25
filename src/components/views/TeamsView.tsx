@@ -15,7 +15,6 @@ import { houseBreakdown } from '../../utils/breakdown';
 import { PointsBreakdown } from '../PointsBreakdown';
 import { cardLabel, cardName, metricLabel, metricName } from '../../utils/metrics';
 import { JattooHouse } from '../Jattoo';
-import { Corners } from '../Ornament';
 import { SumTerm, Trajectory } from '../HouseParts';
 import { ROMAN } from '../../utils/roman';
 
@@ -86,7 +85,6 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
             {/* The house itself: its place, its name, its number — and how the
                 number is made, and how it has moved week by week. */}
             <section key={team.id} className="house-hero animate-view-in" style={{ '--house': color } as React.CSSProperties}>
-                <Corners inset={6} size={22} />
                 {canEditHouse(team.id) && (
                     <div className="house-hero-edit hidden sm:block">
                         <button onClick={() => onEditHouse(team.id)} className="btn btn-primary"><PenLine className="w-4 h-4" />  {team.submitted ? t('Өзгөртүү') : t('Киргизүү')}</button>
@@ -146,15 +144,16 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
 
             {/* The house's shared work: the mini-card and, in the weeks it
                 counts, Тазалык — side by side. */}
-            <div className={`grid grid-cols-1 gap-10 ${team.tazalyk !== undefined ? 'lg:grid-cols-[1.5fr_1fr] lg:gap-8' : ''}`}>
+            <div className={`grid grid-cols-1 gap-14 ${team.tazalyk !== undefined ? 'lg:grid-cols-[1.5fr_1fr] lg:gap-16' : ''}`}>
                 <section className="min-w-0">
-                    <SectionHeader
-                        eyebrow={t('Командалык иштер')}
-                        title={t('Мини-карта')}
-                        sub={t('Ар бир иш 100% аткарылса {0} упай кошулат (эң көп {1}). Ашыкчасы эсептелбейт.', MINI_CARD_POINTS, MINI_CARD_POINTS * 7)}
-                        action={hw?.submitted ? <span className="font-display text-[2rem] leading-none tabular" style={{ color: 'var(--gold)' }}>{fmt(hw.cardBonus)}<span className="text-[0.95rem]" style={{ color: 'var(--text-muted)' }}> / {MINI_CARD_POINTS * 7}</span></span> : undefined}
-                    />
-                    <Plate>
+                    <div className="ledger-head">
+                        <div>
+                            <div className="eyebrow mb-2">{t('Командалык иштер')}</div>
+                            <h2 className="section-title">{t('Мини-карта')}</h2>
+                        </div>
+                        {hw?.submitted && <span className="font-display text-[2.4rem] leading-none tabular" style={{ color: 'var(--gold)' }}>{fmt(hw.cardBonus)}<span className="text-[1rem]" style={{ color: 'var(--text-muted)' }}> / {MINI_CARD_POINTS * 7}</span></span>}
+                    </div>
+                    <div>
                         <ul className={`grid grid-cols-1 stagger ${team.tazalyk !== undefined ? '' : 'lg:grid-cols-2 lg:gap-x-12'}`}>
                             {cardKeys.map(key => {
                                 const v = team.miniCard[key];
@@ -174,21 +173,25 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
                                 );
                             })}
                         </ul>
-                    </Plate>
+                        <p className="text-[0.8rem] italic mt-3" style={{ color: 'var(--text-muted)' }}>{t('Ар бир иш 100% аткарылса {0} упай кошулат (эң көп {1}). Ашыкчасы эсептелбейт.', MINI_CARD_POINTS, MINI_CARD_POINTS * 7)}</p>
+                    </div>
                 </section>
 
                 {team.tazalyk !== undefined && (
                     <section className="min-w-0">
-                        <SectionHeader eyebrow={t('Үйдүн тазалыгы')} title={t('Тазалык')} sub={team.tazalyk ? (team.tazalyk.by ? t('Баалаган: {0}', TAZ_WHO[team.tazalyk.by] ?? team.tazalyk.by) : undefined) : t('Бул апта азырынча бааланган жок.')} />
+                        <div className="ledger-head">
+                            <div>
+                                <div className="eyebrow mb-2">{t('Үйдүн тазалыгы')}</div>
+                                <h2 className="section-title">{t('Тазалык')}</h2>
+                            </div>
+                            {team.tazalyk && <span className="font-display text-[2.4rem] leading-none tabular" style={{ color: 'var(--gold)' }}>{fmt(team.tazalyk.total)}<span className="text-[1rem]" style={{ color: 'var(--text-muted)' }}> / {TAZALYK_MAX}</span></span>}
+                        </div>
+                        {!team.tazalyk && <p className="text-[0.88rem] italic pt-4" style={{ color: 'var(--text-muted)' }}>{t('Бул апта азырынча бааланган жок.')}</p>}
                         {team.tazalyk && (
-                            <Plate>
-                                <div className="text-center pb-5" style={{ borderBottom: '1px solid var(--border)' }}>
-                                    <span className="font-display text-[4rem] leading-none tabular gold-sheen">{fmt(team.tazalyk.total)}</span>
-                                    <span className="font-display text-[1.2rem] tabular" style={{ color: 'var(--text-muted)' }}> / {TAZALYK_MAX}</span>
-                                </div>
+                            <div>
                                 <ul>
-                                    {Object.entries(team.tazalyk.scores).map(([item, v], i) => (
-                                        <li key={item} className="flex items-center justify-between gap-4 py-3" style={{ borderTop: i ? '1px solid var(--border)' : undefined }}>
+                                    {Object.entries(team.tazalyk.scores).map(([item, v]) => (
+                                        <li key={item} className="flex items-center justify-between gap-4 py-3.5" style={{ borderBottom: '1px solid var(--border)' }}>
                                             <span className="text-[0.95rem]" style={{ color: 'var(--text-secondary)' }}>{item}</span>
                                             <span className="inline-flex gap-[5px]" aria-label={`${v} / 5`}>
                                                 {Array.from({ length: 5 }).map((_, k) => <span key={k} className="w-2.5 h-2.5 rotate-45" style={{ border: '1px solid var(--gold-dim)', backgroundColor: k < v ? 'var(--gold)' : 'transparent' }} />)}
@@ -196,8 +199,9 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
                                         </li>
                                     ))}
                                 </ul>
-                                {team.tazalyk.note && <p className="text-[0.88rem] italic mt-3 pt-3" style={{ color: 'var(--text-muted)', borderTop: '1px solid var(--border)' }}>{team.tazalyk.note}</p>}
-                            </Plate>
+                                {team.tazalyk.note && <p className="text-[0.88rem] italic mt-3" style={{ color: 'var(--text-secondary)' }}>«{team.tazalyk.note}»</p>}
+                                {team.tazalyk.by && <p className="text-[0.8rem] italic mt-1" style={{ color: 'var(--text-muted)' }}>{t('Баалаган: {0}', TAZ_WHO[team.tazalyk.by] ?? team.tazalyk.by)}</p>}
+                            </div>
                         )}
                     </section>
                 )}
@@ -267,7 +271,6 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
                 />
                 {breakdown && hw?.submitted ? (
                     <div className="plate">
-                        <Corners inset={6} size={20} />
                         <PointsBreakdown
                             breakdown={breakdown}
                             totalLabel={t('Мүчөлөрдүн орточосу')}

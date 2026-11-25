@@ -10,8 +10,8 @@ import { useModal } from '../hooks/useModal';
 import { Avatar } from './Avatar';
 import { BadgeMedal } from './BadgeMedal';
 import { Corners } from './Ornament';
-import { ChartTooltip, Movement, ProgressBar } from './ui';
-import { axisTick, perfColor } from '../utils/style';
+import { ChartTooltip, Movement } from './ui';
+import { axisTick, perfBarColor, perfColor } from '../utils/style';
 import { t } from '../i18n';
 import { metricLabel, metricName } from '../utils/metrics';
 import { averageBreakdown, weekBreakdown } from '../utils/breakdown';
@@ -101,10 +101,10 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({ series, data, insigh
                                 </div>
                             ))}
                         </dl>
-                        <div className="flex flex-wrap justify-center gap-2 mt-7">
-                            <button className="btn btn-ghost" onClick={() => onShare('week')}><Share2 className="w-3.5 h-3.5" />  {t('Аптаны бөлүшүү')}</button>
-                            <button className="btn btn-ghost" onClick={() => onShare('season')}><Share2 className="w-3.5 h-3.5" />  {t('Сезонду бөлүшүү')}</button>
-                            <button className="btn btn-ghost" onClick={onCompare}><Columns2 className="w-3.5 h-3.5" />  {t('Салыштыруу')}</button>
+                        <div className="flex flex-wrap justify-center gap-x-7 gap-y-2 mt-6">
+                            <button className="profile-action" onClick={() => onShare('week')}><Share2 className="w-3.5 h-3.5" />{t('Аптаны бөлүшүү')}</button>
+                            <button className="profile-action" onClick={() => onShare('season')}><Share2 className="w-3.5 h-3.5" />{t('Сезонду бөлүшүү')}</button>
+                            <button className="profile-action" onClick={onCompare}><Columns2 className="w-3.5 h-3.5" />{t('Салыштыруу')}</button>
                         </div>
                     </div>
 
@@ -139,7 +139,7 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({ series, data, insigh
                         {/* Season so far — "Wrapped" */}
                         <section>
                             <H3 aside={<span className="text-[0.78rem] italic" style={{ color: 'var(--text-muted)' }}>{seasonFinished ? t('сезон аяктады') : t('азырынча')}</span>}>{t('Сезон {0}', seasonName)}</H3>
-                            <div className="grid grid-cols-2 sm:grid-cols-3">
+                            <div className="profile-season grid grid-cols-2 sm:grid-cols-3">
                                 {[
                                     [t('Орун'), summary.rank ? `${summary.rank} / ${summary.of}` : '—'],
                                     [t('Орточо упай'), fmt(summary.average)],
@@ -148,7 +148,7 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({ series, data, insigh
                                     [t('Толук план'), String(summary.perfectWeeks)],
                                     [t('Өсүш'), summary.growth === null ? '—' : `${summary.growth > 0 ? '+' : ''}${fmt(summary.growth)}`]
                                 ].map(([label, value], i) => (
-                                    <div key={label} className="py-4 px-3 text-center" style={{ borderTop: i >= 2 ? '1px solid var(--border)' : undefined, borderLeft: i % 2 === 1 ? '1px solid var(--border)' : undefined }}>
+                                    <div key={label} className="py-5 px-3 text-center">
                                         <div className="eyebrow">{label}</div>
                                         <div className="font-display text-[1.8rem] leading-none mt-2 tabular" style={{ color: i === 0 ? 'var(--gold)' : 'var(--text-primary)' }}>{value}</div>
                                     </div>
@@ -162,18 +162,20 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({ series, data, insigh
                         <section>
                             <H3 aside={<span className="text-[0.78rem] italic" style={{ color: 'var(--text-muted)' }}>{current.perfect ? t('бардык план аткарылды') : t('факт / план')}</span>}>{t('{0}-апта: планга карата', current.weekNumber)}</H3>
                             {current.submitted ? (
-                                <div className="grid grid-cols-1 gap-x-12 gap-y-5 sm:grid-cols-2">
+                                // Eight columns, one per practice, measured against the plan:
+                                // the hairline is 100%, the column can rise to 200%.
+                                <div className="plan-columns" role="img" aria-label={METRICS.map(m => `${metricName(m)} ${Math.round(current.pct[m])}%`).join(', ')}>
                                     {METRICS.map(m => {
                                         const pct = current.pct[m];
                                         return (
-                                            <div key={m}>
-                                                <div className="flex items-baseline gap-3 mb-2">
-                                                    <span className="text-[0.95rem]" style={{ color: 'var(--text-primary)' }} title={metricName(m)}>{metricLabel(m)}</span>
-                                                    <span className="leader" />
-                                                    <span className="text-[0.85rem] tabular" style={{ color: 'var(--text-muted)' }}>{current.member.actual[m]} / {current.member.target[m]}</span>
-                                                    <span className="font-display text-[1.05rem] w-12 text-right tabular" style={{ color: perfColor(pct) }}>{Math.round(pct)}%</span>
-                                                </div>
-                                                <ProgressBar pct={pct} />
+                                            <div key={m} className="plan-col" title={`${metricName(m)}: ${current.member.actual[m]} / ${current.member.target[m]}`}>
+                                                <span className="font-display tabular text-[1.05rem] sm:text-[1.2rem] leading-none" style={{ color: pct >= 100 ? 'var(--gold)' : perfColor(pct) }}>{Math.round(pct)}<span className="text-[0.7em]">%</span></span>
+                                                <span className="plan-bar">
+                                                    <span className="plan-fill" style={{ height: `${Math.max(2, Math.min(200, pct)) / 2}%`, backgroundColor: pct >= 100 ? 'var(--gold)' : perfBarColor(pct) }} />
+                                                    <span className="plan-line" />
+                                                </span>
+                                                <span className="plan-label">{metricLabel(m)}</span>
+                                                <span className="text-[0.7rem] tabular" style={{ color: 'var(--text-muted)' }}>{current.member.actual[m]} / {current.member.target[m]}</span>
                                             </div>
                                         );
                                     })}

@@ -33,7 +33,7 @@ export const PointsBreakdown: React.FC<{
                             <span className="font-display text-[1.15rem] tabular flex-shrink-0" style={{ color: 'var(--text-primary)' }}>{fmt(row.points)}</span>
                             <span className="text-[0.8rem] tabular flex-shrink-0" style={{ color: 'var(--text-muted)' }}>/ {row.plan}</span>
                         </div>
-                        <ProgressBar pct={row.plan > 0 ? (row.points / row.plan) * 100 : 0} />
+                        <ProgressBar pct={row.plan > 0 ? (row.points / row.plan) * 100 : 0} height={1} />
                         {note && <div className="text-[0.75rem] mt-1.5" style={{ color: 'var(--text-muted)' }}>{note(row.metric)}</div>}
                     </div>
                 );

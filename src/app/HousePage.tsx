@@ -17,7 +17,6 @@ import { useMemberData } from './memberData';
 import { MemberResults } from './MemberResults';
 import { Avatar } from '../components/Avatar';
 import { Beads } from '../components/ui';
-import { Corners } from '../components/Ornament';
 import { SumTerm, Trajectory } from '../components/HouseParts';
 import { roman } from '../utils/roman';
 import { MINI_CARD_POINTS, calculateHouseRating, calculateMemberAverage, calculateMemberScore, calculateMiniCardBonus, tazalykBonus } from '../utils/scoring';
@@ -163,7 +162,6 @@ export const HousePage: React.FC<{ arg?: string | null; theme: Theme; onToggleTh
                     <>
                         {/* The house: its number, how it is made, and how it moved. */}
                         <section className="house-hero mt-8" style={{ '--house': 'var(--gold)' } as React.CSSProperties}>
-                            <Corners inset={6} size={22} />
                             <div className="text-center">
                                 <div className="eyebrow">{t('Үйдүн рейтинги')}</div>
                                 <div className="font-display tabular leading-none mt-3 text-[4.4rem] sm:text-[5.4rem] gold-sheen">{rating === null ? '—' : fmt(rating)}</div>
@@ -185,7 +183,6 @@ export const HousePage: React.FC<{ arg?: string | null; theme: Theme; onToggleTh
 
                         {/* Me: my photo, my number this week and my place in the house. */}
                         <section className="plate mt-10">
-                            <Corners inset={6} size={20} />
                             <div className="flex items-center justify-between gap-4">
                                 <div className="min-w-0"><MyPhoto houseId={link.houseId} memberId={link.memberId} name={link.name} photoUrl={me?.photoUrl ?? null} onChanged={reload} /></div>
                                 {myPlace && (

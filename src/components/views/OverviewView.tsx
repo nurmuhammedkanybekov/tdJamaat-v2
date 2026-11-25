@@ -39,10 +39,8 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ data, weekIndex, ins
                     </div>
                 </section>
             )}
-            <div className="grid grid-cols-1 gap-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] lg:gap-20 items-start">
-                <HouseTable insights={insights} weekIndex={weekIndex} scope="week" week={week} />
-                <PeopleTable insights={insights} weekIndex={weekIndex} scope="week" title={t('Бардык катышуучулар')} onOpenProfile={onOpenProfile} limit={12} />
-            </div>
+            <HouseTable insights={insights} weekIndex={weekIndex} scope="week" week={week} />
+            <PeopleTable insights={insights} weekIndex={weekIndex} scope="week" title={t('Бардык катышуучулар')} onOpenProfile={onOpenProfile} limit={12} columns />
         </div>
     );
 };

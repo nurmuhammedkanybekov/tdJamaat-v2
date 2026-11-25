@@ -33,7 +33,7 @@ export const Laureate: React.FC<{ s: MemberSeries; w: MemberWeek; weekIndex: num
 };
 
 // Tablet/desktop: a real podium — second, first, third — on pedestals that
-// rise in turn; the winner is larger, with a slowly turning halo.
+// rise in turn; the winner is larger.
 const PODIUM_ORDER = [1, 0, 2];
 const PEDESTAL = ['h-28', 'h-20', 'h-14'];
 export const Podium: React.FC<{ top: { s: MemberSeries; w: MemberWeek }[]; weekIndex: number; onOpen: (id: string) => void }> = ({ top, weekIndex, onOpen }) => (
@@ -48,13 +48,7 @@ export const Podium: React.FC<{ top: { s: MemberSeries; w: MemberWeek }[]; weekI
             return (
                 <div key={s.id} className="flex flex-col items-center">
                     <button onClick={() => onOpen(s.id)} className="group flex flex-col items-center text-center w-full pop-in" style={{ animationDelay: `${delay + 350}ms` }}>
-                        <span className="relative rounded-full p-[6px]" style={{ border: `1px solid ${metal}`, boxShadow: first ? `0 0 40px -6px color-mix(in oklab, ${metal} 60%, transparent)` : undefined }}>
-                            {first && <span className="rays" aria-hidden="true" />}
-                            {first && (
-                                <svg className="absolute -inset-3 spin-halo pointer-events-none" viewBox="0 0 100 100" aria-hidden="true" style={{ width: 'calc(100% + 1.5rem)', height: 'calc(100% + 1.5rem)' }}>
-                                    <circle cx="50" cy="50" r="48" fill="none" stroke={metal} strokeWidth="0.6" strokeDasharray="1.5 4.5" opacity="0.8" />
-                                </svg>
-                            )}
+                        <span className="relative rounded-full p-[6px]" style={{ border: `1px solid ${metal}` }}>
                             <Avatar name={s.name} role={w.member.role} photoUrl={w.member.photoUrl} size={first ? 'xl' : 'lg'} />
                         </span>
                         <span className={`block font-display leading-tight mt-4 truncate max-w-full transition-colors group-hover:text-[var(--gold)] ${first ? 'text-[1.9rem]' : 'text-[1.45rem]'}`} style={{ color: 'var(--text-primary)' }}>{w.member.name}</span>
@@ -66,7 +60,7 @@ export const Podium: React.FC<{ top: { s: MemberSeries; w: MemberWeek }[]; weekI
                     </button>
                     {/* The pedestal: a hairline block in the place's metal, engraved with the Roman place. */}
                     <div className={`pedestal relative w-full mt-5 ${PEDESTAL[place] ?? PEDESTAL[2]} flex items-start justify-center pt-3`}
-                        style={{ animationDelay: `${delay}ms`, borderTop: `2px solid ${metal}`, background: `linear-gradient(180deg, color-mix(in oklab, ${metal} 16%, transparent), transparent)` }}>
+                        style={{ animationDelay: `${delay}ms`, borderTop: `2px solid ${metal}`, backgroundColor: `color-mix(in oklab, ${metal} ${first ? 9 : 6}%, transparent)` }}>
                         <span className="font-display text-[1.6rem] leading-none" style={{ color: metal }}>{ROMAN[place]}</span>
                     </div>
                 </div>

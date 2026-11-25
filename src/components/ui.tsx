@@ -3,7 +3,7 @@ import React from 'react';
 import { ArrowDown, ArrowUp, Minus, X } from 'lucide-react';
 import { useModal } from '../hooks/useModal';
 import { perfBarColor } from '../utils/style';
-import { Corners, Crown, Mark } from './Ornament';
+import { Crown, Mark } from './Ornament';
 import { t } from '../i18n';
 
 /** ▲2 / ▼1 / — : places gained since last week. */
@@ -172,7 +172,6 @@ export const StateCard: React.FC<{ title: string; text: string; action?: React.R
  *  uses, for any group of related numbers (instead of a row of boxes). */
 export const Plate: React.FC<{ children: React.ReactNode; className?: string; tight?: boolean }> = ({ children, className = '', tight }) => (
     <div className={`plate ${tight ? 'is-tight' : ''} ${className}`}>
-        <Corners inset={6} size={20} />
         {children}
     </div>
 );
