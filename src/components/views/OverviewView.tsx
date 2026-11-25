@@ -7,6 +7,7 @@ import { weekOf } from '../../utils/insights';
 import { Laureate, Podium } from '../Podium';
 import { HouseTable, PeopleTable } from './Standings';
 import { t } from '../../i18n';
+import { HornBand, StarField } from '../motion';
 
 interface OverviewViewProps {
     data: DataFile;
@@ -29,14 +30,24 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ data, weekIndex, ins
         <div className="space-y-16 sm:space-y-20">
             {desk}
             {top.length > 0 && (
-                <section aria-label={t('Аптанын үч мыктысы')}>
-                    <div className="eyebrow text-center mb-8">{t('Аптанын үч мыктысы')}</div>
+                // The week's glory, on the night stage: black and gold whatever
+                // the theme, the stars, a ram's-horn band above and below.
+                <section aria-label={t('Аптанын үч мыктысы')} className="stage">
+                    <StarField count={38} />
+                    <HornBand className="stage-band" />
+                    <div className="stage-inner">
+                    <div className="text-center mb-10 sm:mb-12">
+                        <div className="eyebrow" style={{ color: 'var(--gold)' }}>{t('{0}-апта', week.weekNumber)}</div>
+                        <h2 className="font-display stage-title mt-2">{t('Аптанын үч мыктысы')}</h2>
+                    </div>
                     <div key={`podium-${weekIndex}`} className="hidden sm:block">
                         <Podium top={top} weekIndex={weekIndex} onOpen={onOpenProfile} />
                     </div>
                     <div key={`list-${weekIndex}`} className="sm:hidden divide-y divide-[var(--border)]">
                         {top.map(({ s, w }, i) => <Laureate key={s.id} s={s} w={w} weekIndex={weekIndex} onOpen={() => onOpenProfile(s.id)} delay={i * 120} />)}
                     </div>
+                    </div>
+                    <HornBand className="stage-band" />
                 </section>
             )}
             <HouseTable insights={insights} weekIndex={weekIndex} scope="week" week={week} />

@@ -979,3 +979,34 @@ li[data-ayah].is-reciting { background-color: color-mix(in oklab, var(--gold) 8%
 /* Member sign-in: name and state on the left, the address on the right. */
 .account-row { display: grid; grid-template-columns: 1fr; gap: 0.5rem; padding: 0.85rem 0; border-bottom: 1px solid var(--border); }
 @media (min-width: 560px) { .account-row { grid-template-columns: 10rem minmax(0, 1fr); align-items: center; gap: 1.25rem; } .account-error { grid-column: 2; } }
+
+/* ── The night stage ────────────────────────────────────────────────────
+   Black and gold whatever the theme: the week's top three, the week's
+   honours. A full-width band with the stars and a ram's-horn edge. */
+.stage {
+    --page-plane: #0c0c0d; --surface: #131315; --surface-2: #1a1a1d; --text-primary: #ece7db; --text-secondary: #b7b1a4; --text-muted: #8f897c;
+    --border: #26262a; --border-strong: #34332f; --gold: #c9a961; --gold-bright: #dcc285; --gold-dim: #8c7646; --gold-soft: #c9a9611a;
+    --metal-gold: #c9a961; --metal-silver: #c3c7cd; --metal-bronze: #c08a62; --success: #8fbf9b; --danger: #d18b7d;
+    --role-imam: #c9a961; --role-zam: #b7b1a4; --role-member: #7d93b2;
+    position: relative; isolation: isolate; color: var(--text-primary);
+    width: 100vw; margin-left: calc(50% - 50vw);
+    background: radial-gradient(90% 70% at 50% 18%, #1d2140 0%, #111219 45%, #0b0b0c 100%);
+    padding: 0.9rem 0;
+}
+.stage-inner { max-width: 72rem; margin: 0 auto; padding: 3rem 1.25rem 3.4rem; }
+@media (min-width: 640px) { .stage-inner { padding: 4.25rem 2rem 4.5rem; } }
+.stage-band { color: var(--gold); opacity: 0.6; }
+:root .stage .starfield { display: block; }
+.stage-title { font-size: 2.2rem; line-height: 1.05; color: var(--text-primary); }
+@media (min-width: 640px) { .stage-title { font-size: 3rem; } }
+.stage .gold-sheen { color: var(--gold); }
+/* The house's team: a row of portraits under its name. */
+.team-row { position: relative; display: flex; gap: 1.1rem; margin-top: 2rem; overflow-x: auto; scrollbar-width: none; padding-bottom: 0.25rem; }
+.team-row::-webkit-scrollbar { display: none; }
+@media (min-width: 640px) { .team-row { gap: 1.6rem; flex-wrap: wrap; overflow: visible; } }
+.team-face { display: flex; flex-direction: column; align-items: center; gap: 0.35rem; min-width: 4.6rem; animation: fade-up .6s cubic-bezier(.2,.7,.2,1) both; }
+.team-face-ring { padding: 3px; border-radius: 50%; border: 1px solid color-mix(in oklab, var(--house) 55%, transparent); transition: border-color .2s, transform .2s; }
+.team-face-ring.is-first { border-color: var(--gold); box-shadow: 0 0 22px -6px color-mix(in oklab, var(--gold) 70%, transparent); }
+.team-face:hover .team-face-ring { border-color: var(--gold); transform: translateY(-2px); }
+.team-face-name { font-family: var(--font-display); font-size: 0.98rem; line-height: 1.1; color: var(--text-primary); max-width: 5.5rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.team-face-score { font-family: var(--font-display); font-size: 0.85rem; color: var(--text-muted); }

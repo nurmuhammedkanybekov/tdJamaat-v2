@@ -6,6 +6,7 @@ import type { Award, Tier } from '../../utils/badges';
 import { BADGES, TIER_LABEL } from '../../utils/badges';
 import { BadgeMedal } from '../BadgeMedal';
 import { SectionHeader } from '../ui';
+import { HornBand, StarField } from '../motion';
 import { useIsPhone } from '../../hooks/useMediaQuery';
 import { t } from '../../i18n';
 import { JattooAwards } from '../Jattoo';
@@ -101,7 +102,10 @@ export const AwardsView: React.FC<AwardsViewProps> = ({ data, weekIndex, awards,
                             : undefined}
                 />
                 {featured.length > 0 && (
-                    <div className="honour-plaque">
+                    <div className="stage mt-2">
+                        <StarField count={30} />
+                        <HornBand className="stage-band" />
+                        <div className="stage-inner">
                         <div className={`grid grid-cols-1 ${featured.length > 1 ? 'md:grid-cols-2' : ''}`}>
                             {featured.map(({ def, list }, k) => (
                                 <article key={def.id} className="honour" style={k ? { '--sep': 1 } as React.CSSProperties : undefined}>
@@ -123,6 +127,8 @@ export const AwardsView: React.FC<AwardsViewProps> = ({ data, weekIndex, awards,
                                 </article>
                             ))}
                         </div>
+                        </div>
+                        <HornBand className="stage-band" />
                     </div>
                 )}
                 {rest.length > 0 && (

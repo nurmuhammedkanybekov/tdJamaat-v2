@@ -8,7 +8,7 @@ import { computeAwards } from '../../utils/badges';
 import { hallOfFame, seasonRecords, seasonTotals, weekOverWeek } from '../../utils/community';
 import { cardLabel, cardName, metricLabel, metricName } from '../../utils/metrics';
 import { seasonView } from '../../utils/seasons';
-import { OrnamentDivider } from '../Ornament';
+import { Medallion, OrnamentDivider } from '../Ornament';
 import { SectionHeader } from '../ui';
 import { t } from '../../i18n';
 import { JattooCommunity } from '../Jattoo';
@@ -174,7 +174,8 @@ export const CommunityView: React.FC<CommunityViewProps> = ({ data, allData, ins
                 <SectionHeader eyebrow={t('Ар бир сезон')} title={t('Даңк залы')} sub={t('Сезондун эң мыктылары. Жеке орун алуу үчүн сезондун жок дегенде жарымына катышуу керек.')} />
                 <div className="space-y-10">
                     {halls.map(h => (
-                        <article key={h.seasonId} className="hall">
+                        <article key={h.seasonId} className="hall relative overflow-hidden">
+                            <Medallion size={300} className="absolute -right-20 -top-10 pointer-events-none" style={{ color: 'var(--gold)', opacity: 0.07 }} />
                             <div className="flex items-baseline justify-between gap-3 flex-wrap">
                                 <h3 className="font-display text-[1.8rem]" style={{ color: 'var(--text-primary)' }}>{t('Сезон {0}', h.seasonName)}</h3>
                                 <span className="eyebrow">{h.finished ? t('аяктады · {0} апта', h.weeks) : t('азырынча · {0} апта', h.weeks)}</span>

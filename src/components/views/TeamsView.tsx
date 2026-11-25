@@ -16,6 +16,7 @@ import { PointsBreakdown } from '../PointsBreakdown';
 import { cardLabel, cardName, metricLabel, metricName } from '../../utils/metrics';
 import { JattooHouse } from '../Jattoo';
 import { SumTerm, Trajectory } from '../HouseParts';
+import { Corners } from '../Ornament';
 import { ROMAN } from '../../utils/roman';
 
 const TAZ_WHO: Record<string, string> = { inspector: t('Тазалык текшерүүчү'), leader: t('Капитан'), admin: t('Админ') };
@@ -85,6 +86,7 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
             {/* The house itself: its place, its name, its number — and how the
                 number is made, and how it has moved week by week. */}
             <section key={team.id} className="house-hero animate-view-in" style={{ '--house': color } as React.CSSProperties}>
+                <Corners inset={8} size={26} />
                 {canEditHouse(team.id) && (
                     <div className="house-hero-edit hidden sm:block">
                         <button onClick={() => onEditHouse(team.id)} className="btn btn-primary"><PenLine className="w-4 h-4" />  {team.submitted ? t('Өзгөртүү') : t('Киргизүү')}</button>
@@ -117,6 +119,17 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
                             {series && <Movement delta={movement(series.weeks, weekIndex)} size="md" />}
                         </div>
                     </div>
+                </div>
+
+                {/* The team: every member's portrait, in this week's order. */}
+                <div className="team-row" aria-label={t('Мүчөлөр')}>
+                    {members.map(({ s: m, w }, i) => (
+                        <button key={m.id} onClick={() => onOpenProfile(m.id)} className="team-face" title={`${w.member.name} · ${w.excused ? t('себептүү') : fmt(w.score)}`} style={{ animationDelay: `${i * 60}ms` }}>
+                            <span className={`team-face-ring ${i === 0 && !w.excused ? 'is-first' : ''}`}><Avatar name={m.name} role={w.member.role} photoUrl={w.member.photoUrl} size="md" /></span>
+                            <span className="team-face-name">{w.member.name}</span>
+                            <span className="team-face-score tabular">{w.excused ? '—' : fmt(w.score)}</span>
+                        </button>
+                    ))}
                 </div>
 
                 {/* How the number is made, as a sum. */}

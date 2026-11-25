@@ -48,7 +48,12 @@ export const Podium: React.FC<{ top: { s: MemberSeries; w: MemberWeek }[]; weekI
             return (
                 <div key={s.id} className="flex flex-col items-center">
                     <button onClick={() => onOpen(s.id)} className="group flex flex-col items-center text-center w-full pop-in" style={{ animationDelay: `${delay + 350}ms` }}>
-                        <span className="relative rounded-full p-[6px]" style={{ border: `1px solid ${metal}` }}>
+                        <span className="relative rounded-full p-[6px]" style={{ border: `1px solid ${metal}`, boxShadow: first ? `0 0 60px -10px color-mix(in oklab, ${metal} 70%, transparent)` : undefined }}>
+                            {first && (
+                                <svg className="absolute -inset-4 spin-halo pointer-events-none" viewBox="0 0 100 100" aria-hidden="true" style={{ width: 'calc(100% + 2rem)', height: 'calc(100% + 2rem)' }}>
+                                    <circle cx="50" cy="50" r="48" fill="none" stroke={metal} strokeWidth="0.5" strokeDasharray="0.8 3.2" opacity="0.9" />
+                                </svg>
+                            )}
                             <Avatar name={s.name} role={w.member.role} photoUrl={w.member.photoUrl} size={first ? 'xl' : 'lg'} />
                         </span>
                         <span className={`block font-display leading-tight mt-4 truncate max-w-full transition-colors group-hover:text-[var(--gold)] ${first ? 'text-[1.9rem]' : 'text-[1.45rem]'}`} style={{ color: 'var(--text-primary)' }}>{w.member.name}</span>
@@ -60,8 +65,8 @@ export const Podium: React.FC<{ top: { s: MemberSeries; w: MemberWeek }[]; weekI
                     </button>
                     {/* The pedestal: a hairline block in the place's metal, engraved with the Roman place. */}
                     <div className={`pedestal relative w-full mt-5 ${PEDESTAL[place] ?? PEDESTAL[2]} flex items-start justify-center pt-3`}
-                        style={{ animationDelay: `${delay}ms`, borderTop: `2px solid ${metal}`, backgroundColor: `color-mix(in oklab, ${metal} ${first ? 9 : 6}%, transparent)` }}>
-                        <span className="font-display text-[1.6rem] leading-none" style={{ color: metal }}>{ROMAN[place]}</span>
+                        style={{ animationDelay: `${delay}ms`, borderTop: `2px solid ${metal}`, background: `linear-gradient(180deg, color-mix(in oklab, ${metal} ${first ? 22 : 14}%, transparent), color-mix(in oklab, ${metal} 3%, transparent))` }}>
+                        <span className="font-display text-[2rem] leading-none" style={{ color: metal }}>{ROMAN[place]}</span>
                     </div>
                 </div>
             );
