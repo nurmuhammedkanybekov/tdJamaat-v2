@@ -109,7 +109,28 @@ const ChatEntry: React.FC<{ self: Self }> = ({ self }) => {
     );
 };
 
-export const HousePage: React.FC<{ arg?: string | null; theme: Theme; onToggleTheme: () => void }> = ({ arg, theme, onToggleTheme }) => {
+/** For the admin: every house's conversation, with its new messages. */
+const AllChats: React.FC<{ data: DataFile; own: string | null }> = ({ data, own }) => {
+    const teams = data.weeks[data.weeks.length - 1]?.teams ?? [];
+    return (
+        <ul className="max-w-[40rem] mx-auto mt-6" style={{ borderTop: '1px solid var(--gold-dim)' }}>
+            {teams.map(tm => (
+                <li key={tm.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                    <button onClick={() => go(tm.id === own ? '#/house/chat' : `#/house/chat/${tm.id}`)} className="row-link w-full text-left py-4 px-1 flex items-center gap-4">
+                        <span className="w-10 h-10 rounded-full inline-flex items-center justify-center flex-shrink-0" style={{ border: '1px solid var(--gold)', color: 'var(--gold)' }}><MessageCircle className="w-4 h-4" strokeWidth={1.5} /></span>
+                        <span className="flex-1 min-w-0">
+                            <span className="block font-display text-[1.35rem] leading-tight" style={{ color: 'var(--text-primary)' }}>{tm.name}</span>
+                            <span className="block text-[0.8rem] italic" style={{ color: 'var(--text-muted)' }}>{tm.id === own ? t('сиздин үйүңүз — жаза аласыз') : t('окуу жана өчүрүү')}</span>
+                        </span>
+                        <ChevronRight className="w-4 h-4" style={{ color: 'var(--gold)' }} />
+                    </button>
+                </li>
+            ))}
+        </ul>
+    );
+};
+
+export const HousePage: React.FC<{ arg?: string | null; sub?: string | null; theme: Theme; onToggleTheme: () => void }> = ({ arg, sub, theme, onToggleTheme }) => {
     const ctx = useContext(AppContext);
     const { self, canChoose, choose } = useSelf();
     const link = self;
@@ -120,6 +141,20 @@ export const HousePage: React.FC<{ arg?: string | null; theme: Theme; onToggleTh
         return data.weeks.map(w => ({ week: w, team: w.teams.find(tm => tm.id === link.houseId) })).filter(r => r.team && r.team.members.length > 0);
     }, [data, link]);
 
+    const isAdmin = ctx.signedIn && ctx.role === 'admin';
+    // The admin opens any house's conversation: #/house/chat/<house id>.
+    if (isAdmin && arg === 'chat' && sub && sub !== link?.houseId) {
+        const house = data?.weeks[data.weeks.length - 1]?.teams.find(tm => tm.id === sub);
+        if (!data) return <AppFrame page="house" title={t('Үйдүн сөзү')} back="#/house/chats" theme={theme} onToggleTheme={onToggleTheme}><Waiting /></AppFrame>;
+        if (house) return <HouseChat key={house.id} self={{ memberId: link?.memberId ?? '', name: link?.name ?? '', houseId: house.id, houseName: house.name, via: 'staff' }} canModerate readOnly theme={theme} onToggleTheme={onToggleTheme} />;
+    }
+    if (isAdmin && arg === 'chats') {
+        return (
+            <AppFrame page="house" title={t('Үйлөрдүн сөзү')} kicker={t('Админ')} back="#/house" theme={theme} onToggleTheme={onToggleTheme}>
+                {data ? <AllChats data={data} own={link?.houseId ?? null} /> : <Waiting />}
+            </AppFrame>
+        );
+    }
     if (link && arg === 'chat') {
         return <HouseChat self={link} canModerate={ctx.role === 'admin' || (ctx.role === 'leader' && ctx.houseId === link.houseId)} theme={theme} onToggleTheme={onToggleTheme} />;
     }
@@ -197,6 +232,9 @@ export const HousePage: React.FC<{ arg?: string | null; theme: Theme; onToggleTh
                         </section>
 
                         <ChatEntry self={link} />
+                        {ctx.signedIn && ctx.role === 'admin' && (
+                            <button onClick={() => go('#/house/chats')} className="w-full text-left py-3 text-[0.72rem] tracking-[0.18em] uppercase transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)', borderBottom: '1px solid var(--border)' }}>{t('Бардык үйлөрдүн сөзү')} →</button>
+                        )}
                         <GoalBanner houseId={link.houseId} week={latest?.week.globalWeek ?? null} canEdit={ctx.role === 'admin' || (ctx.role === 'leader' && ctx.houseId === link.houseId)} />
 
                         <Section eyebrow={t('Үйдүн адамдары')}>

@@ -33,7 +33,7 @@ const STARTERS = [
     () => t('Ушул аптанын планын бирге аткаралы!')
 ];
 
-export const HouseChat: React.FC<{ self: Self; canModerate: boolean; theme: Theme; onToggleTheme: () => void }> = ({ self, canModerate, theme, onToggleTheme }) => {
+export const HouseChat: React.FC<{ self: Self; canModerate: boolean; theme: Theme; onToggleTheme: () => void; /** The admin looking into another house: reads and moderates, does not write. */ readOnly?: boolean }> = ({ self, canModerate, theme, onToggleTheme, readOnly }) => {
     const { data } = useMemberData();
     const week = data?.weeks.length ? data.weeks[data.weeks.length - 1].globalWeek : null;
     const [messages, setMessages] = useState<ChatMessage[] | null | undefined>(undefined);
@@ -55,6 +55,7 @@ export const HouseChat: React.FC<{ self: Self; canModerate: boolean; theme: Them
         fetchMessages(self.houseId).then(m => { setMessages(m); markSeen(self.houseId); }).catch(() => setMessages(null));
     }, [self.houseId]);
     useEffect(() => { load(); return watchHouse(self.houseId, load); }, [load, self.houseId]);
+    const back = readOnly ? '#/house/chats' : '#/house';
 
     // Follow the newest message — unless the reader has scrolled up to read.
     useEffect(() => {
@@ -93,13 +94,13 @@ export const HouseChat: React.FC<{ self: Self; canModerate: boolean; theme: Them
     }, [text]);
 
     return (
-        <AppFrame page="house" title={t('Үйдүн сөзү')} back="#/house" theme={theme} onToggleTheme={onToggleTheme} ownBar>
+        <AppFrame page="house" title={t('Үйдүн сөзү')} back={back} theme={theme} onToggleTheme={onToggleTheme} ownBar>
             <div ref={list} className="max-w-[42rem] mx-auto pt-2 pb-6">
                 <header className="text-center pt-4 pb-2">
                     <Mark size={44} className="mx-auto" style={{ color: 'var(--gold)' }} />
                     <div className="eyebrow mt-3" style={{ color: 'var(--gold)' }}>{t('Үйдүн сөзү')}</div>
                     <h1 className="font-display text-[2rem] leading-tight mt-1" style={{ color: 'var(--text-primary)' }}>{self.houseName}</h1>
-                    <p className="text-[0.8rem] mt-1" style={{ color: 'var(--text-muted)' }}>{t('Үйдүн адамдары, капитан жана админ гана көрөт.')}</p>
+                    <p className="text-[0.8rem] mt-1" style={{ color: 'var(--text-muted)' }}>{readOnly ? t('Сиз бул үйдүн сөзүн админ катары окуйсуз: жаза албайсыз, бирок билдирүүнү өчүрө аласыз.') : t('Үйдүн адамдары, капитан жана админ гана көрөт.')}</p>
                     <div className="mt-2"><NotifyToggle /></div>
                     <HornBand className="mt-3" />
                 </header>
@@ -109,7 +110,8 @@ export const HouseChat: React.FC<{ self: Self; canModerate: boolean; theme: Them
                 {messages === null && (
                     <p className="mt-8 px-4 py-3 text-[0.9rem]" style={{ borderLeft: '2px solid var(--gold)', color: 'var(--text-secondary)' }}>{t('Үйдүн сөзү азырынча ачыла элек — админ supabase/house-chat-2026-11.sql файлын иштетиши керек.')}</p>
                 )}
-                {messages && messages.length === 0 && (
+                {messages && messages.length === 0 && readOnly && <p className="text-center pt-10 italic" style={{ color: 'var(--text-muted)' }}>{t('Бул үйдө азырынча билдирүү жок.')}</p>}
+                {messages && messages.length === 0 && !readOnly && (
                     <div className="text-center pt-10">
                         <p className="font-display text-[1.4rem]" style={{ color: 'var(--text-primary)' }}>{t('Биринчи сөз сизден болсун')}</p>
                         <div className="flex flex-wrap justify-center gap-2 mt-5">
@@ -139,7 +141,7 @@ export const HouseChat: React.FC<{ self: Self; canModerate: boolean; theme: Them
                                     <div className="chat-bubble">{m.body}</div>
                                     <div className="chat-meta">
                                         <span className="tabular">{hm(at)}</span>
-                                        <button onClick={() => amin(m)} aria-pressed={said} className={`chat-amin ${said ? 'is-on' : ''}`} aria-label={t('Аамин')}>
+                                        <button onClick={() => { if (!readOnly) amin(m); }} disabled={readOnly} aria-pressed={said} className={`chat-amin ${said ? 'is-on' : ''}`} aria-label={t('Аамин')}>
                                             {t('Аамин')}{m.amins.length > 0 && <span className="tabular"> · {m.amins.length}</span>}
                                         </button>
                                         {(mine || canModerate) && <button onClick={() => remove(m)} aria-label={t('Өчүрүү')} className="chat-delete"><Trash2 className="w-3.5 h-3.5" /></button>}
@@ -152,7 +154,7 @@ export const HouseChat: React.FC<{ self: Self; canModerate: boolean; theme: Them
             </div>
 
             {/* Writing, at the bottom within thumb reach. */}
-            {messages !== null && (
+            {messages !== null && !readOnly && (
                 <div className="fixed left-0 right-0 bottom-0 z-30 page-gutter" style={{ paddingBottom: 'max(0.6rem, env(safe-area-inset-bottom))', paddingTop: '0.6rem', backgroundColor: 'color-mix(in oklab, var(--page-plane) 94%, transparent)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderTop: '1px solid var(--border)' }}>
                     {error && <p className="max-w-[42rem] mx-auto text-[0.82rem] mb-2" style={{ color: 'var(--danger)' }}>{error}</p>}
                     <form className="max-w-[42rem] mx-auto flex items-end gap-2" onSubmit={e => { e.preventDefault(); send(); }}>

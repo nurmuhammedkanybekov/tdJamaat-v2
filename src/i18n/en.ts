@@ -1091,5 +1091,11 @@ export const EN: Record<string, string> = {
     "supabase/members-2026-11.sql иштетилгенин текшериңиз.": "Check that supabase/members-2026-11.sql was run.",
     "«{0}» дареги эч бир мүчөгө жазылган эмес.": "«{0}» is not written to any member.",
     "Капитан же админ: Меню → «Мүчөлөрдүн кирүүсү» → ушул адамга так ушул Gmail дарегин жазып, «Сактоо» басыңыз. Анан бул бетти жаңыртыңыз.": "Captain or admin: Menu → «Members' sign-in» → write exactly this Gmail address for the person and press «Save». Then reload this page.",
-    "Бул бет Google аркылуу кирүүнүн ар бир кадамын текшерет. Кызыл белги кайсы жерде токтогонун көрсөтөт — скриншот жиберсеңиз болот.": "This page checks each step of the Google sign-in. A red mark shows where it stops — you can send a screenshot."
+    "Бул бет Google аркылуу кирүүнүн ар бир кадамын текшерет. Кызыл белги кайсы жерде токтогонун көрсөтөт — скриншот жиберсеңиз болот.": "This page checks each step of the Google sign-in. A red mark shows where it stops — you can send a screenshot.",
+    "Сиз бул үйдүн сөзүн админ катары окуйсуз: жаза албайсыз, бирок билдирүүнү өчүрө аласыз.": "You are reading this house's conversation as the admin: you cannot write here, but you can remove a message.",
+    "Бул үйдө азырынча билдирүү жок.": "No messages in this house yet.",
+    "сиздин үйүңүз — жаза аласыз": "your house — you can write",
+    "окуу жана өчүрүү": "read and remove",
+    "Үйлөрдүн сөзү": "Houses' conversations",
+    "Бардык үйлөрдүн сөзү": "All houses' conversations"
 };

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {
+import { MessageCircle,
     BookOpen, BookOpenCheck, KeyRound, Home as HomeIcon, Megaphone, ChevronLeft, CircleDot, ScrollText, SunMedium, ChevronRight, Clock3, Sparkles, Columns2, Download, ExternalLink, History, Info, Lock, LogIn, LogOut,
     Menu, Monitor, Moon, PenLine, Play, Settings2, Share2, Sun
 } from 'lucide-react';
@@ -149,6 +149,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             ...(onJattoo ? [{ key: 'jattoo', group: WORK, label: t('Жаттоо'), icon: BookOpenCheck, onClick: onJattoo }] : []),
             ...(onAccounts ? [{ key: 'accounts', group: WORK, label: t('Мүчөлөрдүн кирүүсү'), icon: KeyRound, onClick: onAccounts }] : []),
             { key: 'history', group: WORK, label: t('Өзгөртүүлөр тарыхы'), icon: History, onClick: onHistory },
+            ...(isAdmin ? [{ key: 'chats', group: WORK, label: t('Үйлөрдүн сөзү'), icon: MessageCircle, onClick: () => { window.location.hash = '#/house/chats'; } }] : []),
             ...(isAdmin ? [{ key: 'admin', group: WORK, label: t('Админ панели'), icon: Settings2, onClick: onAdmin }] : [])
         ] : []),
         { key: 'compare', group: RESULTS, label: t('Салыштыруу'), icon: Columns2, onClick: onCompare },
