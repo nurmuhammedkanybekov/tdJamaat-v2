@@ -1097,5 +1097,19 @@ export const EN: Record<string, string> = {
     "сиздин үйүңүз — жаза аласыз": "your house — you can write",
     "окуу жана өчүрүү": "read and remove",
     "Үйлөрдүн сөзү": "Houses' conversations",
-    "Бардык үйлөрдүн сөзү": "All houses' conversations"
+    "Бардык үйлөрдүн сөзү": "All houses' conversations",
+    "Кыбла": "Qibla",
+    "Азыркы жериңиз": "Your location",
+    "Кыбла: түндүктөн {0}°": "Qibla: {0}° from north",
+    "түндүктөн саат жебеси боюнча": "clockwise from north",
+    "Сиз Кыблага карап турасыз.": "You are facing the Qibla.",
+    "Телефонду Кааба белгиси жогору келгенче буруңуз.": "Turn the phone until the Kaaba mark is at the top.",
+    "Меккеге чейин {0} км.": "{0} km to Makkah.",
+    "Компасты күйгүзүү": "Turn on the compass",
+    "Изделүүдө…": "Locating…",
+    "Менин жайгашкан жерим": "My location",
+    "Компаска уруксат берилген жок. Браузердин жөндөөлөрүнөн уруксат бериңиз.": "Compass access was not allowed. Allow it in the browser settings.",
+    "Бул түзмөктө компас жок — даражаны колдонуңуз.": "This device has no compass — use the degrees.",
+    "Компас күтүлүүдө… Телефонду сегиз сымал кыймылдатып көрүңүз.": "Waiting for the compass… Move the phone in a figure eight.",
+    "Телефондун компасы темирден жана магниттен алыс так иштейт.": "A phone's compass is most accurate away from metal and magnets."
 };

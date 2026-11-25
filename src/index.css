@@ -514,6 +514,8 @@ html.screen .nav-short { display: inline !important; }
 .dark .sky { --sky-o: 0.42; }
 .dark .sky-night { --sky-o: 0.6; }
 
+.sky { --sky-l0: 45%; --sky-lw: 10%; }
+@media (min-width: 640px) { .sky { --sky-l0: 26%; --sky-lw: 28%; } }
 .sky-body { position: absolute; width: 44px; height: 44px; transform: translate(-50%, -50%); transition: left 60s linear, top 60s linear; }
 .sky-sun { border-radius: 50%; background: radial-gradient(circle, #fff3c9 0%, #f7d06a 45%, rgba(247, 208, 106, 0) 72%); box-shadow: 0 0 70px 26px rgba(247, 200, 90, 0.28); animation: sun-breathe 6s ease-in-out infinite; }
 .sky-moon { width: 34px; height: 34px; color: var(--gold-bright); filter: drop-shadow(0 0 14px color-mix(in oklab, var(--gold) 60%, transparent)); }
@@ -639,7 +641,6 @@ html.screen .nav-short { display: inline !important; }
 @keyframes day-now { 50% { box-shadow: 0 0 0 7px color-mix(in oklab, var(--gold) 12%, transparent), 0 0 26px var(--gold); } }
 @media (prefers-reduced-motion: reduce) { .day-path-now { animation: none; } }
 /* The first page's sun and moon travel below the top bar, not through it. */
-.app-hero .sky-body { margin-top: 4.5rem; }
 
 /* Quran reader: the reading bar under the top, how far into the surah or the
    mushaf, a surah's framed head, the pages of the mushaf, the voice. */
@@ -1026,3 +1027,18 @@ li[data-ayah].is-reciting { background-color: color-mix(in oklab, var(--gold) 8%
 .team-face:hover .team-face-ring { border-color: var(--gold); transform: translateY(-2px); }
 .team-face-name { font-family: var(--font-display); font-size: 0.98rem; line-height: 1.1; color: var(--text-primary); max-width: 5.5rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .team-face-score { font-family: var(--font-display); font-size: 0.85rem; color: var(--text-muted); }
+
+/* ── Кыбла ───────────────────────────────────────────────────────────── */
+.qibla { position: relative; width: min(19rem, 80vw); aspect-ratio: 1; margin: 2rem auto 0; }
+.qibla-dial { width: 100%; height: 100%; transition: transform .25s ease-out; }
+.qibla-ring { fill: var(--surface); stroke: var(--gold); stroke-width: 1.2; }
+.qibla-ring.is-thin { fill: none; stroke: var(--gold-dim); stroke-width: .5; stroke-dasharray: 1 3; }
+.qibla-tick { stroke: var(--gold-dim); stroke-width: .8; }
+.qibla-tick.is-major { stroke: var(--gold); stroke-width: 1.4; }
+.qibla-point { font-family: var(--font-display); font-size: 13px; fill: var(--text-muted); }
+.qibla-needle { stroke: var(--gold); stroke-width: 1.6; stroke-linecap: round; }
+.qibla-kaaba { fill: var(--text-primary); stroke: var(--gold); stroke-width: 1.2; }
+.qibla-kaaba-band { stroke: var(--gold); stroke-width: 2; }
+.qibla-hub { fill: var(--gold); }
+.qibla-top { position: absolute; left: 50%; top: -0.9rem; width: 0; height: 0; transform: translateX(-50%); border-left: 7px solid transparent; border-right: 7px solid transparent; border-top: 10px solid var(--gold); }
+.qibla.is-facing .qibla-ring { stroke-width: 2.4; filter: drop-shadow(0 0 12px color-mix(in oklab, var(--gold) 60%, transparent)); }

@@ -93,7 +93,7 @@ export const Sparks: React.FC<{ count?: number }> = ({ count = 22 }) => (
 export const SkyLayer: React.FC<{ phase: string; body?: 'sun' | 'moon'; progress?: number }> = ({ phase, body, progress = 0.5 }) => (
     <div className={`sky sky-${phase}`} aria-hidden="true">
         {body && (
-            <span className={`sky-body sky-${body}`} style={{ left: `${8 + progress * 84}%`, top: `${30 - Math.sin(progress * Math.PI) * 22}%` }}>
+            <span className={`sky-body sky-${body}`} style={{ left: `calc(var(--sky-l0) + var(--sky-lw) * ${progress.toFixed(3)})`, top: `calc(2.7rem - ${(Math.sin(progress * Math.PI) * 0.9).toFixed(2)}rem)` }}>
                 {body === 'moon' && (
                     <svg viewBox="0 0 40 40" width="100%" height="100%"><defs><mask id="sky-moon"><rect width="40" height="40" fill="#fff" /><circle cx="26" cy="15" r="13" fill="#000" /></mask></defs><circle cx="20" cy="20" r="15" fill="currentColor" mask="url(#sky-moon)" /></svg>
                 )}

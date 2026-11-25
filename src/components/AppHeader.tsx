@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { MessageCircle,
+import { Compass, MessageCircle,
     BookOpen, BookOpenCheck, KeyRound, Home as HomeIcon, Megaphone, ChevronLeft, CircleDot, ScrollText, SunMedium, ChevronRight, Clock3, Sparkles, Columns2, Download, ExternalLink, History, Info, Lock, LogIn, LogOut,
     Menu, Monitor, Moon, PenLine, Play, Settings2, Share2, Sun
 } from 'lucide-react';
@@ -143,6 +143,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         { key: 'tasbihat', group: DAY, label: t('Тасбихат'), icon: ScrollText, onClick: () => { window.location.hash = '#/tasbihat'; } },
         { key: 'zikr', group: DAY, label: t('Зикир'), icon: CircleDot, onClick: () => { window.location.hash = '#/zikr'; } },
         { key: 'prayer', group: DAY, label: t('Намаз убактылары'), icon: Clock3, onClick: onPrayer },
+        { key: 'qibla', group: DAY, label: t('Кыбла'), icon: Compass, onClick: () => { window.location.hash = '#/qibla'; } },
         ...(authUser ? [
             { key: 'entry', group: WORK, label: t('Маалымат кошуу'), icon: PenLine, onClick: onDataEntry },
             { key: 'tazalyk', group: WORK, label: t('Тазалык'), icon: Sparkles, onClick: onTazalyk },
