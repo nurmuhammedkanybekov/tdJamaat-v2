@@ -524,7 +524,8 @@ html.screen .nav-short { display: inline !important; }
 .horn-band { display: block; color: var(--gold); opacity: 0.55; }
 
 /* The week story (WeekStory.tsx): a night stage with slides that rise in. */
-.story { background: radial-gradient(120% 80% at 50% 0%, #1a1d33 0%, #0c0c0d 60%); color: var(--text-primary); }
+.story { background: radial-gradient(120% 80% at 50% 0%, color-mix(in oklab, var(--gold) 14%, #f6f2e9) 0%, #f4f2ed 60%); color: var(--text-primary); }
+.dark .story { background: radial-gradient(120% 80% at 50% 0%, #1a1d33 0%, #0c0c0d 60%); }
 .story .hero-glow { top: 45%; }
 @keyframes story-in { from { opacity: 0; transform: translateY(18px); filter: blur(4px); } to { opacity: 1; transform: none; filter: none; } }
 @keyframes story-pop { 0% { opacity: 0; transform: scale(0.6); } 70% { opacity: 1; transform: scale(1.06); } 100% { opacity: 1; transform: none; } }
@@ -533,7 +534,7 @@ html.screen .nav-short { display: inline !important; }
 .story-pop { display: inline-block; animation: story-pop 900ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 .story-bar { transform-origin: left center; animation: grow-x 1200ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
 .story-progress { width: 0%; animation: story-progress linear forwards; }
-.story .starfield { display: block; }
+.dark .story .starfield { display: block; }
 /* The hero's "week story" button: a quiet gold pill with a slow shine. */
 .story-cta { color: var(--gold); border: 1px solid color-mix(in oklab, var(--gold) 55%, transparent); background: color-mix(in oklab, var(--gold) 6%, transparent); position: relative; overflow: hidden; }
 .story-cta:hover { background: color-mix(in oklab, var(--gold) 14%, transparent); }
@@ -980,23 +981,38 @@ li[data-ayah].is-reciting { background-color: color-mix(in oklab, var(--gold) 8%
 .account-row { display: grid; grid-template-columns: 1fr; gap: 0.5rem; padding: 0.85rem 0; border-bottom: 1px solid var(--border); }
 @media (min-width: 560px) { .account-row { grid-template-columns: 10rem minmax(0, 1fr); align-items: center; gap: 1.25rem; } .account-error { grid-column: 2; } }
 
-/* ── The night stage ────────────────────────────────────────────────────
-   Black and gold whatever the theme: the week's top three, the week's
-   honours. A full-width band with the stars and a ram's-horn edge. */
+/* ── The stage ──────────────────────────────────────────────────────────
+   The week's top three and the week's honours get a full-width band of their
+   own. Each theme has its own stage — never one theme inside the other:
+   · Күн (day): dawn on porcelain — a warm gold light rising from the centre,
+     the ram's-horn border in gold, no stars.
+   · Түн (night): the night sky — indigo glow, black, the stars. */
 .stage {
-    --page-plane: #0c0c0d; --surface: #131315; --surface-2: #1a1a1d; --text-primary: #ece7db; --text-secondary: #b7b1a4; --text-muted: #8f897c;
-    --border: #26262a; --border-strong: #34332f; --gold: #c9a961; --gold-bright: #dcc285; --gold-dim: #8c7646; --gold-soft: #c9a9611a;
-    --metal-gold: #c9a961; --metal-silver: #c3c7cd; --metal-bronze: #c08a62; --success: #8fbf9b; --danger: #d18b7d;
-    --role-imam: #c9a961; --role-zam: #b7b1a4; --role-member: #7d93b2;
-    position: relative; isolation: isolate; color: var(--text-primary);
+    position: relative; isolation: isolate; overflow: hidden; color: var(--text-primary);
     width: 100vw; margin-left: calc(50% - 50vw);
-    background: radial-gradient(90% 70% at 50% 18%, #1d2140 0%, #111219 45%, #0b0b0c 100%);
     padding: 0.9rem 0;
+    background:
+        radial-gradient(60% 75% at 50% 32%, color-mix(in oklab, var(--gold) 16%, transparent) 0%, transparent 70%),
+        linear-gradient(180deg, #efe9dc 0%, #f6f2e9 45%, #efe9dc 100%);
+    border-top: 1px solid color-mix(in oklab, var(--gold) 30%, transparent);
+    border-bottom: 1px solid color-mix(in oklab, var(--gold) 30%, transparent);
 }
+/* Day: slow sunrays behind the centre, very faint. */
+.stage::before {
+    content: ''; position: absolute; left: 50%; top: 38%; width: 70rem; height: 70rem; transform: translate(-50%, -50%); z-index: -1; pointer-events: none;
+    background: repeating-conic-gradient(from 0deg, color-mix(in oklab, var(--gold) 6%, transparent) 0deg 3deg, transparent 3deg 15deg);
+    -webkit-mask-image: radial-gradient(circle, #000 0%, transparent 55%); mask-image: radial-gradient(circle, #000 0%, transparent 55%);
+}
+.stage .starfield { display: none; }
+.dark .stage {
+    background: radial-gradient(90% 70% at 50% 18%, #1d2140 0%, #111219 45%, #0b0b0c 100%);
+    border-color: #26262a;
+}
+.dark .stage::before { display: none; }
+.dark .stage .starfield { display: block; }
 .stage-inner { max-width: 72rem; margin: 0 auto; padding: 3rem 1.25rem 3.4rem; }
 @media (min-width: 640px) { .stage-inner { padding: 4.25rem 2rem 4.5rem; } }
 .stage-band { color: var(--gold); opacity: 0.6; }
-:root .stage .starfield { display: block; }
 .stage-title { font-size: 2.2rem; line-height: 1.05; color: var(--text-primary); }
 @media (min-width: 640px) { .stage-title { font-size: 3rem; } }
 .stage .gold-sheen { color: var(--gold); }

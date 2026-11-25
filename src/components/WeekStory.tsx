@@ -97,7 +97,7 @@ export const WeekStory: React.FC<{
                                     <span className="font-display text-[1.6rem] flex-1 truncate" style={{ color: 'var(--text-primary)' }}>{h.name}</span>
                                     <CountUp value={w!.avg} duration={1400} className="font-display text-[1.6rem] tabular" style={{ color: i === 0 ? 'var(--gold)' : 'var(--text-primary)' }} />
                                 </div>
-                                <div className="ml-9 mt-2 h-[4px] rounded-full overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}>
+                                <div className="ml-9 mt-2 h-[4px] rounded-full overflow-hidden" style={{ backgroundColor: 'var(--border)' }}>
                                     <div className="h-full rounded-full story-bar" style={{ width: `${(w!.avg / max) * 100}%`, backgroundColor: TEAM_COLORS[h.colorIndex % TEAM_COLORS.length], animationDelay: `${300 + i * 160}ms` }} />
                                 </div>
                             </li>
@@ -194,14 +194,14 @@ export const WeekStory: React.FC<{
     }, [last]);
 
     return (
-        <div role="dialog" aria-modal="true" aria-label={t('Аптанын жыйынтыгы')} className="dark story fixed inset-0 z-[80] select-none"
+        <div role="dialog" aria-modal="true" aria-label={t('Аптанын жыйынтыгы')} className="story fixed inset-0 z-[80] select-none"
             onClick={e => { const r = (e.currentTarget as HTMLElement).getBoundingClientRect(); go(e.clientX - r.left < r.width / 3 ? i - 1 : i + 1); }}>
             <StarField count={80} />
             <span className="hero-glow" aria-hidden="true" />
             {/* Progress: one segment per slide. */}
             <div className="absolute top-0 left-0 right-0 flex gap-1.5 px-4 pt-[max(0.9rem,env(safe-area-inset-top))]">
                 {slides.map((s, n) => (
-                    <span key={s.key} className="flex-1 h-[3px] rounded-full overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.15)' }}>
+                    <span key={s.key} className="flex-1 h-[3px] rounded-full overflow-hidden" style={{ backgroundColor: 'var(--border-strong)' }}>
                         <span key={`${s.key}-${i}`} className={`block h-full ${n === i && auto ? 'story-progress' : ''}`} style={{ backgroundColor: 'var(--gold)', width: n < i || (n === i && !auto) ? '100%' : n === i ? undefined : '0%', animationDuration: `${SLIDE_MS}ms` }} />
                     </span>
                 ))}
