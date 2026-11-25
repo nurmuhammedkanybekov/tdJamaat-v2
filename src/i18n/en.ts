@@ -866,7 +866,6 @@ export const EN: Record<string, string> = {
     "Окудум": "I have read it",
     "Аптанын эсебине кошулат (ТСП).": "Counts towards the week (TSB).",
     "Кийинки: {0}": "Next: {0}",
-    "Баардык маанилери": "All meanings",
     "Капитандар үчүн кирүү": "Sign in for captains",
     "Үйлөрдүн апталык жыйынтыктары": "The houses' weekly results",
     "Алдыда: {0}": "Leading: {0}",
@@ -1007,5 +1006,13 @@ export const EN: Record<string, string> = {
     "{0}-аят: угуу, сактоо, көчүрүү": "Ayah {0}: listen, save, copy",
     "Мурунку барак": "Previous page",
     "Курандын акыры. Аллах кабыл кылсын.": "The end of the Quran. May Allah accept it.",
-    "Кийинки барак": "Next page"
+    "Кийинки барак": "Next page",
+    "Ушул апта: {0} / 35 · аптанын эсебине кошулат (ТСП)": "This week: {0} / 35 · counts towards the week (TSB)",
+    "Азыр · окулду": "Now · read",
+    "{0} намазынын тасбихатын ачуу": "Open the tasbihat after {0}",
+    "Баштоо": "Begin",
+    "Бул апта": "This week",
+    "Арабча текст текшерилген булагы бар жерлерде гана: Куран аяттары жана «Хисн аль-Муслимдеги» дуба. Калганы — кыргыз тамгалары менен.": "Arabic is shown only where a verified source exists: the Quran ayahs and the dua from Hisn al-Muslim. The rest stays in Kyrgyz letters.",
+    "Кирилл": "Cyrillic",
+    "Арабча": "Arabic"
 };

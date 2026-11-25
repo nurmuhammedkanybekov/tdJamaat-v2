@@ -19,9 +19,22 @@ import { NAARIA, TASBIHAT_ORDER, currentPrayer, isTasbihat, linesOf, loadTasbiha
 import type { Ayah } from './quranData';
 import { loadSurah } from './quranData';
 import { loadPractice, markTasbihat, savePractice, tasbihatDone } from './practice';
+import { dayKey } from '../utils/zikr';
+import ARABIC from './tasbihat/arabic.json';
+
+/** The verified Arabic for a paragraph (README in ./tasbihat), if there is one. */
+const arabicFor = (block: Block): { ar: string; src: string } | null => {
+    const text = (block.parts ?? []).map(p => p[1]).join('').trim();
+    const hit = (ARABIC as Array<{ prefix: string; ar: string; src: string }>).find(e => text.startsWith(e.prefix));
+    return hit ? { ar: hit.ar, src: hit.src } : null;
+};
+
+/** «ХАШР» СҮРӨСҮ → «Хашр» сүрөсү: the source's capitals, as a title. */
+const titleCase = (v: string) => v.toLocaleLowerCase('ky').replace(/(^|«|")(\p{L})/u, (_m, a: string, b: string) => a + b.toLocaleUpperCase('ky'));
 
 const KEY = 'tdjamaat-tasbihat-v1';
-interface Store { size?: number; naaria?: number; meanings?: boolean }
+interface Store { size?: number; naaria?: number; meanings?: boolean; script?: Script }
+type Script = 'cyr' | 'ar';
 const read = (): Store => { try { return JSON.parse(localStorage.getItem(KEY) ?? '{}') as Store; } catch { return {}; } };
 const write = (patch: Store) => { try { localStorage.setItem(KEY, JSON.stringify({ ...read(), ...patch })); } catch { /* not critical */ } };
 const buzz = (pattern: number | number[]) => { try { navigator.vibrate?.(pattern); } catch { /* no vibration on this device */ } };
@@ -34,47 +47,81 @@ const PASSAGES: Record<string, { surah: number; from: number; to: number }> = {
     '«БАКАРА» СҮРӨСҮ': { surah: 2, from: 285, to: 286 }
 };
 
+/** The week (Thursday → Wednesday) as five rows of seven: what was read. */
+const WeekGrid: React.FC<{ now: Date }> = ({ now }) => {
+    const practice = loadPractice();
+    const back = (now.getDay() - 4 + 7) % 7;
+    const days = Array.from({ length: 7 }, (_, i) => new Date(now.getFullYear(), now.getMonth(), now.getDate() - back + i));
+    const DAY = [t('Жш'), t('Дш'), t('Шш'), t('Шр'), t('Бш'), t('Жм'), t('Иш')];
+    let total = 0;
+    return (
+        <div className="pt-4">
+            <div className="grid gap-y-2.5 items-center" style={{ gridTemplateColumns: '5.5rem repeat(7, minmax(0, 1fr))' }}>
+                <span />
+                {days.map(d => <span key={d.toISOString()} className="text-center text-[0.66rem] tracking-[0.08em] uppercase" style={{ color: d.toDateString() === now.toDateString() ? 'var(--gold)' : 'var(--text-muted)' }}>{DAY[d.getDay()]}</span>)}
+                {TASBIHAT_ORDER.map(id => (
+                    <React.Fragment key={id}>
+                        <span className="text-[0.85rem] truncate" style={{ color: 'var(--text-secondary)' }}>{PRAYER_NAMES[id]}</span>
+                        {days.map(d => {
+                            const done = (practice.tasbihat[dayKey(d)] ?? []).includes(id);
+                            if (done) total++;
+                            const future = d.getTime() > now.getTime();
+                            return <span key={d.toISOString()} className="flex justify-center"><span className="w-3 h-3 rotate-45" style={{ backgroundColor: done ? 'var(--gold)' : 'transparent', border: `1px solid ${future ? 'var(--border)' : done ? 'var(--gold)' : 'var(--border-strong)'}` }} /></span>;
+                        })}
+                    </React.Fragment>
+                ))}
+            </div>
+            <p className="text-[0.8rem] mt-3" style={{ color: 'var(--text-muted)' }}>{t('Ушул апта: {0} / 35 · аптанын эсебине кошулат (ТСП)', total)}</p>
+        </div>
+    );
+};
+
 const List: React.FC<{ theme: Theme; onToggleTheme: () => void }> = ({ theme, onToggleTheme }) => {
     const now = useNow();
     const city = loadCity();
     const times = prayerTimes(city, now);
     const current = currentPrayer(city, now);
     const practice = loadPractice();
-    const doneToday = TASBIHAT_ORDER.filter(id => tasbihatDone(practice, id, now)).length;
+    const doneNow = tasbihatDone(practice, current, now);
     return (
-        <AppFrame page="tasbihat" title={t('Тасбихат')} kicker={t('Намаздан кийин')} sub={t('Бүгүн окулду: {0} / 5', doneToday)} theme={theme} onToggleTheme={onToggleTheme}>
+        <AppFrame page="tasbihat" title={t('Тасбихат')} kicker={t('Намаздан кийин')} theme={theme} onToggleTheme={onToggleTheme}>
             <div className="max-w-[46rem] mx-auto">
-                <button onClick={() => go(`#/tasbihat/${current}`)} className="row-link w-full text-left mt-6 py-4 flex items-center gap-4" style={{ borderTop: '1px solid var(--gold)', borderBottom: '1px solid var(--border)' }}>
-                    <span className="flex-1 min-w-0">
-                        <span className="eyebrow block" style={{ color: 'var(--gold)' }}>{t('Азыр')}</span>
-                        <span className="block font-display text-[1.6rem] leading-tight mt-1" style={{ color: 'var(--text-primary)' }}>{t('{0} намазынын тасбихаты', PRAYER_NAMES[current])}</span>
-                    </span>
-                    <ChevronRight className="w-5 h-5 flex-shrink-0" style={{ color: 'var(--gold)' }} />
+                {/* The prayer whose time it is: the one to open. */}
+                <button onClick={() => go(`#/tasbihat/${current}`)} className="row-link w-full text-center mt-8 py-7 relative" style={{ borderTop: '1px solid var(--gold)', borderBottom: '1px solid var(--gold-dim)' }}>
+                    <span className="eyebrow block" style={{ color: 'var(--gold)' }}>{doneNow ? t('Азыр · окулду') : t('Азыр')}</span>
+                    <span className="block font-display text-[2.4rem] sm:text-[2.8rem] leading-tight mt-2" style={{ color: 'var(--text-primary)' }}>{PRAYER_NAMES[current]}</span>
+                    <span className="block text-[0.9rem] mt-1" style={{ color: 'var(--text-muted)' }}>{t('{0} намазынын тасбихатын ачуу', PRAYER_NAMES[current])}</span>
+                    <span className="inline-flex items-center gap-2 mt-4 text-[0.72rem] tracking-[0.2em] uppercase" style={{ color: 'var(--gold)' }}>{t('Баштоо')}<ChevronRight className="w-3.5 h-3.5" /></span>
                 </button>
                 <Section eyebrow={t('Беш убак')}>
                     <ol>
-                        {TASBIHAT_ORDER.map(id => {
+                        {TASBIHAT_ORDER.map((id, i) => {
                             const done = tasbihatDone(practice, id, now);
                             return (
                                 <li key={id} style={{ borderBottom: '1px solid var(--border)' }}>
                                     <button onClick={() => go(`#/tasbihat/${id}`)} className="row-link w-full text-left py-4 px-1 flex items-center gap-4" aria-current={id === current ? 'true' : undefined}>
-                                        <span className="w-6 h-6 inline-flex items-center justify-center flex-shrink-0" style={{ border: `1px solid ${done ? 'var(--gold)' : 'var(--border-strong)'}`, color: 'var(--gold)' }} aria-label={done ? t('бүгүн окулду') : undefined}>{done && <Check className="w-3.5 h-3.5" />}</span>
-                                        <span className="flex-1 min-w-0 font-display text-[1.35rem] leading-tight" style={{ color: id === current ? 'var(--gold)' : 'var(--text-primary)' }}>{PRAYER_NAMES[id]}</span>
-                                        <span className="text-[0.95rem] tabular" style={{ color: 'var(--text-muted)' }}>{clock(times[id], city.tz)}</span>
+                                        <span className="w-7 h-7 rotate-45 inline-flex items-center justify-center flex-shrink-0 mx-1" style={{ border: '1px solid var(--gold)', backgroundColor: done ? 'var(--gold)' : 'transparent' }} aria-label={done ? t('бүгүн окулду') : undefined}>
+                                            {done ? <Check className="w-3.5 h-3.5 -rotate-45" style={{ color: 'var(--page-plane)' }} /> : <span className="-rotate-45 font-display text-[0.85rem]" style={{ color: 'var(--gold)' }}>{i + 1}</span>}
+                                        </span>
+                                        <span className="flex-1 min-w-0 font-display text-[1.4rem] leading-tight" style={{ color: id === current ? 'var(--gold)' : 'var(--text-primary)' }}>{PRAYER_NAMES[id]}</span>
+                                        <span className="font-display text-[1.2rem] tabular" style={{ color: 'var(--text-muted)' }}>{clock(times[id], city.tz)}</span>
                                     </button>
                                 </li>
                             );
                         })}
                         <li style={{ borderBottom: '1px solid var(--border)' }}>
                             <button onClick={() => go(`#/tasbihat/${NAARIA}`)} className="row-link w-full text-left py-4 px-1 flex items-center gap-4">
-                                <span className="w-6 text-center" style={{ color: 'var(--gold)' }} aria-hidden="true">❃</span>
-                                <span className="flex-1 min-w-0 font-display text-[1.35rem] leading-tight" style={{ color: 'var(--text-primary)' }}>{t('Ан-Наария салаваты')}</span>
+                                <span className="w-9 text-center text-[1.1rem]" style={{ color: 'var(--gold)' }} aria-hidden="true">❃</span>
+                                <span className="flex-1 min-w-0 font-display text-[1.4rem] leading-tight" style={{ color: 'var(--text-primary)' }}>{t('Ан-Наария салаваты')}</span>
                                 <ChevronRight className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
                             </button>
                         </li>
                     </ol>
                 </Section>
-                <p className="text-[0.78rem] italic mt-6" style={{ color: 'var(--text-muted)' }}>{t('Текст «Санарип таспихаттан» (addua.vercel.app) өзгөртүүсүз алынды. Куран аяттары — Мадина мусхафынан.')}</p>
+                <Section eyebrow={t('Бул апта')}>
+                    <WeekGrid now={now} />
+                </Section>
+                <p className="text-[0.78rem] italic mt-8" style={{ color: 'var(--text-muted)' }}>{t('Текст «Санарип таспихаттан» (addua.vercel.app) өзгөртүүсүз алынды. Куран аяттары — Мадина мусхафынан.')}</p>
             </div>
         </AppFrame>
     );
@@ -106,8 +153,8 @@ const Repeated: React.FC<{ line: Line; centred: boolean }> = ({ line, centred })
         <span className={`tasbihat-repeat ${done ? 'is-done' : ''} ${centred ? 'justify-center' : ''}`}>
             <button type="button" onClick={tap} className="tasbihat-repeat-tap" aria-label={t('Саноо: {0} / {1}', count, target)}>
                 <span className="flex-1 min-w-0"><Words parts={line.parts} /></span>
-                <span className="tasbihat-count tabular" aria-hidden="true">
-                    {done ? <Check className="w-4 h-4" /> : <><span className="font-display text-[1.25em] leading-none" style={{ color: count > 0 ? 'var(--gold)' : undefined }}>{count}</span><span className="opacity-70"> / {target}</span></>}
+                <span className="tasbihat-ring tabular" aria-hidden="true" style={{ ['--p' as string]: `${Math.min(1, count / target) * 360}deg` }}>
+                    <span className="tasbihat-ring-in">{done ? <Check className="w-4 h-4" /> : <><span className="font-display text-[1.15em] leading-none">{count}</span><span className="text-[0.62em] opacity-70">/{target}</span></>}</span>
                 </span>
             </button>
             {count > 0 && <button type="button" onClick={() => setCount(0)} className="tasbihat-reset" aria-label={t('Кайра баштоо')}><RotateCcw className="w-3.5 h-3.5" /></button>}
@@ -155,9 +202,22 @@ const Passage: React.FC<{ surah: number; from: number; to: number }> = ({ surah,
     );
 };
 
-const Paragraph: React.FC<{ block: Block; all: boolean }> = ({ block, all }) => {
+const Paragraph: React.FC<{ block: Block; all: boolean; script: Script }> = ({ block, all, script }) => {
     const lines = useMemo(() => linesOf(block.parts ?? []), [block.parts]);
     const centred = !!block.c;
+    const arabic = script === 'ar' ? arabicFor(block) : null;
+    if (arabic) {
+        // The verified Arabic in place of the Kyrgyz letters; the directions stay.
+        const notes = (block.parts ?? []).filter(([k]) => k === 1 || k === 3);
+        return (
+            <div className="tasbihat-p">
+                <p dir="rtl" lang="ar" className="quran-text tasbihat-ar">{arabic.ar}</p>
+                <div className="text-center text-[0.72em] mt-1" style={{ color: 'var(--text-muted)' }}>{arabic.src}</div>
+                {notes.length > 0 && <div className="text-center mt-1"><Words parts={notes} /></div>}
+                {(block.m?.length) ? <Meaning block={{ ...block, ar: undefined }} all={all} /> : null}
+            </div>
+        );
+    }
     return (
         <div className={`tasbihat-p ${centred ? 'text-center' : ''} ${block.b ? 'is-lead' : ''}`}>
             {lines.map((line, i) => (
@@ -191,6 +251,7 @@ const Reader: React.FC<{ id: string; theme: Theme; onToggleTheme: () => void }> 
     const [failed, setFailed] = useState(false);
     const [size, setSize] = useState(() => read().size ?? 1.2);
     const [all, setAll] = useState(() => !!read().meanings);
+    const [script, setScript] = useState<Script>(() => read().script ?? 'cyr');
     const [attempt, setAttempt] = useState(0);
     const [done, setDone] = useState(() => tasbihatDone(loadPractice(), id));
     useWakeLock();
@@ -209,23 +270,34 @@ const Reader: React.FC<{ id: string; theme: Theme; onToggleTheme: () => void }> 
         if (next) buzz([30, 50, 90]);
     };
 
-    // How far through the text the reader is.
+    // How far through the text the reader is, and which part is on screen.
     const bar = useRef<HTMLDivElement>(null);
+    const [part, setPart] = useState(0);
     useEffect(() => {
         const onScroll = () => {
             const max = document.documentElement.scrollHeight - window.innerHeight;
             if (bar.current) bar.current.style.transform = `scaleX(${max > 0 ? Math.min(1, window.scrollY / max) : 0})`;
+            const heads = [...document.querySelectorAll<HTMLElement>('[data-part]')];
+            let cur = 0;
+            for (const h of heads) if (h.getBoundingClientRect().top < 140) cur = Number(h.dataset.part);
+            setPart(cur);
         };
         onScroll();
         window.addEventListener('scroll', onScroll, { passive: true });
         return () => window.removeEventListener('scroll', onScroll);
     }, [data]);
+    // Keep the chip of the part on screen visible in the strip.
+    const strip = useRef<HTMLDivElement>(null);
+    useEffect(() => { strip.current?.querySelector<HTMLElement>(`[data-chip="${part}"]`)?.scrollIntoView({ inline: 'center', block: 'nearest' }); }, [part]);
 
     const order = TASBIHAT_ORDER as string[];
     const at = order.indexOf(id);
     const isPrayer = at >= 0;
     const next = isPrayer && at < order.length - 1 ? (order[at + 1] as TasbihatId) : null;
     const title = isPrayer ? t('{0} намазы', PRAYER_NAMES[id as TasbihatId]) : t('Ан-Наария салаваты');
+    const heads = (data?.blocks ?? []).map((b, i) => ({ b, i })).filter(x => x.b.t === 'h');
+    const hasArabic = (data?.blocks ?? []).some(b => b.t === 'p' && arabicFor(b));
+    const chooseScript = (v: Script) => { setScript(v); write({ script: v }); };
 
     return (
         <AppFrame page="tasbihat" title={title} back="#/tasbihat" theme={theme} onToggleTheme={onToggleTheme} ownBar>
@@ -233,33 +305,51 @@ const Reader: React.FC<{ id: string; theme: Theme; onToggleTheme: () => void }> 
             {failed && <Problem onRetry={() => { setFailed(false); setAttempt(n => n + 1); }} />}
             {!data && !failed && <Waiting />}
             {data && (
-                <div className="lg:grid lg:grid-cols-[13rem_minmax(0,42rem)] lg:gap-14 lg:justify-center">
-                    {/* On a wide screen: the parts of the text, to jump between. */}
-                    <nav className="hidden lg:block sticky top-20 self-start pt-8 max-h-[calc(100dvh-8rem)] overflow-y-auto" aria-label={t('Бөлүмдөр')}>
-                        <div className="eyebrow mb-3">{t('Бөлүмдөр')}</div>
-                        {data.blocks.map((b, i) => (b.t === 'h' ? (
-                            <a key={i} href={`#s${i}`} onClick={e => { e.preventDefault(); document.getElementById(`s${i}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }} className="block py-1.5 text-[0.88rem] leading-snug transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-secondary)' }}>{(b.v ?? '').toLowerCase().replace(/[a-zа-яёңөү]/i, ch => ch.toUpperCase())}</a>
-                        ) : null))}
-                    </nav>
+                <>
+                    {/* The parts of the text, always at hand: where you are, and a tap to go. */}
+                    {heads.length > 0 && (
+                        <div className="sticky top-0 z-30 quran-modebar">
+                            <div ref={strip} className="mx-auto max-w-[46rem] flex items-center gap-1 overflow-x-auto h-12" style={{ scrollbarWidth: 'none' }} role="tablist" aria-label={t('Бөлүмдөр')}>
+                                {heads.map(({ b, i }, k) => (
+                                    <button key={i} data-chip={k + 1} role="tab" aria-selected={part === k + 1} onClick={() => document.getElementById(`s${i}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                                        className="flex-shrink-0 px-3 h-8 text-[0.82rem] whitespace-nowrap transition-colors" style={{ color: part === k + 1 ? 'var(--gold)' : 'var(--text-muted)', borderBottom: `1px solid ${part === k + 1 ? 'var(--gold)' : 'transparent'}` }}>
+                                        <span className="font-display tabular mr-1.5">{k + 1}</span>{titleCase(b.v ?? '')}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                     <article className="tasbihat pt-6 pb-10 max-w-[42rem] mx-auto w-full" style={{ fontSize: `${size}rem` }} lang="ky">
-                        <h1 className="hidden sm:block font-display text-[2.2rem] leading-tight text-center mb-2" style={{ color: 'var(--text-primary)' }}>{title}</h1>
+                        <header className="text-center pt-4 pb-2">
+                            <div className="eyebrow" style={{ color: 'var(--gold)' }}>{t('Тасбихат')}</div>
+                            <h1 className="font-display text-[2.3rem] sm:text-[2.8rem] leading-tight mt-1" style={{ color: 'var(--text-primary)' }}>{title}</h1>
+                            {heads.length > 0 && <div className="text-[0.8rem] mt-1" style={{ color: 'var(--text-muted)' }}>{t('{0} бөлүм', heads.length)}</div>}
+                        </header>
+                        {script === 'ar' && hasArabic && (
+                            <p className="text-[0.75em] italic text-center mt-3 px-4" style={{ color: 'var(--text-muted)' }}>{t('Арабча текст текшерилген булагы бар жерлерде гана: Куран аяттары жана «Хисн аль-Муслимдеги» дуба. Калганы — кыргыз тамгалары менен.')}</p>
+                        )}
                         {data.blocks.map((b, i) => {
-                            if (b.t !== 'h') return <Paragraph key={i} block={b} all={all} />;
+                            if (b.t !== 'h') return <Paragraph key={i} block={b} all={all} script={script} />;
+                            const k = heads.findIndex(x => x.i === i) + 1;
                             const passage = PASSAGES[b.v ?? ''];
                             return (
                                 <React.Fragment key={i}>
-                                    <h2 id={`s${i}`} className="tasbihat-head">{b.v}</h2>
-                                    {passage && <Passage {...passage} />}
+                                    <h2 id={`s${i}`} data-part={k} className="tasbihat-head">
+                                        <span className="tasbihat-head-num"><span>{k}</span></span>
+                                        <span className="tasbihat-head-title">{titleCase(b.v ?? '')}</span>
+                                    </h2>
+                                    {passage && script !== 'ar' && <Passage {...passage} />}
                                 </React.Fragment>
                             );
                         })}
                         {id === NAARIA && <OpenCounter />}
                         {isPrayer && (
-                            <div className="mt-10 pt-8 text-center" style={{ borderTop: '1px solid var(--gold-dim)' }}>
-                                <button type="button" onClick={finish} className={`btn ${done ? 'btn-ghost' : 'btn-primary'}`} aria-pressed={done}>
-                                    <Check className="w-4 h-4" />{done ? t('Бүгүн окулду') : t('Окудум')}
+                            <div className="mt-12 pt-10 text-center tasbihat-finish">
+                                <button type="button" onClick={finish} aria-pressed={done} className={`tasbihat-done ${done ? 'is-done' : ''}`}>
+                                    <Check className="w-7 h-7" />
                                 </button>
-                                <p className="text-[0.78rem] mt-3" style={{ color: 'var(--text-muted)' }}>{t('Аптанын эсебине кошулат (ТСП).')}</p>
+                                <div className="font-display text-[1.5rem] mt-4" style={{ color: done ? 'var(--gold)' : 'var(--text-primary)' }}>{done ? t('Бүгүн окулду') : t('Окудум')}</div>
+                                <p className="text-[0.78rem] mt-1" style={{ color: 'var(--text-muted)' }}>{t('Аптанын эсебине кошулат (ТСП).')}</p>
                             </div>
                         )}
                         {next && (
@@ -268,14 +358,17 @@ const Reader: React.FC<{ id: string; theme: Theme; onToggleTheme: () => void }> 
                             </button>
                         )}
                     </article>
-                </div>
+                </>
             )}
             <div className="fixed left-0 right-0 bottom-0 z-30 page-gutter" style={{ paddingBottom: 'max(0.6rem, env(safe-area-inset-bottom))', paddingTop: '0.6rem', backgroundColor: 'color-mix(in oklab, var(--page-plane) 94%, transparent)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderTop: '1px solid var(--border)' }}>
-                <div className="mx-auto max-w-[42rem] flex items-center justify-between gap-2">
-                    <button className={`chip ${all ? 'is-active' : ''}`} aria-pressed={all} onClick={toggleAll}>{t('Баардык маанилери')}</button>
+                <div className="mx-auto max-w-[42rem] flex items-center justify-between gap-1">
+                    <div className="flex items-center" role="group" aria-label={t('Жазуу')}>
+                        <button className={`chip ${script === 'cyr' ? 'is-active' : ''}`} aria-pressed={script === 'cyr'} onClick={() => chooseScript('cyr')}>{t('Кирилл')}</button>
+                        <button className={`chip ${script === 'ar' ? 'is-active' : ''}`} aria-pressed={script === 'ar'} onClick={() => chooseScript('ar')} style={{ fontFamily: 'var(--font-serif)' }}>{t('Арабча')}</button>
+                    </div>
+                    <button className={`chip ${all ? 'is-active' : ''}`} aria-pressed={all} onClick={toggleAll}>{t('Мааниси')}</button>
                     <div className="flex items-center">
                         <button className="btn btn-ghost btn-icon" onClick={() => resize(-0.1)} aria-label={t('Тамганы кичирейтүү')}><Minus className="w-4 h-4" /></button>
-                        <span className="font-display text-[1.1rem] w-9 text-center" aria-hidden="true" style={{ color: 'var(--text-secondary)' }}>Аа</span>
                         <button className="btn btn-ghost btn-icon" onClick={() => resize(0.1)} aria-label={t('Тамганы чоңойтуу')}><Plus className="w-4 h-4" /></button>
                     </div>
                 </div>

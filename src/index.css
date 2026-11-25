@@ -653,3 +653,22 @@ html.screen .nav-short { display: inline !important; }
 .mushaf-sheet .quran-body { text-align: justify; text-align-last: center; }
 [data-ayah].is-reciting { background-color: color-mix(in oklab, var(--gold) 16%, transparent); border-radius: 3px; transition: background-color 300ms ease; }
 li[data-ayah].is-reciting { background-color: color-mix(in oklab, var(--gold) 8%, transparent); }
+
+/* Тасбихат, redrawn: each part opens with its number in a diamond and its
+   name as a title; lines read many times count on a ring; the Arabic in the
+   mushaf's typeface; "Окудум" as a seal at the end. */
+.tasbihat { line-height: 1.85; }
+.tasbihat-head { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; margin: 3rem 0 1.2rem; text-transform: none; letter-spacing: 0; font-weight: 400; scroll-margin-top: 4rem; }
+.tasbihat-head::before, .tasbihat-head::after { display: none; }
+.tasbihat-head-num { width: 2.1rem; height: 2.1rem; display: inline-flex; align-items: center; justify-content: center; transform: rotate(45deg); border: 1px solid var(--gold); font-family: var(--font-display); font-size: 0.95rem; color: var(--gold); }
+.tasbihat-head-title { font-family: var(--font-display); font-size: 1.55em; line-height: 1.15; color: var(--text-primary); text-align: center; }
+.tasbihat-head-title::after { content: ''; display: block; width: 3.5rem; height: 1px; margin: 0.6rem auto 0; background: var(--gold-dim); }
+.tasbihat-head-num > * { transform: rotate(-45deg); }
+.tasbihat-ar { font-size: 1.55em; line-height: 2.15; text-align: center; color: var(--text-primary); white-space: pre-line; margin-top: 0.4em; }
+.tasbihat-repeat-tap { border-color: var(--border); background: color-mix(in oklab, var(--surface) 70%, transparent); padding: 0.7em 0.8em; }
+.tasbihat-ring { flex-shrink: 0; width: 3.1em; height: 3.1em; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; background: conic-gradient(var(--gold) var(--p, 0deg), var(--border-strong) 0); transition: background 200ms ease; }
+.tasbihat-ring-in { width: calc(100% - 4px); height: calc(100% - 4px); border-radius: 999px; background: var(--surface); display: inline-flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1; color: var(--text-primary); font-size: 0.85em; }
+.tasbihat-repeat.is-done .tasbihat-ring-in { color: var(--gold); }
+.tasbihat-done { width: 4.6rem; height: 4.6rem; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--gold); color: var(--gold); transition: background-color 300ms ease, color 300ms ease, transform 200ms ease; }
+.tasbihat-done:active { transform: scale(0.94); }
+.tasbihat-done.is-done { background: var(--gold); color: var(--page-plane); box-shadow: 0 0 0 6px color-mix(in oklab, var(--gold) 16%, transparent), 0 0 30px color-mix(in oklab, var(--gold) 40%, transparent); }

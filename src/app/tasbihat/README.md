@@ -15,3 +15,18 @@
 (`{ t: 'h', v }`) or a paragraph (`{ t: 'p', parts, c?, b?, m?, ar? }`), where
 `parts` are `[kind, text]` pairs (see `index.ts`), `m` is the meaning in
 Kyrgyz and `ar` the Arabic where the source gives it.
+
+## The Arabic (`arabic.json`)
+
+The "Арабча" view shows the Arabic only where a verified source exists, and
+it is copied from that source by a script, never typed:
+
+- Quran passages (Ayat al-Kursi, 33:56, and each tasbihat's closing surah
+  passage) — from `public/quran/<n>.json`, the King Fahd Complex text.
+- "Allahumma antas-salam…" — Hisn al-Muslim no. 66 (the published Arabic
+  text of the book; Muslim, 591).
+
+Each entry is matched to the paragraph whose Kyrgyz text begins with its
+`prefix`. Everything else (Salaatan tunjina, the salawat, the Names, the
+istiaza duas) is shown in Kyrgyz letters until a verified Arabic text of
+the tasbihat is available; add it here the same way.
