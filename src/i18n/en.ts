@@ -963,10 +963,7 @@ export const EN: Record<string, string> = {
     "Үйүңүздүн жыйынтыктарын көрүү үчүн Google аккаунтуңуз менен кириңиз. Капитаныңыз Gmail дарегиңизди жазып койгон болушу керек.": "Sign in with your Google account to see your house's results. Your captain needs to have written down your Gmail address.",
     "Менин үйүм": "My house",
     "Үйдүн рейтинги": "House rating",
-    "Үйдүн рейтинги апта сайын": "The house rating week by week",
-    "мини-карта +{0}": "mini-card +{0}",
     "бул аптанын маалыматы али киргизиле элек": "this week has not been entered yet",
-    "тазалык +{0}": "cleanliness +{0}",
     "Үйдүн адамдары": "The people of the house",
     "сиз": "you",
     "Бул аптанын баасы": "This week's rating",
@@ -1069,5 +1066,6 @@ export const EN: Record<string, string> = {
     "Иш куралдары": "Work tools",
     "Дагы": "More",
     "Ачылганы": "Unlocked",
-    "Үйдөгү орун": "Place in the house"
+    "Үйдөгү орун": "Place in the house",
+    "Рейтингде жок": "Not ranked"
 };
