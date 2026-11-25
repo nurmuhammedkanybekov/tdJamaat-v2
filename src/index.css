@@ -639,3 +639,17 @@ html.screen .nav-short { display: inline !important; }
 @media (prefers-reduced-motion: reduce) { .day-path-now { animation: none; } }
 /* The first page's sun and moon travel below the top bar, not through it. */
 .app-hero .sky-body { margin-top: 4.5rem; }
+
+/* Quran reader: the reading bar under the top, how far into the surah or the
+   mushaf, a surah's framed head, the pages of the mushaf, the voice. */
+.quran-modebar { background: color-mix(in oklab, var(--page-plane) 94%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
+.quran-progress { position: fixed; left: 0; right: 0; top: 0; height: 2px; z-index: 40; background: var(--gold); transform-origin: left; transition: transform 300ms ease; }
+.surah-head-frame { position: relative; padding: 0.9rem 1rem 0.8rem; border: 1px solid var(--gold-dim); outline: 1px solid color-mix(in oklab, var(--gold) 35%, transparent); outline-offset: 3px; background: radial-gradient(ellipse at center, color-mix(in oklab, var(--gold) 9%, transparent), transparent 70%); }
+.surah-head-frame::before, .surah-head-frame::after { content: '◆'; position: absolute; top: 50%; transform: translateY(-50%); font-size: 0.6rem; color: var(--gold); }
+.surah-head-frame::before { left: 0.55rem; } .surah-head-frame::after { right: 0.55rem; }
+.mushaf-sheet { position: relative; margin: 0 auto 1.6rem; padding: 1.1rem 1.1rem 0.9rem; background: var(--surface); border: 1px solid var(--gold-dim); box-shadow: 0 1px 0 var(--border), 0 18px 40px -28px rgba(0,0,0,0.35); }
+.mushaf-sheet::before { content: ''; position: absolute; inset: 5px; border: 1px solid color-mix(in oklab, var(--gold) 28%, transparent); pointer-events: none; }
+@media (min-width: 640px) { .mushaf-sheet { padding: 1.6rem 2rem 1.2rem; } }
+.mushaf-sheet .quran-body { text-align: justify; text-align-last: center; }
+[data-ayah].is-reciting { background-color: color-mix(in oklab, var(--gold) 16%, transparent); border-radius: 3px; transition: background-color 300ms ease; }
+li[data-ayah].is-reciting { background-color: color-mix(in oklab, var(--gold) 8%, transparent); }

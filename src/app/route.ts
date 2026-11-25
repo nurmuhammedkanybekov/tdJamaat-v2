@@ -4,15 +4,15 @@ import { useEffect, useState } from 'react';
 // #/tasbihat, #/tasbihat/<prayer>, #/zikr, #/zikr/<id>. Open with or without
 // an account; the results (#/overview …) stay behind the login.
 export type AppPage = 'today' | 'quran' | 'tasbihat' | 'zikr' | 'house';
-export interface AppRoute { page: AppPage; arg: string | null }
+export interface AppRoute { page: AppPage; arg: string | null; sub?: string | null }
 
 const PAGES: AppPage[] = ['today', 'quran', 'tasbihat', 'zikr', 'house'];
 /** #/namaz (an old link) opens Today, where the prayer times are. */
 const ALIASES: Record<string, AppPage> = { namaz: 'today', home: 'today' };
 
 export const parseApp = (hash: string): AppRoute | null => {
-    const [page, arg] = hash.replace(/^#\/?/, '').split('?')[0].split('/');
-    if ((PAGES as string[]).includes(page)) return { page: page as AppPage, arg: arg || null };
+    const [page, arg, sub] = hash.replace(/^#\/?/, '').split('?')[0].split('/');
+    if ((PAGES as string[]).includes(page)) return { page: page as AppPage, arg: arg || null, sub: sub || null };
     if (page in ALIASES) return { page: ALIASES[page], arg: null };
     return null;
 };

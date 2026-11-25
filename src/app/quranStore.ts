@@ -1,8 +1,8 @@
 // Where the reader stopped, and the chosen text size — on this device only.
-export interface LastRead { surah: number; ayah: number; name: string }
+export interface LastRead { surah: number; ayah: number; name: string; page?: number }
 const KEY = 'tdjamaat-quran-v1';
 export interface Bookmark { surah: number; ayah: number; name: string; at: string }
-export type ReadMode = 'mushaf' | 'translation';
+export type ReadMode = 'mushaf' | 'translation' | 'pages';
 interface Store { last?: LastRead; size?: number; mode?: ReadMode; marks?: Bookmark[] }
 const read = (): Store => { try { return JSON.parse(localStorage.getItem(KEY) ?? '{}') as Store; } catch { return {}; } };
 const write = (s: Store) => { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch { /* not critical */ } };

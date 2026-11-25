@@ -836,7 +836,6 @@ export const EN: Record<string, string> = {
     "{0}:{1}": "{0}:{1}",
     "Көчүрүү": "Copy",
     "Түшүндүрмө": "Note",
-    "{0}-аят: сактоо, көчүрүү": "Ayah {0}: save, copy",
     "Сажда аяты": "Ayah of prostration",
     "Кийинки сүрө": "Next surah",
     "Окуу түрү": "Reading mode",
@@ -994,5 +993,19 @@ export const EN: Record<string, string> = {
     "Бет": "Pages",
     "Google менен кирүү азырынча жабык: админ Supabase'те «Allow new users to sign up» күйгүзүшү керек.": "Signing in with Google is closed for now: the admin needs to switch on \"Allow new users to sign up\" in Supabase.",
     "Google менен кирүү азырынча күйгүзүлө элек (админ үчүн: SETUP.md, 4b).": "Google sign-in is not switched on yet (for the admin: SETUP.md, 4b).",
-    "Google менен кирүү ишке ашкан жок.": "Signing in with Google did not work."
+    "Google менен кирүү ишке ашкан жок.": "Signing in with Google did not work.",
+    "Мусхафты барак боюнча окуу": "Read the mushaf page by page",
+    "604 барак, бир барактан экинчисине токтобой": "604 pages, one flowing into the next",
+    "Ушул аяттан угуу": "Listen from this ayah",
+    "Угуу": "Listen",
+    "Барак": "Pages",
+    "Окуу жөндөөлөрү": "Reading settings",
+    "Тамганын өлчөмү": "Text size",
+    "Кари": "Reciter",
+    "Үн: everyayah.com (интернет керек).": "Audio: everyayah.com (needs internet).",
+    "Токтотуу": "Pause",
+    "{0}-аят: угуу, сактоо, көчүрүү": "Ayah {0}: listen, save, copy",
+    "Мурунку барак": "Previous page",
+    "Курандын акыры. Аллах кабыл кылсын.": "The end of the Quran. May Allah accept it.",
+    "Кийинки барак": "Next page"
 };

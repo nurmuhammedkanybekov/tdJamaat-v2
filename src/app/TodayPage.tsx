@@ -23,7 +23,7 @@ import { go } from './route';
 import { TASBIHAT_ORDER, currentPrayer } from './tasbihat';
 import type { Ayah, Rendering, Surah } from './quranData';
 import { ayahOfDay, loadIndex, loadSurah, loadTranslation, translationLang } from './quranData';
-import { loadLastRead } from './quranStore';
+import { loadLastRead, loadMode } from './quranStore';
 import { loadPractice, pagesOn, tasbihatDone } from './practice';
 import { CopyWeek } from './MyWeek';
 import { MemberSummary } from './MemberResults';
@@ -240,7 +240,7 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
                         sub={t('Субханаллах 33 · Алхамдулиллах 33 · Аллаху акбар 34')}
                     />
                     <RowLink
-                        onClick={() => go(last ? `#/quran/${last.surah}:${last.ayah}` : '#/quran')}
+                        onClick={() => go(last ? (last.page && loadMode() === 'pages' ? `#/quran/p/${last.page}` : `#/quran/${last.surah}:${last.ayah}`) : '#/quran')}
                         mark={<span className="w-7 mx-1 text-center quran-text text-[1.4rem] leading-none" style={{ color: 'var(--gold)' }} aria-hidden="true">ق</span>}
                         title={last ? t('Куран: {0}', last.name) : t('Куран окуу')}
                         sub={last ? t('{0}-аяттан улантуу · бүгүн {1} бет', last.ayah, pagesOn(practice)) : t('Мадина мусхафы, кыргызча мааниси менен')}

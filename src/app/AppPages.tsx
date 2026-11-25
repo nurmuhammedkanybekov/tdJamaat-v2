@@ -31,7 +31,7 @@ export const AppPages: React.FC<{ route: AppRoute; theme: Theme; onToggleTheme: 
     return (
         <AppContext.Provider value={{ ...ctx, member }}>
             <Suspense fallback={<Waiting />}>
-                {route.page === 'quran' ? <QuranPage arg={route.arg} {...props} />
+                {route.page === 'quran' ? <QuranPage arg={route.arg} sub={route.sub} {...props} />
                     : route.page === 'tasbihat' ? <TasbihatPage arg={route.arg} {...props} />
                         : route.page === 'zikr' ? <ZikrPage arg={route.arg} {...props} />
                             : route.page === 'house' ? <HousePage {...props} />
