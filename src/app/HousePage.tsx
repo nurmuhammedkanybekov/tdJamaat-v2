@@ -78,7 +78,7 @@ const ChooseSelf: React.FC<{ data: DataFile; onlyHouse: string | null; onChoose:
             <ul className="mt-4">
                 {team?.members.map(m => (
                     <li key={m.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                        <button onClick={() => onChoose({ memberId: m.id, name: m.name, houseId: team.id, houseName: team.name })} className="row-link w-full text-left py-3 px-1 flex items-center gap-3">
+                        <button onClick={() => onChoose({ memberId: m.id, name: m.name, houseId: team.id, houseName: team.name, manual: true })} className="row-link w-full text-left py-3 px-1 flex items-center gap-3">
                             <Avatar name={m.name} role={m.role} photoUrl={m.photoUrl} size="sm" />
                             <span className="flex-1 font-display text-[1.25rem]" style={{ color: 'var(--text-primary)' }}>{m.name}</span>
                             <span className="text-[0.72rem] tracking-[0.16em] uppercase" style={{ color: 'var(--gold)' }}>{t('Мен')}</span>

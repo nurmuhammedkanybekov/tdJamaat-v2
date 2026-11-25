@@ -3,10 +3,13 @@
 import { useCallback, useContext, useEffect, useState } from 'react';
 import { AppContext } from './context';
 
-export interface Self { memberId: string; name: string; houseId: string; houseName: string; via: 'google' | 'staff' }
+export interface Self { memberId: string; name: string; houseId: string; houseName: string; via: 'google' | 'staff'; /** Chosen by hand (not the admin's default). */ manual?: boolean }
+
+/** The admin is Нур unless the admin chooses someone else by hand. */
+export const ADMIN_DEFAULT_NAME = 'Нур';
 
 const KEY = 'tdjamaat-self-v1';
-const readStaff = (): Omit<Self, 'via'> | null => { try { return JSON.parse(localStorage.getItem(KEY) ?? 'null'); } catch { return null; } };
+export const readStaff = (): Omit<Self, 'via'> | null => { try { return JSON.parse(localStorage.getItem(KEY) ?? 'null'); } catch { return null; } };
 export const saveStaffSelf = (s: Omit<Self, 'via'> | null) => {
     try { if (s) localStorage.setItem(KEY, JSON.stringify(s)); else localStorage.removeItem(KEY); } catch { /* not critical */ }
     window.dispatchEvent(new Event('tdjamaat-self'));
