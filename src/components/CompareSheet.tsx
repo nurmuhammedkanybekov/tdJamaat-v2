@@ -167,7 +167,7 @@ export const CompareSheet: React.FC<CompareSheetProps> = ({ data, insights, awar
                             <div className="mt-2 max-w-full">
                                 <Picker value={aId} onChange={v => setSide(0, v)} text={nameA ?? ''} label={t('Биринчиси')} color={COLOR_A} align="right">{kind === 'person' ? personOptions : houseOptions}</Picker>
                             </div>
-                            {kind === 'person' && pa && <div className="eyebrow mt-1 max-w-full">{ROLE_LABEL[roleAt(pa, weekIndex)]} · {houseNameAt(pa, weekIndex)}</div>}
+                            {kind === 'person' && pa && <div className="eyebrow mt-1 max-w-full" style={{ letterSpacing: '0.16em' }}>{ROLE_LABEL[roleAt(pa, weekIndex)]} · {houseNameAt(pa, weekIndex)}</div>}
                         </div>
                         <div className="flex flex-col items-center" aria-hidden>
                             <Medallion className="w-9 h-9" style={{ color: 'var(--gold-dim)' }} />
@@ -178,18 +178,21 @@ export const CompareSheet: React.FC<CompareSheetProps> = ({ data, insights, awar
                             <div className="mt-2 max-w-full">
                                 <Picker value={bId} onChange={v => setSide(1, v)} text={nameB ?? ''} label={t('Экинчиси')} color={COLOR_B} align="left">{kind === 'person' ? personOptions : houseOptions}</Picker>
                             </div>
-                            {kind === 'person' && pb && <div className="eyebrow mt-1 max-w-full">{ROLE_LABEL[roleAt(pb, weekIndex)]} · {houseNameAt(pb, weekIndex)}</div>}
+                            {kind === 'person' && pb && <div className="eyebrow mt-1 max-w-full" style={{ letterSpacing: '0.16em' }}>{ROLE_LABEL[roleAt(pb, weekIndex)]} · {houseNameAt(pb, weekIndex)}</div>}
                         </div>
                     </div>
 
                     {/* Head to head */}
                     {h2h && h2h.a + h2h.b + h2h.draws > 0 && (
-                        <div className="text-center">
+                        <div className="text-center compare-score">
                             <div className="eyebrow">{t('Бетме-бет · ким көп аптада утту')}</div>
-                            <div className="flex items-baseline justify-center gap-4 mt-3">
-                                <span className="font-display text-[3rem] leading-none tabular" style={{ color: COLOR_A }}>{h2h.a}</span>
-                                <span className="font-display text-[1.5rem]" style={{ color: 'var(--text-muted)' }}>:</span>
-                                <span className="font-display text-[3rem] leading-none tabular" style={{ color: COLOR_B }}>{h2h.b}</span>
+                            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-5 mt-4">
+                                <span className="font-display text-[4.2rem] sm:text-[5rem] leading-none tabular text-right" style={{ color: COLOR_A }}>{h2h.a}</span>
+                                <span className="font-display text-[2rem]" style={{ color: 'var(--gold-dim)' }}>:</span>
+                                <span className="font-display text-[4.2rem] sm:text-[5rem] leading-none tabular text-left" style={{ color: COLOR_B }}>{h2h.b}</span>
+                            </div>
+                            <div className="grid grid-cols-[1fr_auto_1fr] gap-5 mt-2 text-[0.8rem] italic" style={{ color: 'var(--text-muted)' }}>
+                                <span className="text-right truncate">{nameA}</span><span className="w-[0.6rem]" /><span className="text-left truncate">{nameB}</span>
                             </div>
                             {h2h.draws > 0 && <div className="text-[0.8rem] italic mt-1" style={{ color: 'var(--text-muted)' }}>{t('{0} апта тең чыкты', h2h.draws)}</div>}
                         </div>
@@ -206,11 +209,19 @@ export const CompareSheet: React.FC<CompareSheetProps> = ({ data, insights, awar
                             {(() => {
                                 const lead = metricLeads(metrics.a, metrics.b);
                                 return (
-                                    <p className="text-[0.92rem] mb-3 flex flex-wrap gap-x-4 gap-y-1">
-                                        <span><b style={{ color: COLOR_A }}>{nameA}</b> {t('{0}/8 көрсөткүч боюнча алдыда', lead.a)}</span>
-                                        <span><b style={{ color: COLOR_B }}>{nameB}</b> {t('{0}/8 көрсөткүч боюнча алдыда', lead.b)}</span>
-                                        {lead.draws > 0 && <span style={{ color: 'var(--text-muted)' }}>{t('тең: {0}', lead.draws)}</span>}
-                                    </p>
+                                    <div className="mb-4">
+                                        {/* Eight cells, one per practice: who leads it. */}
+                                        <div className="flex gap-[3px]" aria-hidden="true">
+                                            {Array.from({ length: lead.a }).map((_, i) => <span key={`a${i}`} className="flex-1 h-[6px]" style={{ backgroundColor: COLOR_A }} />)}
+                                            {Array.from({ length: lead.draws }).map((_, i) => <span key={`d${i}`} className="flex-1 h-[6px]" style={{ backgroundColor: 'var(--border-strong)' }} />)}
+                                            {Array.from({ length: lead.b }).map((_, i) => <span key={`b${i}`} className="flex-1 h-[6px]" style={{ backgroundColor: COLOR_B, opacity: 0.55 }} />)}
+                                        </div>
+                                        <div className="flex justify-between gap-3 mt-2 text-[0.85rem]">
+                                            <span><span style={{ color: COLOR_A }}>{nameA}</span> <span style={{ color: 'var(--text-muted)' }}>{t('{0}/8 көрсөткүч боюнча алдыда', lead.a)}</span></span>
+                                            <span className="text-right"><span style={{ color: COLOR_B }}>{nameB}</span> <span style={{ color: 'var(--text-muted)' }}>{t('{0}/8 көрсөткүч боюнча алдыда', lead.b)}</span></span>
+                                        </div>
+                                        {lead.draws > 0 && <div className="text-center text-[0.8rem] italic mt-1" style={{ color: 'var(--text-muted)' }}>{t('тең: {0}', lead.draws)}</div>}
+                                    </div>
                                 );
                             })()}
                             {METRICS.map(m => <Row key={m} row={{ label: metricLabel(m), a: metrics.a[m], b: metrics.b[m], format: 'pct' }} />)}
