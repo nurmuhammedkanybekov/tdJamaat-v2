@@ -691,3 +691,11 @@ li[data-ayah].is-reciting { background-color: color-mix(in oklab, var(--gold) 8%
 .chat-amin:hover, .chat-amin.is-on { color: var(--gold); }
 .chat-delete { opacity: 0.55; transition: opacity 200ms ease, color 200ms ease; }
 .chat-delete:hover { opacity: 1; color: var(--danger); }
+
+/* Announcements read like the pages of a bulletin; the week's goal is a
+   framed line, the first thing in the house's conversation. */
+.news-item { padding: 1.6rem 0; border-bottom: 1px solid var(--border); }
+.news-item:first-of-type { border-top: 1px solid var(--gold); margin-top: 1.5rem; }
+.news-clamp { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.goal-banner { position: relative; margin: 1.2rem 0 0.4rem; padding: 0.9rem 1.1rem; border: 1px solid var(--gold-dim); background: radial-gradient(ellipse at 0% 0%, color-mix(in oklab, var(--gold) 10%, transparent), transparent 70%); }
+.goal-banner::before { content: ''; position: absolute; left: -1px; top: -1px; bottom: -1px; width: 3px; background: var(--gold); }

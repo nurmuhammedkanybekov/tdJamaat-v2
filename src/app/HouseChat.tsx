@@ -13,6 +13,7 @@ import type { ChatMessage } from '../services/chatService';
 import { deleteMessage, fetchMessages, markSeen, sendMessage, setAmin, watchHouse } from '../services/chatService';
 import type { Self } from './self';
 import { useMemberData } from './memberData';
+import { GoalBanner, NotifyToggle } from './Community';
 
 const KY_MONTHS = ['январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'];
 const dayLabel = (d: Date, now = new Date()) => {
@@ -34,6 +35,7 @@ const STARTERS = [
 
 export const HouseChat: React.FC<{ self: Self; canModerate: boolean; theme: Theme; onToggleTheme: () => void }> = ({ self, canModerate, theme, onToggleTheme }) => {
     const { data } = useMemberData();
+    const week = data?.weeks.length ? data.weeks[data.weeks.length - 1].globalWeek : null;
     const [messages, setMessages] = useState<ChatMessage[] | null | undefined>(undefined);
     const [text, setText] = useState('');
     const [sending, setSending] = useState(false);
@@ -98,8 +100,10 @@ export const HouseChat: React.FC<{ self: Self; canModerate: boolean; theme: Them
                     <div className="eyebrow mt-3" style={{ color: 'var(--gold)' }}>{t('Үйдүн сөзү')}</div>
                     <h1 className="font-display text-[2rem] leading-tight mt-1" style={{ color: 'var(--text-primary)' }}>{self.houseName}</h1>
                     <p className="text-[0.8rem] mt-1" style={{ color: 'var(--text-muted)' }}>{t('Үйдүн адамдары, капитан жана админ гана көрөт.')}</p>
-                    <HornBand className="mt-4" />
+                    <div className="mt-2"><NotifyToggle /></div>
+                    <HornBand className="mt-3" />
                 </header>
+                <GoalBanner houseId={self.houseId} week={week} canEdit={canModerate} />
 
                 {messages === undefined && <Waiting />}
                 {messages === null && (

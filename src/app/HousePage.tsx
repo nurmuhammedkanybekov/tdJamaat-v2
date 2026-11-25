@@ -7,6 +7,7 @@ import type { DataFile } from '../types';
 import type { Self } from './self';
 import { useSelf } from './self';
 import { HouseChat } from './HouseChat';
+import { GoalBanner } from './Community';
 import { countUnread } from '../services/chatService';
 import { Camera, ChevronRight, Loader2, MessageCircle } from 'lucide-react';
 import type { Theme } from '../theme';
@@ -157,6 +158,7 @@ export const HousePage: React.FC<{ arg?: string | null; theme: Theme; onToggleTh
                 {data && team && (
                     <>
                         <ChatEntry self={link} />
+                        <GoalBanner houseId={link.houseId} week={latest?.week.globalWeek ?? null} canEdit={ctx.role === 'admin' || (ctx.role === 'leader' && ctx.houseId === link.houseId)} />
                         {/* The house's number, as the results show a week's. */}
                         <div className="text-center pt-8">
                             <div className="eyebrow">{t('Үйдүн рейтинги')}</div>

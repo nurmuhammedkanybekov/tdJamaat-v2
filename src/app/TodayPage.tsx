@@ -29,6 +29,7 @@ import { CopyWeek } from './MyWeek';
 import { MemberSummary } from './MemberResults';
 import { signInWithGoogle, signOutMember, takeAuthError } from '../services/memberService';
 import { useWeekTotals } from './useWeekTotals';
+import { NewsTeaser } from './Community';
 
 const PrayerSheet = lazy(withReload(() => import('../components/PrayerSheet').then(m => ({ default: m.PrayerSheet }))));
 
@@ -189,7 +190,7 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
     const zikr = loadZikr();
     const last = loadLastRead();
     const totals = useWeekTotals();
-    const { member } = useContext(AppContext);
+    const { member, signedIn } = useContext(AppContext);
     const linked = member?.status === 'linked' ? member.link : null;
     const zikrToday = todayTotal(zikr), days = streak(zikr);
     const readToday = TASBIHAT_ORDER.filter(p => tasbihatDone(practice, p, now)).length;
@@ -246,6 +247,12 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
                         sub={last ? t('{0}-аяттан улантуу · бүгүн {1} бет', last.ayah, pagesOn(practice)) : t('Мадина мусхафы, кыргызча мааниси менен')}
                     />
                 </Section>
+
+                {(linked || signedIn) && (
+                    <Section eyebrow={t('Жамааттан кабар')}>
+                        <NewsTeaser />
+                    </Section>
+                )}
 
                 <Section eyebrow={t('Күндүн аяты')}>
                     <DailyAyah now={now} />

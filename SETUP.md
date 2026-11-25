@@ -90,7 +90,18 @@ In the Supabase dashboard, open **SQL Editor** and run, in order:
     the admin says once which person of a house they are, and gets their own
     Үйүм page, photo, chat name and app counts. Needs 16. Safe to re-run.
 
-Run 14 → 15 → 16 → 17 → 18 in this order, **before** deploying the website version
+19. `supabase/community-2026-11.sql` — **Жамааттан кабар** (announcements
+    the admin writes to everyone signed in, shown on Менин күнүм and under
+    menu → Жамааттан кабар) and **Аптанын максаты** (one line a captain
+    pins for the house's week, above the house's conversation). Needs 18.
+    Safe to re-run.
+
+Notifications: in Үйдүн сөзү or Жамааттан кабар, "Билдирмелерди
+күйгүзүү". They arrive while the app is open or in the background (not
+when it is fully closed — that would need a push server). On an iPhone
+they work in the app added to the Home Screen from Safari (iOS 16.4+).
+
+Run 14 → 15 → 16 → 17 → 18 → 19 in this order, **before** deploying the website version
 that uses them (the website copes without them, but shows those parts
 only once their file has run). Each file ends with a check you can read
 in the results panel.

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-    BookOpen, BookOpenCheck, KeyRound, Home as HomeIcon, ChevronLeft, CircleDot, ScrollText, SunMedium, ChevronRight, Clock3, Sparkles, Columns2, Download, ExternalLink, History, Info, Lock, LogIn, LogOut,
+    BookOpen, BookOpenCheck, KeyRound, Home as HomeIcon, Megaphone, ChevronLeft, CircleDot, ScrollText, SunMedium, ChevronRight, Clock3, Sparkles, Columns2, Download, ExternalLink, History, Info, Lock, LogIn, LogOut,
     Menu, Monitor, Moon, PenLine, Play, Settings2, Share2, Sun
 } from 'lucide-react';
 import type { AuthUser } from '../services/authService';
@@ -129,6 +129,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     const items: MenuItem[] = [
         { key: 'today', label: t('Менин күнүм'), icon: SunMedium, onClick: () => { window.location.hash = '#/today'; } },
         ...(authUser && authUser.role !== 'inspector' ? [{ key: 'house', label: t('Менин үйүм'), icon: HomeIcon, onClick: () => { window.location.hash = '#/house'; } }] : []),
+        ...(authUser ? [{ key: 'news', label: t('Жамааттан кабар'), icon: Megaphone, onClick: () => { window.location.hash = '#/news'; } }] : []),
         { key: 'quran', label: t('Куран'), icon: BookOpen, onClick: () => { window.location.hash = '#/quran'; } },
         { key: 'tasbihat', label: t('Тасбихат'), icon: ScrollText, onClick: () => { window.location.hash = '#/tasbihat'; } },
         { key: 'zikr', label: t('Зикир'), icon: CircleDot, onClick: () => { window.location.hash = '#/zikr'; } },
