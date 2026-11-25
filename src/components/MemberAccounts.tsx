@@ -22,21 +22,21 @@ const Row: React.FC<{ name: string; account?: MemberAccount; onSave: (email: str
         catch (e) { setState('error'); setMessage(/duplicate|unique/i.test(String((e as Error)?.message)) ? t('Бул дарек башка адамга жазылган') : (e as Error)?.message ?? ''); }
     };
     return (
-        <li className="py-3.5" style={{ borderBottom: '1px solid var(--border)' }}>
-            <div className="flex items-baseline justify-between gap-3">
-                <span className="font-display text-[1.2rem]" style={{ color: 'var(--text-primary)' }}>{name}</span>
-                <span className="text-[0.75rem]" style={{ color: account?.linked ? 'var(--gold)' : 'var(--text-muted)' }}>
-                    {account?.linked ? <span className="inline-flex items-center gap-1"><Check className="w-3.5 h-3.5" />{t('кирди')}</span> : account ? t('күтүүдө') : ''}
+        <li className="account-row">
+            <div className="min-w-0">
+                <span className="block font-display text-[1.15rem] leading-tight truncate" style={{ color: 'var(--text-primary)' }}>{name}</span>
+                <span className="block text-[0.72rem] italic" style={{ color: account?.linked ? 'var(--gold)' : 'var(--text-muted)' }}>
+                    {account?.linked ? <span className="inline-flex items-center gap-1"><Check className="w-3 h-3" />{t('кирди')}</span> : account ? t('күтүүдө') : t('дарек жок')}
                 </span>
             </div>
-            <div className="flex items-center gap-2 mt-2">
+            <div className="flex items-center gap-2 min-w-0">
                 <input type="email" inputMode="email" autoComplete="off" value={email} onChange={e => { setEmail(e.target.value); setState('idle'); }} placeholder="name@gmail.com" aria-label={t('{0}: Gmail дареги', name)} aria-invalid={!valid || undefined}
-                    className="login-field flex-1 min-w-0 px-3 py-2.5 text-base" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)' }} />
+                    className="entry-input login-field flex-1 min-w-0 px-2 py-2 text-[0.95rem]" style={{ fontFamily: 'var(--font-serif)' }} />
                 <button className="btn btn-ghost disabled:opacity-30" disabled={!changed || !valid || state === 'saving'} onClick={save}>
                     {state === 'saving' ? <Loader2 className="w-4 h-4 animate-spin" /> : state === 'saved' && !changed ? <Check className="w-4 h-4" /> : null}{t('Сактоо')}
                 </button>
             </div>
-            {state === 'error' && <p className="text-[0.82rem] mt-1.5" style={{ color: 'var(--danger)' }}>{message}</p>}
+            {state === 'error' && <p className="account-error text-[0.82rem]" style={{ color: 'var(--danger)' }}>{message}</p>}
         </li>
     );
 };

@@ -969,3 +969,13 @@ li[data-ayah].is-reciting { background-color: color-mix(in oklab, var(--gold) 8%
 }
 /* Hall of Fame: one season per article, rules instead of a box. */
 .hall { padding: 2rem 0 2.2rem; border-top: 1px solid var(--gold-dim); border-bottom: 1px solid var(--border); }
+
+/* ── Admin tools ────────────────────────────────────────────────────── */
+/* An on/off setting: quiet when off, gold text and a soft wash when on. */
+.toggle-pill { display: inline-flex; align-items: center; gap: 0.45rem; height: 2.25rem; padding: 0 0.85rem; font-size: 0.66rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-muted); border: 1px solid var(--border); border-radius: var(--radius-sm); transition: color .2s, border-color .2s, background-color .2s; }
+.toggle-pill:hover { color: var(--text-primary); border-color: var(--border-strong); }
+.toggle-pill.is-on { color: var(--gold); border-color: color-mix(in oklab, var(--gold) 55%, transparent); background: var(--gold-soft); }
+.toggle-pill:disabled { opacity: .5; }
+/* Member sign-in: name and state on the left, the address on the right. */
+.account-row { display: grid; grid-template-columns: 1fr; gap: 0.5rem; padding: 0.85rem 0; border-bottom: 1px solid var(--border); }
+@media (min-width: 560px) { .account-row { grid-template-columns: 10rem minmax(0, 1fr); align-items: center; gap: 1.25rem; } .account-error { grid-column: 2; } }

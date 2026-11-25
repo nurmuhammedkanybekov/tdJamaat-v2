@@ -141,7 +141,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
                                         <div className="text-[0.76rem]" style={{ color: submitted === w.teams.length ? 'var(--success)' : 'var(--text-muted)' }}>{t('{0} / {1} үй киргизди', submitted, w.teams.length)}{w.startDate ? ` · ${formatWeekRange(w.startDate ?? null, w.endDate ?? null)}` : ''}</div>
                                     </div>
                                     <button
-                                        className={`btn ${w.tazalyk ? 'btn-gold' : 'btn-ghost'}`}
+                                        className={`toggle-pill ${w.tazalyk ? 'is-on' : ''}`}
                                         aria-pressed={!!w.tazalyk}
                                         title={t('Бул аптада Тазалык рейтингге кошулабы')}
                                         disabled={busy === `taz${w.globalWeek}`}
@@ -155,7 +155,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
                                         <span className="hidden min-[420px]:inline">{t('Тазалык')}</span>
                                     </button>
                                     <button
-                                        className={`btn ${w.locked ? 'btn-gold' : 'btn-ghost'}`}
+                                        className={`toggle-pill ${w.locked ? 'is-on' : ''}`}
+                                        aria-pressed={!!w.locked}
                                         disabled={busy === `lock${w.globalWeek}`}
                                         onClick={() => run(`lock${w.globalWeek}`, async () => {
                                             await setWeekLocked(w.globalWeek, !w.locked);

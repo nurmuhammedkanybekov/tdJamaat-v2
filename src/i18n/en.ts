@@ -1068,5 +1068,6 @@ export const EN: Record<string, string> = {
     "Ачылганы": "Unlocked",
     "Үйдөгү орун": "Place in the house",
     "Рейтингде жок": "Not ranked",
-    "алдыда": "leading"
+    "алдыда": "leading",
+    "дарек жок": "no address"
 };
