@@ -6,7 +6,8 @@ import { t } from '../i18n';
 import type { AppRoute } from './route';
 import type { AppCtx } from './context';
 import { AppContext } from './context';
-import { useMember } from './useMember';
+import { useMember, usePracticeSync } from './useMember';
+import { useSelf } from './self';
 
 const TodayPage = lazy(withReload(() => import('./TodayPage').then(m => ({ default: m.TodayPage }))));
 const QuranPage = lazy(withReload(() => import('./QuranPage').then(m => ({ default: m.QuranPage }))));
@@ -20,6 +21,13 @@ const Waiting: React.FC = () => (
     </div>
 );
 
+/** A captain or the admin who chose "Мен": their counts reach the form too. */
+const StaffSync: React.FC = () => {
+    const { self } = useSelf();
+    usePracticeSync(self?.via === 'staff' ? self.memberId : null);
+    return null;
+};
+
 const TITLES: Record<AppRoute['page'], () => string> = {
     today: () => t('Менин күнүм'), house: () => t('Үйүм'), quran: () => t('Куран'), tasbihat: () => t('Тасбихат'), zikr: () => t('Зикир')
 };
@@ -30,11 +38,12 @@ export const AppPages: React.FC<{ route: AppRoute; theme: Theme; onToggleTheme: 
     const props = { theme, onToggleTheme };
     return (
         <AppContext.Provider value={{ ...ctx, member }}>
+            <StaffSync />
             <Suspense fallback={<Waiting />}>
                 {route.page === 'quran' ? <QuranPage arg={route.arg} sub={route.sub} {...props} />
                     : route.page === 'tasbihat' ? <TasbihatPage arg={route.arg} {...props} />
                         : route.page === 'zikr' ? <ZikrPage arg={route.arg} {...props} />
-                            : route.page === 'house' ? <HousePage {...props} />
+                            : route.page === 'house' ? <HousePage arg={route.arg} {...props} />
                             : <TodayPage {...props} />}
             </Suspense>
         </AppContext.Provider>

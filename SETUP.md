@@ -84,7 +84,13 @@ In the Supabase dashboard, open **SQL Editor** and run, in order:
     may set their **own** photo (and see their house's photos). Needs 16.
     Safe to re-run.
 
-Run 14 → 15 → 16 → 17 in this order, **before** deploying the website version
+18. `supabase/house-chat-2026-11.sql` — **Үйдүн сөзү**, each house's own
+    conversation (the house's people, its captain and the admin; messages
+    arrive at once through Supabase Realtime), and **"Мен"**: a captain or
+    the admin says once which person of a house they are, and gets their own
+    Үйүм page, photo, chat name and app counts. Needs 16. Safe to re-run.
+
+Run 14 → 15 → 16 → 17 → 18 in this order, **before** deploying the website version
 that uses them (the website copes without them, but shows those parts
 only once their file has run). Each file ends with a check you can read
 in the results panel.

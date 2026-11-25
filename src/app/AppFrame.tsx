@@ -14,6 +14,7 @@ import type { Theme } from '../theme';
 import type { AppPage } from './route';
 import { go } from './route';
 import { AppContext } from './context';
+import { useSelf, useUnread } from './self';
 
 const SECTIONS: Array<{ page: AppPage | 'results'; label: () => string; icon: React.ComponentType<{ className?: string; strokeWidth?: number }> }> = [
     { page: 'today', label: () => t('Күнүм'), icon: SunMedium },
@@ -46,6 +47,8 @@ export const AppFrame: React.FC<{
     const { signedIn, member } = useContext(AppContext);
     const now = useNow(60_000);
     const sky = skyAt(loadCity(), now);
+    const { self, canChoose } = useSelf();
+    const unread = useUnread(self);
     const linked = member?.status === 'linked' ? member.link : null;
     // The last section follows who is here: the results (captain, admin), the
     // member's own house, or the way in.
@@ -77,9 +80,16 @@ export const AppFrame: React.FC<{
                         {/* Who is here: the results for a captain or the admin; a member's
                             own initial; otherwise the way in. */}
                         {signedIn ? (
-                            <span className="hidden md:inline-flex mr-1">
-                                <button onClick={() => open('results')} className="btn btn-ghost" style={{ minHeight: '2.5rem' }}><Trophy className="w-3.5 h-3.5" />{t('Жыйынтыктар')}</button>
-                            </span>
+                            <>
+                                <span className="hidden md:inline-flex mr-1">
+                                    <button onClick={() => open('results')} className="btn btn-ghost" style={{ minHeight: '2.5rem' }}><Trophy className="w-3.5 h-3.5" />{t('Жыйынтыктар')}</button>
+                                </span>
+                                {canChoose && (
+                                    <button onClick={() => go('#/house')} aria-label={self ? self.name : t('Менин үйүм')} title={self ? self.name : t('Менин үйүм')} className="mr-1 w-9 h-9 rounded-full inline-flex items-center justify-center font-display text-[1.05rem]" style={{ border: '1px solid var(--gold)', color: 'var(--gold)' }}>
+                                        {self ? self.name.slice(0, 1) : <UserRound className="w-4 h-4" strokeWidth={1.5} />}
+                                    </button>
+                                )}
+                            </>
                         ) : linked ? (
                             <button onClick={() => go('#/house')} aria-label={linked.name} title={linked.name} className="mr-1 w-9 h-9 rounded-full inline-flex items-center justify-center font-display text-[1.05rem]" style={{ border: '1px solid var(--gold)', color: 'var(--gold)' }}>{linked.name.slice(0, 1)}</button>
                         ) : (
@@ -135,7 +145,7 @@ export const AppFrame: React.FC<{
                             return (
                                 <button key={p} data-section={p} onClick={() => open(p)} aria-current={active ? 'page' : undefined} className="relative flex flex-col items-center justify-center gap-1.5 pt-3 pb-2.5 min-h-[3.6rem] transition-[color,transform] duration-200 active:scale-[0.94]" style={{ color: active ? 'var(--gold)' : 'var(--text-muted)' }}>
                                     {active && <span aria-hidden="true" className="absolute top-[-1px] left-1/2 -translate-x-1/2 h-px w-8" style={{ backgroundColor: 'var(--gold)', boxShadow: '0 0 10px var(--gold)' }} />}
-                                    <Icon className="w-[1.2rem] h-[1.2rem]" strokeWidth={1.3} />
+                                    <span className="relative"><Icon className="w-[1.2rem] h-[1.2rem]" strokeWidth={1.3} />{p === 'house' && unread > 0 && <span className="absolute -top-1 -right-1.5 w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--gold)', boxShadow: '0 0 0 2px var(--page-plane)' }} aria-label={t('{0} жаңы билдирүү', unread)} />}</span>
                                     <span className="text-[0.54rem] min-[360px]:text-[0.58rem] tracking-[0.02em] min-[360px]:tracking-[0.08em] min-[400px]:tracking-[0.14em] uppercase leading-none max-w-full truncate">{label()}</span>
                                 </button>
                             );

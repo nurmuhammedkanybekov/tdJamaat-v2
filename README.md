@@ -62,6 +62,10 @@ visual redesign.
 - **Members sign in with Google** (their captain writes their Gmail
   address): they see their own results and their house only, and their
   app numbers reach the captain's entry form with one tap.
+- **Үйүм and Үйдүн сөзү**: each house has its own page (rating, people,
+  mini-card, Тазалык, one's own results and photo) and its own private
+  conversation with "Аамин" for duas. Captains and the admin choose once
+  which person of a house they are, and use it like any member.
 - **Тазалык** (cleanliness, up to 25 points a week, in the weeks the admin
   chooses), rated by an inspector login or the house's captain, and
   **Жаттоо** (memorization: Quran, hadith, duas…) with goals and badges.

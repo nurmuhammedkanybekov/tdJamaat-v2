@@ -31,8 +31,12 @@ export const useMember = (): MemberState => {
         return () => { alive = false; data.subscription.unsubscribe(); };
     }, []);
 
-    // Send the counts: now, a little after each change, and when the app is put away.
-    const memberId = state.status === 'linked' ? state.link.memberId : null;
+    usePracticeSync(state.status === 'linked' ? state.link.memberId : null);
+    return state;
+};
+
+/** Send this person's app counts: now, a little after each change, and when the app is put away. */
+export const usePracticeSync = (memberId: string | null) => {
     const timer = useRef(0);
     useEffect(() => {
         if (!memberId) return;
@@ -44,5 +48,4 @@ export const useMember = (): MemberState => {
         document.addEventListener('visibilitychange', onHide);
         return () => { window.clearTimeout(timer.current); window.removeEventListener('tdjamaat-practice', soon); document.removeEventListener('visibilitychange', onHide); };
     }, [memberId]);
-    return state;
 };
