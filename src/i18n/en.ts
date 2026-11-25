@@ -433,9 +433,6 @@ export const EN: Record<string, string> = {
     "Акыркы апта": "Last week",
     "Өзгөрүү": "Change",
     "Рекорд": "Record",
-    "Өзгөрүү: {0}-аптага караганда.": "Change: compared with week {0}.",
-    "Өзгөрүү эки аптадан кийин көрүнөт.": "Change appears after two weeks.",
-    " {0}-апта али киргизиле элек.": " Week {0} hasn't been entered yet.",
     // components/views/ReportsView.tsx
     "Төмөндөө": "Falling",
     "Туруктуу": "Steady",
@@ -1062,5 +1059,8 @@ export const EN: Record<string, string> = {
     "Мисалы: ар бирибиз 7 бет Куран окуйбуз": "For example: each of us reads 7 pages of Quran",
     "Үйгө ушул аптанын максатын жазыңыз.": "Write the house's goal for this week.",
     "Максатты жазуу": "Write the goal",
-    "Үйдүн сөзү · {0}": "House talk · {0}"
+    "Үйдүн сөзү · {0}": "House talk · {0}",
+    "Акыркы": "Latest",
+    "{0}-апта күтүлүүдө": "week {0} awaited",
+    "Өзгөрүү — мурунку катышкан аптага караганда; рекорд — сезондогу эң жогорку орточо.": "Change is against the previous week the house took part in; record is the season's highest average."
 };

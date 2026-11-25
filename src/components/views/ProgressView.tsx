@@ -7,7 +7,7 @@ import type { Insights } from '../../utils/insights';
 import { ROLE_LABEL, weekOf } from '../../utils/insights';
 import { TEAM_COLORS } from '../../utils/scoring';
 import { Avatar } from '../Avatar';
-import { ChartTooltip, SectionHeader, Sparkline } from '../ui';
+import { ChartTooltip, Plate, SectionHeader, Sparkline } from '../ui';
 import { axisTick, scoreDomain } from '../../utils/style';
 import { placeSuffix, t } from '../../i18n';
 
@@ -113,7 +113,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ data, insights, onOp
                     <button key={h.id} className="chip" onClick={() => toggle(h.id)} aria-pressed={!off}
                         onMouseEnter={() => !off && setFocus(h.id)} onMouseLeave={() => setFocus(null)} onFocus={() => !off && setFocus(h.id)} onBlur={() => setFocus(null)}
                         style={off ? { opacity: 0.45 } : { borderColor: 'var(--border-strong)' }}>
-                        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: TEAM_COLORS[h.colorIndex % TEAM_COLORS.length] }} />
+                        <span className="w-4 h-[2px]" style={{ backgroundColor: TEAM_COLORS[h.colorIndex % TEAM_COLORS.length] }} />
                         {h.name}
                     </button>
                 );
@@ -123,7 +123,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ data, insights, onOp
 
     return (
         <div className="space-y-8 sm:space-y-10">
-            <section className="card card-pad">
+            <section className="plate">
                 <SectionHeader eyebrow={t('Үй рейтинги')} title={t('Үйлөрдүн апталык прогресси')} sub={t('Үйдү жашыруу же көрсөтүү үчүн атын басыңыз.')} action={<button className="btn btn-ghost" onClick={() => onCompare('house')}><Columns2 className="w-3.5 h-3.5" />  {t('Салыштыруу')}</button>} />
                 {legend}
                 <div className="mt-4 -ml-3 sm:ml-0">
@@ -149,7 +149,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ data, insights, onOp
             </section>
 
             <div className="grid grid-cols-1 gap-8 xl:grid-cols-2">
-                <section className="card card-pad">
+                <section className="plate">
                     <SectionHeader eyebrow={t('Ар бир аптадагы орун')} title={t('Орундардын жарышы')} />
                     <div className="-ml-3 sm:ml-0">
                         <ResponsiveContainer width="100%" height={isPhone ? 240 : 300}>
@@ -170,7 +170,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ data, insights, onOp
                     <div className="mt-3">{legend}</div>
                 </section>
 
-                <section className="card card-pad">
+                <section className="plate">
                     <SectionHeader eyebrow={t('{0}-апта', data.weeks[lastIndex].weekNumber)} title={t('Эң көп өскөндөр')} sub={t('Мурунку аптага караганда эң көп упай кошкондор.')} />
                     {risers.length === 0 ? (
                         <p className="text-[0.88rem]" style={{ color: 'var(--text-muted)' }}>{t('Салыштыруу үчүн эки апталык маалымат керек.')}</p>
@@ -195,36 +195,43 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ data, insights, onOp
 
             <section>
                 <SectionHeader eyebrow={t('Үйлөр')} title={t('Апталар боюнча статистика')} />
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 stagger">
-                    {houses.map(h => {
-                        const counted = h.weeks.filter(w => w.submitted);
-                        const cur = counted[counted.length - 1];
-                        const prev = counted[counted.length - 2];
-                        const change = cur && prev ? cur.avg - prev.avg : 0;
-                        const best = counted.reduce((b, w) => Math.max(b, w.avg), 0);
-                        const color = TEAM_COLORS[h.colorIndex % TEAM_COLORS.length];
-                        return (
-                            <div key={h.id} className="card lift p-4 sm:p-5 relative overflow-hidden">
-                                <div className="flex items-start justify-between gap-3">
-                                    <div className="min-w-0">
-                                        <h3 className="font-display text-[1.45rem] truncate flex items-center gap-2.5" style={{ color: 'var(--text-primary)' }}><span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />{h.name}</h3>
-                                        <div className="text-[0.75rem]" style={{ color: 'var(--text-muted)' }}>{t('{0} аптага катышты', counted.length)}</div>
+                {/* One ledger, not five look-alike cards: each house's line of weeks
+                    drawn wide, and its three numbers in the display face. */}
+                <Plate tight>
+                    <div className="hidden sm:grid grid-cols-[minmax(0,1.3fr)_minmax(0,1.6fr)_repeat(3,5.5rem)] gap-4 pt-3 pb-2 eyebrow" style={{ borderBottom: '1px solid var(--border)' }}>
+                        <span>{t('Үй')}</span><span>{t('Апталар')}</span>
+                        <span className="text-right">{t('Акыркы')}</span><span className="text-right">{t('Өзгөрүү')}</span><span className="text-right">{t('Рекорд')}</span>
+                    </div>
+                    <ol className="stagger">
+                        {houses.map((h, i) => {
+                            const counted = h.weeks.filter(w => w.submitted);
+                            const cur = counted[counted.length - 1];
+                            const prev = counted[counted.length - 2];
+                            const change = cur && prev ? cur.avg - prev.avg : 0;
+                            const best = counted.reduce((b, w) => Math.max(b, w.avg), 0);
+                            const color = TEAM_COLORS[h.colorIndex % TEAM_COLORS.length];
+                            const missing = latestOpenMissing(h);
+                            return (
+                                <li key={h.id} className="py-4 sm:grid sm:grid-cols-[minmax(0,1.3fr)_minmax(0,1.6fr)_repeat(3,5.5rem)] sm:gap-4 sm:items-center" style={{ borderTop: i ? '1px solid var(--border)' : undefined }}>
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <span className="w-5 h-[2px] flex-shrink-0" style={{ backgroundColor: color }} />
+                                        <span className="min-w-0">
+                                            <span className="block font-display text-[1.35rem] leading-tight truncate" style={{ color: 'var(--text-primary)' }}>{h.name}</span>
+                                            <span className="block text-[0.75rem] italic" style={{ color: 'var(--text-muted)' }}>{t('{0} аптага катышты', counted.length)}{missing ? ` · ${t('{0}-апта күтүлүүдө', data.weeks[data.weeks.length - 1].weekNumber)}` : ''}</span>
+                                        </span>
                                     </div>
-                                    <Sparkline values={counted.map(w => w.avg)} color={color} width={80} height={30} />
-                                </div>
-                                <dl className="grid grid-cols-3 gap-2 mt-4">
-                                    <div><dt className="eyebrow">{cur ? t('{0}-апта', cur.weekNumber) : t('Акыркы апта')}</dt><dd className="font-display font-bold text-[1.35rem] tabular" style={{ color: 'var(--text-primary)' }}>{cur ? fmt(cur.avg) : '—'}</dd></div>
-                                    <div><dt className="eyebrow">{t('Өзгөрүү')}</dt><dd className="font-display font-bold text-[1.35rem] tabular" style={{ color: change > 0 ? 'var(--success)' : change < 0 ? 'var(--danger)' : 'var(--text-muted)' }}>{prev ? `${change > 0 ? '+' : ''}${fmt(change)}` : '—'}</dd></div>
-                                    <div><dt className="eyebrow">{t('Рекорд')}</dt><dd className="font-display font-bold text-[1.35rem] tabular" style={{ color: 'var(--text-primary)' }}>{counted.length ? fmt(best) : '—'}</dd></div>
-                                </dl>
-                                <p className="text-[0.75rem] italic mt-2" style={{ color: 'var(--text-muted)' }}>
-                                    {prev ? t('Өзгөрүү: {0}-аптага караганда.', prev.weekNumber) : t('Өзгөрүү эки аптадан кийин көрүнөт.')}
-                                    {latestOpenMissing(h) && t(' {0}-апта али киргизиле элек.', data.weeks[data.weeks.length - 1].weekNumber)}
-                                </p>
-                            </div>
-                        );
-                    })}
-                </div>
+                                    <div className="mt-3 sm:mt-0"><Sparkline values={counted.map(w => w.avg)} color={color} width={220} height={34} /></div>
+                                    <div className="grid grid-cols-3 sm:contents mt-3 sm:mt-0">
+                                        <div className="sm:text-right"><div className="eyebrow sm:hidden">{cur ? t('{0}-апта', cur.weekNumber) : t('Акыркы апта')}</div><div className="font-display text-[1.4rem] tabular" style={{ color: 'var(--text-primary)' }}>{cur ? fmt(cur.avg) : '—'}</div></div>
+                                        <div className="sm:text-right"><div className="eyebrow sm:hidden">{t('Өзгөрүү')}</div><div className="font-display text-[1.4rem] tabular" style={{ color: change > 0 ? 'var(--success)' : change < 0 ? 'var(--danger)' : 'var(--text-muted)' }}>{prev ? `${change > 0 ? '+' : ''}${fmt(change)}` : '—'}</div></div>
+                                        <div className="sm:text-right"><div className="eyebrow sm:hidden">{t('Рекорд')}</div><div className="font-display text-[1.4rem] tabular" style={{ color: 'var(--gold)' }}>{counted.length ? fmt(best) : '—'}</div></div>
+                                    </div>
+                                </li>
+                            );
+                        })}
+                    </ol>
+                </Plate>
+                <p className="text-[0.75rem] italic mt-3" style={{ color: 'var(--text-muted)' }}>{t('Өзгөрүү — мурунку катышкан аптага караганда; рекорд — сезондогу эң жогорку орточо.')}</p>
             </section>
         </div>
     );

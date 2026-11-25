@@ -1,6 +1,7 @@
 // The desk: the first thing a captain or the admin sees on the overview —
 // their own house's week (or, for the admin, who is still missing) and the
 // one action that matters next. Numbers come from src/utils/desk.ts.
+import { Corners } from './Ornament';
 import React, { useState } from 'react';
 import { ArrowRight, Check, CheckCircle2, Clock3, Lock, PenLine, Send, Settings } from 'lucide-react';
 import type { AdminDesk, HouseDesk } from '../utils/desk';
@@ -42,7 +43,8 @@ export const CaptainDesk: React.FC<{
         </button>
     );
     return (
-        <section className="card overflow-hidden animate-view-in relative" aria-label={t('Сиздин үй')} style={{ borderTop: '2px solid var(--gold)' }}>
+        <section className="plate desk-plate animate-view-in" aria-label={t('Сиздин үй')}>
+            <Corners inset={6} size={20} />
             <div className="card-pad flex flex-col sm:flex-row sm:items-center gap-5 sm:gap-8">
                 <div className="flex-1 min-w-0">
                     <div className="eyebrow" style={{ color: 'var(--gold)' }}>{t('Сиздин үй · {0}-апта', desk.weekNumber)}</div>
@@ -51,7 +53,7 @@ export const CaptainDesk: React.FC<{
                 </div>
                 {desk.rank !== null && desk.rating !== null && (
                     <div className="flex items-end gap-6">
-                        <div>
+                        <div className="text-center sm:text-left">
                             <div className="eyebrow">{t('Орун')}</div>
                             <div className="flex items-baseline mt-1">
                                 <span className="font-display text-[2.8rem] leading-none tabular" style={{ color: 'var(--gold)' }}>{desk.rank}</span>
@@ -59,7 +61,7 @@ export const CaptainDesk: React.FC<{
                                 <span className="text-[0.85rem] ml-1.5 whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>· {t('{0} үйдөн', desk.ranked)}</span>
                             </div>
                         </div>
-                        <div>
+                        <div className="pl-6" style={{ borderLeft: '1px solid var(--border)' }}>
                             <div className="eyebrow">{t('Үй рейтинги')}</div>
                             <div className="flex items-baseline gap-2 mt-1">
                                 <CountUp value={desk.rating} className="font-display text-[2.8rem] leading-none tabular" style={{ color: 'var(--text-primary)' }} />
@@ -148,7 +150,8 @@ export const AdminDeskPanel: React.FC<{
     const waiting = !desk.locked && desk.waiting.length > 0;
     const allIn = !desk.locked && desk.waiting.length === 0;
     return (
-        <section className="card overflow-hidden animate-view-in" aria-label={t('Админ')} style={{ borderTop: '2px solid var(--gold)' }}>
+        <section className="plate desk-plate animate-view-in" aria-label={t('Админ')}>
+            <Corners inset={6} size={20} />
             <div className="card-pad pb-5! sm:pb-6!">
                 <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0">

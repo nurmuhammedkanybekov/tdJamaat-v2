@@ -3,7 +3,7 @@ import React from 'react';
 import { ArrowDown, ArrowUp, Minus, X } from 'lucide-react';
 import { useModal } from '../hooks/useModal';
 import { perfBarColor } from '../utils/style';
-import { Crown, Mark } from './Ornament';
+import { Corners, Crown, Mark } from './Ornament';
 import { t } from '../i18n';
 
 /** ▲2 / ▼1 / — : places gained since last week. */
@@ -166,4 +166,44 @@ export const StateCard: React.FC<{ title: string; text: string; action?: React.R
             {action && <div className="mt-5">{action}</div>}
         </div>
     </div>
+);
+
+/** One engraved plate with the gold corner ornaments — the frame the profile
+ *  uses, for any group of related numbers (instead of a row of boxes). */
+export const Plate: React.FC<{ children: React.ReactNode; className?: string; tight?: boolean }> = ({ children, className = '', tight }) => (
+    <div className={`plate ${tight ? 'is-tight' : ''} ${className}`}>
+        <Corners inset={6} size={20} />
+        {children}
+    </div>
+);
+
+/** Fulfilment beads: one diamond per unit of the plan (at most ten), gold up
+ *  to what was done; more than the plan shows as +n. */
+export const Beads: React.FC<{ actual: number; target: number }> = ({ actual, target }) => {
+    const n = Math.max(1, Math.min(10, Math.round(target) || 1));
+    const filled = target > 0 ? Math.min(n, Math.floor((Math.min(actual, target) / target) * n + 1e-9)) : 0;
+    const extra = target > 0 && actual > target ? Math.round(actual - target) : 0;
+    return (
+        <span className="beads" aria-hidden="true">
+            {Array.from({ length: n }, (_, i) => <span key={i} className={i < filled ? 'is-on' : ''} />)}
+            {extra > 0 && <em>+{extra}</em>}
+        </span>
+    );
+};
+
+/** Eight thin columns: how much of each metric's plan was done (a skyline of
+ *  the week), up to one and a half times the plan; the hairline is the plan. */
+export const Skyline: React.FC<{ items: Array<{ label: string; title: string; pct: number }> }> = ({ items }) => (
+    <span className="skyline" role="img" aria-label={items.map(i => `${i.title} ${Math.round(i.pct)}%`).join(', ')}>
+        {items.map(i => (
+            <span key={i.label} className="skyline-col" title={`${i.title} — ${Math.round(i.pct)}%`}>
+                <span className="skyline-bar">
+                    {/* The column is 150% of the plan tall; the hairline marks the plan. */}
+                    <span className="skyline-fill" style={{ height: `${Math.max(3, Math.min(150, i.pct)) / 1.5}%`, background: i.pct >= 100 ? 'var(--gold)' : perfBarColor(i.pct), opacity: i.pct >= 100 ? 1 : 0.75 }} />
+                    <span className="skyline-plan" />
+                </span>
+                <span className="skyline-label">{i.label}</span>
+            </span>
+        ))}
+    </span>
 );

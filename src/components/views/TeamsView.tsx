@@ -7,7 +7,7 @@ import { MINI_CARD_POINTS, TEAM_COLORS, calculatePerformancePercentage } from '.
 import { TAZALYK_MAX } from '../../utils/tazalyk';
 import { Avatar } from '../Avatar';
 import { CountUp } from '../motion';
-import { Movement, ProgressBar, SectionHeader, Sparkline } from '../ui';
+import { Beads, Movement, Plate, SectionHeader, Skyline, Sparkline } from '../ui';
 import { perfColor, heatBg } from '../../utils/style';
 import { t } from '../../i18n';
 
@@ -15,6 +15,7 @@ import { houseBreakdown } from '../../utils/breakdown';
 import { PointsBreakdown } from '../PointsBreakdown';
 import { cardLabel, cardName, metricLabel, metricName } from '../../utils/metrics';
 import { JattooHouse } from '../Jattoo';
+import { Corners } from '../Ornament';
 
 const TAZ_WHO: Record<string, string> = { inspector: t('Тазалык текшерүүчү'), leader: t('Капитан'), admin: t('Админ') };
 
@@ -78,7 +79,8 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
             </div>
 
             {/* House summary, in the house's own colour. */}
-            <section key={team.id} className="card overflow-hidden animate-view-in" style={{ borderTop: `2px solid ${color}` }}>
+            <section key={team.id} className="plate desk-plate animate-view-in" style={{ borderTop: `2px solid ${color}` }}>
+                <Corners inset={6} size={20} />
                 <div className="card-pad flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
                     <div className="flex-1 min-w-0">
                         <div className="eyebrow flex items-center gap-2" style={{ color: 'var(--gold)' }}>{t('{0} · {1}-апта', hw?.rank ? t('{0}-орун', hw.rank) : t('Рейтингде жок'), week.weekNumber)}</div>
@@ -145,30 +147,29 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
             {/* Mini card */}
             <section>
                 <SectionHeader eyebrow={t('Командалык иштер')} title={t('Мини-карта')} sub={t('Ар бир иш 100% аткарылса {0} упай кошулат (эң көп {1}). Ашыкчасы эсептелбейт.', MINI_CARD_POINTS, MINI_CARD_POINTS * 7)} />
-                {/* One engraved plate with hairline cells, not seven separate boxes. The
-                    outer edges of the hairlines are clipped by the card. */}
-                <div className="card overflow-hidden">
-                    <div className="grid grid-cols-2 min-[460px]:grid-cols-3 md:grid-cols-4 xl:grid-cols-7 stagger">
+                {/* One engraved plate; each activity as a ledger line: its beads of
+                    the plan filled in gold, the numbers in the display face. */}
+                <Plate>
+                    <ul className="grid grid-cols-1 lg:grid-cols-2 lg:gap-x-12 stagger">
                         {cardKeys.map(key => {
                             const v = team.miniCard[key];
                             const pct = calculatePerformancePercentage(v.actual, v.target);
                             const done = pct >= 100;
                             return (
-                                <div key={key} className="p-3.5 sm:p-5 flex flex-col" style={{ boxShadow: '1px 0 0 var(--border), 0 1px 0 var(--border)' }}>
-                                    <div className="flex items-center justify-between gap-2">
-                                        <span className="eyebrow" style={{ letterSpacing: '0.18em', color: done ? 'var(--gold)' : 'var(--text-muted)' }} title={cardName(key)}>{cardLabel(key)}</span>
-                                        {done && <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--gold)' }} aria-hidden="true" />}
-                                    </div>
-                                    <div className="font-display text-[1.75rem] sm:text-[2rem] tabular leading-none mt-2.5 sm:mt-3" style={{ color: done ? 'var(--gold)' : 'var(--text-primary)' }}>
-                                        {v.actual}<span className="text-[1rem]" style={{ color: 'var(--text-muted)' }}> / {v.target}</span>
-                                    </div>
-                                    <div className="mt-auto pt-3 sm:pt-4"><ProgressBar pct={pct} height={2} /></div>
-                                    <div className="text-[0.72rem] mt-1.5 tabular" style={{ color: perfColor(pct) }}>{Math.round(pct)}%</div>
-                                </div>
+                                <li key={key} className="ledger-row">
+                                    <span className="min-w-0 flex-1">
+                                        <span className="block text-[1rem] leading-tight truncate" style={{ color: 'var(--text-primary)' }}>{cardName(key)}</span>
+                                        <span className="block eyebrow mt-1" style={{ letterSpacing: '0.18em', color: done ? 'var(--gold)' : 'var(--text-muted)' }}>{cardLabel(key)}{done && ' · ✓'}</span>
+                                    </span>
+                                    <Beads actual={v.actual} target={v.target} />
+                                    <span className="w-[4.6rem] text-right font-display tabular leading-none text-[1.55rem]" style={{ color: done ? 'var(--gold)' : 'var(--text-primary)' }}>
+                                        {v.actual}<span className="text-[0.85rem]" style={{ color: 'var(--text-muted)' }}> / {v.target}</span>
+                                    </span>
+                                </li>
                             );
                         })}
-                    </div>
-                </div>
+                    </ul>
+                </Plate>
             </section>
 
             {/* Members */}
@@ -179,16 +180,18 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
                 />
 
                 {/* Phone & tablet: cards */}
-                <ol className="lg:hidden space-y-3 stagger">
-                    {members.map(({ s, w }, i) => (
-                        <li key={s.id}>
-                            <MemberCard s={s} w={w} place={i + 1} weekIndex={weekIndex} onOpen={() => onOpenProfile(s.id)} />
-                        </li>
-                    ))}
-                </ol>
+                <Plate className="lg:hidden" tight>
+                    <ol className="stagger">
+                        {members.map(({ s, w }, i) => (
+                            <li key={s.id} style={{ borderTop: i ? '1px solid var(--border)' : undefined }}>
+                                <MemberRow s={s} w={w} place={i + 1} weekIndex={weekIndex} onOpen={() => onOpenProfile(s.id)} />
+                            </li>
+                        ))}
+                    </ol>
+                </Plate>
 
                 {/* Desktop: table */}
-                <div className="hidden lg:block card overflow-hidden">
+                <Plate className="hidden lg:block" tight>
                     <table className="data-table">
                         <thead>
                             <tr>
@@ -223,7 +226,7 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
                             ))}
                         </tbody>
                     </table>
-                </div>
+                </Plate>
             </section>
 
             {/* Where the house's points came from */}
@@ -259,30 +262,24 @@ export const TeamsView: React.FC<TeamsViewProps> = ({ data, weekIndex, insights,
     );
 };
 
-const MemberCard: React.FC<{ s: MemberSeries; w: MemberWeek; place: number; weekIndex: number; onOpen: () => void }> = ({ s, w, place, weekIndex, onOpen }) => (
-    <button onClick={onOpen} className="card lift w-full text-left p-3.5 sm:p-4">
+const MemberRow: React.FC<{ s: MemberSeries; w: MemberWeek; place: number; weekIndex: number; onOpen: () => void }> = ({ s, w, place, weekIndex, onOpen }) => (
+    <button onClick={onOpen} className="row-link w-full text-left py-4 px-1">
         <div className="flex items-center gap-3">
-            <span className="w-6 font-display font-bold text-[1.1rem] tabular" style={{ color: place <= 3 && !w.excused ? 'var(--gold)' : 'var(--text-muted)' }}>{w.excused ? '—' : pad2(place)}</span>
+            <span className="w-7 font-display text-[1.35rem] tabular text-center" style={{ color: place <= 3 && !w.excused ? 'var(--gold)' : 'var(--text-muted)' }}>{w.excused ? '—' : place}</span>
             <Avatar name={s.name} role={w.member.role} photoUrl={w.member.photoUrl} size="md" />
             <div className="flex-1 min-w-0">
-                <div className="font-bold truncate" style={{ color: 'var(--text-primary)' }}>{w.member.name}</div>
-                <div className="text-[0.75rem] italic" style={{ color: 'var(--text-muted)' }}>{ROLE_LABEL[w.member.role]}</div>
+                <div className="font-display text-[1.25rem] leading-tight truncate" style={{ color: 'var(--text-primary)' }}>{w.member.name}</div>
+                <div className="text-[0.78rem] italic" style={{ color: 'var(--text-muted)' }}>{ROLE_LABEL[w.member.role]}</div>
             </div>
             <div className="text-right">
-                <div className="font-display font-bold text-[1.5rem] leading-none tabular" style={{ color: 'var(--text-primary)' }}>{w.excused ? <span className="text-[0.8rem] italic" style={{ color: 'var(--text-muted)' }}>{t('себептүү')}</span> : fmt(w.score)}</div>
+                <div className="font-display text-[1.7rem] leading-none tabular" style={{ color: 'var(--text-primary)' }}>{w.excused ? <span className="text-[0.85rem] italic" style={{ color: 'var(--text-muted)' }}>{t('себептүү')}</span> : fmt(w.score)}</div>
                 <div className="mt-1 flex justify-end"><Movement delta={movement(s.weeks, weekIndex)} /></div>
             </div>
         </div>
-        <div className="grid grid-cols-4 md:grid-cols-8 gap-x-2 gap-y-2.5 mt-3.5 pt-3" style={{ borderTop: '1px solid var(--border)' }}>
-            {METRICS.map(m => (
-                <div key={m} className="min-w-0">
-                    <div className="flex items-baseline justify-between gap-1 text-[0.72rem]">
-                        <span style={{ color: 'var(--text-muted)' }} title={metricName(m)}>{metricLabel(m)}</span>
-                        <span className="font-bold tabular" style={{ color: perfColor(w.pct[m]) }}>{Math.round(w.pct[m])}%</span>
-                    </div>
-                    <div className="mt-1"><ProgressBar pct={w.pct[m]} height={3} /></div>
-                </div>
-            ))}
-        </div>
+        {!w.excused && (
+            <div className="mt-3 pl-10">
+                <Skyline items={METRICS.map(m => ({ label: metricLabel(m), title: metricName(m), pct: w.pct[m] }))} />
+            </div>
+        )}
     </button>
 );
