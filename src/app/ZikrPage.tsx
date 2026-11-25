@@ -99,8 +99,8 @@ const Counter: React.FC<{ zikr: Zikr; store: ZikrStore; update: (fn: (s: ZikrSto
             {/* The whole upper area is the button. */}
             <button onClick={tap} className="zikr-tap flex-1 flex flex-col items-center justify-center text-center select-none py-6 w-full" aria-label={t('Саноо: {0}', zikr.reading)}>
                 {sequence && <div className="eyebrow mb-3" style={{ color: 'var(--gold)' }}>{t('Намаздан кийин · {0} / 3', sequence.index + 1)}</div>}
-                <div dir="rtl" lang="ar" className="quran-text text-[2.1rem] sm:text-[2.5rem] leading-[1.9] px-2" style={{ color: 'var(--text-primary)' }}>{zikr.arabic}</div>
-                <div className="font-display text-[1.25rem] mt-1" style={{ color: 'var(--gold)' }}>{zikr.reading}</div>
+                <div dir="rtl" lang="ar" className="quran-text text-[2.4rem] sm:text-[2.9rem] leading-[1.8] px-2" style={{ color: 'var(--text-primary)' }}>{zikr.arabic}</div>
+                <div className="font-display text-[1.5rem] sm:text-[1.7rem] leading-tight mt-1 px-2" style={{ color: 'var(--gold)' }}>{zikr.reading}</div>
                 <div className="text-[0.85rem] italic mt-0.5 mb-6 max-w-[26rem]" style={{ color: 'var(--text-muted)' }}>{zikr.meaning}</div>
                 <Ring value={count} target={target} full={done}>
                     <span key={pulse} className="zikr-number font-display tabular leading-none" style={{ fontSize: 'clamp(4.5rem, 24vw, 7rem)', color: done ? 'var(--gold)' : 'var(--text-primary)' }}>{target > 0 && !done ? inRound : target > 0 ? target : count}</span>
@@ -209,15 +209,17 @@ export const ZikrPage: React.FC<{ arg: string | null; theme: Theme; onToggleThem
                                 const today = todayOf(store, z.id), target = targetOf(store, z);
                                 return (
                                     <li key={z.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                                        <button onClick={() => go(`#/zikr/${z.id}`)} className="row-link w-full text-left py-4 px-1 flex items-center gap-4">
+                                        <button onClick={() => go(`#/zikr/${z.id}`)} className="row-link w-full text-left py-5 px-1 flex items-center gap-4">
                                             <span className="flex-1 min-w-0">
-                                                <span className="block font-display text-[1.25rem] leading-tight" style={{ color: 'var(--text-primary)' }}>{z.reading}</span>
-                                                <span className="block text-[0.82rem] italic truncate" style={{ color: 'var(--text-muted)' }}>{z.meaning}</span>
+                                                <span dir="rtl" lang="ar" className="block quran-text text-[1.65rem] sm:text-[1.9rem] leading-[1.7] truncate" style={{ color: 'var(--text-primary)' }}>{z.arabic}</span>
+                                                <span className="block font-display text-[1.2rem] leading-tight mt-1" style={{ color: 'var(--gold)' }}>{z.reading}</span>
+                                                <span className="block text-[0.85rem] italic mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>{z.meaning}</span>
                                             </span>
-                                            <span dir="rtl" lang="ar" className="quran-text text-[1.35rem] lg:text-[1.55rem] hidden min-[420px]:block max-w-[11rem] lg:max-w-[18rem] truncate" style={{ color: 'var(--text-secondary)' }}>{z.arabic}</span>
-                                            <span className="w-14 text-right flex-shrink-0">
-                                                <span className="block font-display text-[1.3rem] tabular leading-none" style={{ color: today > 0 ? 'var(--gold)' : 'var(--text-muted)' }}>{today}</span>
-                                                <span className="block text-[0.68rem] tabular mt-0.5" style={{ color: 'var(--text-muted)' }}>{target > 0 ? `/ ${target}` : '∞'}</span>
+                                            <span className="tasbihat-ring tabular flex-shrink-0" aria-label={t('Бүгүн: {0}', today)} style={{ ['--p' as string]: `${target > 0 ? Math.min(1, today / target) * 360 : today > 0 ? 360 : 0}deg`, fontSize: '1rem' }}>
+                                                <span className="tasbihat-ring-in" style={{ backgroundColor: 'var(--page-plane)' }}>
+                                                    <span className="font-display text-[1.1em] leading-none" style={{ color: today > 0 ? 'var(--gold)' : 'var(--text-muted)' }}>{today}</span>
+                                                    <span className="text-[0.6em] mt-0.5" style={{ color: 'var(--text-muted)' }}>{target > 0 ? `/${target}` : '∞'}</span>
+                                                </span>
                                             </span>
                                         </button>
                                     </li>

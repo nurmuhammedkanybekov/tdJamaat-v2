@@ -80,7 +80,11 @@ In the Supabase dashboard, open **SQL Editor** and run, in order:
     counts reach the captain's form. Needs step 4b (Google) to be useful.
     Captains, the inspector and the admin are not affected. Safe to re-run.
 
-Run 14 → 15 → 16 in this order, **before** deploying the website version
+17. `supabase/member-photos-2026-11.sql` — a member signed in with Google
+    may set their **own** photo (and see their house's photos). Needs 16.
+    Safe to re-run.
+
+Run 14 → 15 → 16 → 17 in this order, **before** deploying the website version
 that uses them (the website copes without them, but shows those parts
 only once their file has run). Each file ends with a check you can read
 in the results panel.
@@ -157,7 +161,17 @@ about 15 minutes:
    your site (e.g. `https://tdjamaat.vercel.app`); under **Redirect URLs**
    add the same address with `/**` at the end (and
    `http://localhost:5173/**` for testing locally).
-5. Run `supabase/members-2026-11.sql` (step 2.16) if you haven't.
+5. **Supabase → Authentication → Sign In / Providers → "Allow new users
+   to sign up": ON.** A member's first Google sign-in creates their account;
+   with sign-ups off, Supabase refuses it ("Signups not allowed") and the
+   site says so on Менин күнүм. This is safe: an account that no captain
+   has given an address to is tied to no one and the database shows it
+   nothing (the same rules protect against an email sign-up).
+6. Run `supabase/members-2026-11.sql` and `supabase/member-photos-2026-11.sql`
+   (steps 2.16–2.17) if you haven't.
+
+On an iPhone, a member signs in best **in Safari** (or after installing the
+app from Safari): Google's page opens and returns to the site there.
 
 Then a captain opens **menu → Мүчөлөрдүн кирүүсү** and writes each
 person's Gmail address. The person opens the site, taps **Google менен
