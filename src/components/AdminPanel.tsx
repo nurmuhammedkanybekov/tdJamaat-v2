@@ -79,9 +79,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
     return (
         <Sheet title={t('Админ панели')} onClose={onClose} width="50rem">
             <div className="px-4 sm:px-6 pt-4">
-                <div className="inline-flex p-1 rounded-full mb-5 max-w-full overflow-x-auto scroll-row" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }} role="tablist">
+                <div className="chip-row mb-6 max-w-full overflow-x-auto scroll-row" role="tablist">
                     {tabs.map(([k, label]) => (
-                        <button key={k} role="tab" aria-selected={tab === k} className={`chip ${tab === k ? 'is-active' : ''}`} style={{ border: 'none' }} onClick={() => { setTab(k); setError(null); setOk(null); }}>{label}</button>
+                        <button key={k} role="tab" aria-selected={tab === k} className={`chip ${tab === k ? 'is-active' : ''}`} onClick={() => { setTab(k); setError(null); setOk(null); }}>{label}</button>
                     ))}
                 </div>
                 {error && <Notice kind="error" text={error} />}

@@ -54,7 +54,7 @@ interface AppHeaderProps {
     season?: { options: Array<{ id: number; name: string }>; selectedId: number; onChange: (id: number) => void };
 }
 
-type MenuItem = { key: string; label: string; icon: React.ComponentType<{ className?: string }>; onClick?: () => void; href?: string; tone?: 'danger' };
+type MenuItem = { key: string; label: string; icon: React.ComponentType<{ className?: string }>; onClick?: () => void; href?: string; tone?: 'danger'; group?: string };
 
 // Dropdown anchored under its button; closes on outside tap or Escape.
 const Dropdown: React.FC<{ button: (open: boolean, toggle: () => void) => React.ReactNode; items: MenuItem[]; header?: React.ReactNode }> = ({ button, items, header }) => {
@@ -79,11 +79,14 @@ const Dropdown: React.FC<{ button: (open: boolean, toggle: () => void) => React.
             {open && (
                 <div
                     role="menu"
-                    className="absolute right-0 mt-2 z-40 w-[17rem] max-w-[calc(100vw-2rem)] py-2 animate-fade-in"
+                    className="absolute right-0 mt-2 z-40 w-[17rem] max-w-[calc(100vw-2rem)] max-h-[calc(100dvh-10.5rem)] sm:max-h-[calc(100dvh-5.5rem)] overflow-y-auto overscroll-contain py-2 animate-fade-in"
                     style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border-strong)', boxShadow: 'var(--shadow-lift)' }}
                 >
                     {header && <div className="px-5 pt-2 pb-3 mb-1" style={{ borderBottom: '1px solid var(--border)' }}>{header}</div>}
-                    {items.map(item => {
+                    {items.map((item, idx) => {
+                        const heading = item.group && item.group !== items[idx - 1]?.group
+                            ? <div className="eyebrow px-5 pt-3 pb-1.5" style={{ color: 'var(--gold)', borderTop: idx ? '1px solid var(--border)' : undefined, marginTop: idx ? '0.4rem' : undefined }}>{item.group}</div>
+                            : null;
                         const content = (
                             <>
                                 <item.icon className="w-4 h-4 flex-shrink-0 opacity-70" />
@@ -91,12 +94,17 @@ const Dropdown: React.FC<{ button: (open: boolean, toggle: () => void) => React.
                                 {item.href && <ExternalLink className="w-3.5 h-3.5 opacity-50" />}
                             </>
                         );
-                        const cls = 'w-full flex items-center gap-3.5 px-5 py-2.5 text-[0.95rem] transition-colors hover:text-[var(--gold)]';
+                        const cls = 'w-full flex items-center gap-3.5 px-5 py-2 text-[0.95rem] transition-colors hover:text-[var(--gold)]';
                         const style = { color: item.tone === 'danger' ? 'var(--danger)' : 'var(--text-secondary)' };
-                        return item.href ? (
-                            <a key={item.key} role="menuitem" href={item.href} target="_blank" rel="noreferrer" className={cls} style={style} onClick={() => setOpen(false)}>{content}</a>
-                        ) : (
-                            <button key={item.key} role="menuitem" className={cls} style={style} onClick={() => { setOpen(false); item.onClick?.(); }}>{content}</button>
+                        return (
+                            <React.Fragment key={item.key}>
+                                {heading}
+                                {item.href ? (
+                                    <a role="menuitem" href={item.href} target="_blank" rel="noreferrer" className={cls} style={style} onClick={() => setOpen(false)}>{content}</a>
+                                ) : (
+                                    <button role="menuitem" className={cls} style={style} onClick={() => { setOpen(false); item.onClick?.(); }}>{content}</button>
+                                )}
+                            </React.Fragment>
                         );
                     })}
                 </div>
@@ -126,30 +134,31 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     const sky = skyAt(city, now);
     const todayTimes = prayerTimes(city, now);
 
+    const DAY = t('Күнүмдүк'), WORK = t('Иш куралдары'), RESULTS = t('Жыйынтыктар'), MORE = t('Дагы');
     const items: MenuItem[] = [
-        { key: 'today', label: t('Менин күнүм'), icon: SunMedium, onClick: () => { window.location.hash = '#/today'; } },
-        ...(authUser && authUser.role !== 'inspector' ? [{ key: 'house', label: t('Менин үйүм'), icon: HomeIcon, onClick: () => { window.location.hash = '#/house'; } }] : []),
-        ...(authUser ? [{ key: 'news', label: t('Жамааттан кабар'), icon: Megaphone, onClick: () => { window.location.hash = '#/news'; } }] : []),
-        { key: 'quran', label: t('Куран'), icon: BookOpen, onClick: () => { window.location.hash = '#/quran'; } },
-        { key: 'tasbihat', label: t('Тасбихат'), icon: ScrollText, onClick: () => { window.location.hash = '#/tasbihat'; } },
-        { key: 'zikr', label: t('Зикир'), icon: CircleDot, onClick: () => { window.location.hash = '#/zikr'; } },
+        { key: 'today', group: DAY, label: t('Менин күнүм'), icon: SunMedium, onClick: () => { window.location.hash = '#/today'; } },
+        ...(authUser && authUser.role !== 'inspector' ? [{ key: 'house', group: DAY, label: t('Менин үйүм'), icon: HomeIcon, onClick: () => { window.location.hash = '#/house'; } }] : []),
+        ...(authUser ? [{ key: 'news', group: DAY, label: t('Жамааттан кабар'), icon: Megaphone, onClick: () => { window.location.hash = '#/news'; } }] : []),
+        { key: 'quran', group: DAY, label: t('Куран'), icon: BookOpen, onClick: () => { window.location.hash = '#/quran'; } },
+        { key: 'tasbihat', group: DAY, label: t('Тасбихат'), icon: ScrollText, onClick: () => { window.location.hash = '#/tasbihat'; } },
+        { key: 'zikr', group: DAY, label: t('Зикир'), icon: CircleDot, onClick: () => { window.location.hash = '#/zikr'; } },
+        { key: 'prayer', group: DAY, label: t('Намаз убактылары'), icon: Clock3, onClick: onPrayer },
         ...(authUser ? [
-            { key: 'entry', label: t('Маалымат кошуу'), icon: PenLine, onClick: onDataEntry },
-            { key: 'tazalyk', label: t('Тазалык'), icon: Sparkles, onClick: onTazalyk },
-            ...(onJattoo ? [{ key: 'jattoo', label: t('Жаттоо'), icon: BookOpenCheck, onClick: onJattoo }] : []),
-            ...(onAccounts ? [{ key: 'accounts', label: t('Мүчөлөрдүн кирүүсү'), icon: KeyRound, onClick: onAccounts }] : []),
-            { key: 'history', label: t('Өзгөртүүлөр тарыхы'), icon: History, onClick: onHistory },
-            ...(isAdmin ? [{ key: 'admin', label: t('Админ панели'), icon: Settings2, onClick: onAdmin }] : [])
+            { key: 'entry', group: WORK, label: t('Маалымат кошуу'), icon: PenLine, onClick: onDataEntry },
+            { key: 'tazalyk', group: WORK, label: t('Тазалык'), icon: Sparkles, onClick: onTazalyk },
+            ...(onJattoo ? [{ key: 'jattoo', group: WORK, label: t('Жаттоо'), icon: BookOpenCheck, onClick: onJattoo }] : []),
+            ...(onAccounts ? [{ key: 'accounts', group: WORK, label: t('Мүчөлөрдүн кирүүсү'), icon: KeyRound, onClick: onAccounts }] : []),
+            { key: 'history', group: WORK, label: t('Өзгөртүүлөр тарыхы'), icon: History, onClick: onHistory },
+            ...(isAdmin ? [{ key: 'admin', group: WORK, label: t('Админ панели'), icon: Settings2, onClick: onAdmin }] : [])
         ] : []),
-        { key: 'compare', label: t('Салыштыруу'), icon: Columns2, onClick: onCompare },
-        { key: 'prayer', label: t('Намаз убактылары'), icon: Clock3, onClick: onPrayer },
-        { key: 'screen', label: screen ? t('Чоң экран: өчүрүү') : t('Чоң экран (жыйын үчүн)'), icon: Monitor, onClick: onToggleScreen },
-        { key: 'formula', label: t('Упай формуласы'), icon: Info, onClick: onFormula },
-        { key: 'share', label: t('Жыйынтыкты бөлүшүү'), icon: Share2, onClick: onShare },
-        ...(installMode !== 'none' ? [{ key: 'install', label: t('Телефонго орнотуу'), icon: Download, onClick: onInstall }] : []),
+        { key: 'compare', group: RESULTS, label: t('Салыштыруу'), icon: Columns2, onClick: onCompare },
+        { key: 'share', group: RESULTS, label: t('Жыйынтыкты бөлүшүү'), icon: Share2, onClick: onShare },
+        { key: 'formula', group: RESULTS, label: t('Упай формуласы'), icon: Info, onClick: onFormula },
+        { key: 'screen', group: MORE, label: screen ? t('Чоң экран: өчүрүү') : t('Чоң экран (жыйын үчүн)'), icon: Monitor, onClick: onToggleScreen },
+        ...(installMode !== 'none' ? [{ key: 'install', group: MORE, label: t('Телефонго орнотуу'), icon: Download, onClick: onInstall }] : []),
         authUser
-            ? { key: 'logout', label: t('Чыгуу'), icon: LogOut, onClick: onLogout, tone: 'danger' as const }
-            : { key: 'login', label: t('Кирүү'), icon: LogIn, onClick: onLogin }
+            ? { key: 'logout', group: MORE, label: t('Чыгуу'), icon: LogOut, onClick: onLogout, tone: 'danger' as const }
+            : { key: 'login', group: MORE, label: t('Кирүү'), icon: LogIn, onClick: onLogin }
     ];
 
     return (

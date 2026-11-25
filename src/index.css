@@ -902,3 +902,6 @@ li[data-ayah].is-reciting { background-color: color-mix(in oklab, var(--gold) 8%
 .pulse-fill { position: absolute; top: 50%; height: 3px; margin-top: -1.5px; }
 .pulse-fill.is-up { left: 50%; background: var(--success); opacity: .75; }
 .pulse-fill.is-down { right: 50%; background: var(--danger); opacity: .7; }
+/* A formula set like an inscription between two rules. */
+.formula-line { padding: 0.9rem 0.5rem; color: var(--text-primary); border-top: 1px solid var(--gold-dim); border-bottom: 1px solid var(--gold-dim); }
+.formula-line + p, .formula-line + .formula-line { margin-top: 0.75rem; }

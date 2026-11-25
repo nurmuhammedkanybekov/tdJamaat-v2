@@ -1064,5 +1064,9 @@ export const EN: Record<string, string> = {
     "мүчөлөрдүн орточосу": "members' average",
     "мини-карта": "mini-card",
     "тазалык күтүлүүдө": "cleanliness pending",
-    "тазалык": "cleanliness"
+    "тазалык": "cleanliness",
+    "Күнүмдүк": "Daily",
+    "Иш куралдары": "Work tools",
+    "Дагы": "More",
+    "Ачылганы": "Unlocked"
 };

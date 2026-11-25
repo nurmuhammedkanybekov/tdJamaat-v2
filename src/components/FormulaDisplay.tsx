@@ -8,16 +8,17 @@ import { metricLabel, metricName } from '../utils/metrics';
 import type { MetricValues } from '../types';
 
 const Formula: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-    <div className="font-display text-[1.15rem] sm:text-[1.3rem] font-semibold px-4 py-3 rounded-[8px] text-center tabular" style={{ backgroundColor: 'var(--accent-soft)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}>
+    <div className="formula-line font-display text-[1.15rem] sm:text-[1.35rem] leading-snug text-center tabular">
         {children}
     </div>
 );
 
+const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
 const Step: React.FC<{ n: number; title: string; children: React.ReactNode }> = ({ n, title, children }) => (
-    <section className="py-5" style={{ borderTop: '1px solid var(--border)' }}>
-        <div className="flex items-center gap-2.5 mb-3">
-            <span className="w-7 h-7 rounded-full flex items-center justify-center font-display text-[0.95rem]" style={{ backgroundColor: 'var(--gold-soft)', color: 'var(--gold)', border: '1px solid color-mix(in oklab, var(--gold) 40%, transparent)' }}>{n}</span>
-            <h3 className="font-bold text-[0.95rem]" style={{ color: 'var(--text-primary)' }}>{title}</h3>
+    <section className="py-7" style={{ borderTop: n > 1 ? '1px solid var(--border)' : undefined }}>
+        <div className="flex items-baseline gap-4 mb-4">
+            <span className="font-display text-[1.6rem] leading-none w-9 flex-shrink-0" style={{ color: 'var(--gold)' }}>{ROMAN[n - 1]}</span>
+            <h3 className="font-display text-[1.25rem] leading-tight" style={{ color: 'var(--text-primary)' }}>{title}</h3>
         </div>
         {children}
     </section>
@@ -33,11 +34,11 @@ export const FormulaSheet: React.FC<{ onClose: () => void }> = ({ onClose }) => 
             <Step n={2} title={t('Пландан ашканы: ар бир кошумча 100% азыраак упай берет')}>
                 <Formula>{t('100%га чейин: эсептелген % = аткарылган %')}<br />{t('100%дан ашса: эсептелген % = 100% × (1 + ln(аткарылган % ÷ 100%))')}</Formula>
                 <p className="text-[0.82rem] mt-2" style={{ color: 'var(--text-muted)' }}>{t('Көп аткаруу дайыма көбүрөөк упай берет, бирок бир эле көрсөткүчтү 8 эсе ашыруу бүт аптаны көтөрүп кетпейт. Эмгек эки эсе көбөйгөн сайын +69% кошулат:')}</p>
-                <div className="grid grid-cols-5 mt-2 text-center tabular" style={{ border: '1px solid var(--border)' }}>
+                <div className="grid grid-cols-5 mt-3 text-center tabular" style={{ borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}>
                     {[100, 200, 400, 800, 1600].map((x, i) => (
-                        <div key={x} className="py-2" style={{ borderLeft: i ? '1px solid var(--border)' : undefined }}>
-                            <div className="text-[0.75rem]" style={{ color: 'var(--text-muted)' }}>{x}%</div>
-                            <div className="font-display text-[1.1rem]" style={{ color: 'var(--text-primary)' }}>{Math.round(creditedPercentage(x))}%</div>
+                        <div key={x} className="py-3" style={{ borderLeft: i ? '1px solid var(--border)' : undefined }}>
+                            <div className="eyebrow" style={{ letterSpacing: '0.14em' }}>{x}%</div>
+                            <div className="font-display text-[1.35rem] mt-1" style={{ color: i ? 'var(--text-primary)' : 'var(--gold)' }}>{Math.round(creditedPercentage(x))}%</div>
                         </div>
                     ))}
                 </div>
@@ -47,10 +48,10 @@ export const FormulaSheet: React.FC<{ onClose: () => void }> = ({ onClose }) => 
                 <p className="text-[0.82rem] mt-2" style={{ color: 'var(--text-muted)' }}>{t('Ар кимдин планы ролуна жараша — ошондуктан упай адилеттүү.')}</p>
             </Step>
             <Step n={4} title={t('Салмактар')}>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-6" style={{ borderTop: '1px solid var(--gold-dim)' }}>
                     {Object.entries(weights).map(([key, value]) => (
-                        <div key={key} className="flex items-baseline justify-between px-3 py-2 rounded-[8px]" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
-                            <span className="font-bold" style={{ color: 'var(--text-muted)' }} title={metricName(key as keyof MetricValues)}>{metricLabel(key as keyof MetricValues)}</span>
+                        <div key={key} className="flex items-baseline justify-between py-2.5" style={{ borderBottom: '1px solid var(--border)' }}>
+                            <span className="eyebrow" style={{ letterSpacing: '0.16em' }} title={metricName(key as keyof MetricValues)}>{metricLabel(key as keyof MetricValues)}</span>
                             <span className="font-display text-[1.15rem] tabular" style={{ color: 'var(--text-primary)' }}>{value}</span>
                         </div>
                     ))}

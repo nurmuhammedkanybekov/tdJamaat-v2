@@ -23,6 +23,7 @@ export const HouseTable: React.FC<{ insights: Insights; weekIndex: number; scope
     const [city, setCity] = useState<City | 'all'>('all');
     const rows = useMemo(() => houseStandings(insights, weekIndex, scope, city), [insights, weekIndex, scope, city]);
     const max = Math.max(1, ...rows.map(x => x.value ?? 0));
+    const leaderValue = rows.find(r => r.rank === 1)?.value ?? null;
     const showMovement = scope === 'week' && city === 'all';
     const entered = week ? week.teams.filter(it => it.submitted).length : 0;
     return (
@@ -49,6 +50,8 @@ export const HouseTable: React.FC<{ insights: Insights; weekIndex: number; scope
                                 {showMovement && !waiting && <Movement delta={movement(h.weeks, weekIndex)} />}
                                 <span className="leader" />
                                 {scope === 'season' && value !== null && <span className="text-[0.75rem] italic flex-shrink-0" style={{ color: 'var(--text-muted)' }}>{t('{0} апта', weeks)}</span>}
+                                {/* How far behind the leader, for everyone but the leader. */}
+                                {!waiting && value !== null && rank !== 1 && leaderValue !== null && <span className="text-[0.75rem] italic tabular flex-shrink-0" style={{ color: 'var(--text-muted)' }}>−{(Math.round((leaderValue - value) * 10) / 10).toString()}</span>}
                                 {waiting
                                     ? <span className="inline-flex items-center gap-1.5 text-[0.82rem] italic flex-shrink-0" style={{ color: week?.locked ? 'var(--danger)' : 'var(--text-muted)' }}>
                                         {week?.locked ? <Lock className="w-3.5 h-3.5" /> : <Clock3 className="w-3.5 h-3.5" />}
