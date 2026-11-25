@@ -3,7 +3,7 @@
   "short_name": "tdJamaat",
   "description": "Жамааттын колдонмосу: намаз убактылары, Куран, тасбихат, зикир жана үйлөрдүн апталык жыйынтыктары",
   "lang": "ky",
-  "start_url": "/#/today",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",

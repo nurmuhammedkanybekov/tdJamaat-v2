@@ -632,3 +632,10 @@ html.screen .nav-short { display: inline !important; }
 @keyframes ayah-flash { from { background-color: color-mix(in oklab, var(--gold) 22%, transparent); } to { background-color: transparent; } }
 .ayah-row { scroll-margin-top: 4.5rem; }
 @media (min-width: 768px) { .ayah-row { scroll-margin-top: 7.5rem; } }
+
+/* "Менин күнүм": where we are in the day, on the line of the prayer times. */
+.day-path-now { position: absolute; top: 50%; width: 15px; height: 15px; border-radius: 999px; transform: translate(-50%, -50%); background: var(--gold); box-shadow: 0 0 0 4px color-mix(in oklab, var(--gold) 22%, transparent), 0 0 18px var(--gold); animation: day-now 3s ease-in-out infinite; z-index: 1; }
+@keyframes day-now { 50% { box-shadow: 0 0 0 7px color-mix(in oklab, var(--gold) 12%, transparent), 0 0 26px var(--gold); } }
+@media (prefers-reduced-motion: reduce) { .day-path-now { animation: none; } }
+/* The first page's sun and moon travel below the top bar, not through it. */
+.app-hero .sky-body { margin-top: 4.5rem; }

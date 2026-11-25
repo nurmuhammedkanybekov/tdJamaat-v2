@@ -3,12 +3,13 @@
 // where you stopped in the Quran, today's zikr, your jamaat week — and, for
 // a captain or the admin, how the houses stand.
 import React, { Suspense, lazy, useContext, useEffect, useMemo, useState } from 'react';
-import { Check, ChevronRight } from 'lucide-react';
+import { Check, ChevronRight, MapPin } from 'lucide-react';
+import { Crown } from '../components/Ornament';
 import type { Theme } from '../theme';
 import { useNow } from '../hooks/useNow';
-import { loadCity, saveCity } from '../utils/city';
-import type { City } from '../utils/prayer';
-import { CITIES, PRAYER_NAMES, PRAYER_ORDER, clock, nextPrayer, prayerTimes, untilText } from '../utils/prayer';
+import { loadCity } from '../utils/city';
+import type { City, PrayerKey } from '../utils/prayer';
+import { PRAYER_NAMES, PRAYER_ORDER, clock, nextPrayer, prayerTimes, untilText } from '../utils/prayer';
 import { formatHijri, isRamadan, toHijri } from '../utils/hijri';
 import { loadZikr, streak, todayTotal } from '../utils/zikr';
 import { calculateHouseRating } from '../utils/scoring';
@@ -24,9 +25,9 @@ import type { Ayah, Rendering, Surah } from './quranData';
 import { ayahOfDay, loadIndex, loadSurah, loadTranslation, translationLang } from './quranData';
 import { loadLastRead } from './quranStore';
 import { loadPractice, pagesOn, tasbihatDone } from './practice';
-import { MyWeek } from './MyWeek';
-import { MemberResults } from './MemberResults';
-import { signInWithGoogle, signOutMember } from '../services/memberService';
+import { CopyWeek } from './MyWeek';
+import { MemberSummary } from './MemberResults';
+import { signInWithGoogle, signOutMember, takeAuthError } from '../services/memberService';
 import { useWeekTotals } from './useWeekTotals';
 
 const PrayerSheet = lazy(withReload(() => import('../components/PrayerSheet').then(m => ({ default: m.PrayerSheet }))));
@@ -92,7 +93,7 @@ const Jamaat: React.FC = () => {
                         <span className="font-display text-[1.4rem]" style={{ color: 'var(--text-primary)' }}>{member.link.name} <span className="text-[1rem]" style={{ color: 'var(--text-muted)' }}>· {member.link.houseName}</span></span>
                         <button onClick={() => { signOutMember().catch(() => undefined); }} className="text-[0.7rem] tracking-[0.16em] uppercase transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}>{t('Чыгуу')}</button>
                     </div>
-                    <MemberResults link={member.link} />
+                    <MemberSummary link={member.link} />
                 </div>
             );
         }
@@ -135,10 +136,50 @@ const Jamaat: React.FC = () => {
     );
 };
 
+/** The day as a path: the six times on a line, the part already gone in gold,
+ *  a light where we are now. */
+const DayPath: React.FC<{ times: Record<PrayerKey, Date>; now: Date; tz: string; next: PrayerKey }> = ({ times, now, tz, next }) => {
+    const start = times.fajr.getTime(), end = times.isha.getTime();
+    const at = (d: Date) => Math.min(1, Math.max(0, (d.getTime() - start) / (end - start)));
+    const here = at(now);
+    return (
+        <div className="day-path mx-auto w-full max-w-[40rem] mt-8 px-2" aria-label={t('Бүгүнкү намаз убактылары')}>
+            <div className="relative h-[3px] mx-3">
+                <span className="absolute inset-0" style={{ backgroundColor: 'var(--border-strong)' }} />
+                <span className="absolute left-0 top-0 bottom-0" style={{ width: `${here * 100}%`, backgroundColor: 'var(--gold)' }} />
+                {now.getTime() >= start && now.getTime() <= end && <span className="day-path-now" style={{ left: `${here * 100}%` }} />}
+                {PRAYER_ORDER.map(k => (
+                    <span key={k} className="absolute top-1/2 w-[9px] h-[9px] rotate-45 -translate-x-1/2 -translate-y-1/2" style={{ left: `${at(times[k]) * 100}%`, backgroundColor: times[k].getTime() <= now.getTime() ? 'var(--gold)' : 'var(--page-plane)', border: '1px solid var(--gold)' }} />
+                ))}
+            </div>
+            <ol className="grid grid-cols-6 mt-4 text-center">
+                {PRAYER_ORDER.map(k => (
+                    <li key={k} className="min-w-0">
+                         <div className="text-[0.72rem] sm:text-[0.8rem] truncate" style={{ color: k === next ? 'var(--gold)' : 'var(--text-muted)' }}>{PRAYER_NAMES[k]}</div>
+                        <div className="font-display tabular text-[1.05rem] sm:text-[1.25rem] mt-0.5" style={{ color: k === next ? 'var(--gold)' : k === 'sunrise' ? 'var(--text-muted)' : 'var(--text-primary)' }}>{clock(times[k], tz)}</div>
+                    </li>
+                ))}
+            </ol>
+        </div>
+    );
+};
+
+/** A number the way the results write them: large, in the display face. */
+const Figure: React.FC<{ value: React.ReactNode; label: string; gold?: boolean; first?: boolean; onClick?: () => void }> = ({ value, label, gold, first, onClick }) => {
+    const Tag = onClick ? 'button' : 'div';
+    return (
+        <Tag onClick={onClick} className={`flex-1 min-w-0 text-center py-4 ${onClick ? 'row-link' : ''}`} style={first ? undefined : { borderLeft: '1px solid var(--border)' }}>
+            <div className="font-display tabular leading-none text-[2.1rem] sm:text-[2.5rem]" style={{ color: gold ? 'var(--gold)' : 'var(--text-primary)' }}>{value}</div>
+            <div className="text-[0.66rem] tracking-[0.16em] uppercase mt-2" style={{ color: 'var(--text-muted)' }}>{label}</div>
+        </Tag>
+    );
+};
+
 export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = ({ theme, onToggleTheme }) => {
-    const now = useNow();
+    const now = useNow(30_000);
     const [city, setCity] = useState<City>(loadCity);
     const [sheet, setSheet] = useState(false);
+    const [authError] = useState(takeAuthError);
     const times = useMemo(() => prayerTimes(city, now), [city, now]);
     const next = nextPrayer(city, now);
     const hijri = toHijri(now);
@@ -148,56 +189,61 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
     const zikr = loadZikr();
     const last = loadLastRead();
     const totals = useWeekTotals();
-    const synced = useContext(AppContext).member?.status === 'linked';
-    const pick = (c: City) => { setCity(c); saveCity(c); };
+    const { member } = useContext(AppContext);
+    const linked = member?.status === 'linked' ? member.link : null;
     const zikrToday = todayTotal(zikr), days = streak(zikr);
+    const readToday = TASBIHAT_ORDER.filter(p => tasbihatDone(practice, p, now)).length;
+    const doneNow = tasbihatDone(practice, prayer, now);
+
+    const hero = (
+        <div className="monument relative flex flex-col items-center text-center pt-4 sm:pt-8 pb-8 sm:pb-12">
+            <Crown className="draw-in h-auto w-[min(15rem,64%)]" style={{ color: 'var(--gold)' }} />
+            <div className="eyebrow mt-4" style={{ color: 'var(--gold)' }}>{linked ? t('Ассалому алейкум, {0}', linked.name) : `${weekday(now)} · ${dayMonth(now)}`}</div>
+            <div className="text-[0.85rem] italic mt-1.5" style={{ color: 'var(--text-muted)' }}>
+                {linked && `${weekday(now)}, ${dayMonth(now)} · `}{hijri ? formatHijri(hijri) : ''}{ramadan && <span style={{ color: 'var(--gold)' }}> · {t('Рамазан мубарак')}</span>}
+            </div>
+            <h1 className="font-display leading-none mt-6 text-[2.2rem] sm:text-[3rem] animate-view-in" style={{ color: 'var(--text-primary)' }}>{ramadan && next.key === 'maghrib' ? t('Ифтар') : PRAYER_NAMES[next.key]}</h1>
+            <div className="relative mt-1">
+                <span className="hero-glow" aria-hidden="true" />
+                <div className="font-display tabular leading-[0.9] text-[5.4rem] sm:text-[7.5rem] gold-sheen">{clock(next.at, city.tz)}</div>
+            </div>
+            <div className="mt-2 text-[0.95rem] tracking-[0.04em]" style={{ color: 'var(--text-muted)' }}>{t('{0} калды', untilText(next.at.getTime() - now.getTime()))}</div>
+            <DayPath times={times} now={now} tz={city.tz} next={next.key} />
+            <button onClick={() => setSheet(true)} className="mt-5 inline-flex items-center gap-2 text-[0.72rem] tracking-[0.2em] uppercase transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}>
+                <MapPin className="w-3.5 h-3.5" />{city.name} · {t('7 күндүк жадыбал')}
+            </button>
+        </div>
+    );
 
     return (
-        <AppFrame page="today" title={weekday(now)} kicker={dayMonth(now)} sub={<>{hijri && <span className="italic">{formatHijri(hijri)}</span>}{ramadan && <span style={{ color: 'var(--gold)' }}> · {t('Рамазан мубарак')}</span>}</>} theme={theme} onToggleTheme={onToggleTheme}>
+        <AppFrame page="today" title={t('Менин күнүм')} hero={hero} theme={theme} onToggleTheme={onToggleTheme}>
             <div className="max-w-[46rem] mx-auto">
-                {/* The next prayer: the one thing to know at a glance. */}
-                <div className="text-center pt-8">
-                    <div className="eyebrow">{t('Кийинки намаз')}</div>
-                    <div className="font-display text-[2.8rem] sm:text-[3.4rem] leading-none mt-2" style={{ color: 'var(--text-primary)' }}>
-                        {PRAYER_NAMES[next.key]} <span className="tabular" style={{ color: 'var(--gold)' }}>{clock(next.at, city.tz)}</span>
+                {authError && (
+                    <div role="alert" className="mt-6 px-4 py-3 text-[0.92rem]" style={{ borderLeft: '2px solid var(--danger)', color: 'var(--text-secondary)' }}>
+                        {authError.text}
+                        <div className="text-[0.75rem] mt-1" style={{ color: 'var(--text-muted)' }}>{authError.detail}</div>
                     </div>
-                    <div className="text-[0.95rem] italic mt-2" style={{ color: 'var(--text-muted)' }}>{t('{0} калды', untilText(next.at.getTime() - now.getTime()))}</div>
-                </div>
+                )}
 
-                <Section eyebrow={t('Намаз убактылары · {0}', city.name)} action={<button onClick={() => setSheet(true)} className="text-[0.7rem] tracking-[0.16em] uppercase transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}>{t('7 күн')}</button>}>
-                    <ol>
-                        {PRAYER_ORDER.map(k => {
-                            const isNext = k === next.key && next.at.toDateString() === now.toDateString();
-                            return (
-                                <li key={k} className="flex items-baseline gap-3 py-2.5" style={{ borderBottom: '1px solid var(--border)' }}>
-                                    <span className="font-display text-[1.3rem]" style={{ color: isNext ? 'var(--gold)' : k === 'sunrise' ? 'var(--text-muted)' : 'var(--text-primary)' }}>{PRAYER_NAMES[k]}</span>
-                                    <span className="leader" />
-                                    <span className="font-display text-[1.4rem] tabular" style={{ color: isNext ? 'var(--gold)' : 'var(--text-primary)' }}>{clock(times[k], city.tz)}</span>
-                                </li>
-                            );
-                        })}
-                    </ol>
-                    <div className="chip-row mt-3" role="group" aria-label={t('Шаар')}>
-                        {CITIES.map(c => <button key={c.id} className={`chip ${c.id === city.id ? 'is-active' : ''}`} aria-pressed={c.id === city.id} onClick={() => pick(c)}>{c.name}</button>)}
-                    </div>
-                </Section>
-
-                <Section eyebrow={t('Ибадат')}>
+                {/* What the hour asks for: this prayer's tasbihat, the 33-33-34, the Quran. */}
+                <Section eyebrow={t('Азыр · {0}', PRAYER_NAMES[prayer])}>
                     <RowLink
                         onClick={() => go(`#/tasbihat/${prayer}`)}
-                        mark={<span className="w-6 h-6 inline-flex items-center justify-center flex-shrink-0" style={{ border: `1px solid ${tasbihatDone(practice, prayer) ? 'var(--gold)' : 'var(--border-strong)'}`, color: 'var(--gold)' }}>{tasbihatDone(practice, prayer) && <Check className="w-3.5 h-3.5" />}</span>}
+                        mark={<span className="w-7 h-7 rotate-45 inline-flex items-center justify-center flex-shrink-0 mx-1" style={{ border: '1px solid var(--gold)', backgroundColor: doneNow ? 'var(--gold)' : 'transparent' }}>{doneNow && <Check className="w-3.5 h-3.5 -rotate-45" style={{ color: 'var(--page-plane)' }} />}</span>}
                         title={t('{0} намазынын тасбихаты', PRAYER_NAMES[prayer])}
-                        sub={t('Бүгүн окулду: {0} / 5', TASBIHAT_ORDER.filter(p => tasbihatDone(practice, p, now)).length)}
-                    />
-                    <RowLink
-                        onClick={() => go(last ? `#/quran/${last.surah}:${last.ayah}` : '#/quran')}
-                        title={last ? t('Куран: {0}', last.name) : t('Куран окуу')}
-                        sub={last ? t('{0}-аяттан улантуу · бүгүн {1} бет', last.ayah, pagesOn(practice)) : t('Мадина мусхафы, кыргызча мааниси менен')}
+                        sub={doneNow ? t('Окулду · бүгүн {0} / 5', readToday) : t('Бүгүн окулду: {0} / 5', readToday)}
                     />
                     <RowLink
                         onClick={() => go('#/zikr/namaz')}
+                        mark={<span className="w-7 mx-1 text-center font-display text-[1.1rem]" style={{ color: 'var(--gold)' }}>33</span>}
                         title={t('Намаздан кийинки тасбих')}
-                        sub={days > 1 ? t('Бүгүн {0} зикир · катары менен {1} күн', zikrToday, days) : t('Бүгүн {0} зикир', zikrToday)}
+                        sub={t('Субханаллах 33 · Алхамдулиллах 33 · Аллаху акбар 34')}
+                    />
+                    <RowLink
+                        onClick={() => go(last ? `#/quran/${last.surah}:${last.ayah}` : '#/quran')}
+                        mark={<span className="w-7 mx-1 text-center quran-text text-[1.4rem] leading-none" style={{ color: 'var(--gold)' }} aria-hidden="true">ق</span>}
+                        title={last ? t('Куран: {0}', last.name) : t('Куран окуу')}
+                        sub={last ? t('{0}-аяттан улантуу · бүгүн {1} бет', last.ayah, pagesOn(practice)) : t('Мадина мусхафы, кыргызча мааниси менен')}
                     />
                 </Section>
 
@@ -205,11 +251,21 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
                     <DailyAyah now={now} />
                 </Section>
 
-                <Section eyebrow={t('Менин аптам')}>
-                    <MyWeek totals={totals} synced={synced} />
+                {/* The jamaat week, in the captain's terms, as four large numbers. */}
+                <Section eyebrow={t('Менин аптам')} action={<span className="text-[0.72rem]" style={{ color: 'var(--text-muted)' }}>{formatWeekRange(totals.start, totals.end)}</span>}>
+                    <div className="flex">
+                        <Figure first value={totals.salawat} label={t('Салават')} gold={totals.salawat > 0} onClick={() => go('#/zikr/salawat')} />
+                        <Figure value={totals.zikr} label={t('Зикир')} onClick={() => go('#/zikr')} />
+                        <Figure value={`${totals.tasbihat}`} label={t('Тасбихат')} onClick={() => go('#/tasbihat')} />
+                        <Figure value={totals.pages} label={t('Бет')} onClick={() => go('#/quran')} />
+                    </div>
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-2" style={{ borderTop: '1px solid var(--border)' }}>
+                        <span className="text-[0.8rem]" style={{ color: 'var(--text-muted)' }}>{days > 1 ? t('Бүгүн {0} зикир · катары менен {1} күн', zikrToday, days) : t('Бүгүн {0} зикир', zikrToday)}</span>
+                        {linked ? <span className="text-[0.8rem]" style={{ color: 'var(--gold)' }}>{t('Капитаныңыз бул сандарды өзү көрөт.')}</span> : <CopyWeek totals={totals} />}
+                    </div>
                 </Section>
 
-                <Section eyebrow={t('Жамаат')}>
+                <Section eyebrow={linked ? t('Менин үйүм') : t('Жамаат')}>
                     <Jamaat />
                 </Section>
             </div>

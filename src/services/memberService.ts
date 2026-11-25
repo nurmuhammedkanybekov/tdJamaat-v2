@@ -3,6 +3,7 @@
 // can take a week's numbers with one tap. See supabase/members-2026-11.sql.
 import { supabase } from '../lib/supabase';
 import type { MetricValues } from '../types';
+import { t } from '../i18n';
 import { isMissingSchema } from './dataService';
 import { dayKey, loadZikr } from '../utils/zikr';
 import { SALAWAT_IDS, loadPractice } from '../app/practice';
@@ -12,6 +13,19 @@ export interface MemberLink { memberId: string; name: string; houseId: string; h
 const LINK_KEY = 'tdjamaat-member-v1';
 export const cachedLink = (): MemberLink | null => { try { return JSON.parse(localStorage.getItem(LINK_KEY) ?? 'null') as MemberLink | null; } catch { return null; } };
 const cacheLink = (link: MemberLink | null) => { try { if (link) localStorage.setItem(LINK_KEY, JSON.stringify(link)); else localStorage.removeItem(LINK_KEY); } catch { /* not critical */ } };
+
+/** Why the last Google sign-in failed, in words a member understands (once). */
+export const takeAuthError = (): { text: string; detail: string } | null => {
+    let detail: string | null = null;
+    try { detail = sessionStorage.getItem('tdjamaat-auth-error'); sessionStorage.removeItem('tdjamaat-auth-error'); } catch { /* not critical */ }
+    if (!detail) return null;
+    const text = /signups? not allowed|signup.*disabled/i.test(detail)
+        ? t('Google менен кирүү азырынча жабык: админ Supabase\'те «Allow new users to sign up» күйгүзүшү керек.')
+        : /provider is not enabled|unsupported provider/i.test(detail)
+            ? t('Google менен кирүү азырынча күйгүзүлө элек (админ үчүн: SETUP.md, 4b).')
+            : t('Google менен кирүү ишке ашкан жок.');
+    return { text, detail };
+};
 
 /** Off to Google; back on the site's start page, signed in. */
 export const signInWithGoogle = async () => {

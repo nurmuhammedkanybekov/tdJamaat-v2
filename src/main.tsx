@@ -14,6 +14,18 @@ import { registerServiceWorker } from './pwa'
 initTheme();
 initScreen();
 
+// Back from a Google sign-in that failed (?error=…): keep the reason to show
+// it, and clean the address.
+try {
+  const q = new URLSearchParams(window.location.search);
+  const h = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+  const why = q.get('error_description') ?? h.get('error_description');
+  if (why) {
+    sessionStorage.setItem('tdjamaat-auth-error', why);
+    window.history.replaceState(null, '', `${window.location.pathname}#/today`);
+  }
+} catch { /* not critical */ }
+
 // Back from a Google sign-in (?code=…): open the page the member started from.
 try {
   const after = sessionStorage.getItem('tdjamaat-after-login');

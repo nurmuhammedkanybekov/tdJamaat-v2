@@ -13,6 +13,7 @@ import { adminDesk, houseDesk } from './utils/desk';
 import { useHashRoute } from './hooks/useHashRoute';
 import { useAppRoute } from './app/route';
 import { AppPages } from './app/AppPages';
+import { cachedLink } from './services/memberService';
 import { useAuthUser } from './hooks/useAuthUser';
 import { useThemeState } from './hooks/useThemeState';
 import { useResults } from './hooks/useResults';
@@ -156,6 +157,9 @@ const TeamPerformanceTracker: React.FC = () => {
         const ctxHouse = authUser?.houseId ? houses.find(h => h.id === authUser.houseId)?.name ?? null : null;
         return <AppPages route={appRoute} theme={theme} onToggleTheme={toggleTheme} ctx={{ signedIn: !!authUser, role: authUser?.role, houseId: authUser?.houseId ?? null, houseName: ctxHouse, data: allData }} />;
     }
+    // A member signed in with Google: their home is "Менин күнүм" (the results
+    // behind the captains' login are not theirs).
+    if (!authUser && authChecked && cachedLink()) return <AppPages route={{ page: 'today', arg: null }} theme={theme} onToggleTheme={toggleTheme} ctx={{ signedIn: false }} />;
     if (!authChecked) return <LoadingScreen />;
     if (!authUser) return <LoginScreen theme={theme} onToggleTheme={toggleTheme} />;
     if (authUser.role === 'inspector') return <Suspense fallback={<LoadingScreen />}><InspectorScreen theme={theme} onToggleTheme={toggleTheme} /></Suspense>;

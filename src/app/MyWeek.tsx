@@ -38,3 +38,16 @@ export const MyWeek: React.FC<{ totals: WeekTotals; synced?: boolean }> = ({ tot
         </div>
     );
 };
+
+/** Just the button: the week as a message for the captain. */
+export const CopyWeek: React.FC<{ totals: WeekTotals }> = ({ totals }) => {
+    const [copied, setCopied] = useState(false);
+    const share = async () => {
+        try { await navigator.clipboard.writeText(weekText(totals)); setCopied(true); window.setTimeout(() => setCopied(false), 2000); } catch { /* clipboard blocked */ }
+    };
+    return (
+        <button className="inline-flex items-center gap-1.5 py-2 text-[0.72rem] tracking-[0.16em] uppercase transition-colors hover:text-[var(--gold)]" style={{ color: copied ? 'var(--gold)' : 'var(--text-secondary)' }} onClick={share}>
+            {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}{copied ? t('Көчүрүлдү') : t('Капитанга көчүрүү')}
+        </button>
+    );
+};

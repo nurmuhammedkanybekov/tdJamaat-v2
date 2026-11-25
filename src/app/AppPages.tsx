@@ -11,6 +11,7 @@ import { useMember } from './useMember';
 const TodayPage = lazy(withReload(() => import('./TodayPage').then(m => ({ default: m.TodayPage }))));
 const QuranPage = lazy(withReload(() => import('./QuranPage').then(m => ({ default: m.QuranPage }))));
 const TasbihatPage = lazy(withReload(() => import('./TasbihatPage').then(m => ({ default: m.TasbihatPage }))));
+const HousePage = lazy(withReload(() => import('./HousePage').then(m => ({ default: m.HousePage }))));
 const ZikrPage = lazy(withReload(() => import('./ZikrPage').then(m => ({ default: m.ZikrPage }))));
 
 const Waiting: React.FC = () => (
@@ -20,7 +21,7 @@ const Waiting: React.FC = () => (
 );
 
 const TITLES: Record<AppRoute['page'], () => string> = {
-    today: () => t('Бүгүн'), quran: () => t('Куран'), tasbihat: () => t('Тасбихат'), zikr: () => t('Зикир')
+    today: () => t('Менин күнүм'), house: () => t('Үйүм'), quran: () => t('Куран'), tasbihat: () => t('Тасбихат'), zikr: () => t('Зикир')
 };
 
 export const AppPages: React.FC<{ route: AppRoute; theme: Theme; onToggleTheme: () => void; ctx: AppCtx }> = ({ route, theme, onToggleTheme, ctx }) => {
@@ -33,6 +34,7 @@ export const AppPages: React.FC<{ route: AppRoute; theme: Theme; onToggleTheme: 
                 {route.page === 'quran' ? <QuranPage arg={route.arg} {...props} />
                     : route.page === 'tasbihat' ? <TasbihatPage arg={route.arg} {...props} />
                         : route.page === 'zikr' ? <ZikrPage arg={route.arg} {...props} />
+                            : route.page === 'house' ? <HousePage {...props} />
                             : <TodayPage {...props} />}
             </Suspense>
         </AppContext.Provider>
