@@ -1299,17 +1299,12 @@ export const EN: Record<string, string> = {
     "Ким айтып берди": "Who recited",
     "Жаттаганы бар": "Has memorized something",
     "Эмнени": "What",
-    "Жамааттын ички сайты": "The jamaat's own site",
-    "Жамааттын апталык дептери": "The jamaat's weekly notebook",
-    "Мен жамааттын мүчөсүмүн": "I'm a member of the jamaat",
-    "Сыр сөз менен": "With a password",
-    "Капитан, CL же админмин": "Captain, CL or admin",
-    "Үйүңүз": "Your house",
-    "Кирбей эле": "No sign-in needed",
     "Намаз убактысы": "Prayer times",
     "начар": "poor",
     "алсыз": "weak",
     "орто": "fair",
     "жакшы": "good",
-    "мыкты": "excellent"
+    "мыкты": "excellent",
+    "Жамааттын апталык жыйынтыктары": "The jamaat's weekly results",
+    "Капитан, CL же админ": "Captain, CL or admin"
 };

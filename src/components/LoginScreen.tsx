@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ChevronDown, Eye, EyeOff, Loader2, Lock, LogIn, Moon, Sun } from 'lucide-react';
+import { ArrowLeft, ChevronDown, Eye, EyeOff, KeyRound, Loader2, LogIn, Moon, Sun } from 'lucide-react';
 import { fetchHouses } from '../services/dataService';
 import { signInAsHouse, signInAsAdmin, signInAsInspector } from '../services/authService';
 import type { House } from '../types';
@@ -77,98 +77,103 @@ export const LoginScreen: React.FC<{ theme: Theme; onToggleTheme: () => void }> 
     const google = () => { setLoading(true); signInWithGoogle().catch(err => { setLoading(false); setError(t('Кирүү мүмкүн болгон жок: {0}', err instanceof Error ? err.message : String(err))); }); };
 
     return (
-        <main className="hero entrance min-h-[100dvh] flex flex-col page-gutter overflow-hidden" style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top))', paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
-            <StarField count={60} />
-            <div className="app-container w-full flex items-center h-14 gap-1" style={{ color: 'var(--text-secondary)' }}>
-                <span className="flex-1 inline-flex items-center gap-2.5" style={{ color: 'var(--gold)' }}><Mark size={34} solid /><span className="font-display text-[1.3rem] leading-none">tdJamaat</span></span>
-                <button onClick={() => setLang(isEnglish() ? 'ky' : 'en')} lang={isEnglish() ? 'ky' : 'en'} aria-label={isEnglish() ? 'Кыргызча' : 'English'} className={`${iconBtn} text-[0.72rem] font-semibold tracking-[0.16em]`}>
-                    {isEnglish() ? 'КЫР' : 'EN'}
-                </button>
-                <button onClick={onToggleTheme} aria-label={theme === 'dark' ? t('Жарык тема') : t('Караңгы тема')} className={iconBtn}>
-                    {theme === 'dark' ? <Sun className="w-[1.1rem] h-[1.1rem]" strokeWidth={1.5} /> : <Moon className="w-[1.1rem] h-[1.1rem]" strokeWidth={1.5} />}
-                </button>
-            </div>
+        <main className="gate min-h-[100dvh]">
+            {/* The brand: night, the шырдак medallion turning slowly, the name. No words to read. */}
+            <section className="gate-brand" aria-hidden="true">
+                <StarField count={50} />
+                <span className="gate-medallion"><Medallion size={620} className="spin-slow" /></span>
+                <div className="gate-brand-inner">
+                    <Mark size={88} className="pop-in" />
+                    <div className="font-display gate-word gold-sheen">tdJamaat</div>
+                    <Crown className="draw-in gate-crown" />
+                    <div className="gate-tag">{t('Жамааттын апталык жыйынтыктары')}</div>
+                </div>
+            </section>
 
-            <div className="app-container w-full flex-1 entrance-grid">
-                {/* What this is: a notebook the jamaat keeps together, week by week. */}
-                <section className="entrance-story animate-fade-up">
-                    <span aria-hidden="true" className="entrance-medallion"><Medallion size={420} className="spin-slow" /></span>
-                    <p className="eyebrow inline-flex items-center gap-2" style={{ color: 'var(--gold)' }}><Lock className="w-3 h-3" aria-hidden="true" />{t('Жамааттын ички сайты')}</p>
-                    <h1 className="entrance-title font-display">{t('Жамааттын апталык дептери')}</h1>
-                    <Crown className="draw-in w-[min(12rem,55%)] h-auto mt-5" style={{ color: 'var(--gold)' }} />
-                </section>
+            {/* The way in: one obvious action, the rest below it, quieter. */}
+            <section className="gate-form">
+                <div className="gate-controls">
+                    <button onClick={() => setLang(isEnglish() ? 'ky' : 'en')} lang={isEnglish() ? 'ky' : 'en'} aria-label={isEnglish() ? 'Кыргызча' : 'English'} className={`${iconBtn} text-[0.72rem] font-semibold tracking-[0.16em]`}>
+                        {isEnglish() ? 'КЫР' : 'EN'}
+                    </button>
+                    <button onClick={onToggleTheme} aria-label={theme === 'dark' ? t('Жарык тема') : t('Караңгы тема')} className={iconBtn}>
+                        {theme === 'dark' ? <Sun className="w-[1.1rem] h-[1.1rem]" strokeWidth={1.5} /> : <Moon className="w-[1.1rem] h-[1.1rem]" strokeWidth={1.5} />}
+                    </button>
+                </div>
 
-                {/* The way in: members by Google, the staff by password. */}
-                <section className="entrance-doors animate-fade-up" style={{ animationDelay: '120ms' }}>
-                    <div className={`door ${staff ? 'is-folded' : ''}`}>
-                        <button type="button" className="door-head" onClick={() => switchMode('member')} aria-expanded={!staff}>
-                            <span className="door-k">{t('Мүчө')}</span>
-                            <span className="door-t font-display">{t('Мен жамааттын мүчөсүмүн')}</span>
-                        </button>
-                        {!staff && (
-                            <div className="door-body">
-                                <button type="button" onClick={google} disabled={loading} className="btn btn-primary w-full mt-2" style={{ minHeight: '3.2rem' }}>
-                                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <span className="font-semibold text-[1.05rem]" aria-hidden="true">G</span>}{t('Google менен кирүү')}
-                                </button>
-                                {error && <p id="login-error" role="alert" className="text-[0.88rem] px-3 py-2 mt-3" style={{ borderLeft: '2px solid var(--danger)', color: 'var(--danger)' }}>{error}</p>}
+                <div className="gate-body animate-fade-up">
+                    <h1 className="font-display gate-h">{t('Кирүү')}</h1>
+
+                    {!staff ? (
+                        <>
+                            <button type="button" onClick={google} disabled={loading} className="gate-google">
+                                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <GoogleG />}
+                                <span>{t('Google менен кирүү')}</span>
+                            </button>
+                            {error && <p id="login-error" role="alert" className="gate-error">{error}</p>}
+                            <div className="gate-or"><span>{t('же')}</span></div>
+                            <button type="button" className="gate-staff-link" onClick={() => switchMode('captain')}>
+                                <KeyRound className="w-4 h-4" strokeWidth={1.5} />{t('Капитан, CL же админ')}
+                            </button>
+                        </>
+                    ) : (
+                        <form onSubmit={handleSubmit} noValidate className="space-y-5">
+                            <div className="door-roles" role="tablist" aria-label={t('Ким катары кирүү')}>
+                                {([['captain', t('Капитан')], ['inspector', 'CL'], ['admin', t('Админ')]] as const).map(([m, label]) => (
+                                    <button key={m} type="button" role="tab" aria-selected={mode === m} className={mode === m ? 'is-on' : ''} onClick={() => switchMode(m)} title={m === 'inspector' ? t('Тазалык текшерүүчү') : undefined}>{label}</button>
+                                ))}
                             </div>
-                        )}
-                    </div>
-
-                    <div className={`door door-staff ${staff ? '' : 'is-folded'}`}>
-                        <button type="button" className="door-head" onClick={() => switchMode(mode === 'member' ? 'captain' : mode)} aria-expanded={staff}>
-                            <span className="door-k">{t('Сыр сөз менен')}</span>
-                            <span className="door-t font-display">{t('Капитан, CL же админмин')}</span>
-                        </button>
-                        {staff && (
-                            <form onSubmit={handleSubmit} noValidate className="door-body space-y-5">
-                                <div className="door-roles" role="tablist" aria-label={t('Ким катары кирүү')}>
-                                    {([['captain', t('Капитан')], ['inspector', 'CL'], ['admin', t('Админ')]] as const).map(([m, label]) => (
-                                        <button key={m} type="button" role="tab" aria-selected={mode === m} className={mode === m ? 'is-on' : ''} onClick={() => switchMode(m)} title={m === 'inspector' ? t('Тазалык текшерүүчү') : undefined}>{label}</button>
-                                    ))}
-                                </div>
-                                {mode === 'captain' && (
-                                    <label className="block">
-                                        <span className="eyebrow block mb-2">{t('Үйүңүз')}</span>
-                                        <span className="relative block">
-                                            <select value={houseSlug} onChange={e => { setHouseSlug(e.target.value); setError(''); }} className="login-field w-full appearance-none pl-3.5 pr-12 py-3 text-base" style={field}>
-                                                {houses.map(house => <option key={house.id} value={house.slug}>{house.name}</option>)}
-                                            </select>
-                                            <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--gold-dim)' }} />
-                                        </span>
-                                    </label>
-                                )}
+                            {mode === 'captain' && (
                                 <label className="block">
-                                    <span className="eyebrow block mb-2">{t('Сыр сөз')}</span>
+                                    <span className="eyebrow block mb-2">{t('Үй')}</span>
                                     <span className="relative block">
-                                        <input type={showPassword ? 'text' : 'password'} autoComplete="current-password" enterKeyHint="go" value={password}
-                                            onChange={e => { setPassword(e.target.value); setError(''); }}
-                                            aria-invalid={!!error || undefined} aria-describedby={error ? 'login-error' : undefined}
-                                            className="login-field w-full pl-3.5 pr-12 py-3 text-base" style={field} />
-                                        <button type="button" onClick={() => setShowPassword(v => !v)} aria-label={showPassword ? t('Сыр сөздү жашыруу') : t('Сыр сөздү көрсөтүү')} aria-pressed={showPassword}
-                                            className="absolute right-0 top-0 h-full w-12 inline-flex items-center justify-center transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}>
-                                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                        </button>
+                                        <select value={houseSlug} onChange={e => { setHouseSlug(e.target.value); setError(''); }} className="login-field w-full appearance-none pl-3.5 pr-12 py-3 text-base" style={field}>
+                                            {houses.map(house => <option key={house.id} value={house.slug}>{house.name}</option>)}
+                                        </select>
+                                        <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--gold-dim)' }} />
                                     </span>
                                 </label>
-                                {error && <p id="login-error" role="alert" className="text-[0.88rem] px-3 py-2" style={{ borderLeft: '2px solid var(--danger)', color: 'var(--danger)' }}>{error}</p>}
-                                <button type="submit" disabled={loading} className="btn btn-primary w-full" style={{ minHeight: '3rem' }}>
-                                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogIn className="w-4 h-4" />}
-                                    {loading ? t('Кирүүдө…') : t('Кирүү')}
-                                </button>
-                            </form>
-                        )}
-                    </div>
+                            )}
+                            <label className="block">
+                                <span className="eyebrow block mb-2">{t('Сыр сөз')}</span>
+                                <span className="relative block">
+                                    <input type={showPassword ? 'text' : 'password'} autoComplete="current-password" enterKeyHint="go" value={password} autoFocus
+                                        onChange={e => { setPassword(e.target.value); setError(''); }}
+                                        aria-invalid={!!error || undefined} aria-describedby={error ? 'login-error' : undefined}
+                                        className="login-field w-full pl-3.5 pr-12 py-3 text-base" style={field} />
+                                    <button type="button" onClick={() => setShowPassword(v => !v)} aria-label={showPassword ? t('Сыр сөздү жашыруу') : t('Сыр сөздү көрсөтүү')} aria-pressed={showPassword}
+                                        className="absolute right-0 top-0 h-full w-12 inline-flex items-center justify-center transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}>
+                                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                    </button>
+                                </span>
+                            </label>
+                            {error && <p id="login-error" role="alert" className="gate-error">{error}</p>}
+                            <button type="submit" disabled={loading} className="btn btn-primary w-full" style={{ minHeight: '3.25rem' }}>
+                                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogIn className="w-4 h-4" />}
+                                {loading ? t('Кирүүдө…') : t('Кирүү')}
+                            </button>
+                            <button type="button" onClick={() => switchMode('member')} className="gate-back"><ArrowLeft className="w-3.5 h-3.5" />{t('Google менен кирүү')}</button>
+                        </form>
+                    )}
+                </div>
 
-                    {/* The everyday pages need no account. */}
-                    <nav className="entrance-open" aria-label={t('Баарына ачык')}>
-                        <span className="eyebrow">{t('Кирбей эле')}</span>
-                        {([['#/today', t('Намаз убактысы')], ['#/quran', t('Куран')], ['#/tasbihat', t('Тасбихат')], ['#/zikr', t('Зикир')]] as const).map(([href, label]) => (
-                            <a key={href} href={href} className="font-display transition-colors hover:text-[var(--gold)]">{label}</a>
-                        ))}
-                    </nav>
-                </section>
-            </div>
+                {/* The everyday pages need no account. */}
+                <nav className="gate-open" aria-label={t('Баарына ачык')}>
+                    {([['#/today', t('Намаз убактысы')], ['#/quran', t('Куран')], ['#/tasbihat', t('Тасбихат')], ['#/zikr', t('Зикир')]] as const).map(([href, label]) => (
+                        <a key={href} href={href}>{label}</a>
+                    ))}
+                </nav>
+            </section>
         </main>
     );
 };
+
+/** Google's "G" in its own colours, as Google asks sign-in buttons to show it. */
+const GoogleG: React.FC = () => (
+    <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
+        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+    </svg>
+);

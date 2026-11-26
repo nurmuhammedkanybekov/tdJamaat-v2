@@ -1226,34 +1226,40 @@ button, a, [role=button], [role=tab], select, label { touch-action: manipulation
 .nav-item.is-here::after { content: ""; position: absolute; right: .25rem; top: 50%; width: 7px; height: 7px; transform: translateY(-50%) rotate(45deg); background: var(--gold); }
 
 
-/* ---------------------------------------------------------------- entrance (login) */
-.entrance-grid { display: grid; gap: 2.5rem; align-items: center; padding: 1.5rem 0 1rem; }
-@media (min-width: 1000px) {
-  .entrance-grid { grid-template-columns: 1.15fr minmax(0, 27rem); grid-template-areas: "story doors"; gap: 0 5rem; padding: 3rem 0; align-content: center; }
-  .entrance-story { grid-area: story; } .entrance-doors { grid-area: doors; }
-}
-@media (max-width: 999px) { .entrance-grid { gap: 1.8rem; } }
-.entrance-story { position: relative; }
-.entrance-medallion { position: absolute; left: -8rem; top: 50%; transform: translateY(-50%); color: var(--gold); opacity: .06; pointer-events: none; z-index: -1; }
-.entrance-title { font-size: clamp(2.6rem, 9vw, 5.4rem); line-height: .98; letter-spacing: -.01em; margin-top: .9rem; color: var(--text-primary); max-width: 11ch; }
-@media (max-width: 999px) { .entrance-medallion { left: auto; right: -9rem; } }
-.door { border-top: 1px solid var(--gold); background: color-mix(in oklab, var(--surface) 78%, transparent); box-shadow: var(--shadow-lift); }
-.door + .door { margin-top: .9rem; }
-.door.is-folded { box-shadow: none; background: transparent; border-top-color: var(--border-strong); }
-.door-head { width: 100%; text-align: left; display: flex; flex-direction: column; gap: .2rem; padding: 1.25rem 1.5rem .25rem; }
-.door.is-folded .door-head { padding-bottom: 1.1rem; }
-.door.is-folded .door-head:hover .door-t { color: var(--gold); }
-.door-k { font-size: .64rem; letter-spacing: .3em; text-transform: uppercase; color: var(--gold); }
-.door-t { font-size: 1.6rem; line-height: 1.15; color: var(--text-primary); transition: color .15s; }
-.door.is-folded .door-t { font-size: 1.25rem; color: var(--text-secondary); }
-.door-body { padding: .8rem 1.5rem 1.6rem; }
+/* ---------------------------------------------------------------- the gate (sign-in) */
+/* Two halves: night with the medallion (the brand), and the way in. */
+.gate { display: grid; grid-template-columns: 1fr; background: var(--page-plane); }
+@media (min-width: 900px) { .gate { grid-template-columns: minmax(0, 1.1fr) minmax(26rem, 1fr); } }
+.gate-brand { position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; min-height: 15.5rem; padding: max(2.5rem, env(safe-area-inset-top)) 1.5rem 2.25rem; background: radial-gradient(ellipse at 50% 45%, #1d1a14 0%, #0c0c0d 62%); color: #d2ae68; isolation: isolate; }
+@media (min-width: 900px) { .gate-brand { min-height: 100dvh; position: sticky; top: 0; } }
+.gate-medallion { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); opacity: .14; z-index: -1; pointer-events: none; }
+@media (max-width: 899px) { .gate-medallion > svg { width: 420px; height: 420px; } }
+.gate-brand-inner { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.gate-word { font-size: clamp(2.6rem, 7vw, 4.6rem); line-height: 1; margin-top: 1rem; }
+.gate-crown { width: min(15rem, 60vw); height: auto; margin-top: 1.1rem; }
+.gate-tag { margin-top: 1rem; font-size: .68rem; letter-spacing: .32em; text-transform: uppercase; color: color-mix(in oklab, #d2ae68 70%, #f3efe6); }
+@media (max-width: 899px) { .gate-brand-inner .pop-in { width: 56px; height: 56px; } .gate-word { margin-top: .6rem; } .gate-crown { margin-top: .7rem; width: 11rem; } }
+
+.gate-form { display: flex; flex-direction: column; padding: 0 clamp(1.25rem, 5vw, 4.5rem) max(1.5rem, env(safe-area-inset-bottom)); }
+.gate-body { width: 100%; max-width: 23rem; margin: auto; padding: 2rem 0 2.5rem; }
+.gate-h { font-size: clamp(2.2rem, 5vw, 2.9rem); line-height: 1; color: var(--text-primary); margin-bottom: 1.75rem; }
+.gate-google { width: 100%; min-height: 3.4rem; display: inline-flex; align-items: center; justify-content: center; gap: .85rem; font-size: 1rem; font-weight: 500; color: #1f1f1f; background: #fff; border: 1px solid #dadce0; border-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,.06), 0 6px 18px -10px rgba(0,0,0,.25); transition: box-shadow .2s, border-color .2s; }
+.gate-google:hover { border-color: var(--gold); box-shadow: 0 1px 2px rgba(0,0,0,.08), 0 10px 26px -12px rgba(0,0,0,.35); }
+.gate-google:disabled { opacity: .7; }
+.gate-or { display: flex; align-items: center; gap: 1rem; margin: 1.6rem 0 1.1rem; font-size: .68rem; letter-spacing: .28em; text-transform: uppercase; color: var(--text-muted); }
+.gate-or::before, .gate-or::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+.gate-staff-link { width: 100%; min-height: 3rem; display: inline-flex; align-items: center; justify-content: center; gap: .6rem; font-size: .95rem; color: var(--text-secondary); border: 1px solid var(--border-strong); border-radius: 4px; transition: color .15s, border-color .15s; }
+.gate-staff-link:hover { color: var(--gold); border-color: var(--gold); }
+.gate-back { display: inline-flex; align-items: center; gap: .45rem; font-size: .85rem; color: var(--text-muted); }
+.gate-back:hover { color: var(--gold); }
+.gate-error { font-size: .88rem; padding: .5rem .75rem; margin-top: .9rem; border-left: 2px solid var(--danger); color: var(--danger); }
+.gate-open { display: flex; flex-wrap: wrap; justify-content: center; gap: .3rem 1.4rem; padding-top: 1.1rem; border-top: 1px solid var(--border); }
+.gate-open a { font-size: .78rem; letter-spacing: .14em; text-transform: uppercase; color: var(--text-muted); transition: color .15s; }
+.gate-open a:hover { color: var(--gold); }
 .door-roles { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--border-strong); }
 .door-roles button { padding: .7rem .25rem; font-size: .7rem; letter-spacing: .2em; text-transform: uppercase; color: var(--text-muted); transition: background .15s, color .15s; }
 .door-roles button + button { border-left: 1px solid var(--border-strong); }
 .door-roles button.is-on { background: var(--gold); color: var(--page-plane); }
-.entrance-open { display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem 1.2rem; margin-top: 1.8rem; padding-top: 1.1rem; border-top: 1px solid var(--border); }
-.entrance-open a { font-size: 1.1rem; color: var(--text-secondary); }
-
 /* ---------------------------------------------------------------- my day */
 .almanac { display: inline-flex; flex-wrap: wrap; justify-content: center; border-top: 1px solid var(--gold-dim); border-bottom: 1px solid var(--gold-dim); }
 .almanac button { display: inline-flex; align-items: center; gap: .55rem; padding: .8rem 1.3rem; font-size: .72rem; letter-spacing: .2em; text-transform: uppercase; color: var(--text-secondary); transition: color .15s, background .15s; }
@@ -1340,3 +1346,10 @@ button.help-where:hover { border-bottom-color: var(--gold); }
 .help-metrics dt { min-width: 3.4rem; font-size: .72rem; letter-spacing: .12em; color: var(--gold); }
 .help-metrics dd { color: var(--text-primary); }
 @media (max-width: 520px) { .help-steps > li { grid-template-columns: 2.6rem 1fr; gap: 0 .9rem; } .help-n { font-size: 2.6rem; } .help-metrics { grid-template-columns: 1fr; } }
+.gate-brand-inner { position: relative; }
+.gate-brand-inner::before { content: ""; position: absolute; inset: -18% -22%; z-index: -1; background: radial-gradient(closest-side, #0e0d0c 55%, transparent); }
+.gate-controls { position: absolute; top: max(.5rem, env(safe-area-inset-top)); right: clamp(.75rem, 3vw, 2rem); z-index: 5; display: flex; align-items: center; gap: .25rem; color: var(--text-secondary); }
+@media (max-width: 899px) { .gate-controls { color: #cbbd9c; } .gate-open { gap: .3rem 1rem; } .gate-open a { letter-spacing: .08em; } .gate-body { padding-top: 2.25rem; } }
+.gate { position: relative; }
+@media (min-width: 900px) { .gate-form { border-left: 1px solid var(--gold-dim); } }
+@media (max-width: 899px) { .gate-body { margin: 0 auto; padding: 2.25rem 0 2.5rem; } .gate-form { flex: 1; } .gate-open { margin-top: auto; } }
