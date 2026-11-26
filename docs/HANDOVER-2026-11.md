@@ -103,3 +103,23 @@ was changed by me.
 Every file is safe to run more than once and was tested on a local Postgres
 (roles: admin, captain, CL, linked member, unlinked Google account, anonymous).
 Nothing was run against the production database.
+
+## 7. Phone pass (on `nurmss-v3`, not live yet)
+
+Every page, every role (member, captain, admin, CL), checked at 360 px with an
+automatic audit (sideways overflow, text cut off, tap targets, content behind
+the bottom bar) and by eye. Fixed:
+
+- **No zoom-in when typing on an iPhone**: every text field is at least 16 px
+  on a touch screen (data entry, Gmail addresses, Жаттоо, Тазалык notes, chat).
+- **Bigger tap areas** for the small links (city, "Чыгуу", "Өтүү", "Аамин",
+  week links, the goal pencil, the Тазалык 0–5 cells) without changing their look.
+- **Back closes the open sheet** (Android back button / iPhone swipe) instead
+  of leaving the page; on the site, back from a share sheet over a profile
+  closes only the share sheet.
+- Prayer names on Менин күнүм no longer run together on narrow phones.
+- The "me" card on Үйүм is tidier; CL gets its own Үйүм screen (Тазалык and
+  chats) instead of the members' sign-in; the admin's menu no longer shows
+  "Менин үйүм" next to "Бардык үйлөр".
+- Taps answer at once everywhere (no double-tap zoom on buttons).
+

@@ -1195,3 +1195,5 @@ li[data-ayah].is-reciting { background-color: color-mix(in oklab, var(--gold) 8%
 @media (hover: none) and (pointer: coarse) {
     input:not([type=range]):not([type=checkbox]):not([type=radio]):not(.font-display):not(.goto-page), textarea:not(.font-display), select:not(.font-display) { font-size: 16px !important; }
 }
+/* Taps answer at once and a quick second tap never zooms the page. */
+button, a, [role=button], [role=tab], select, label { touch-action: manipulation; }
