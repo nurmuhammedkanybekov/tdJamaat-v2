@@ -252,6 +252,11 @@ activity, so Vercel pings the database once a day. It reads the same two
 after deploying by opening `https://<your-site>/api/keepalive` — it should
 say `"ok": true`.
 
+To keep strangers from calling it, add a `CRON_SECRET` environment variable
+in Vercel (any long random string). Vercel's cron sends it automatically;
+anyone else then gets `401`. With the secret set, the address above answers
+`401` in a browser too, which is expected.
+
 ## 7. Running the season (weekly routine)
 
 - **Admin, at the start of each week:** log in → menu → **Админ панели**
