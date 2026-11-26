@@ -68,9 +68,19 @@ const PeriodReport: React.FC<ReportsViewProps> = ({ data, selectedPeriod, setSel
                 <button className="w-10 h-10 inline-flex items-center justify-center rounded-full transition-colors hover:text-[var(--gold)]" onClick={() => setSelectedPeriod(Math.max(0, period - 1))} disabled={period === 0} aria-label={t('Мурунку мезгил')} style={{ border: '1px solid var(--border-strong)', color: 'var(--text-secondary)', opacity: period === 0 ? 0.35 : 1 }}>
                     <ChevronLeft className="w-5 h-5" />
                 </button>
-                <div className="text-center">
+                <div className="text-center relative">
                     <div className="eyebrow">{t('{0}-мезгил / {1}', period + 1, totalPeriods)}</div>
                     <div className="font-display text-[1.9rem] leading-tight tabular" style={{ color: 'var(--text-primary)' }}>{first === last ? t('{0}-апта', first) : t('{0}–{1}-апталар', first, last)}</div>
+                    {/* Any period straight from the list, not only the next one. */}
+                    {totalPeriods > 2 && (
+                        <select value={period} onChange={e => setSelectedPeriod(Number(e.target.value))} aria-label={t('Мезгилди тандоо')} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                            {Array.from({ length: totalPeriods }, (_, i) => {
+                                const a = data.weeks[i * 4]?.weekNumber ?? i * 4 + 1;
+                                const b = data.weeks[Math.min(data.weeks.length, i * 4 + 4) - 1]?.weekNumber ?? a;
+                                return <option key={i} value={i}>{`${t('{0}-мезгил / {1}', i + 1, totalPeriods)} · ${a === b ? t('{0}-апта', a) : t('{0}–{1}-апталар', a, b)}`}</option>;
+                            })}
+                        </select>
+                    )}
                 </div>
                 <button className="w-10 h-10 inline-flex items-center justify-center rounded-full transition-colors hover:text-[var(--gold)]" onClick={() => setSelectedPeriod(Math.min(totalPeriods - 1, period + 1))} disabled={period >= totalPeriods - 1} aria-label={t('Кийинки мезгил')} style={{ border: '1px solid var(--border-strong)', color: 'var(--text-secondary)', opacity: period >= totalPeriods - 1 ? 0.35 : 1 }}>
                     <ChevronRight className="w-5 h-5" />

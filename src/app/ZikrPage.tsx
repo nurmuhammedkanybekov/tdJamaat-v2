@@ -54,7 +54,7 @@ const Ring: React.FC<{ value: number; target: number; full?: boolean; children: 
     );
 };
 
-const Counter: React.FC<{ zikr: Zikr; store: ZikrStore; update: (fn: (s: ZikrStore) => ZikrStore) => ZikrStore; sequence?: { index: number; onDone: () => void } }> = ({ zikr, store, update, sequence }) => {
+const Counter: React.FC<{ zikr: Zikr; store: ZikrStore; update: (fn: (s: ZikrStore) => ZikrStore) => ZikrStore; sequence?: { index: number; onDone: () => void; onPick?: (i: number) => void } }> = ({ zikr, store, update, sequence }) => {
     const target = sequence ? AFTER_PRAYER[sequence.index].count : targetOf(store, zikr);
     // The after-prayer set counts in its own slot, so a count in progress on
     // the zikr's own page is left as it was.
@@ -96,6 +96,22 @@ const Counter: React.FC<{ zikr: Zikr; store: ZikrStore; update: (fn: (s: ZikrSto
 
     return (
         <div className="flex flex-col lg:max-w-[40rem] lg:mx-auto zikr-stage">
+            {/* The set's three steps: tap one to go straight to it. */}
+            {sequence?.onPick && (
+                <div className="grid grid-cols-3 gap-3 px-4 pt-2 w-full max-w-[26rem] mx-auto" role="tablist" aria-label={t('Намаздан кийинки тасбих')}>
+                    {AFTER_PRAYER.map((x, i) => {
+                        const zx = ZIKRS.find(y => y.id === x.id);
+                        const on = i === sequence.index;
+                        return (
+                            <button key={i} role="tab" aria-selected={on} onClick={() => sequence.onPick?.(i)} className="min-w-0 pb-2 text-center transition-colors"
+                                style={{ borderBottom: `${on ? 2 : 1}px solid ${on ? 'var(--gold)' : i < sequence.index ? 'var(--gold-dim)' : 'var(--border)'}`, color: on ? 'var(--gold)' : 'var(--text-muted)' }}>
+                                <span className="block truncate text-[0.78rem]">{zx?.reading ?? i + 1}</span>
+                                <span className="block font-display tabular text-[0.95rem]">{x.count}</span>
+                            </button>
+                        );
+                    })}
+                </div>
+            )}
             {/* The whole upper area is the button. */}
             <button onClick={tap} className="zikr-tap flex-1 flex flex-col items-center justify-center text-center select-none py-6 w-full" aria-label={t('Саноо: {0}', zikr.reading)}>
                 {sequence && <div className="eyebrow mb-3" style={{ color: 'var(--gold)' }}>{t('Намаздан кийин · {0} / 3', sequence.index + 1)}</div>}
@@ -177,7 +193,7 @@ export const ZikrPage: React.FC<{ arg: string | null; theme: Theme; onToggleThem
         const z = ZIKRS.find(x => x.id === AFTER_PRAYER[step].id)!;
         return (
             <AppFrame page="zikr" title={t('Намаздан кийинки тасбих')} back="#/zikr" theme={theme} onToggleTheme={onToggleTheme} ownBar>
-                <Counter key={z.id + step} zikr={z} store={store} update={update} sequence={{ index: step, onDone: () => setStep(n => n + 1) }} />
+                <Counter key={z.id + step} zikr={z} store={store} update={update} sequence={{ index: step, onDone: () => setStep(n => n + 1), onPick: setStep }} />
             </AppFrame>
         );
     }
