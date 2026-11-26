@@ -7,20 +7,21 @@ houses, and every week each house reports how its people did with Quran
 reading, salawat, fasting, night prayer and a few other practices. The app
 turns that into a weekly race between the houses, personal results and a
 season-long record. It also has the things people open every day: prayer
-times, the Quran with a Kyrgyz translation, tasbihat after each prayer and
-a zikr counter.
+times, the Quran with a Kyrgyz translation, tasbihat after each prayer, a
+zikr counter and the Qibla. Those open without an account, so the site
+starts on the day itself; signing in is one tap away.
 
 The interface is in Kyrgyz, with an English version.
 
 <p align="center">
-  <img src="docs/desktop-night.jpg" alt="The week page in the night theme: the leading house and its rating" width="100%">
+  <img src="docs/desktop-night.jpg" alt="The week in the night theme: the leading house and its rating" width="100%">
 </p>
 <p align="center">
-  <img src="docs/phone-today.jpg" alt="Today: next prayer, the day's prayer times, shortcuts" width="31%">
+  <img src="docs/phone-today.jpg" alt="My day: the prayer whose time it is, the day's times, what to read" width="31%">
   &nbsp;
   <img src="docs/phone-results.jpg" alt="A member's own results for the week" width="31%">
   &nbsp;
-  <img src="docs/phone-jamaat.jpg" alt="What the jamaat did together this season" width="31%">
+  <img src="docs/phone-namaz.jpg" alt="Prayer times as the sun's path across the day" width="31%">
 </p>
 <p align="center"><sub>Screenshots use invented names and numbers.</sub></p>
 
@@ -32,7 +33,7 @@ The interface is in Kyrgyz, with an English version.
 | Captain | house password | every house's results | own house's weekly numbers, members' Gmail addresses |
 | CL (cleanliness) | password | houses and weeks, no results | cleanliness ratings |
 | Admin | password | everything | roster, weeks, seasons, plans, chats |
-| Visitor | nothing | the everyday pages only | nothing (counts stay on the phone) |
+| Visitor | nothing | the everyday pages: prayer times, Quran, tasbihat, zikr, Qibla | nothing (counts stay on the phone) |
 
 ## How it is built
 
@@ -62,6 +63,23 @@ chat message or a person's weekly plan, are set by triggers.
 Prayer times are computed on the device with
 [adhan](https://github.com/batoulapps/adhan-js), so they work offline.
 The app installs to the home screen and caches what it needs.
+
+## Design
+
+The look comes from two places: a printed programme (one serif family,
+small letterspaced capitals, gold rules) and the шырдак, the Kyrgyz felt
+carpet. Its ram's-horn motif (кочкор мүйүз) is the logo, the border under
+every page head and the medallion that turns slowly behind page titles.
+Sections open under a gold rule with a diamond instead of sitting in
+cards. Each page also gets its own form: prayer times are drawn as the
+sun's path over the day, the zikrs hang as beads on a thread, the Quran
+page keeps a bookmark with your place in the 604 pages.
+
+There are two themes, worked out separately rather than inverted: warm
+porcelain by day and black with gold at night, with the sky behind the
+header tinted by the hour where you are. Fonts are self-hosted
+(Oranienbaum, Prata and Spectral; the Arabic is set in the King Fahd
+Complex's Uthmanic Hafs font).
 
 ## Scoring
 
@@ -104,7 +122,8 @@ CI runs the same three on every push.
 
 ```
 src/
-  app/            everyday pages: Today, Quran, Tasbihat, Zikr, house, chats
+  app/            everyday pages: My day, prayer times, Quran, Tasbihat,
+                  Zikr, Qibla, house, chats, help
   components/     results site: week, houses, season, awards, jamaat, forms
   services/       Supabase access, one file per area
   utils/          scoring, rankings, awards, seasons (pure, tested)

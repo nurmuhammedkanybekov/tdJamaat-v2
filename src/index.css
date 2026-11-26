@@ -1440,3 +1440,22 @@ button.help-where:hover { border-bottom-color: var(--gold); }
 /* The awards collection: medals on the page, not in a cabinet. */
 .cabinet { background: transparent; border: 0; border-top: 1px solid var(--gold-dim); padding-left: 0; padding-right: 0; }
 .jattoo-badge { border: 0; padding-left: 0; }
+
+/* ---------------------------------------------------------------- my day: lower half */
+/* The ayah of the day as a page of the mushaf: corners, the medallion under the text. */
+.ayah-page { position: relative; isolation: isolate; overflow: hidden; margin-top: 1.4rem; padding: 2.4rem 1rem 1.8rem; }
+.ayah-medallion { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: -1; color: var(--gold); opacity: .08; pointer-events: none; }
+.ayah-corner { position: absolute; top: 0; left: 0; width: 34px; height: 34px; border-top: 1px solid var(--gold); border-left: 1px solid var(--gold); }
+.ayah-corner.is-r { left: auto; right: 0; border-left: 0; border-right: 1px solid var(--gold); }
+.ayah-page::before, .ayah-page::after { content: ""; position: absolute; bottom: 0; width: 34px; height: 34px; border-bottom: 1px solid var(--gold); }
+.ayah-page::before { left: 0; border-left: 1px solid var(--gold); }
+.ayah-page::after { right: 0; border-right: 1px solid var(--gold); }
+
+/* My week: four figures standing on the page, divided by small diamonds. */
+.figs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 1.2rem 0 .6rem; }
+.fig { position: relative; min-width: 0; display: flex; flex-direction: column; align-items: center; text-align: center; padding: .4rem .2rem .9rem; }
+.fig:not([data-first])::before { content: ""; position: absolute; left: 0; top: 1.15rem; width: 5px; height: 5px; transform: translateX(-50%) rotate(45deg); background: var(--gold-dim); }
+.fig.is-link:hover .font-display { color: var(--gold) !important; }
+
+/* My house on My Day: the two numbers open, no divider boxes. */
+.mine-sum { position: relative; }

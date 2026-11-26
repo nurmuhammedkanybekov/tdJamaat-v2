@@ -24,13 +24,13 @@ export const MemberSummary: React.FC<{ link: MemberLink }> = ({ link }) => {
         return null;
     }, [data, link]);
     return (
-        <button onClick={() => { window.location.hash = '#/house/me'; }} className="row-link w-full flex items-center gap-2 py-2" style={{ borderBottom: '1px solid var(--border)' }}>
-            <span className="flex-1 text-center py-3">
-                <span className="block font-display tabular text-[2.2rem] leading-none" style={{ color: 'var(--gold)' }}>{row?.me == null ? '—' : fmt(row.me)}</span>
+        <button onClick={() => { window.location.hash = '#/house/me'; }} className="figs w-full items-center" style={{ gridTemplateColumns: '1fr 1fr auto', borderBottom: '1px solid var(--border)' }}>
+            <span className="fig" data-first>
+                <span className="block font-display tabular text-[2.4rem] sm:text-[2.9rem] leading-none" style={{ color: 'var(--gold)' }}>{row?.me == null ? '—' : fmt(row.me)}</span>
                 <span className="block text-[0.66rem] tracking-[0.16em] uppercase mt-2" style={{ color: 'var(--text-muted)' }}>{t('Менин упайым')}</span>
             </span>
-            <span className="flex-1 text-center py-3" style={{ borderLeft: '1px solid var(--border)' }}>
-                <span className="block font-display tabular text-[2.2rem] leading-none" style={{ color: 'var(--text-primary)' }}>{row?.house == null ? '—' : fmt(row.house)}</span>
+            <span className="fig">
+                <span className="block font-display tabular text-[2.4rem] sm:text-[2.9rem] leading-none" style={{ color: 'var(--text-primary)' }}>{row?.house == null ? '—' : fmt(row.house)}</span>
                 <span className="block text-[0.66rem] tracking-[0.16em] uppercase mt-2" style={{ color: 'var(--text-muted)' }}>{link.houseName}</span>
             </span>
             <ChevronRight className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--gold)' }} />

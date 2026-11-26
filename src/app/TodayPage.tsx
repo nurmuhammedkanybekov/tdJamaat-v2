@@ -4,7 +4,7 @@
 // a captain or the admin, how the houses stand.
 import React, { Suspense, lazy, useContext, useEffect, useMemo, useState } from 'react';
 import { Check, ChevronRight, Clock3, Compass, MapPin } from 'lucide-react';
-import { Crown, Mark } from '../components/Ornament';
+import { Crown, Mark, Medallion } from '../components/Ornament';
 import type { Theme } from '../theme';
 import { useNow } from '../hooks/useNow';
 import { loadCity } from '../utils/city';
@@ -68,8 +68,10 @@ const DailyAyah: React.FC<{ now: Date }> = ({ now }) => {
     }, [day]);
     if (!state) return <div className="py-10 flex justify-center"><div className="skeleton h-1 w-24" /></div>;
     return (
-        <div className="pt-5">
-            <p dir="rtl" lang="ar" className="quran-text text-center text-[1.75rem] leading-[2.1]" style={{ color: 'var(--text-primary)' }}>{state.text[0]}</p>
+        <div className="ayah-page">
+            <span className="ayah-medallion" aria-hidden="true"><Medallion size={380} /></span>
+            <span className="ayah-corner" aria-hidden="true" /><span className="ayah-corner is-r" aria-hidden="true" />
+            <p dir="rtl" lang="ar" className="quran-text text-center text-[1.75rem] sm:text-[2.05rem] leading-[2.1]" style={{ color: 'var(--text-primary)' }}>{state.text[0]}</p>
             {state.meaning && <p className="mt-4 text-[1rem] leading-relaxed text-center max-w-[36rem] mx-auto" lang={translationLang()} style={{ color: 'var(--text-secondary)' }}>{state.meaning[0]}</p>}
             <div className="text-center mt-3">
                 <button onClick={() => go(`#/quran/${state.surah.n}:${state.ayah}`)} className="hit text-[0.72rem] tracking-[0.18em] uppercase transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}>
@@ -171,8 +173,8 @@ const DayPath: React.FC<{ times: Record<PrayerKey, Date>; now: Date; tz: string;
 const Figure: React.FC<{ value: React.ReactNode; label: string; gold?: boolean; first?: boolean; onClick?: () => void }> = ({ value, label, gold, first, onClick }) => {
     const Tag = onClick ? 'button' : 'div';
     return (
-        <Tag onClick={onClick} className={`flex-1 min-w-0 text-center py-4 ${onClick ? 'row-link' : ''}`} style={first ? undefined : { borderLeft: '1px solid var(--border)' }}>
-            <div className="font-display tabular leading-none text-[2.1rem] sm:text-[2.5rem]" style={{ color: gold ? 'var(--gold)' : 'var(--text-primary)' }}>{value}</div>
+        <Tag onClick={onClick} className={`fig ${onClick ? 'is-link' : ''}`} data-first={first || undefined}>
+            <div className="font-display tabular leading-none text-[2.4rem] sm:text-[2.9rem]" style={{ color: gold ? 'var(--gold)' : 'var(--text-primary)' }}>{value}</div>
             <div className="text-[0.66rem] tracking-[0.16em] uppercase mt-2" style={{ color: 'var(--text-muted)' }}>{label}</div>
         </Tag>
     );
@@ -288,7 +290,7 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
 
                 {/* The jamaat week, in the captain's terms, as four large numbers. */}
                 <Section eyebrow={t('Менин аптам')} action={<span className="text-[0.72rem]" style={{ color: 'var(--text-muted)' }}>{formatWeekRange(totals.start, totals.end)}</span>}>
-                    <div className="flex">
+                    <div className="figs">
                         <Figure first value={totals.salawat} label={t('Салават')} gold={totals.salawat > 0} onClick={() => go('#/zikr/salawat')} />
                         <Figure value={totals.zikr} label={t('Зикир')} onClick={() => go('#/zikr')} />
                         <Figure value={`${totals.tasbihat}`} label={t('Тасбихат')} onClick={() => go('#/tasbihat')} />
