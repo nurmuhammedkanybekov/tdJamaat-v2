@@ -139,6 +139,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         { key: 'today', group: DAY, label: t('Менин күнүм'), icon: SunMedium, onClick: () => { window.location.hash = '#/today'; } },
         ...(authUser && authUser.role !== 'inspector' ? [{ key: 'house', group: DAY, label: t('Менин үйүм'), icon: HomeIcon, onClick: () => { window.location.hash = '#/house'; } }] : []),
         ...(authUser ? [{ key: 'news', group: DAY, label: t('Жамааттан кабар'), icon: Megaphone, onClick: () => { window.location.hash = '#/news'; } }] : []),
+        ...(authUser ? [{ key: 'talk', group: DAY, label: t('Баарлашуу'), icon: MessageCircle, onClick: () => { window.location.hash = '#/chat'; } }] : []),
         { key: 'quran', group: DAY, label: t('Куран'), icon: BookOpen, onClick: () => { window.location.hash = '#/quran'; } },
         { key: 'tasbihat', group: DAY, label: t('Тасбихат'), icon: ScrollText, onClick: () => { window.location.hash = '#/tasbihat'; } },
         { key: 'zikr', group: DAY, label: t('Зикир'), icon: CircleDot, onClick: () => { window.location.hash = '#/zikr'; } },

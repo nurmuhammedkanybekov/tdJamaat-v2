@@ -9,7 +9,7 @@ import { useSelf } from './self';
 import { HouseChat } from './HouseChat';
 import { GoalBanner } from './Community';
 import { countUnread } from '../services/chatService';
-import { Camera, ChevronRight, Loader2, MessageCircle } from 'lucide-react';
+import { Camera, ChevronRight, Loader2, MessageCircle, Shield, Users } from 'lucide-react';
 import type { Theme } from '../theme';
 import { t } from '../i18n';
 import { AppFrame, Section, Waiting } from './AppFrame';
@@ -117,6 +117,16 @@ const AdminHouses: React.FC<{ data: DataFile }> = ({ data }) => {
     return (
         <div className="max-w-[44rem] mx-auto">
             <p className="text-center text-[0.95rem] leading-relaxed pt-6" style={{ color: 'var(--text-secondary)' }}>{t('Сиз жамааттын админисиз — бир үйдүн адамы эмессиз. Бардык үйлөрдү ачып, ар бир үйдүн сөзүнө «Админ» катары жаза аласыз.')}</p>
+            <div className="grid grid-cols-2 gap-3 mt-6">
+                <button onClick={() => go('#/chat/all')} className="row-link text-left p-4 flex items-center gap-3" style={{ border: '1px solid var(--gold-dim)' }}>
+                    <Users className="w-5 h-5 flex-shrink-0" strokeWidth={1.5} style={{ color: 'var(--gold)' }} />
+                    <span className="font-display text-[1.1rem] leading-tight" style={{ color: 'var(--text-primary)' }}>{t('Жамааттын сөзү')}</span>
+                </button>
+                <button onClick={() => go('#/chat/staff')} className="row-link text-left p-4 flex items-center gap-3" style={{ border: '1px solid var(--gold-dim)' }}>
+                    <Shield className="w-5 h-5 flex-shrink-0" strokeWidth={1.5} style={{ color: 'var(--gold)' }} />
+                    <span className="font-display text-[1.1rem] leading-tight" style={{ color: 'var(--text-primary)' }}>{t('Капитандар')}</span>
+                </button>
+            </div>
             <ul className="mt-6" style={{ borderTop: '1px solid var(--gold-dim)' }}>
                 {teams.map(({ tm, rating }, i) => (
                     <li key={tm.id} className="flex items-center gap-2" style={{ borderBottom: '1px solid var(--border)' }}>
@@ -263,6 +273,13 @@ export const HousePage: React.FC<{ arg?: string | null; sub?: string | null; the
                         </section>}
 
                         <ChatEntry self={link} to={adminView ? `#/house/chat/${link.houseId}` : '#/house/chat'} />
+                        {!adminView && (
+                            <button onClick={() => go('#/chat')} className="row-link w-full text-left py-3.5 flex items-center gap-3" style={{ borderBottom: '1px solid var(--border)' }}>
+                                <Users className="w-4 h-4 flex-shrink-0" strokeWidth={1.5} style={{ color: 'var(--gold)' }} />
+                                <span className="flex-1 text-[0.95rem]" style={{ color: 'var(--text-secondary)' }}>{ctx.signedIn && ctx.role === 'leader' ? t('Жамааттын сөзү жана капитандар') : t('Жамааттын сөзү')}</span>
+                                <ChevronRight className="w-4 h-4" style={{ color: 'var(--gold)' }} />
+                            </button>
+                        )}
                         <GoalBanner houseId={link.houseId} week={latest?.week.globalWeek ?? null} canEdit={ctx.role === 'admin' || (ctx.role === 'leader' && ctx.houseId === link.houseId)} />
 
                         <Section eyebrow={t('Үйдүн адамдары')}>

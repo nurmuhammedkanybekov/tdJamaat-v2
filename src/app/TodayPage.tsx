@@ -194,7 +194,7 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
     const zikr = loadZikr();
     const last = loadLastRead();
     const totals = useWeekTotals();
-    const { member, signedIn } = useContext(AppContext);
+    const { member, signedIn, role } = useContext(AppContext);
     const linked = member?.status === 'linked' ? member.link : null;
     const zikrToday = todayTotal(zikr);
     const readToday = TASBIHAT_ORDER.filter(p => tasbihatDone(practice, p, now)).length;
@@ -261,6 +261,7 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
                 {(linked || signedIn) && (
                     <Section eyebrow={t('Жамааттан кабар')}>
                         <NewsTeaser />
+                        <RowLink onClick={() => go('#/chat')} title={t('Баарлашуу')} sub={t('Жамааттын сөзү, үйдүн сөзү{0}', signedIn && role !== 'member' ? t(', капитандар') : '')} />
                     </Section>
                 )}
 
