@@ -1,4 +1,4 @@
-# Setting up tdJamaat v2
+# Setting up tdJamaat
 
 Same core idea as the original tdJamaat, on a new foundation: real
 houses/members tables instead of a JSON blob re-typed every week, and
@@ -19,8 +19,9 @@ In the Supabase dashboard, open **SQL Editor** and run, in order:
 
 1. `supabase/schema.sql` — creates the houses/members/weeks/metrics
    tables and the row-level security policies.
-2. `supabase/seed.sql` — inserts the current houses (Mester, Damjanich,
-   Pannonia, Baksai, Dobozy) and their members/roles.
+2. `supabase/seed.sql` — five houses with invented demo people, so a new
+   project has something to show. Replace them with the real roster on the
+   site (Админ панели → Курам).
 3. `supabase/photo-upload-setup.sql` — creates the `member-photos`
    storage bucket and the policies that let a house leader upload/replace
    photos for members in their own house.
