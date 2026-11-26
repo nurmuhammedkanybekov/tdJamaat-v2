@@ -212,7 +212,7 @@ const SeasonNumbers: React.FC<{ series: MemberSeries; ins: ReturnType<typeof bui
                 <div>
                     <dt className="eyebrow">{t('Эң мыкты апта')}</dt>
                     <dd>{s.best ? fmt(s.best.score) : '—'}</dd>
-                    {s.best && <button className="mine-link" onClick={() => onPick(s.best!)}>{t('{0}-апта', s.best.weekNumber)} →</button>}
+                    {s.best && <button className="hit mine-link" onClick={() => onPick(s.best!)}>{t('{0}-апта', s.best.weekNumber)} →</button>}
                 </div>
                 <div><dt className="eyebrow">{t('Катышуу')}</dt><dd>{counted}<small> / {s.weeksTotal}</small></dd>{s.excusedWeeks > 0 && <p>{t('{0} апта себептүү', s.excusedWeeks)}</p>}</div>
                 <div><dt className="eyebrow">{t('Толук план')}</dt><dd>{s.perfectWeeks ? <>{s.perfectWeeks}<small> {t('жолу')}</small></> : none(t('азырынча жок'))}</dd>{s.longestPerfect > 1 && <p>{t('катары менен {0} апта', s.longestPerfect)}</p>}</div>

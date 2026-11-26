@@ -1109,7 +1109,6 @@ export const EN: Record<string, string> = {
     "Мезгилди тандоо": "Choose a period",
     "Акыркы билдирүүлөргө": "To the latest messages",
     "Менин жыйынтыгым": "My results",
-    "Ар бир көрсөткүч, сезондогу жол жана сыйлыктарым": "Every metric, my season and my awards",
     "Азырынча сиздин жыйынтыгыңыз жок. Капитан аптанын маалыматын киргизгенде бул жерде көрүнөт.": "No results yet. They appear here once your captain enters the week.",
     "Планга {0}%": "{0}% of plan",
     "план {0}": "plan {0}",
@@ -1228,5 +1227,9 @@ export const EN: Record<string, string> = {
     "Эми аптаны бекитсеңиз болот — жыйынтыктар акыркы болот.": "You can lock the week now — the results become final.",
     "Күтүлүүдө: {0}": "Waiting for: {0}",
     "киргизүү": "enter",
-    "Сандар капитандын формасына өзү жетет.": "Your numbers reach the captain's form by themselves."
+    "Сандар капитандын формасына өзү жетет.": "Your numbers reach the captain's form by themselves.",
+    "Сүрөт": "Photo",
+    "CL ар бир үйдүн тазалыгын баалайт. Баалоо жана жамааттын сөзү — төмөндө.": "CL rates every house's cleanliness. Rating and the jamaat chat are below.",
+    "Жаттоо, сыйлыктар, бөлүшүү": "Memorization, awards, sharing",
+    "чыгыш": "rise"
 };

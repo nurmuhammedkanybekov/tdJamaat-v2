@@ -72,7 +72,7 @@ const DailyAyah: React.FC<{ now: Date }> = ({ now }) => {
             <p dir="rtl" lang="ar" className="quran-text text-center text-[1.75rem] leading-[2.1]" style={{ color: 'var(--text-primary)' }}>{state.text[0]}</p>
             {state.meaning && <p className="mt-4 text-[1rem] leading-relaxed text-center max-w-[36rem] mx-auto" lang={translationLang()} style={{ color: 'var(--text-secondary)' }}>{state.meaning[0]}</p>}
             <div className="text-center mt-3">
-                <button onClick={() => go(`#/quran/${state.surah.n}:${state.ayah}`)} className="text-[0.72rem] tracking-[0.18em] uppercase transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}>
+                <button onClick={() => go(`#/quran/${state.surah.n}:${state.ayah}`)} className="hit text-[0.72rem] tracking-[0.18em] uppercase transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}>
                     {state.surah.name} · {state.surah.n}:{state.ayah}
                 </button>
             </div>
@@ -94,7 +94,7 @@ const Jamaat: React.FC = () => {
                 <div>
                     <div className="pt-4 flex items-baseline justify-between gap-3">
                         <span className="font-display text-[1.4rem]" style={{ color: 'var(--text-primary)' }}>{member.link.name} <span className="text-[1rem]" style={{ color: 'var(--text-muted)' }}>· {member.link.houseName}</span></span>
-                        <button onClick={() => { signOutMember().catch(() => undefined); }} className="text-[0.7rem] tracking-[0.16em] uppercase transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}>{t('Чыгуу')}</button>
+                        <button onClick={() => { signOutMember().catch(() => undefined); }} className="hit text-[0.7rem] tracking-[0.16em] uppercase transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}>{t('Чыгуу')}</button>
                     </div>
                     <MemberSummary link={member.link} />
                     <RowLink onClick={() => go('#/jamaat')} title={t('Жамааттын жыйынтыгы')} sub={t('Бирге окулган Куран, үйлөрдүн жарышы, аптанын пульсу')} />
@@ -162,7 +162,8 @@ const DayPath: React.FC<{ times: Record<PrayerKey, Date>; now: Date; tz: string;
             <ol className="grid grid-cols-6 mt-4 text-center">
                 {PRAYER_ORDER.map(k => (
                     <li key={k} className="min-w-0">
-                         <div className="text-[0.72rem] sm:text-[0.8rem] truncate" style={{ color: k === next ? 'var(--gold)' : 'var(--text-muted)' }}>{PRAYER_NAMES[k]}</div>
+                        {/* A narrow phone gets the two long names on two lines rather than cut. */}
+                        <div className="day-path-name text-[0.72rem] sm:text-[0.8rem]" style={{ color: k === next ? 'var(--gold)' : 'var(--text-muted)' }}>{k === 'sunrise' ? <>{t('Күн')}<span className="day-path-br"> </span>{t('чыгыш')}</> : PRAYER_NAMES[k]}</div>
                         <div className="font-display tabular text-[1.05rem] sm:text-[1.25rem] mt-0.5" style={{ color: k === next ? 'var(--gold)' : k === 'sunrise' ? 'var(--text-muted)' : 'var(--text-primary)' }}>{clock(times[k], tz)}</div>
                     </li>
                 ))}
@@ -222,7 +223,7 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
                 <button onClick={() => go('#/namaz')} className="btn btn-primary"><Clock3 className="w-4 h-4" />{t('Намаз убактылары')}</button>
                 <button onClick={() => go('#/qibla')} className="btn btn-ghost"><Compass className="w-4 h-4" />{t('Кыбла')}</button>
             </div>
-            <button onClick={() => setSheet(true)} className="mt-3 inline-flex items-center gap-1.5 text-[0.72rem] tracking-[0.18em] uppercase transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}>
+            <button onClick={() => setSheet(true)} className="hit mt-3 inline-flex items-center gap-1.5 text-[0.72rem] tracking-[0.18em] uppercase transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}>
                 <MapPin className="w-3.5 h-3.5" />{city.name} · {t('шаарды алмаштыруу')}
             </button>
         </div>

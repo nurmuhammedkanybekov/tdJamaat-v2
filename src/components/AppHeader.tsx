@@ -137,7 +137,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     const DAY = t('Күнүмдүк'), WORK = t('Иш куралдары'), RESULTS = t('Жыйынтыктар'), MORE = t('Дагы');
     const items: MenuItem[] = [
         { key: 'today', group: DAY, label: t('Менин күнүм'), icon: SunMedium, onClick: () => { window.location.hash = '#/today'; } },
-        ...(authUser && authUser.role !== 'inspector' ? [{ key: 'house', group: DAY, label: t('Менин үйүм'), icon: HomeIcon, onClick: () => { window.location.hash = '#/house'; } }] : []),
+        ...(authUser && authUser.role !== 'inspector' && !isAdmin ? [{ key: 'house', group: DAY, label: t('Менин үйүм'), icon: HomeIcon, onClick: () => { window.location.hash = '#/house'; } }] : []),
         ...(authUser ? [{ key: 'news', group: DAY, label: t('Жамааттан кабар'), icon: Megaphone, onClick: () => { window.location.hash = '#/news'; } }] : []),
         ...(authUser ? [{ key: 'talk', group: DAY, label: t('Баарлашуу'), icon: MessageCircle, onClick: () => { window.location.hash = '#/chat'; } }] : []),
         { key: 'quran', group: DAY, label: t('Куран'), icon: BookOpen, onClick: () => { window.location.hash = '#/quran'; } },
@@ -295,7 +295,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                         </h1>
                     )}
                     {week?.date && !monument && <p className="mt-3 text-[0.9rem]" style={{ color: 'var(--text-muted)' }}>{week.date.replace(' -- ', ' — ')}</p>}
-                    <button onClick={onPrayer} className={`${monument ? 'mt-5' : 'mt-3'} inline-flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[0.82rem] transition-colors hover:text-[var(--gold)]`} style={{ color: 'var(--text-muted)' }}>
+                    <button onClick={onPrayer} className={`hit ${monument ? 'mt-5' : 'mt-3'} inline-flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[0.82rem] transition-colors hover:text-[var(--gold)]`} style={{ color: 'var(--text-muted)' }}>
                         {hijri && <span className="italic">{formatHijri(hijri)}</span>}
                         {hijri && <span aria-hidden="true" style={{ color: 'var(--gold-dim)' }}>·</span>}
                         <span>{ramadan ? t('Ифтар') : PRAYER_NAMES[next.key]} <span className="tabular" style={{ color: 'var(--gold)' }}>{clock(ramadan ? todayTimes.maghrib : next.at, city.tz)}</span></span>

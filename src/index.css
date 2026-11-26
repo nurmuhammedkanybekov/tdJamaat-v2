@@ -1177,3 +1177,21 @@ li[data-ayah].is-reciting { background-color: color-mix(in oklab, var(--gold) 8%
 .desk-house.is-missing .desk-dot { border-style: dashed; }
 .desk-name { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-display); font-size: clamp(.82rem, 3.4vw, 1.1rem); color: var(--text-primary); margin-top: .2rem; }
 .desk-sub { display: inline-flex; align-items: center; gap: .2rem; font-size: .76rem; }
+
+/* A bigger place to tap, without changing how the control looks: the small
+   text links (a city, "Чыгуу", "Өтүү", "Аамин"…) get an invisible margin a
+   thumb can hit (about 44px tall in all). */
+.hit, .chat-amin, .chat-delete { position: relative; }
+.hit::after, .chat-amin::after, .chat-delete::after { content: ''; position: absolute; inset: -12px -6px; }
+.taz-cell { position: relative; }
+.taz-cell::after { content: ''; position: absolute; inset: -7px 0; }
+.day-path-name { line-height: 1.15; min-height: 1.15em; }
+.day-path-br { display: inline; }
+@media (max-width: 399px) { .day-path-br { display: block; height: 0; overflow: hidden; } .day-path-name { min-height: 2.3em; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; } }
+
+/* Phones: a text field under 16px makes iPhone Safari zoom the whole page on
+   tap (and stay zoomed). Every field is at least 16px on a touch screen; the
+   ones set large on purpose (font-display, the Quran page number) keep their size. */
+@media (hover: none) and (pointer: coarse) {
+    input:not([type=range]):not([type=checkbox]):not([type=radio]):not(.font-display):not(.goto-page), textarea:not(.font-display), select:not(.font-display) { font-size: 16px !important; }
+}

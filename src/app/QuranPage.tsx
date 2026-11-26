@@ -194,7 +194,7 @@ const Footnote: React.FC<{ text: string }> = ({ text }) => {
     const [open, setOpen] = useState(false);
     return (
         <div className="mt-1">
-            <button type="button" onClick={() => setOpen(v => !v)} aria-expanded={open} className="text-[0.66rem] tracking-[0.18em] uppercase transition-colors hover:text-[var(--gold)]" style={{ color: open ? 'var(--gold)' : 'var(--text-muted)' }}>{t('Түшүндүрмө')}</button>
+            <button type="button" onClick={() => setOpen(v => !v)} aria-expanded={open} className="hit text-[0.66rem] tracking-[0.18em] uppercase transition-colors hover:text-[var(--gold)]" style={{ color: open ? 'var(--gold)' : 'var(--text-muted)' }}>{t('Түшүндүрмө')}</button>
             {open && <p className="mt-1.5 pl-3 text-[0.86em] leading-relaxed whitespace-pre-line" style={{ borderLeft: '2px solid var(--gold-dim)', color: 'var(--text-secondary)' }}>{text}</p>}
         </div>
     );
@@ -205,7 +205,7 @@ const ModeBar: React.FC<{ mode: ReadMode; onMode: (m: ReadMode) => void; label: 
     <div className="sticky top-0 z-30 quran-modebar">
         <div className="mx-auto max-w-[46rem] flex items-center gap-2 h-12">
             {onGoTo
-                ? <button onClick={onGoTo} className="flex-1 min-w-0 text-left inline-flex items-center gap-1.5 text-[0.8rem] transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }} aria-label={t('Өтүү')}><span className="truncate">{label}</span><ChevronDown className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--gold)' }} /></button>
+                ? <button onClick={onGoTo} className="hit flex-1 min-w-0 text-left inline-flex items-center gap-1.5 text-[0.8rem] transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }} aria-label={t('Өтүү')}><span className="truncate">{label}</span><ChevronDown className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--gold)' }} /></button>
                 : <span className="flex-1 min-w-0 truncate text-[0.8rem]" style={{ color: 'var(--text-muted)' }}>{label}</span>}
             <div className="flex items-center" role="group" aria-label={t('Окуу түрү')}>
                 {([['translation', t('Мааниси')], ['mushaf', t('Мусхаф')], ['pages', t('Барак')]] as const).map(([m, l]) => (

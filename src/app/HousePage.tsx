@@ -54,7 +54,7 @@ const MyPhoto: React.FC<{ houseId: string; memberId: string; name: string; photo
             <input ref={input} type="file" accept="image/*" className="hidden" onChange={e => pick(e.target.files?.[0])} />
             <div className="min-w-0">
                 <div className="font-display text-[1.6rem] leading-tight" style={{ color: 'var(--text-primary)' }}>{name}</div>
-                <button type="button" onClick={() => input.current?.click()} className="text-[0.72rem] tracking-[0.16em] uppercase transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}>{t('Сүрөтүмдү алмаштыруу')}</button>
+                <button type="button" onClick={() => input.current?.click()} className="hit text-[0.68rem] tracking-[0.12em] uppercase transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}>{t('Сүрөт')}</button>
                 {error && <p className="text-[0.82rem] mt-1" style={{ color: 'var(--danger)' }}>{error}</p>}
             </div>
         </div>
@@ -172,6 +172,21 @@ export const HousePage: React.FC<{ arg?: string | null; sub?: string | null; the
         return data.weeks.map(w => ({ week: w, team: w.teams.find(tm => tm.id === link.houseId) })).filter(r => r.team && r.team.members.length > 0);
     }, [data, link?.houseId]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    // CL rates every house's Тазалык and sees no results: no "my house" here.
+    if (ctx.signedIn && ctx.role === 'inspector') {
+        return (
+            <AppFrame page="house" title={t('Үйлөр')} kicker="CL" theme={theme} onToggleTheme={onToggleTheme}>
+                <div className="max-w-[34rem] mx-auto text-center pt-8">
+                    <p className="text-[1rem] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{t('CL ар бир үйдүн тазалыгын баалайт. Баалоо жана жамааттын сөзү — төмөндө.')}</p>
+                    <div className="flex flex-wrap justify-center gap-3 mt-6">
+                        <button className="btn btn-primary" onClick={() => go('#/overview')}>{t('Тазалык')}</button>
+                        <button className="btn btn-ghost" onClick={() => go('#/chat')}>{t('Баарлашуу')}</button>
+                    </div>
+                </div>
+            </AppFrame>
+        );
+    }
+
     const isAdmin = ctx.signedIn && ctx.role === 'admin';
     if (isAdmin) {
         // The admin: #/house — every house; #/house/h/<id> — one house;
@@ -206,7 +221,7 @@ export const HousePage: React.FC<{ arg?: string | null; sub?: string | null; the
                 <div className="max-w-[40rem] mx-auto text-center pt-10">
                     <p className="text-[1rem] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{t('Үйүңүздүн жыйынтыктарын көрүү үчүн Google аккаунтуңуз менен кириңиз. Капитаныңыз Gmail дарегиңизди жазып койгон болушу керек.')}</p>
                     <button className="btn btn-primary mt-6" onClick={() => { signInWithGoogle().catch(() => undefined); }}>{t('Google менен кирүү')}</button>
-                    <div className="mt-4"><button className="text-[0.75rem] tracking-[0.16em] uppercase" style={{ color: 'var(--text-muted)' }} onClick={() => go('#/overview')}>{t('Капитандар үчүн кирүү')}</button></div>
+                    <div className="hit mt-4"><button className="text-[0.75rem] tracking-[0.16em] uppercase" style={{ color: 'var(--text-muted)' }} onClick={() => go('#/overview')}>{t('Капитандар үчүн кирүү')}</button></div>
                 </div>
             </AppFrame>
         );
@@ -260,12 +275,12 @@ export const HousePage: React.FC<{ arg?: string | null; sub?: string | null; the
                                     </div>
                                 )}
                             </div>
-                            {link.via === 'staff' && <button onClick={() => choose(null)} className="mt-3 text-[0.72rem] tracking-[0.16em] uppercase transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}>{t('Башка адамды тандоо')}</button>}
+                            {link.via === 'staff' && <button onClick={() => choose(null)} className="hit mt-3 text-[0.72rem] tracking-[0.16em] uppercase transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}>{t('Башка адамды тандоо')}</button>}
                             {/* My own results have their own page: the week, every metric, the season, my awards. */}
                             <button onClick={() => go('#/house/me')} className="row-link w-full mt-5 flex items-center gap-4 py-4 text-left" style={{ borderTop: '1px solid var(--gold-dim)', borderBottom: '1px solid var(--border)' }}>
                                 <span className="flex-1 min-w-0">
-                                    <span className="eyebrow block" style={{ color: 'var(--gold)' }}>{t('Менин жыйынтыгым')}</span>
-                                    <span className="block text-[0.85rem] mt-1" style={{ color: 'var(--text-secondary)' }}>{t('Ар бир көрсөткүч, сезондогу жол жана сыйлыктарым')}</span>
+                                    <span className="font-display block text-[1.2rem] leading-tight" style={{ color: 'var(--text-primary)' }}>{t('Менин жыйынтыгым')}</span>
+                                    <span className="block text-[0.82rem] mt-0.5" style={{ color: 'var(--text-muted)' }}>{t('Жаттоо, сыйлыктар, бөлүшүү')}</span>
                                 </span>
                                 {me && !me.excused && team?.submitted && <span className="font-display tabular text-[2rem] leading-none" style={{ color: 'var(--gold)' }}>{fmt(calculateMemberScore(me))}</span>}
                                 <ChevronRight className="w-5 h-5 flex-shrink-0" style={{ color: 'var(--gold)' }} />

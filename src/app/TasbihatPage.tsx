@@ -167,7 +167,7 @@ const Meaning: React.FC<{ block: Block; all: boolean }> = ({ block, all }) => {
     useEffect(() => setOpen(all), [all]);
     return (
         <div className="mt-2">
-            <button type="button" onClick={() => setOpen(v => !v)} aria-expanded={open} className="inline-flex items-center gap-1.5 py-1 text-[0.68rem] tracking-[0.18em] uppercase transition-colors hover:text-[var(--gold)]" style={{ color: open ? 'var(--gold)' : 'var(--text-muted)' }}>
+            <button type="button" onClick={() => setOpen(v => !v)} aria-expanded={open} className="inline-flex items-center gap-1.5 py-2.5 text-[0.68rem] tracking-[0.18em] uppercase transition-colors hover:text-[var(--gold)]" style={{ color: open ? 'var(--gold)' : 'var(--text-muted)' }}>
                 {t('Мааниси')}<ChevronDown className={`w-3.5 h-3.5 transition-transform ${open ? 'rotate-180' : ''}`} />
             </button>
             {open && (
@@ -188,14 +188,14 @@ const Passage: React.FC<{ surah: number; from: number; to: number }> = ({ surah,
     useEffect(() => { if (open && !rows) loadSurah(surah).then(setRows).catch(() => setFailed(true)); }, [open, rows, surah]);
     return (
         <div className="mt-3 text-center">
-            <button type="button" onClick={() => setOpen(v => !v)} aria-expanded={open} className="inline-flex items-center gap-1.5 py-1 text-[0.68rem] tracking-[0.18em] uppercase transition-colors hover:text-[var(--gold)]" style={{ color: open ? 'var(--gold)' : 'var(--text-muted)' }}>
+            <button type="button" onClick={() => setOpen(v => !v)} aria-expanded={open} className="inline-flex items-center gap-1.5 py-2.5 text-[0.68rem] tracking-[0.18em] uppercase transition-colors hover:text-[var(--gold)]" style={{ color: open ? 'var(--gold)' : 'var(--text-muted)' }}>
                 {t('Арабча (мусхафтан)')}<ChevronDown className={`w-3.5 h-3.5 transition-transform ${open ? 'rotate-180' : ''}`} />
             </button>
             {open && (
                 <div className="mt-2 py-4 animate-fade-up" style={{ borderTop: '1px solid var(--gold-dim)', borderBottom: '1px solid var(--gold-dim)' }}>
                     {failed && <p className="text-[0.85rem]" style={{ color: 'var(--text-muted)' }}>{t('Жүктөлгөн жок. Интернетти текшериңиз.')}</p>}
                     {rows && <p dir="rtl" lang="ar" className="quran-text quran-body text-[1.6rem]" style={{ color: 'var(--text-primary)' }}>{rows.slice(from - 1, to).map(r => r[0]).join(' ')}</p>}
-                    <button type="button" onClick={() => go(`#/quran/${surah}:${from}`)} className="mt-3 text-[0.72rem] tracking-[0.16em] uppercase transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}>{t('Куранда ачуу')} · {surah}:{from}–{to}</button>
+                    <button type="button" onClick={() => go(`#/quran/${surah}:${from}`)} className="hit mt-3 text-[0.72rem] tracking-[0.16em] uppercase transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}>{t('Куранда ачуу')} · {surah}:{from}–{to}</button>
                 </div>
             )}
         </div>

@@ -148,7 +148,7 @@ export const GoalBanner: React.FC<{ houseId: string; week: number | null; canEdi
             ) : (
                 <div className="flex items-start gap-3 mt-1.5">
                     <p className="flex-1 font-display text-[1.35rem] leading-snug" style={{ color: goal ? 'var(--text-primary)' : 'var(--text-muted)' }}>{goal ? goal.body : t('Үйгө ушул аптанын максатын жазыңыз.')}</p>
-                    {canEdit && <button onClick={() => { setText(goal?.body ?? ''); setEditing(true); }} aria-label={t('Максатты жазуу')} className="p-1.5 transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}><Pencil className="w-4 h-4" /></button>}
+                    {canEdit && <button onClick={() => { setText(goal?.body ?? ''); setEditing(true); }} aria-label={t('Максатты жазуу')} className="hit p-1.5 transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}><Pencil className="w-4 h-4" /></button>}
                 </div>
             )}
         </div>
