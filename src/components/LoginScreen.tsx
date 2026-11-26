@@ -98,14 +98,6 @@ export const LoginScreen: React.FC<{ theme: Theme; onToggleTheme: () => void }> 
                     <Crown className="draw-in w-[min(12rem,55%)] h-auto mt-5" style={{ color: 'var(--gold)' }} />
                 </section>
 
-                <section className="entrance-more animate-fade-up">
-                        <ol className="entrance-lines">
-                            <li><span className="font-display">I</span>{t('Капитан ар жума үйүндөгү ар бир адамдын сандарын жазат.')}</li>
-                            <li><span className="font-display">II</span>{t('Үйлөр апта сайын салыштырылат, сезондун аягында жыйынтык чыгат.')}</li>
-                            <li><span className="font-display">III</span>{t('Ар ким өз жолун, сыйлыктарын жана жаттаганын көрөт.')}</li>
-                        </ol>
-                </section>
-
                 {/* The way in: members by Google, the staff by password. */}
                 <section className="entrance-doors animate-fade-up" style={{ animationDelay: '120ms' }}>
                     <div className={`door ${staff ? 'is-folded' : ''}`}>
@@ -115,11 +107,9 @@ export const LoginScreen: React.FC<{ theme: Theme; onToggleTheme: () => void }> 
                         </button>
                         {!staff && (
                             <div className="door-body">
-                                <p className="text-[0.95rem] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{t('Google аккаунтуңуз менен кириңиз. Өз жыйынтыгыңызды жана үйүңүздү көрөсүз, колдонмодо санаганыңыз капитанга өзү жетет.')}</p>
-                                <button type="button" onClick={google} disabled={loading} className="btn btn-primary w-full mt-5" style={{ minHeight: '3.2rem' }}>
+                                <button type="button" onClick={google} disabled={loading} className="btn btn-primary w-full mt-2" style={{ minHeight: '3.2rem' }}>
                                     {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <span className="font-semibold text-[1.05rem]" aria-hidden="true">G</span>}{t('Google менен кирүү')}
                                 </button>
-                                <p className="text-[0.8rem] mt-3" style={{ color: 'var(--text-muted)' }}>{t('Кире албасаңыз, капитаныңыз Gmail дарегиңизди жаза элек болушу мүмкүн. Ага айтыңыз.')}</p>
                                 {error && <p id="login-error" role="alert" className="text-[0.88rem] px-3 py-2 mt-3" style={{ borderLeft: '2px solid var(--danger)', color: 'var(--danger)' }}>{error}</p>}
                             </div>
                         )}
@@ -166,7 +156,6 @@ export const LoginScreen: React.FC<{ theme: Theme; onToggleTheme: () => void }> 
                                     {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogIn className="w-4 h-4" />}
                                     {loading ? t('Кирүүдө…') : t('Кирүү')}
                                 </button>
-                                <p className="text-[0.8rem]" style={{ color: 'var(--text-muted)' }}>{t('Сыр сөздү админ берет.')} <a href="#/help" className="underline underline-offset-4 hover:text-[var(--gold)]">{t('Капитанга жардам')}</a></p>
                             </form>
                         )}
                     </div>
