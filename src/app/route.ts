@@ -3,10 +3,10 @@ import { useEffect, useState } from 'react';
 // The everyday part of the app: #/today, #/quran, #/quran/<surah>[:<ayah>],
 // #/tasbihat, #/tasbihat/<prayer>, #/zikr, #/zikr/<id>. Open with or without
 // an account; the results (#/overview …) stay behind the login.
-export type AppPage = 'today' | 'quran' | 'tasbihat' | 'zikr' | 'house' | 'news' | 'kiruu' | 'qibla' | 'chat' | 'namaz' | 'jamaat';
+export type AppPage = 'today' | 'quran' | 'tasbihat' | 'zikr' | 'house' | 'news' | 'kiruu' | 'qibla' | 'chat' | 'namaz' | 'jamaat' | 'help';
 export interface AppRoute { page: AppPage; arg: string | null; sub?: string | null }
 
-const PAGES: AppPage[] = ['today', 'quran', 'tasbihat', 'zikr', 'house', 'news', 'kiruu', 'qibla', 'chat', 'namaz', 'jamaat'];
+const PAGES: AppPage[] = ['today', 'quran', 'tasbihat', 'zikr', 'house', 'news', 'kiruu', 'qibla', 'chat', 'namaz', 'jamaat', 'help'];
 const ALIASES: Record<string, AppPage> = { home: 'today', prayer: 'namaz' };
 
 export const parseApp = (hash: string): AppRoute | null => {

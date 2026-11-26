@@ -17,6 +17,7 @@ const HousePage = lazy(withReload(() => import('./HousePage').then(m => ({ defau
 const NewsPage = lazy(withReload(() => import('./Community').then(m => ({ default: m.NewsPage }))));
 const ChatsPage = lazy(withReload(() => import('./ChatsPage').then(m => ({ default: m.ChatsPage }))));
 const JamaatPage = lazy(withReload(() => import('./JamaatPage').then(m => ({ default: m.JamaatPage }))));
+const HelpPage = lazy(withReload(() => import('./HelpPage').then(m => ({ default: m.HelpPage }))));
 const NamazPage = lazy(withReload(() => import('./NamazPage').then(m => ({ default: m.NamazPage }))));
 const QiblaPage = lazy(withReload(() => import('./QiblaPage').then(m => ({ default: m.QiblaPage }))));
 const SignInCheck = lazy(withReload(() => import('./SignInCheck').then(m => ({ default: m.SignInCheck }))));
@@ -59,7 +60,7 @@ const CaptainIsSelf: React.FC<{ houseId: string }> = ({ houseId }) => {
 };
 
 const TITLES: Record<AppRoute['page'], () => string> = {
-    today: () => t('Менин күнүм'), house: () => t('Үйүм'), news: () => t('Жамааттан кабар'), quran: () => t('Куран'), tasbihat: () => t('Тасбихат'), zikr: () => t('Зикир'), kiruu: () => t('Кирүүнү текшерүү'), qibla: () => t('Кыбла'), chat: () => t('Баарлашуу'), namaz: () => t('Намаз убактылары'), jamaat: () => t('Жамаат')
+    today: () => t('Менин күнүм'), house: () => t('Үйүм'), news: () => t('Жамааттан кабар'), quran: () => t('Куран'), tasbihat: () => t('Тасбихат'), zikr: () => t('Зикир'), kiruu: () => t('Кирүүнү текшерүү'), qibla: () => t('Кыбла'), chat: () => t('Баарлашуу'), namaz: () => t('Намаз убактылары'), jamaat: () => t('Жамаат'), help: () => t('Жардам')
 };
 
 export const AppPages: React.FC<{ route: AppRoute; theme: Theme; onToggleTheme: () => void; ctx: AppCtx }> = ({ route, theme, onToggleTheme, ctx }) => {
@@ -81,6 +82,7 @@ export const AppPages: React.FC<{ route: AppRoute; theme: Theme; onToggleTheme: 
                                 : route.page === 'qibla' ? <QiblaPage {...props} />
                                 : route.page === 'chat' ? <ChatsPage arg={route.arg} {...props} />
                                 : route.page === 'namaz' ? <NamazPage {...props} />
+                                : route.page === 'help' ? <HelpPage {...props} />
                                 : route.page === 'jamaat' ? <JamaatPage {...props} />
                             : <TodayPage {...props} />}
             </Suspense>

@@ -29,6 +29,24 @@ const Fact: React.FC<{ label: string; children: React.ReactNode; note?: React.Re
     </div>
 );
 
+/** Until a captain has looked once: where the instructions are. */
+const GUIDE_KEY = 'tdjamaat-guide-seen';
+const FirstTime: React.FC = () => {
+    const [seen, setSeen] = useState(() => { try { return localStorage.getItem(GUIDE_KEY) === '1'; } catch { return true; } });
+    if (seen) return null;
+    const done = () => { try { localStorage.setItem(GUIDE_KEY, '1'); } catch { /* not critical */ } setSeen(true); };
+    return (
+        <div className="desk-guide">
+            <span className="font-display text-[1.15rem]" style={{ color: 'var(--text-primary)' }}>{t('Биринчи жолу киргениңизби?')}</span>
+            <span className="text-[0.9rem]" style={{ color: 'var(--text-secondary)' }}>{t('Эмнени кайда басуу керектигин бир бетке жаздык.')}</span>
+            <span className="flex items-center gap-4 sm:ml-auto">
+                <a href="#/help" onClick={done} className="help-where">{t('Кантип колдонуу керек')}<ArrowRight className="w-3.5 h-3.5" /></a>
+                <button onClick={done} className="text-[0.8rem] underline underline-offset-4" style={{ color: 'var(--text-muted)' }}>{t('Түшүндүм')}</button>
+            </span>
+        </div>
+    );
+};
+
 export const CaptainDesk: React.FC<{
     desk: HouseDesk;
     canEdit: boolean;
@@ -43,6 +61,7 @@ export const CaptainDesk: React.FC<{
     );
     return (
         <section className="plate desk-plate animate-view-in" aria-label={t('Сиздин үй')}>
+            <FirstTime />
             <div className="card-pad flex flex-col sm:flex-row sm:items-center gap-5 sm:gap-8">
                 <div className="flex-1 min-w-0">
                     <div className="eyebrow" style={{ color: 'var(--gold)' }}>{t('Сиздин үй · {0}-апта', desk.weekNumber)}</div>
