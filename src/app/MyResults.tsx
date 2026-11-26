@@ -3,14 +3,15 @@
 // the plan, every metric with how far it went, the season's path, and the
 // person's own awards with the next ones in reach. Computed from the member's
 // own house only (the database gives them nothing else).
-import React, { useMemo, useState } from 'react';
-import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { Suspense, lazy, useEffect, useMemo, useState } from 'react';
+import { BookOpenCheck, ChevronDown, ChevronLeft, ChevronRight, Share2 } from 'lucide-react';
 import type { Theme } from '../theme';
 import { t } from '../i18n';
 import type { Self } from './self';
 import { AppFrame, Section, Waiting } from './AppFrame';
 import { useMemberData } from './memberData';
-import { houseOnly, myAwards, nextGoals, STRONG_METRICS } from './myResults';
+import { SELF_CONTAINED, houseOnly, myAwards, nextGoals, STRONG_METRICS } from './myResults';
+import { JattooProfile } from '../components/Jattoo';
 import { Avatar } from '../components/Avatar';
 import { BadgeMedal } from '../components/BadgeMedal';
 import { PlanRows } from '../components/PlanRows';
@@ -21,6 +22,8 @@ import { defaultSeasonId, seasonView } from '../utils/seasons';
 import { formatWeekRange } from '../utils/weekDates';
 import { roman } from '../utils/roman';
 import { go } from './route';
+
+const ShareSheet = lazy(() => import('../components/ShareSheet').then(m => ({ default: m.ShareSheet })));
 
 const fmt = (n: number) => (Math.round(n * 10) / 10).toFixed(1);
 const signed = (n: number) => `${n > 0 ? '+' : n < 0 ? '−' : '±'}${fmt(Math.abs(n))}`;
@@ -38,6 +41,10 @@ export const MyResults: React.FC<{ link: Self; theme: Theme; onToggleTheme: () =
         return { d, ins, series, awards, seasonName: season?.name ?? '' };
     }, [data, link.houseId, link.memberId]);
     const [picked, setPicked] = useState<number | null>(null);
+    const [share, setShare] = useState<'week' | 'season' | null>(null);
+    // #/house/me?jattoo opens at Жаттоо.
+    const ready = !!view;
+    useEffect(() => { if (ready && window.location.hash.includes('jattoo')) window.setTimeout(() => document.getElementById('jattoo')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300); }, [ready]);
 
     const frame = (body: React.ReactNode) => (
         <AppFrame page="house" title={t('Менин жыйынтыгым')} kicker={link.houseName} back="#/house" theme={theme} onToggleTheme={onToggleTheme}>{body}</AppFrame>
@@ -55,10 +62,24 @@ export const MyResults: React.FC<{ link: Self; theme: Theme; onToggleTheme: () =
     return frame(
         <div className="max-w-[46rem] mx-auto">
             <Hero series={series} cur={cur} pos={pos} weeks={weeks} data={view.d} ins={view.ins} onPick={i => pick(weeks[i])} />
+            {/* A picture of my week or my season, ready for WhatsApp / Telegram. */}
+            <div className="flex flex-wrap justify-center gap-3 mt-6">
+                <button className="btn btn-primary" disabled={!cur.submitted} onClick={() => setShare('week')}><Share2 className="w-4 h-4" />{t('Аптамды бөлүшүү')}</button>
+                <button className="btn btn-ghost" onClick={() => setShare('season')}><Share2 className="w-4 h-4" />{t('Сезонумду бөлүшүү')}</button>
+            </div>
             <AgainstPlan w={cur} />
             {weeks.length > 1 && <Path series={series} houseWeeks={view.ins.houses.get(link.houseId)?.weeks ?? []} cur={cur} onPick={pick} />}
             <SeasonNumbers series={series} ins={view.ins} total={view.d.weeks.length} name={view.seasonName} onPick={pick} />
             <Awards memberId={link.memberId} awards={view.awards} weeks={weeks} />
+            <MyJattoo data={view.d} memberId={link.memberId} />
+            <div className="text-center mt-10"><button className="btn btn-ghost" onClick={() => go('#/house')}>{t('Үйгө кайтуу')}</button></div>
+            {share && (
+                <Suspense fallback={null}>
+                    <ShareSheet data={view.d} weekIndex={cur.weekIndex} insights={view.ins} awards={view.awards.filter(a => SELF_CONTAINED.has(a.def.id))}
+                        target={{ type: 'person', memberId: link.memberId, card: share }} siteTheme={theme === 'dark' ? 'dark' : 'light'}
+                        seasonName={view.seasonName} seasonFinished={false} onClose={() => setShare(null)} />
+                </Suspense>
+            )}
         </div>
     );
 };
@@ -261,7 +282,23 @@ const Awards: React.FC<{ memberId: string; awards: ReturnType<typeof computeAwar
                 </div>
             )}
             <p className="text-[0.74rem] italic mt-5 leading-snug" style={{ color: 'var(--text-muted)' }}>{t('«Апта жылдызы», «Сыйлык тепкичи» жана «Чоң секирик» бардык үйлөрдүн жыйынтыгы менен ыйгарылат, ошондуктан бул жерде көрсөтүлбөйт.')}</p>
-            <div className="text-center mt-6"><button className="btn btn-ghost" onClick={() => go('#/house')}>{t('Үйгө кайтуу')}</button></div>
         </Section>
+    );
+};
+
+/* ── Жаттоо: what I have memorized, and my plans ─────────────────────────── */
+
+const MyJattoo: React.FC<{ data: Parameters<typeof JattooProfile>[0]['data']; memberId: string }> = ({ data, memberId }) => {
+    const has = !!data.jattoo && (data.jattoo.records.some(r => r.memberId === memberId) || data.jattoo.goals.some(g => g.memberId === memberId));
+    return (
+        <div id="jattoo" className="pt-10 mt-8" style={{ borderTop: '1px solid var(--gold-dim)' }}>
+            {has ? <JattooProfile data={data} memberId={memberId} /> : (
+                <div className="text-center py-4">
+                    <BookOpenCheck className="w-7 h-7 mx-auto" strokeWidth={1.3} style={{ color: 'var(--gold)' }} />
+                    <div className="font-display text-[1.6rem] mt-2" style={{ color: 'var(--text-primary)' }}>{t('Жаттоо')}</div>
+                    <p className="text-[0.9rem] mt-1 max-w-[28rem] mx-auto" style={{ color: 'var(--text-muted)' }}>{t('Жаттаганыңызды капитанга окуп бериңиз — ал жазып коёт, бул жерде аяттарыңыз, хадистериңиз жана пландарыңыз чыгат.')}</p>
+                </div>
+            )}
+        </div>
     );
 };

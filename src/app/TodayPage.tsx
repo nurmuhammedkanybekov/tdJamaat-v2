@@ -3,7 +3,7 @@
 // where you stopped in the Quran, today's zikr, your jamaat week — and, for
 // a captain or the admin, how the houses stand.
 import React, { Suspense, lazy, useContext, useEffect, useMemo, useState } from 'react';
-import { Check, ChevronRight, MapPin , Compass } from 'lucide-react';
+import { Check, ChevronRight, Clock3, Compass, MapPin } from 'lucide-react';
 import { Crown } from '../components/Ornament';
 import type { Theme } from '../theme';
 import { useNow } from '../hooks/useNow';
@@ -214,14 +214,14 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
             </div>
             <div className="mt-2 text-[0.95rem] tracking-[0.04em]" style={{ color: 'var(--text-muted)' }}>{t('{0} калды', untilText(next.at.getTime() - now.getTime()))}</div>
             <DayPath times={times} now={now} tz={city.tz} next={next.key} />
-            <div className="mt-5 flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
-                <button onClick={() => setSheet(true)} className="inline-flex items-center gap-2 text-[0.72rem] tracking-[0.2em] uppercase transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}>
-                    <MapPin className="w-3.5 h-3.5" />{city.name} · {t('7 күндүк жадыбал')}
-                </button>
-                <button onClick={() => go('#/qibla')} className="inline-flex items-center gap-2 text-[0.72rem] tracking-[0.2em] uppercase transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}>
-                    <Compass className="w-3.5 h-3.5" />{t('Кыбла')}
-                </button>
+            {/* The day's times and the Qibla, as two clear buttons (the city on the first). */}
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+                <button onClick={() => go('#/namaz')} className="btn btn-primary"><Clock3 className="w-4 h-4" />{t('Намаз убактылары')}</button>
+                <button onClick={() => go('#/qibla')} className="btn btn-ghost"><Compass className="w-4 h-4" />{t('Кыбла')}</button>
             </div>
+            <button onClick={() => setSheet(true)} className="mt-3 inline-flex items-center gap-1.5 text-[0.72rem] tracking-[0.18em] uppercase transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}>
+                <MapPin className="w-3.5 h-3.5" />{city.name} · {t('шаарды алмаштыруу')}
+            </button>
         </div>
     );
 

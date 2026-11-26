@@ -16,6 +16,7 @@ const TasbihatPage = lazy(withReload(() => import('./TasbihatPage').then(m => ({
 const HousePage = lazy(withReload(() => import('./HousePage').then(m => ({ default: m.HousePage }))));
 const NewsPage = lazy(withReload(() => import('./Community').then(m => ({ default: m.NewsPage }))));
 const ChatsPage = lazy(withReload(() => import('./ChatsPage').then(m => ({ default: m.ChatsPage }))));
+const NamazPage = lazy(withReload(() => import('./NamazPage').then(m => ({ default: m.NamazPage }))));
 const QiblaPage = lazy(withReload(() => import('./QiblaPage').then(m => ({ default: m.QiblaPage }))));
 const SignInCheck = lazy(withReload(() => import('./SignInCheck').then(m => ({ default: m.SignInCheck }))));
 const ZikrPage = lazy(withReload(() => import('./ZikrPage').then(m => ({ default: m.ZikrPage }))));
@@ -57,7 +58,7 @@ const CaptainIsSelf: React.FC<{ houseId: string }> = ({ houseId }) => {
 };
 
 const TITLES: Record<AppRoute['page'], () => string> = {
-    today: () => t('Менин күнүм'), house: () => t('Үйүм'), news: () => t('Жамааттан кабар'), quran: () => t('Куран'), tasbihat: () => t('Тасбихат'), zikr: () => t('Зикир'), kiruu: () => t('Кирүүнү текшерүү'), qibla: () => t('Кыбла'), chat: () => t('Баарлашуу')
+    today: () => t('Менин күнүм'), house: () => t('Үйүм'), news: () => t('Жамааттан кабар'), quran: () => t('Куран'), tasbihat: () => t('Тасбихат'), zikr: () => t('Зикир'), kiruu: () => t('Кирүүнү текшерүү'), qibla: () => t('Кыбла'), chat: () => t('Баарлашуу'), namaz: () => t('Намаз убактылары')
 };
 
 export const AppPages: React.FC<{ route: AppRoute; theme: Theme; onToggleTheme: () => void; ctx: AppCtx }> = ({ route, theme, onToggleTheme, ctx }) => {
@@ -78,6 +79,7 @@ export const AppPages: React.FC<{ route: AppRoute; theme: Theme; onToggleTheme: 
                                 : route.page === 'kiruu' ? <SignInCheck {...props} />
                                 : route.page === 'qibla' ? <QiblaPage {...props} />
                                 : route.page === 'chat' ? <ChatsPage arg={route.arg} {...props} />
+                                : route.page === 'namaz' ? <NamazPage {...props} />
                             : <TodayPage {...props} />}
             </Suspense>
         </AppContext.Provider>

@@ -2,7 +2,7 @@
 // wordmark, crown and border of ram's horns as the results, the page's name
 // under them, and the sections as text tabs (wide screen) or a bar within
 // thumb reach (phone). The last section is the results themselves.
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { ArrowLeft, BookOpen, CircleDot, Moon, ScrollText, Sun, SunMedium, Trophy, UserRound, Home as HomeIcon } from 'lucide-react';
 import { Crown, Mark } from '../components/Ornament';
 import { HornBand, SkyLayer, StarField } from '../components/motion';
@@ -15,6 +15,7 @@ import type { AppPage } from './route';
 import { go } from './route';
 import { AppContext } from './context';
 import { useSelf, useUnread } from './self';
+import { AccountMark, AccountSheet } from './AccountSheet';
 
 const SECTIONS: Array<{ page: AppPage | 'results'; label: () => string; icon: React.ComponentType<{ className?: string; strokeWidth?: number }> }> = [
     { page: 'today', label: () => t('Күнүм'), icon: SunMedium },
@@ -48,6 +49,7 @@ export const AppFrame: React.FC<{
     const now = useNow(60_000);
     const sky = skyAt(loadCity(), now);
     const { self, canChoose } = useSelf();
+    const [account, setAccount] = useState(false);
     const unread = useUnread(self);
     const linked = member?.status === 'linked' ? member.link : null;
     // The last section follows who is here: the results (captain, admin), the
@@ -84,19 +86,10 @@ export const AppFrame: React.FC<{
                                 <span className="hidden md:inline-flex mr-1">
                                     <button onClick={() => open('results')} className="btn btn-ghost" style={{ minHeight: '2.5rem' }}><Trophy className="w-3.5 h-3.5" />{t('Жыйынтыктар')}</button>
                                 </span>
-                                {role === 'admin' && (
-                                    <button onClick={() => go('#/house')} aria-label={t('Админ — бардык үйлөр')} title={t('Админ')} className="mr-1 w-9 h-9 rounded-full inline-flex items-center justify-center chat-admin-seal">
-                                        <Mark size={18} />
-                                    </button>
-                                )}
-                                {canChoose && (
-                                    <button onClick={() => go('#/house')} aria-label={self ? self.name : t('Менин үйүм')} title={self ? self.name : t('Менин үйүм')} className="mr-1 w-9 h-9 rounded-full inline-flex items-center justify-center font-display text-[1.05rem]" style={{ border: '1px solid var(--gold)', color: 'var(--gold)' }}>
-                                        {self ? self.name.slice(0, 1) : <UserRound className="w-4 h-4" strokeWidth={1.5} />}
-                                    </button>
-                                )}
+                                {(role === 'admin' || role === 'inspector' || canChoose) && <AccountMark onClick={() => setAccount(true)} />}
                             </>
                         ) : linked ? (
-                            <button onClick={() => go('#/house')} aria-label={linked.name} title={linked.name} className="mr-1 w-9 h-9 rounded-full inline-flex items-center justify-center font-display text-[1.05rem]" style={{ border: '1px solid var(--gold)', color: 'var(--gold)' }}>{linked.name.slice(0, 1)}</button>
+                            <AccountMark onClick={() => setAccount(true)} />
                         ) : (
                             <button onClick={() => go('#/overview')} aria-label={t('Кирүү')} className={`mr-1 h-10 px-2 inline-flex items-center gap-1.5 text-[0.7rem] tracking-[0.2em] uppercase ${quiet}`} style={{ color: 'var(--text-secondary)' }}>
                                 <UserRound className="w-[1.1rem] h-[1.1rem]" strokeWidth={1.5} /><span className="hidden min-[400px]:inline">{t('Кирүү')}</span>
@@ -158,6 +151,7 @@ export const AppFrame: React.FC<{
                     </div>
                 </nav>
             )}
+            {account && <AccountSheet onClose={() => setAccount(false)} />}
         </div>
     );
 };

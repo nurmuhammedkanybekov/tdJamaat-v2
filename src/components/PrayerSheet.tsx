@@ -13,7 +13,15 @@ const WEEKDAYS = [t('Жш'), t('Дш'), t('Шш'), t('Шр'), t('Бш'), t('Жм
 const SHORT: Record<string, string> = { fajr: t('Баг.'), sunrise: t('Күн ч.'), dhuhr: t('Беш.'), asr: t('Аср'), maghrib: t('Шам'), isha: t('Куп.') };
 const CELL: React.CSSProperties = { paddingLeft: '0.3rem', paddingRight: '0.3rem', textAlign: 'right' };
 
-export const PrayerSheet: React.FC<{ onClose: () => void; onCityChange?: (c: City) => void }> = ({ onClose, onCityChange }) => {
+export const PrayerSheet: React.FC<{ onClose: () => void; onCityChange?: (c: City) => void }> = ({ onClose, onCityChange }) => (
+    <Sheet title={t('Намаз убактылары')} onClose={onClose} width="36rem">
+        <div className="px-5 sm:px-7 py-6"><PrayerTimetable onCityChange={onCityChange} /></div>
+    </Sheet>
+);
+
+/** Today's times, the next prayer, the week ahead and the city: the sheet on
+ *  the results site and the #/namaz page of the app. */
+export const PrayerTimetable: React.FC<{ onCityChange?: (c: City) => void }> = ({ onCityChange }) => {
     const [city, setCity] = useState<City>(loadCity);
     const now = useNow();
     const times = useMemo(() => prayerTimes(city, now), [city, now]);
@@ -27,8 +35,7 @@ export const PrayerSheet: React.FC<{ onClose: () => void; onCityChange?: (c: Cit
     const pick = (c: City) => { setCity(c); saveCity(c); onCityChange?.(c); };
 
     return (
-        <Sheet title={t('Намаз убактылары')} onClose={onClose} width="36rem">
-            <div className="px-5 sm:px-7 py-6 space-y-8">
+            <div className="space-y-8">
                 <div className="flex flex-wrap items-baseline justify-between gap-3">
                     <div>
                         <div className="eyebrow">{hijri ? formatHijri(hijri) : ''}</div>
@@ -97,6 +104,5 @@ export const PrayerSheet: React.FC<{ onClose: () => void; onCityChange?: (c: Cit
                     {t('Убакыттар телефондун өзүндө эсептелет (Дүйнөлүк мусулман лигасы, Ханафи мазхабы, интернетсиз да иштейт). Жергиликтүү мечиттин жадыбалынан 1–2 мүнөткө айырмаланышы мүмкүн. Хижрий датасы Умм аль-Кура календары боюнча.')}
                 </p>
             </div>
-        </Sheet>
     );
 };
