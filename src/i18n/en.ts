@@ -1160,6 +1160,6 @@ export const EN: Record<string, string> = {
     "{0} жолу": "{0} times",
     "Жакында": "Within reach",
     "«Апта жылдызы», «Сыйлык тепкичи» жана «Чоң секирик» бардык үйлөрдүн жыйынтыгы менен ыйгарылат, ошондуктан бул жерде көрсөтүлбөйт.": "“Star of the week”, “Podium” and “Big leap” are decided across all houses, so they are not shown here.",
-    "Үйгө кайтуу": "Back to the house"
-
+    "Үйгө кайтуу": "Back to the house",
+    "Supabase Google'дан кодду алды, бирок Google аны кабыл алган жок — Supabase'теги Google «Client Secret» (же Client ID) туура эмес. Google Cloud → APIs & Services → Credentials → OAuth client → жаңы Client secret түзүп, Client ID жана Client secret экөөнү тең Supabase → Authentication → Sign In / Providers → Google'га кайра чаптап, Save басыңыз.": "Supabase received the code from Google, but Google refused to exchange it: the Google Client Secret (or Client ID) saved in Supabase is wrong. Google Cloud → APIs & Services → Credentials → your OAuth client → create a new client secret, then paste both the Client ID and the Client secret into Supabase → Authentication → Sign In / Providers → Google and press Save."
 };
