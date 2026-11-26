@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import type { City } from '../utils/prayer';
-import { CITIES, PRAYER_NAMES, PRAYER_ORDER, clock, nextPrayer, prayerTimes, untilText } from '../utils/prayer';
+import { CITIES, PRAYER_NAMES, PRAYER_ORDER, clock, nextPrayer, prayerNow, prayerTimes, untilText } from '../utils/prayer';
 import { formatHijri, isRamadan, toHijri } from '../utils/hijri';
 import { Sheet } from './ui';
 import { loadCity, saveCity } from '../utils/city';
@@ -26,6 +26,7 @@ export const PrayerTimetable: React.FC<{ onCityChange?: (c: City) => void }> = (
     const now = useNow();
     const times = useMemo(() => prayerTimes(city, now), [city, now]);
     const next = nextPrayer(city, now);
+    const active = prayerNow(city, now).active;
     const hijri = toHijri(now);
     const ramadan = isRamadan(hijri);
     const week = useMemo(() => Array.from({ length: 7 }).map((_, i) => {
@@ -62,14 +63,18 @@ export const PrayerTimetable: React.FC<{ onCityChange?: (c: City) => void }> = (
                 )}
 
                 <div className="text-center">
-                    <div className="eyebrow">{t('Кийинки намаз')}</div>
-                    <div className="font-display text-[2.6rem] leading-none mt-2" style={{ color: 'var(--text-primary)' }}>{PRAYER_NAMES[next.key]} <span className="tabular" style={{ color: 'var(--gold)' }}>{clock(next.at, city.tz)}</span></div>
-                    <div className="text-[0.9rem] italic mt-2" style={{ color: 'var(--text-muted)' }}>{t('{0} калды', untilText(next.at.getTime() - now.getTime()))}</div>
+                    <div className="eyebrow">{active ? t('Азыр') : t('Кийинки намаз')}</div>
+                    <div className="font-display text-[2.6rem] leading-none mt-2" style={{ color: 'var(--text-primary)' }}>{PRAYER_NAMES[active ? active.key : next.key]} <span className="tabular" style={{ color: 'var(--gold)' }}>{clock(active ? active.at : next.at, city.tz)}</span></div>
+                    <div className="text-[0.9rem] italic mt-2" style={{ color: 'var(--text-muted)' }}>
+                        {active
+                            ? <>{PRAYER_NAMES[active.endsKey]} {clock(active.endsAt, city.tz)} · {t('{0} калды', untilText(active.endsAt.getTime() - now.getTime()))}</>
+                            : t('{0} калды', untilText(next.at.getTime() - now.getTime()))}
+                    </div>
                 </div>
 
                 <ol>
                     {PRAYER_ORDER.map(k => {
-                        const isNext = k === next.key && next.at.toDateString() === now.toDateString();
+                        const isNext = active ? k === active.key && active.at.toDateString() === now.toDateString() : k === next.key && next.at.toDateString() === now.toDateString();
                         return (
                             <li key={k} className="flex items-baseline gap-3 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
                                 <span className="font-display text-[1.35rem]" style={{ color: isNext ? 'var(--gold)' : k === 'sunrise' ? 'var(--text-muted)' : 'var(--text-primary)' }}>{PRAYER_NAMES[k]}</span>

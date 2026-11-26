@@ -4,12 +4,12 @@
 // a captain or the admin, how the houses stand.
 import React, { Suspense, lazy, useContext, useEffect, useMemo, useState } from 'react';
 import { Check, ChevronRight, Clock3, Compass, MapPin } from 'lucide-react';
-import { Crown } from '../components/Ornament';
+import { Crown, Mark } from '../components/Ornament';
 import type { Theme } from '../theme';
 import { useNow } from '../hooks/useNow';
 import { loadCity } from '../utils/city';
 import type { City, PrayerKey } from '../utils/prayer';
-import { PRAYER_NAMES, PRAYER_ORDER, clock, nextPrayer, prayerTimes, untilText } from '../utils/prayer';
+import { PRAYER_NAMES, PRAYER_ORDER, clock, nextPrayer, prayerNow, prayerTimes, untilText } from '../utils/prayer';
 import { formatHijri, isRamadan, toHijri } from '../utils/hijri';
 import { loadZikr, todayTotal } from '../utils/zikr';
 import { calculateHouseRating } from '../utils/scoring';
@@ -113,12 +113,7 @@ const Jamaat: React.FC = () => {
                 </div>
             );
         }
-        return (
-            <div>
-                <RowLink onClick={() => { signInWithGoogle().catch(() => undefined); }} title={t('Мүчө катары кирүү')} sub={t('Google аккаунтуңуз менен. Жыйынтыгыңызды көрөсүз, сандарыңыз капитанга өзү жетет')} />
-                <RowLink onClick={() => go('#/overview')} title={t('Капитандар үчүн кирүү')} sub={t('Үйлөрдүн апталык жыйынтыктары')} />
-            </div>
-        );
+        return null;
     }
     if (!week) return <RowLink onClick={() => go('#/overview')} title={t('Жыйынтыктар')} />;
     const mine = houseId ? ranking.findIndex(r => r.id === houseId) : -1;
@@ -190,6 +185,10 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
     const [authError] = useState(takeAuthError);
     const times = useMemo(() => prayerTimes(city, now), [city, now]);
     const next = nextPrayer(city, now);
+    // While a prayer's time is running, the page shows that prayer and when
+    // its time ends; between sunrise and Dhuhr, the next one and how long.
+    const hour = prayerNow(city, now);
+    const shown = hour.active ?? null;
     const hijri = toHijri(now);
     const ramadan = isRamadan(hijri);
     const prayer = currentPrayer(city, now);
@@ -211,13 +210,18 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
             <div className="text-[0.85rem] italic mt-1.5" style={{ color: 'var(--text-muted)' }}>
                 {linked && `${weekday(now)}, ${dayMonth(now)} · `}{hijri ? formatHijri(hijri) : ''}{ramadan && <span style={{ color: 'var(--gold)' }}> · {t('Рамазан мубарак')}</span>}
             </div>
-            <h1 className="font-display leading-none mt-6 text-[2.2rem] sm:text-[3rem] animate-view-in" style={{ color: 'var(--text-primary)' }}>{ramadan && next.key === 'maghrib' ? t('Ифтар') : PRAYER_NAMES[next.key]}</h1>
+            <div className="eyebrow mt-6" style={{ color: 'var(--text-muted)' }}>{shown ? t('Азыр') : t('Кийинки намаз')}</div>
+            <h1 className="font-display leading-none mt-2 text-[2.2rem] sm:text-[3rem] animate-view-in" style={{ color: 'var(--text-primary)' }}>{shown ? PRAYER_NAMES[shown.key] : ramadan && next.key === 'maghrib' ? t('Ифтар') : PRAYER_NAMES[next.key]}</h1>
             <div className="relative mt-1">
                 <span className="hero-glow" aria-hidden="true" />
-                <div className="font-display tabular leading-[0.9] text-[5.4rem] sm:text-[7.5rem] gold-sheen">{clock(next.at, city.tz)}</div>
+                <div className="font-display tabular leading-[0.9] text-[5.4rem] sm:text-[7.5rem] gold-sheen">{clock(shown ? shown.at : next.at, city.tz)}</div>
             </div>
-            <div className="mt-2 text-[0.95rem] tracking-[0.04em]" style={{ color: 'var(--text-muted)' }}>{t('{0} калды', untilText(next.at.getTime() - now.getTime()))}</div>
-            <DayPath times={times} now={now} tz={city.tz} next={next.key} />
+            <div className="mt-2 text-[0.95rem] tracking-[0.04em]" style={{ color: 'var(--text-muted)' }}>
+                {shown
+                    ? <>{ramadan && shown.endsKey === 'maghrib' ? t('Ифтар') : PRAYER_NAMES[shown.endsKey]} <span className="tabular" style={{ color: 'var(--gold)' }}>{clock(shown.endsAt, city.tz)}</span> · {t('{0} калды', untilText(shown.endsAt.getTime() - now.getTime()))}</>
+                    : t('{0} калды', untilText(next.at.getTime() - now.getTime()))}
+            </div>
+            <DayPath times={times} now={now} tz={city.tz} next={shown ? shown.key : next.key} />
             {/* The almanac line: the day's times, the Qibla, the city, as one
                 engraved row rather than a pair of generic buttons. */}
             <nav className="almanac mt-7" aria-label={t('Намаз')}>
@@ -241,28 +245,12 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
 
                 {/* What the hour asks for: this prayer's tasbihat, the 33-33-34, the Quran. */}
                 <Section eyebrow={t('Азыр · {0}', PRAYER_NAMES[prayer])}>
-                    {/* The day's five tasbihat as five stones: read, the one whose time it is, still ahead. */}
-                    <ol className="five" aria-label={t('Бүгүн окулду: {0} / 5', readToday)}>
-                        {TASBIHAT_ORDER.map(p => {
-                            const done = tasbihatDone(practice, p, now);
-                            const cur = p === prayer;
-                            return (
-                                <li key={p}>
-                                    <button onClick={() => go(`#/tasbihat/${p}`)} className={`five-stone ${done ? 'is-done' : ''} ${cur ? 'is-now' : ''}`} aria-current={cur ? 'time' : undefined}>
-                                        <span className="five-d" aria-hidden="true">{done && <Check className="w-3 h-3" strokeWidth={2.2} />}</span>
-                                        <span className="five-n">{PRAYER_NAMES[p as PrayerKey]}</span>
-                                    </button>
-                                </li>
-                            );
-                        })}
-                    </ol>
-                    <button onClick={() => go(`#/tasbihat/${prayer}`)} className="now-line">
-                        <span className="min-w-0">
-                            <span className="block font-display text-[1.6rem] sm:text-[1.9rem] leading-tight" style={{ color: 'var(--text-primary)' }}>{doneNow ? t('{0} тасбихаты окулду', PRAYER_NAMES[prayer]) : t('{0} намазынын тасбихатын окуу', PRAYER_NAMES[prayer])}</span>
-                            <span className="block text-[0.88rem] mt-1" style={{ color: 'var(--text-muted)' }}>{doneNow ? t('Бүгүн {0} / 5. Кийинкиси намаз убактысы киргенде.', readToday) : t('Бүгүн {0} / 5 окулду', readToday)}</span>
-                        </span>
-                        <ChevronRight className="w-5 h-5 flex-shrink-0" style={{ color: 'var(--gold)' }} />
-                    </button>
+                    <RowLink
+                        onClick={() => go(`#/tasbihat/${prayer}`)}
+                        mark={<span className="w-7 h-7 rotate-45 inline-flex items-center justify-center flex-shrink-0 mx-1" style={{ border: '1px solid var(--gold)', backgroundColor: doneNow ? 'var(--gold)' : 'transparent' }}>{doneNow && <Check className="w-3.5 h-3.5 -rotate-45" style={{ color: 'var(--page-plane)' }} />}</span>}
+                        title={t('{0} намазынын тасбихаты', PRAYER_NAMES[prayer])}
+                        sub={doneNow ? t('Окулду · бүгүн {0} / 5', readToday) : t('Бүгүн окулду: {0} / 5', readToday)}
+                    />
                     <RowLink
                         onClick={() => go('#/zikr/namaz')}
                         mark={<span className="w-7 mx-1 text-center font-display text-[1.1rem]" style={{ color: 'var(--gold)' }}>33</span>}
@@ -276,6 +264,16 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
                         sub={last ? t('{0}-аяттан улантуу · бүгүн {1} бет', last.ayah, pagesOn(practice)) : t('Мадина мусхафы, кыргызча мааниси менен')}
                     />
                 </Section>
+
+                {/* Not signed in: the way in, as part of the page rather than a wall in front of it. */}
+                {!linked && !signedIn && member?.status !== 'unlinked' && (
+                    <section className="welcome">
+                        <Mark size={44} />
+                        <h2 className="font-display">{t('Жамааттын апталык жыйынтыктары')}</h2>
+                        <button onClick={() => { signInWithGoogle().catch(() => undefined); }} className="btn btn-primary"><span className="font-semibold text-[1.05rem]" aria-hidden="true">G</span>{t('Google менен кирүү')}</button>
+                        <button onClick={() => go('#/overview')} className="welcome-staff">{t('Капитан, CL же админ')}<ChevronRight className="w-3.5 h-3.5" /></button>
+                    </section>
+                )}
 
                 {(linked || signedIn) && (
                     <Section eyebrow={t('Жамааттан кабар')}>
@@ -306,9 +304,11 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
                     <DayCalendar now={now} />
                 </Section>
 
-                <Section eyebrow={linked ? t('Менин үйүм') : t('Жамаат')}>
-                    <Jamaat />
-                </Section>
+                {(linked || signedIn || member?.status === 'unlinked') && (
+                    <Section eyebrow={linked ? t('Менин үйүм') : t('Жамаат')}>
+                        <Jamaat />
+                    </Section>
+                )}
             </div>
             {sheet && <Suspense fallback={null}><PrayerSheet onClose={() => setSheet(false)} onCityChange={c => setCity(c)} /></Suspense>}
         </AppFrame>

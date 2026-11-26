@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CITIES, clock, nextPrayer, prayerTimes } from './prayer';
+import { CITIES, clock, nextPrayer, prayerNow, prayerTimes } from './prayer';
 
 describe('prayer times (Budapest)', () => {
     const bp = CITIES[0];
@@ -23,5 +23,34 @@ describe('prayer times (Budapest)', () => {
         const n = nextPrayer(bp, late);
         expect(n.key).toBe('fajr');
         expect(n.at.getTime()).toBeGreaterThan(late.getTime());
+    });
+});
+
+describe('prayerNow', () => {
+    const bp = CITIES[0];
+    const day = new Date('2026-11-26T12:00:00Z');
+    const times = prayerTimes(bp, day);
+    const at = (d: Date, min: number) => new Date(d.getTime() + min * 60000);
+    it('after Maghrib it is Maghrib, ending at Isha', () => {
+        const p = prayerNow(bp, at(times.maghrib, 30));
+        expect(p.active?.key).toBe('maghrib');
+        expect(p.active?.endsKey).toBe('isha');
+        expect(p.next.key).toBe('isha');
+    });
+    it('Fajr ends at sunrise; between sunrise and Dhuhr no prayer is running', () => {
+        expect(prayerNow(bp, at(times.fajr, 5)).active?.endsKey).toBe('sunrise');
+        const mid = prayerNow(bp, at(times.sunrise, 30));
+        expect(mid.active).toBeNull();
+        expect(mid.next.key).toBe('dhuhr');
+    });
+    it('before Fajr it is still last night\'s Isha', () => {
+        const p = prayerNow(bp, at(times.fajr, -20));
+        expect(p.active?.key).toBe('isha');
+        expect(p.active?.endsKey).toBe('fajr');
+    });
+    it('after Isha it lasts until the next Fajr', () => {
+        const p = prayerNow(bp, at(times.isha, 60));
+        expect(p.active?.key).toBe('isha');
+        expect(p.active!.endsAt.getTime()).toBeGreaterThan(times.isha.getTime());
     });
 });

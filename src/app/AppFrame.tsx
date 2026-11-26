@@ -86,8 +86,8 @@ export const AppFrame: React.FC<{
                                 <button onClick={() => open('results')} className="btn btn-ghost" style={{ minHeight: '2.5rem' }}><Trophy className="w-3.5 h-3.5" />{t('Жыйынтыктар')}</button>
                             </span>
                         ) : !linked && (
-                            <button onClick={() => go('#/overview')} className={`h-10 px-2 inline-flex items-center gap-1.5 text-[0.7rem] tracking-[0.2em] uppercase ${quiet}`} style={{ color: 'var(--text-secondary)' }}>
-                                <UserRound className="w-[1.1rem] h-[1.1rem]" strokeWidth={1.5} /><span className="hidden min-[400px]:inline">{t('Кирүү')}</span>
+                            <button onClick={() => go('#/overview')} className="signin-pill">
+                                <UserRound className="w-4 h-4" strokeWidth={1.5} /><span>{t('Кирүү')}</span>
                             </button>
                         )}
                         <button onClick={() => setLang(isEnglish() ? 'ky' : 'en')} lang={isEnglish() ? 'ky' : 'en'} aria-label={isEnglish() ? 'Кыргызча' : 'English'} className={`h-10 min-w-10 px-1.5 inline-flex items-center justify-center text-[0.72rem] font-semibold tracking-[0.16em] ${quiet}`} style={{ color: 'var(--text-secondary)' }}>
@@ -97,7 +97,7 @@ export const AppFrame: React.FC<{
                             <ThemeIcon className="w-[1.1rem] h-[1.1rem]" strokeWidth={1.5} />
                         </button>
                         {/* The menu: three lines and the person's face. Every page, named plainly. */}
-                        <AccountMark onClick={() => setAccount(true)} />
+                        {(signedIn || linked) && <AccountMark onClick={() => setAccount(true)} />}
                     </div>
                     {back === undefined && hero}
                     {back === undefined && !hero && (

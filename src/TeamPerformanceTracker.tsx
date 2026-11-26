@@ -160,7 +160,11 @@ const TeamPerformanceTracker: React.FC = () => {
     }
     // A member signed in with Google: their home is "Менин күнүм" (the results
     // behind the captains' login are not theirs).
-    if (!authUser && authChecked && cachedLink()) return <AppPages route={{ page: 'today', arg: null }} theme={theme} onToggleTheme={toggleTheme} ctx={{ signedIn: false }} />;
+    // The front door is "Менин күнүм" for everyone not signed in as staff: the
+    // site opens on the day (prayer times, Quran, tasbihat), and the sign-in
+    // page is one tap away (#/overview), not a wall.
+    const bare = /^#?\/?$/.test(window.location.hash);
+    if (!authUser && authChecked && (bare || cachedLink())) return <AppPages route={{ page: 'today', arg: null }} theme={theme} onToggleTheme={toggleTheme} ctx={{ signedIn: false }} />;
     if (!authChecked) return <LoadingScreen />;
     if (!authUser) return <LoginScreen theme={theme} onToggleTheme={toggleTheme} />;
     if (authUser.role === 'inspector') return <Suspense fallback={<LoadingScreen />}><InspectorScreen theme={theme} onToggleTheme={toggleTheme} /></Suspense>;

@@ -47,6 +47,31 @@ export const nextPrayer = (city: City, now: Date): { key: PrayerKey; at: Date } 
     return { key: 'fajr', at: prayerTimes(city, tomorrow).fajr };
 };
 
+/** What the hour is: the prayer whose time is running now (with when that
+ *  time ends), or none between sunrise and Dhuhr. Fajr ends at sunrise; each
+ *  other prayer lasts until the next one; Isha lasts until the next Fajr. */
+export interface PrayerNow { active: { key: PrayerKey; at: Date; endsKey: PrayerKey; endsAt: Date } | null; next: { key: PrayerKey; at: Date } }
+export const prayerNow = (city: City, now: Date): PrayerNow => {
+    const day = prayerTimes(city, now);
+    const next = nextPrayer(city, now);
+    if (now < day.fajr) {
+        const yesterday = prayerTimes(city, new Date(now.getTime() - 24 * 3600 * 1000));
+        return { active: { key: 'isha', at: yesterday.isha, endsKey: 'fajr', endsAt: day.fajr }, next };
+    }
+    if (now < day.sunrise) return { active: { key: 'fajr', at: day.fajr, endsKey: 'sunrise', endsAt: day.sunrise }, next };
+    if (now < day.dhuhr) return { active: null, next };
+    const chain: PrayerKey[] = ['dhuhr', 'asr', 'maghrib', 'isha'];
+    for (let i = chain.length - 1; i >= 0; i--) {
+        const key = chain[i];
+        if (now >= day[key]) {
+            const endsKey: PrayerKey = chain[i + 1] ?? 'fajr';
+            const endsAt = chain[i + 1] ? day[chain[i + 1]] : prayerTimes(city, new Date(now.getTime() + 24 * 3600 * 1000)).fajr;
+            return { active: { key, at: day[key], endsKey, endsAt }, next };
+        }
+    }
+    return { active: null, next };
+};
+
 export const untilText = (ms: number) => {
     const m = Math.max(0, Math.round(ms / 60000));
     const h = Math.floor(m / 60);
