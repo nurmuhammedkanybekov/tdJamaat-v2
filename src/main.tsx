@@ -10,6 +10,7 @@ import './index.css'
 import App from './App.tsx'
 import { initScreen, initTheme } from './theme'
 import { registerServiceWorker } from './pwa'
+import { finishGoogleReturn } from './lib/authReturn'
 
 initTheme();
 initScreen();
@@ -37,10 +38,14 @@ try {
   }
 } catch { /* storage blocked: the start page is fine */ }
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+// The app starts once a Google return (if any) is exchanged, so it opens
+// signed in — or with the reason it could not.
+finishGoogleReturn().finally(() => {
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  )
+})
 
 registerServiceWorker();

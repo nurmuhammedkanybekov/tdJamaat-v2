@@ -1111,5 +1111,9 @@ export const EN: Record<string, string> = {
     "Башка үйгө жазуу үчүн админ supabase/admin-chat-2026-11.sql файлын иштетиши керек.": "To write in another house, the admin must run supabase/admin-chat-2026-11.sql.",
     "Сиз бул үйгө админ катары жазасыз; билдирүүлөрдү өчүрө аласыз.": "You write in this house as the admin; you can remove messages.",
     "сиздин үйүңүз": "your house",
-    "админ катары": "as the admin"
+    "админ катары": "as the admin",
+    "Колдонмо режими": "App mode",
+    "Сайт телефонго орнотулган колдонмо катары ачылган.": "The site is open as an app installed on the phone.",
+    "iPhone'до орнотулган колдонмо Google кирүүсүн өзүнчө браузерде аяктайт. Биринчи жолу Safari'де кириңиз.": "On an iPhone the installed app finishes the Google sign-in in a separate browser. Sign in the first time in Safari.",
+    "Кирүү башка браузерде аяктады. Сайтты Safari же Chrome'до ачып, ошол жерден кайра «Google менен кирүү» басыңыз (Gmail, Telegram, Instagram ичиндеги браузерден эмес).": "The sign-in finished in a different browser. Open the site in Safari or Chrome and press «Sign in with Google» again there (not in the browser inside Gmail, Telegram or Instagram)."
 };

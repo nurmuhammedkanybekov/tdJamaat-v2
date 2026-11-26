@@ -8,11 +8,12 @@ import { t } from '../i18n';
 import { AppFrame } from './AppFrame';
 import { supabase } from '../lib/supabase';
 import { signInWithGoogle, signOutMember } from '../services/memberService';
+import { isStandaloneApp } from '../lib/authReturn';
 
 type State = 'ok' | 'bad' | 'none';
 interface Step { label: string; state: State; text: string; fix?: string }
 
-const readReturn = (): { at: string; code: boolean; error: string | null; origin: string } | null => {
+const readReturn = (): { at: string; code: boolean; error: string | null; origin: string; exchangeError?: string } | null => {
     try { return JSON.parse(sessionStorage.getItem('tdjamaat-auth-return') ?? 'null'); } catch { return null; }
 };
 
@@ -24,11 +25,13 @@ export const SignInCheck: React.FC<{ theme: Theme; onToggleTheme: () => void }> 
         (async () => {
             const out: Step[] = [];
             const origin = window.location.origin;
+            if (isStandaloneApp()) out.push({ label: t('Колдонмо режими'), state: 'bad', text: t('Сайт телефонго орнотулган колдонмо катары ачылган.'), fix: t('iPhone\'до орнотулган колдонмо Google кирүүсүн өзүнчө браузерде аяктайт. Биринчи жолу Safari\'де кириңиз.') });
             out.push({ label: t('Сайттын дареги'), state: 'none', text: origin, fix: t('Supabase → Authentication → URL Configuration → Redirect URLs тизмесинде «{0}/**» болушу керек.', origin) });
 
             const back = readReturn();
             if (!back) out.push({ label: t('Google\'дан кайтуу'), state: 'none', text: t('Бул браузерде азырынча Google аркылуу кирүү аракети болгон жок. Төмөнкү баскыч менен кирип, бул бетке кайра келиңиз.') });
             else if (back.error) out.push({ label: t('Google\'дан кайтуу'), state: 'bad', text: back.error, fix: /signups? not allowed|signup.*disabled/i.test(back.error) ? t('Supabase → Authentication → Sign In / Providers → «Allow new users to sign up» күйгүзүлүшү керек.') : /provider is not enabled|unsupported provider/i.test(back.error) ? t('Supabase → Authentication → Providers → Google күйгүзүлүшү керек.') : undefined });
+            else if (back.exchangeError) out.push({ label: t('Google\'дан кайтуу'), state: 'bad', text: back.exchangeError, fix: t('Кирүү башка браузерде аяктады. Сайтты Safari же Chrome\'до ачып, ошол жерден кайра «Google менен кирүү» басыңыз (Gmail, Telegram, Instagram ичиндеги браузерден эмес).') })
             else out.push({ label: t('Google\'дан кайтуу'), state: 'ok', text: t('Google кирүүнү кабыл алды ({0}).', new Date(back.at).toLocaleString()) });
 
             const { data, error } = await supabase.auth.getSession();

@@ -19,7 +19,9 @@ export const takeAuthError = (): { text: string; detail: string } | null => {
     let detail: string | null = null;
     try { detail = sessionStorage.getItem('tdjamaat-auth-error'); sessionStorage.removeItem('tdjamaat-auth-error'); } catch { /* not critical */ }
     if (!detail) return null;
-    const text = /signups? not allowed|signup.*disabled/i.test(detail)
+    const text = /code verifier|flow state|both auth code and code verifier/i.test(detail)
+        ? t('Кирүү башка браузерде аяктады. Сайтты Safari же Chrome\'до ачып, ошол жерден кайра «Google менен кирүү» басыңыз (Gmail, Telegram, Instagram ичиндеги браузерден эмес).')
+        : /signups? not allowed|signup.*disabled/i.test(detail)
         ? t('Google менен кирүү азырынча жабык: админ Supabase\'те «Allow new users to sign up» күйгүзүшү керек.')
         : /provider is not enabled|unsupported provider/i.test(detail)
             ? t('Google менен кирүү азырынча күйгүзүлө элек (админ үчүн: SETUP.md, 4b).')
