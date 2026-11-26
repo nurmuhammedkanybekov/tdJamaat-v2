@@ -49,6 +49,7 @@ it, says what happened and what to do, and `#/kiruu` shows it as a red line.
 | `1868a4a` | **Any week** of the season: tap the week name in the header (between ‹ and ›) and pick from the list with dates. |
 | `edf6e29` | After-prayer tasbih: the three steps (Субханаллах 33 · Алхамдулиллах 33 · Аллаху акбар 34) are tappable, so you can go straight to the one you are on. Сезон → reports: any 4-week period from a list (when there are more than two). |
 | `ff7bcdd` | Үйдүн сөзү: scrolled up to read older messages, a button takes you back to the newest and shows how many arrived meanwhile. |
+| `363e575` | **Менин жыйынтыгым** (`#/house/me`, from Үйүм and from Менин күнүм): a signed-in member's own results — any week of the season (arrows, list, or tap the chart), the score against the plan, every practice with done / plan and how far past it, the season's path next to the house average, season numbers, and their own awards with the next ones in reach. Only awards that depend on the person alone are shown (a member's account can read only their own house). The profile sheet on the site uses the same readable rows instead of the cut-off columns. |
 
 ## 3. Manual steps (in this order)
 
