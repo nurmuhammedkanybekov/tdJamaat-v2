@@ -99,8 +99,8 @@ export const LoginScreen: React.FC<{ theme: Theme; onToggleTheme: () => void }> 
                 </button>
             </div>
 
-            <div className="flex-1 flex flex-col items-center justify-center py-6">
-                <div className="w-full max-w-[25rem] animate-fade-up">
+            <div className="flex-1 flex flex-col items-center sm:justify-center pt-2 pb-2 sm:py-6">
+                <div className="w-full max-w-[25rem] flex-1 sm:flex-none flex flex-col animate-fade-up">
                     <div className="relative flex flex-col items-center text-center">
                         {/* A large ornament turning very slowly behind the mark, and a soft light. */}
                         <span aria-hidden="true" className="absolute left-1/2 top-[4.6rem] -translate-x-1/2 -translate-y-1/2 -z-10 pointer-events-none">
@@ -115,7 +115,7 @@ export const LoginScreen: React.FC<{ theme: Theme; onToggleTheme: () => void }> 
                         </p>
                     </div>
 
-                    <form onSubmit={handleSubmit} noValidate className="relative mt-8 card card-pad pb-10! space-y-5" style={{ boxShadow: 'var(--shadow-lift)' }}>
+                    <form onSubmit={handleSubmit} noValidate className="relative mt-auto sm:mt-8 mb-0 card card-pad pb-10! space-y-5 login-card" style={{ boxShadow: 'var(--shadow-lift)' }}>
                         <Corners inset={6} size={22} />
                         <div className="flex justify-center" role="tablist" aria-label={t('Ким катары кирүү')}>
                             <button type="button" role="tab" aria-selected={mode === 'member'} className={`chip ${mode === 'member' ? 'is-active' : ''}`} onClick={() => switchMode('member')}>{t('Мүчө')}</button>
@@ -192,7 +192,7 @@ export const LoginScreen: React.FC<{ theme: Theme; onToggleTheme: () => void }> 
                     )}
 
                     {/* The everyday pages need no account. */}
-                    <nav className="mt-6 pt-5 text-center" style={{ borderTop: '1px solid var(--border)' }} aria-label={t('Баарына ачык')}>
+                    <nav className="mt-auto sm:mt-6 pt-5 text-center" style={{ borderTop: '1px solid var(--border)' }} aria-label={t('Баарына ачык')}>
                         <div className="eyebrow">{t('Баарына ачык')}</div>
                         <div className="mt-3 flex flex-wrap justify-center gap-x-5 gap-y-2 text-[0.95rem]">
                             {([['#/today', t('Күнүм')], ['#/quran', t('Куран')], ['#/tasbihat', t('Тасбихат')], ['#/zikr', t('Зикир')]] as const).map(([href, label]) => (
