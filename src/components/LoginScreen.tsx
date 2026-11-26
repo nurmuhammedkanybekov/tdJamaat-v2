@@ -4,7 +4,7 @@ import { fetchHouses } from '../services/dataService';
 import { signInAsHouse, signInAsAdmin, signInAsInspector } from '../services/authService';
 import type { House } from '../types';
 import type { Theme } from '../theme';
-import { Corners, Crown, Mark, Medallion } from './Ornament';
+import { Crown, Mark, Medallion } from './Ornament';
 import { signInWithGoogle } from '../services/memberService';
 import { StarField } from './motion';
 import { isEnglish, setLang, t } from '../i18n';
@@ -73,17 +73,15 @@ export const LoginScreen: React.FC<{ theme: Theme; onToggleTheme: () => void }> 
 
     const field: React.CSSProperties = { backgroundColor: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)' };
     const iconBtn = 'w-10 h-10 inline-flex items-center justify-center transition-colors hover:text-[var(--gold)]';
+    const staff = mode !== 'member';
+    const google = () => { setLoading(true); signInWithGoogle().catch(err => { setLoading(false); setError(t('Кирүү мүмкүн болгон жок: {0}', err instanceof Error ? err.message : String(err))); }); };
 
     return (
-        <main className="hero min-h-[100dvh] flex flex-col page-gutter overflow-hidden" style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top))', paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
-            <StarField count={70} />
-            <div className="flex items-center justify-end h-14 gap-1" style={{ color: 'var(--text-secondary)' }}>
-                <button
-                    onClick={() => setLang(isEnglish() ? 'ky' : 'en')}
-                    lang={isEnglish() ? 'ky' : 'en'}
-                    aria-label={isEnglish() ? 'Кыргызча' : 'English'}
-                    className={`${iconBtn} text-[0.72rem] font-semibold tracking-[0.16em]`}
-                >
+        <main className="hero entrance min-h-[100dvh] flex flex-col page-gutter overflow-hidden" style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top))', paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
+            <StarField count={60} />
+            <div className="app-container w-full flex items-center h-14 gap-1" style={{ color: 'var(--text-secondary)' }}>
+                <span className="flex-1 inline-flex items-center gap-2.5" style={{ color: 'var(--gold)' }}><Mark size={34} solid /><span className="font-display text-[1.3rem] leading-none">tdJamaat</span></span>
+                <button onClick={() => setLang(isEnglish() ? 'ky' : 'en')} lang={isEnglish() ? 'ky' : 'en'} aria-label={isEnglish() ? 'Кыргызча' : 'English'} className={`${iconBtn} text-[0.72rem] font-semibold tracking-[0.16em]`}>
                     {isEnglish() ? 'КЫР' : 'EN'}
                 </button>
                 <button onClick={onToggleTheme} aria-label={theme === 'dark' ? t('Жарык тема') : t('Караңгы тема')} className={iconBtn}>
@@ -91,112 +89,96 @@ export const LoginScreen: React.FC<{ theme: Theme; onToggleTheme: () => void }> 
                 </button>
             </div>
 
-            <div className="flex-1 flex flex-col items-center justify-center py-6">
-                <div className="w-full max-w-[25rem] animate-fade-up">
-                    <div className="relative flex flex-col items-center text-center">
-                        {/* A large ornament turning very slowly behind the mark, and a soft light. */}
-                        <span aria-hidden="true" className="absolute left-1/2 top-[2.2rem] -translate-x-1/2 -translate-y-1/2 -z-10 pointer-events-none">
-                            <Medallion size={300} className="spin-slow" style={{ color: 'var(--gold)', opacity: 0.05 }} />
-                        </span>
-                        <span className="hero-glow" aria-hidden="true" style={{ top: '2.2rem', width: '26rem' }} />
-                        <Mark size={64} className="pop-in" style={{ color: 'var(--gold)' }} />
-                        <div className="font-display text-[2.4rem] leading-none mt-4 gold-sheen">tdJamaat</div>
-                        <Crown className="draw-in w-[min(13rem,60%)] h-auto mt-4" style={{ color: 'var(--gold)' }} />
-                        <p className="eyebrow mt-4 inline-flex items-center gap-2" style={{ color: 'var(--text-muted)' }}>
-                            <Lock className="w-3 h-3" aria-hidden="true" />{t('Жабык сайт')}
-                        </p>
-                        <p className="text-[0.95rem] leading-relaxed mt-3 max-w-[22rem]" style={{ color: 'var(--text-secondary)' }}>
-                            {t('Мүчө өз үйүнүн жыйынтыгын көрөт. Капитандар менен админ баарын көрөт.')}
-                        </p>
-                    </div>
+            <div className="app-container w-full flex-1 entrance-grid">
+                {/* What this is: a notebook the jamaat keeps together, week by week. */}
+                <section className="entrance-story animate-fade-up">
+                    <span aria-hidden="true" className="entrance-medallion"><Medallion size={420} className="spin-slow" /></span>
+                    <p className="eyebrow inline-flex items-center gap-2" style={{ color: 'var(--gold)' }}><Lock className="w-3 h-3" aria-hidden="true" />{t('Жамааттын ички сайты')}</p>
+                    <h1 className="entrance-title font-display">{t('Жамааттын апталык дептери')}</h1>
+                    <Crown className="draw-in w-[min(12rem,55%)] h-auto mt-5" style={{ color: 'var(--gold)' }} />
+                </section>
 
-                    <form onSubmit={handleSubmit} noValidate className="relative mt-8 card card-pad pb-10! space-y-5" style={{ boxShadow: 'var(--shadow-lift)' }}>
-                        <Corners inset={6} size={22} />
-                        <div className="flex justify-center" role="tablist" aria-label={t('Ким катары кирүү')}>
-                            <button type="button" role="tab" aria-selected={mode === 'member'} className={`chip ${mode === 'member' ? 'is-active' : ''}`} onClick={() => switchMode('member')}>{t('Мүчө')}</button>
-                            <button type="button" role="tab" aria-selected={mode === 'captain'} className={`chip ${mode === 'captain' ? 'is-active' : ''}`} onClick={() => switchMode('captain')}>{t('Капитан')}</button>
-                            <button type="button" role="tab" aria-selected={mode === 'inspector'} className={`chip ${mode === 'inspector' ? 'is-active' : ''}`} onClick={() => switchMode('inspector')} title={t('Тазалык текшерүүчү')}>CL</button>
-                            <button type="button" role="tab" aria-selected={mode === 'admin'} className={`chip ${mode === 'admin' ? 'is-active' : ''}`} onClick={() => switchMode('admin')} style={{ marginRight: 0 }}>{t('Админ')}</button>
-                        </div>
+                <section className="entrance-more animate-fade-up">
+                        <ol className="entrance-lines">
+                            <li><span className="font-display">I</span>{t('Капитан ар жума үйүндөгү ар бир адамдын сандарын жазат.')}</li>
+                            <li><span className="font-display">II</span>{t('Үйлөр апта сайын салыштырылат, сезондун аягында жыйынтык чыгат.')}</li>
+                            <li><span className="font-display">III</span>{t('Ар ким өз жолун, сыйлыктарын жана жаттаганын көрөт.')}</li>
+                        </ol>
+                </section>
 
-                        {mode === 'captain' && (
-                            <label className="block">
-                                <span className="eyebrow block mb-2">{t('Үй')}</span>
-                                <span className="relative block">
-                                    <select value={houseSlug} onChange={e => { setHouseSlug(e.target.value); setError(''); }} className="login-field w-full appearance-none pl-3.5 pr-12 py-3 text-base" style={field}>
-                                        {houses.map(house => <option key={house.id} value={house.slug}>{house.name}</option>)}
-                                    </select>
-                                    <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--gold-dim)' }} />
-                                </span>
-                            </label>
-                        )}
-
-                        {mode === 'member' ? (
-                            <div className="text-center pt-1">
-                                <p className="text-[0.95rem] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{t('Google аккаунтуңуз менен кириңиз. Өз жыйынтыгыңызды жана үйүңүздү көрөсүз, колдонмодогу сандарыңыз капитанга өзү жетет.')}</p>
-                                <button type="button" onClick={() => { setLoading(true); signInWithGoogle().catch(err => { setLoading(false); setError(t('Кирүү мүмкүн болгон жок: {0}', err instanceof Error ? err.message : String(err))); }); }} disabled={loading} className="btn btn-primary w-full mt-5" style={{ minHeight: '3rem' }}>
+                {/* The way in: members by Google, the staff by password. */}
+                <section className="entrance-doors animate-fade-up" style={{ animationDelay: '120ms' }}>
+                    <div className={`door ${staff ? 'is-folded' : ''}`}>
+                        <button type="button" className="door-head" onClick={() => switchMode('member')} aria-expanded={!staff}>
+                            <span className="door-k">{t('Мүчө')}</span>
+                            <span className="door-t font-display">{t('Мен жамааттын мүчөсүмүн')}</span>
+                        </button>
+                        {!staff && (
+                            <div className="door-body">
+                                <p className="text-[0.95rem] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{t('Google аккаунтуңуз менен кириңиз. Өз жыйынтыгыңызды жана үйүңүздү көрөсүз, колдонмодо санаганыңыз капитанга өзү жетет.')}</p>
+                                <button type="button" onClick={google} disabled={loading} className="btn btn-primary w-full mt-5" style={{ minHeight: '3.2rem' }}>
                                     {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <span className="font-semibold text-[1.05rem]" aria-hidden="true">G</span>}{t('Google менен кирүү')}
                                 </button>
-                                <p className="text-[0.8rem] mt-3" style={{ color: 'var(--text-muted)' }}>{t('Капитаныңыз Gmail дарегиңизди жазып койгон болушу керек.')}</p>
-                                {error && <p id="login-error" role="alert" className="text-[0.88rem] px-3 py-2 mt-3 text-left" style={{ borderLeft: '2px solid var(--danger)', color: 'var(--danger)' }}>{error}</p>}
+                                <p className="text-[0.8rem] mt-3" style={{ color: 'var(--text-muted)' }}>{t('Кире албасаңыз, капитаныңыз Gmail дарегиңизди жаза элек болушу мүмкүн. Ага айтыңыз.')}</p>
+                                {error && <p id="login-error" role="alert" className="text-[0.88rem] px-3 py-2 mt-3" style={{ borderLeft: '2px solid var(--danger)', color: 'var(--danger)' }}>{error}</p>}
                             </div>
-                        ) : (<>
-                        <label className="block">
-                            <span className="eyebrow block mb-2">{t('Сыр сөз')}</span>
-                            <span className="relative block">
-                                <input
-                                    type={showPassword ? 'text' : 'password'}
-                                    autoComplete="current-password"
-                                    enterKeyHint="go"
-                                    value={password}
-                                    onChange={e => { setPassword(e.target.value); setError(''); }}
-                                    aria-invalid={!!error || undefined}
-                                    aria-describedby={error ? 'login-error' : undefined}
-                                    className="login-field w-full pl-3.5 pr-12 py-3 text-base"
-                                    style={field}
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword(v => !v)}
-                                    aria-label={showPassword ? t('Сыр сөздү жашыруу') : t('Сыр сөздү көрсөтүү')}
-                                    aria-pressed={showPassword}
-                                    className="absolute right-0 top-0 h-full w-12 inline-flex items-center justify-center transition-colors hover:text-[var(--gold)]"
-                                    style={{ color: 'var(--text-muted)' }}
-                                >
-                                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                </button>
-                            </span>
-                        </label>
-
-                        {error && (
-                            <p id="login-error" role="alert" className="text-[0.88rem] px-3 py-2" style={{ borderLeft: '2px solid var(--danger)', color: 'var(--danger)' }}>
-                                {error}
-                            </p>
                         )}
+                    </div>
 
-                        <button type="submit" disabled={loading} className="btn btn-primary w-full" style={{ minHeight: '3rem' }}>
-                            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogIn className="w-4 h-4" />}
-                            {loading ? t('Кирүүдө…') : t('Кирүү')}
+                    <div className={`door door-staff ${staff ? '' : 'is-folded'}`}>
+                        <button type="button" className="door-head" onClick={() => switchMode(mode === 'member' ? 'captain' : mode)} aria-expanded={staff}>
+                            <span className="door-k">{t('Сыр сөз менен')}</span>
+                            <span className="door-t font-display">{t('Капитан, CL же админмин')}</span>
                         </button>
-                        </>)}
-                    </form>
-
-                    {mode !== 'member' && (
-                        <p className="text-center text-[0.82rem] mt-6" style={{ color: 'var(--text-muted)' }}>
-                            {t('Сыр сөздү билбесеңиз, админге кайрылыңыз.')}
-                        </p>
-                    )}
+                        {staff && (
+                            <form onSubmit={handleSubmit} noValidate className="door-body space-y-5">
+                                <div className="door-roles" role="tablist" aria-label={t('Ким катары кирүү')}>
+                                    {([['captain', t('Капитан')], ['inspector', 'CL'], ['admin', t('Админ')]] as const).map(([m, label]) => (
+                                        <button key={m} type="button" role="tab" aria-selected={mode === m} className={mode === m ? 'is-on' : ''} onClick={() => switchMode(m)} title={m === 'inspector' ? t('Тазалык текшерүүчү') : undefined}>{label}</button>
+                                    ))}
+                                </div>
+                                {mode === 'captain' && (
+                                    <label className="block">
+                                        <span className="eyebrow block mb-2">{t('Үйүңүз')}</span>
+                                        <span className="relative block">
+                                            <select value={houseSlug} onChange={e => { setHouseSlug(e.target.value); setError(''); }} className="login-field w-full appearance-none pl-3.5 pr-12 py-3 text-base" style={field}>
+                                                {houses.map(house => <option key={house.id} value={house.slug}>{house.name}</option>)}
+                                            </select>
+                                            <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--gold-dim)' }} />
+                                        </span>
+                                    </label>
+                                )}
+                                <label className="block">
+                                    <span className="eyebrow block mb-2">{t('Сыр сөз')}</span>
+                                    <span className="relative block">
+                                        <input type={showPassword ? 'text' : 'password'} autoComplete="current-password" enterKeyHint="go" value={password}
+                                            onChange={e => { setPassword(e.target.value); setError(''); }}
+                                            aria-invalid={!!error || undefined} aria-describedby={error ? 'login-error' : undefined}
+                                            className="login-field w-full pl-3.5 pr-12 py-3 text-base" style={field} />
+                                        <button type="button" onClick={() => setShowPassword(v => !v)} aria-label={showPassword ? t('Сыр сөздү жашыруу') : t('Сыр сөздү көрсөтүү')} aria-pressed={showPassword}
+                                            className="absolute right-0 top-0 h-full w-12 inline-flex items-center justify-center transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}>
+                                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                        </button>
+                                    </span>
+                                </label>
+                                {error && <p id="login-error" role="alert" className="text-[0.88rem] px-3 py-2" style={{ borderLeft: '2px solid var(--danger)', color: 'var(--danger)' }}>{error}</p>}
+                                <button type="submit" disabled={loading} className="btn btn-primary w-full" style={{ minHeight: '3rem' }}>
+                                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogIn className="w-4 h-4" />}
+                                    {loading ? t('Кирүүдө…') : t('Кирүү')}
+                                </button>
+                                <p className="text-[0.8rem]" style={{ color: 'var(--text-muted)' }}>{t('Сыр сөздү админ берет.')} <a href="#/help" className="underline underline-offset-4 hover:text-[var(--gold)]">{t('Капитанга жардам')}</a></p>
+                            </form>
+                        )}
+                    </div>
 
                     {/* The everyday pages need no account. */}
-                    <nav className="mt-6 pt-5 text-center" style={{ borderTop: '1px solid var(--border)' }} aria-label={t('Баарына ачык')}>
-                        <div className="eyebrow">{t('Баарына ачык')}</div>
-                        <div className="mt-3 flex flex-wrap justify-center gap-x-5 gap-y-2 text-[0.95rem]">
-                            {([['#/today', t('Күнүм')], ['#/quran', t('Куран')], ['#/tasbihat', t('Тасбихат')], ['#/zikr', t('Зикир')]] as const).map(([href, label]) => (
-                                <a key={href} href={href} className="font-display text-[1.15rem] transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-secondary)' }}>{label}</a>
-                            ))}
-                        </div>
+                    <nav className="entrance-open" aria-label={t('Баарына ачык')}>
+                        <span className="eyebrow">{t('Кирбей эле')}</span>
+                        {([['#/today', t('Намаз убактысы')], ['#/quran', t('Куран')], ['#/tasbihat', t('Тасбихат')], ['#/zikr', t('Зикир')]] as const).map(([href, label]) => (
+                            <a key={href} href={href} className="font-display transition-colors hover:text-[var(--gold)]">{label}</a>
+                        ))}
                     </nav>
-                </div>
+                </section>
             </div>
         </main>
     );
