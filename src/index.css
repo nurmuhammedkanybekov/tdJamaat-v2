@@ -1162,3 +1162,18 @@ li[data-ayah].is-reciting { background-color: color-mix(in oklab, var(--gold) 8%
 .js-share > span + span { box-shadow: inset 2px 0 0 var(--page-plane); }
 .js-share-legend { display: flex; flex-wrap: wrap; gap: .4rem 1.1rem; font-size: .85rem; color: var(--text-secondary); }
 .js-share-legend i { display: inline-block; width: .65rem; height: .65rem; border-radius: 999px; margin-right: .4rem; vertical-align: middle; }
+
+/* The admin's desk on the week page: a line of houses, not a box of tiles. */
+.desk-line { padding: 1.6rem 0 1.4rem; border-top: 1px solid var(--gold-dim); border-bottom: 1px solid var(--border); }
+.desk-track { position: relative; margin-top: 1.6rem; }
+.desk-track-line { position: absolute; left: calc(50% / var(--n)); right: calc(50% / var(--n)); top: .62rem; height: 2px; background: var(--border-strong); }
+.desk-track-line > span { display: block; height: 100%; background: var(--gold); transition: width .8s cubic-bezier(.2,.8,.2,1); }
+.desk-houses { position: relative; display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); }
+.desk-house { width: 100%; display: flex; flex-direction: column; align-items: center; gap: .35rem; padding: 0 .15rem .3rem; text-align: center; border-radius: 4px; transition: background-color .2s; }
+.desk-house:hover { background: var(--gold-soft); }
+.desk-dot { width: 1.3rem; height: 1.3rem; transform: rotate(45deg); display: inline-flex; align-items: center; justify-content: center; border: 1.5px solid var(--gold); background: var(--page-plane); color: var(--page-plane); }
+.desk-dot > svg { transform: rotate(-45deg); }
+.desk-house.is-in .desk-dot { background: var(--gold); }
+.desk-house.is-missing .desk-dot { border-style: dashed; }
+.desk-name { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-display); font-size: clamp(.82rem, 3.4vw, 1.1rem); color: var(--text-primary); margin-top: .2rem; }
+.desk-sub { display: inline-flex; align-items: center; gap: .2rem; font-size: .76rem; }

@@ -170,7 +170,7 @@ export const HousePage: React.FC<{ arg?: string | null; sub?: string | null; the
     const series = useMemo(() => {
         if (!data || !link) return [];
         return data.weeks.map(w => ({ week: w, team: w.teams.find(tm => tm.id === link.houseId) })).filter(r => r.team && r.team.members.length > 0);
-    }, [data, link]);
+    }, [data, link?.houseId]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const isAdmin = ctx.signedIn && ctx.role === 'admin';
     if (isAdmin) {

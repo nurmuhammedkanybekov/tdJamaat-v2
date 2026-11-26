@@ -131,15 +131,16 @@ const ReminderButton: React.FC<{ weekNumber: number; houses: string[] }> = ({ we
     return (
         <button onClick={send} className="btn btn-ghost" aria-label={copied ? t('Көчүрүлдү') : t('Эскертүү жөнөтүү')} title={t('Эскертүү жөнөтүү')}>
             {copied ? <Check className="w-3.5 h-3.5" /> : <Send className="w-3.5 h-3.5" />}
-            <span className="hidden sm:inline">{copied ? t('Көчүрүлдү') : t('Эскертүү')}</span>
+            <span>{copied ? t('Көчүрүлдү') : t('Эскертүү')}</span>
         </button>
     );
 };
 
-// The admin's desk: the week's progress at a glance (one segment per house),
-// what to do next in one line, and every house as a tile — entered (✓ and its
-// rating) or still missing (enter it for the captain). Any tile opens the
-// data entry form for that house.
+// The admin's desk: the week as a line with one diamond per house (gold once
+// it has entered — like the day's prayers on Менин күнүм), what is left in
+// one sentence, and every house under its diamond: its rating, or a tap to
+// enter the week for its captain. Labelled buttons for the reminder and the
+// admin panel.
 export const AdminDeskPanel: React.FC<{
     desk: AdminDesk;
     onEnterFor: (houseId: string) => void;
@@ -147,72 +148,48 @@ export const AdminDeskPanel: React.FC<{
 }> = ({ desk, onEnterFor, onAdmin }) => {
     const waiting = !desk.locked && desk.waiting.length > 0;
     const allIn = !desk.locked && desk.waiting.length === 0;
+    const left = desk.total - desk.entered;
+    const share = desk.total ? desk.entered / desk.total : 0;
     return (
-        <section className="plate desk-plate animate-view-in" aria-label={t('Админ')}>
-            <div className="card-pad pb-5! sm:pb-6!">
-                <div className="flex items-start justify-between gap-4">
-                    <div className="min-w-0">
-                        <div className="eyebrow" style={{ color: 'var(--gold)' }}>{t('Админ · {0}-апта', desk.weekNumber)}</div>
-                        <div className="flex items-baseline gap-3 mt-1">
-                            <span className="font-display text-[2.6rem] leading-none tabular" style={{ color: 'var(--text-primary)' }}>
-                                {desk.entered}<span style={{ color: 'var(--text-muted)' }}> / {desk.total}</span>
-                            </span>
-                            <span className="text-[0.95rem]" style={{ color: 'var(--text-secondary)' }}>{t('үй киргизди')}</span>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                        {waiting && <ReminderButton weekNumber={desk.weekNumber} houses={desk.waiting.map(h => h.name)} />}
-                        <button onClick={onAdmin} className={`btn ${allIn ? 'btn-primary' : 'btn-ghost'}`} aria-label={t('Админ панели')} title={t('Админ панели')}>
-                            <Settings className="w-3.5 h-3.5" /><span className="hidden sm:inline">{t('Админ панели')}</span>
-                        </button>
-                    </div>
+        <section className="desk-line animate-view-in" aria-label={t('Админ')}>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="eyebrow" style={{ color: 'var(--gold)' }}>{t('Админ · {0}-апта', desk.weekNumber)}</div>
+                <div className="flex items-center gap-2">
+                    {waiting && <ReminderButton weekNumber={desk.weekNumber} houses={desk.waiting.map(h => h.name)} />}
+                    <button onClick={onAdmin} className={`btn ${allIn ? 'btn-primary' : 'btn-ghost'}`}><Settings className="w-3.5 h-3.5" />{t('Админ панели')}</button>
                 </div>
-                {/* One segment per house: gold once it has entered. */}
-                <div className="flex gap-1.5 mt-4" aria-hidden="true">
-                    {[...desk.houses].sort((a, b) => Number(b.entered) - Number(a.entered)).map(h => (
-                        <span key={h.id} className="flex-1 h-[3px] transition-colors" style={{ backgroundColor: h.entered ? 'var(--gold)' : 'var(--border-strong)' }} />
-                    ))}
-                </div>
-                <p className="text-[0.88rem] mt-3" style={{ color: desk.locked ? 'var(--text-secondary)' : allIn ? 'var(--success)' : 'var(--text-secondary)' }}>
-                    {desk.locked
-                        ? <span className="inline-flex items-center gap-1.5"><Lock className="w-3.5 h-3.5" />{t('Апта бекитилген: жыйынтыктар акыркы.')}</span>
-                        : allIn
-                            ? t('Баары киргизди. Эми аптаны бекитсеңиз болот — жыйынтыктар акыркы болот.')
-                            : t('Калды: {0}', desk.waiting.map(h => h.name).join(', '))}
-                </p>
-                {desk.tazalyk && (
-                    <p className="text-[0.84rem] mt-1.5" style={{ color: desk.tazalyk.rated === desk.tazalyk.total ? 'var(--success)' : 'var(--text-muted)' }}>
-                        {t('Тазалык: {0} / {1} үй бааланды', desk.tazalyk.rated, desk.tazalyk.total)}
-                    </p>
-                )}
             </div>
-            {/* Every house: a tile that opens its data entry; the missing ones first. */}
-            <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5" style={{ borderTop: '1px solid var(--border)' }}>
-                {[...desk.houses].sort((a, b) => Number(a.entered) - Number(b.entered)).map(h => {
-                    const missing = !h.entered;
-                    return (
-                        <li key={h.id} style={{ boxShadow: '1px 0 0 var(--border), 0 1px 0 var(--border)' }}>
-                            <button onClick={() => onEnterFor(h.id)} className="group row-link w-full h-full text-left px-5 py-4 flex flex-col gap-1.5"
-                                aria-label={missing ? t('{0}: киргизүү', h.name) : t('{0}: өзгөртүү', h.name)}>
-                                <span className="flex items-center gap-2 min-w-0">
-                                    <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: TEAM_COLORS[h.colorIndex % TEAM_COLORS.length] }} />
-                                    <span className="font-display text-[1.2rem] leading-tight truncate" style={{ color: 'var(--text-primary)' }}>{h.name}</span>
-                                </span>
-                                {missing
-                                    ? desk.locked
-                                        ? <span className="text-[0.82rem] italic" style={{ color: 'var(--danger)' }}>{t('киргизилген жок')}</span>
-                                        : <span className="inline-flex items-center gap-1.5 text-[0.82rem]" style={{ color: 'var(--gold)' }}>
-                                            <PenLine className="w-3.5 h-3.5" />{t('Киргизүү')}<ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
-                                        </span>
-                                    : <span className="inline-flex items-center gap-1.5 text-[0.82rem]" style={{ color: 'var(--text-muted)' }}>
-                                        <CheckCircle2 className="w-3.5 h-3.5" style={{ color: 'var(--success)' }} />
-                                        {h.rating !== null ? <span className="font-display text-[1.05rem] tabular" style={{ color: 'var(--text-secondary)' }}>{fmt(h.rating)}</span> : t('киргизилди')}
-                                    </span>}
-                            </button>
-                        </li>
-                    );
-                })}
-            </ul>
+            <h2 className="font-display text-[1.7rem] sm:text-[2.1rem] leading-tight mt-3" style={{ color: 'var(--text-primary)' }}>
+                {desk.locked
+                    ? <span className="inline-flex items-center gap-2"><Lock className="w-5 h-5" style={{ color: 'var(--gold)' }} />{t('Апта бекитилген')}</span>
+                    : allIn ? t('Бардык {0} үй киргизди', desk.total)
+                        : t('{0} үй киргизди, {1} үй калды', desk.entered, left)}
+            </h2>
+            <p className="text-[0.9rem] mt-1" style={{ color: allIn ? 'var(--success)' : 'var(--text-muted)' }}>
+                {desk.locked ? t('Жыйынтыктар акыркы.') : allIn ? t('Эми аптаны бекитсеңиз болот — жыйынтыктар акыркы болот.') : t('Күтүлүүдө: {0}', desk.waiting.map(h => h.name).join(', '))}
+                {desk.tazalyk && <span style={{ color: desk.tazalyk.rated === desk.tazalyk.total ? 'var(--success)' : 'var(--text-muted)' }}> · {t('Тазалык: {0} / {1} үй бааланды', desk.tazalyk.rated, desk.tazalyk.total)}</span>}
+            </p>
+
+            {/* The line: one diamond per house; the gold part is how far the week has come. */}
+            <div className="desk-track" style={{ '--n': desk.houses.length } as React.CSSProperties}>
+                <span className="desk-track-line" aria-hidden="true"><span style={{ width: `${share * 100}%` }} /></span>
+                <ol className="desk-houses">
+                    {[...desk.houses].sort((a, b) => Number(b.entered) - Number(a.entered)).map(h => {
+                        const missing = !h.entered;
+                        return (
+                            <li key={h.id}>
+                                <button onClick={() => onEnterFor(h.id)} className={`desk-house ${missing ? 'is-missing' : 'is-in'}`} aria-label={missing ? t('{0}: киргизүү', h.name) : t('{0}: өзгөртүү', h.name)}>
+                                    <span className="desk-dot" style={{ '--house': TEAM_COLORS[h.colorIndex % TEAM_COLORS.length] } as React.CSSProperties}>{!missing && <Check className="w-3 h-3" />}</span>
+                                    <span className="desk-name">{h.name}</span>
+                                    {missing
+                                        ? <span className="desk-sub" style={{ color: desk.locked ? 'var(--danger)' : 'var(--gold)' }}>{desk.locked ? t('киргизилген жок') : <><PenLine className="w-3 h-3" />{t('киргизүү')}</>}</span>
+                                        : <span className="desk-sub tabular" style={{ color: 'var(--text-secondary)' }}>{h.rating !== null ? fmt(h.rating) : '✓'}</span>}
+                                </button>
+                            </li>
+                        );
+                    })}
+                </ol>
+            </div>
         </section>
     );
 };
