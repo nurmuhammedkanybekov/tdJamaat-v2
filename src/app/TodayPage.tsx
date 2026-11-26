@@ -96,10 +96,8 @@ const Jamaat: React.FC = () => {
                 <div>
                     <div className="pt-4 flex items-baseline justify-between gap-3">
                         <span className="font-display text-[1.4rem]" style={{ color: 'var(--text-primary)' }}>{member.link.name} <span className="text-[1rem]" style={{ color: 'var(--text-muted)' }}>· {member.link.houseName}</span></span>
-                        <button onClick={() => { signOutMember().catch(() => undefined); }} className="hit text-[0.7rem] tracking-[0.16em] uppercase transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}>{t('Чыгуу')}</button>
                     </div>
                     <MemberSummary link={member.link} />
-                    <RowLink onClick={() => go('#/jamaat')} title={t('Жамааттын жыйынтыгы')} sub={t('Үйлөрдүн жарышы жана бирге окулган Куран')} />
                 </div>
             );
         }
@@ -198,7 +196,7 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
     const zikr = loadZikr();
     const last = loadLastRead();
     const totals = useWeekTotals();
-    const { member, signedIn, role } = useContext(AppContext);
+    const { member, signedIn } = useContext(AppContext);
     const linked = member?.status === 'linked' ? member.link : null;
     const { self } = useSelf();
     const zikrToday = todayTotal(zikr);
@@ -245,26 +243,26 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
                     </div>
                 )}
 
-                {/* What the hour asks for: this prayer's tasbihat, the 33-33-34, the Quran. */}
+                {/* What the hour asks for, as three columns: this prayer's tasbihat
+                    (a diamond that fills once read), the 33 · 33 · 34, the Quran. */}
                 <Section eyebrow={t('Азыр · {0}', PRAYER_NAMES[prayer])}>
-                    <RowLink
-                        onClick={() => go(`#/tasbihat/${prayer}`)}
-                        mark={<span className="w-7 h-7 rotate-45 inline-flex items-center justify-center flex-shrink-0 mx-1" style={{ border: '1px solid var(--gold)', backgroundColor: doneNow ? 'var(--gold)' : 'transparent' }}>{doneNow && <Check className="w-3.5 h-3.5 -rotate-45" style={{ color: 'var(--page-plane)' }} />}</span>}
-                        title={t('{0} намазынын тасбихаты', PRAYER_NAMES[prayer])}
-                        sub={doneNow ? t('Окулду · бүгүн {0} / 5', readToday) : t('Бүгүн окулду: {0} / 5', readToday)}
-                    />
-                    <RowLink
-                        onClick={() => go('#/zikr/namaz')}
-                        mark={<span className="w-7 mx-1 text-center font-display text-[1.1rem]" style={{ color: 'var(--gold)' }}>33</span>}
-                        title={t('Намаздан кийинки тасбих')}
-                        sub={t('Субханаллах 33 · Алхамдулиллах 33 · Аллаху акбар 34')}
-                    />
-                    <RowLink
-                        onClick={() => go(last ? (last.page && loadMode() === 'pages' ? `#/quran/p/${last.page}` : `#/quran/${last.surah}:${last.ayah}`) : '#/quran')}
-                        mark={<span className="w-7 mx-1 text-center quran-text text-[1.4rem] leading-none" style={{ color: 'var(--gold)' }} aria-hidden="true">ق</span>}
-                        title={last ? t('Куран: {0}', last.name) : t('Куран окуу')}
-                        sub={last ? t('{0}-аяттан улантуу · бүгүн {1} бет', last.ayah, pagesOn(practice)) : t('Мадина мусхафы, кыргызча мааниси менен')}
-                    />
+                    <div className="now3">
+                        <button onClick={() => go(`#/tasbihat/${prayer}`)} className="now3-col">
+                            <span className={`now3-gem ${doneNow ? 'is-done' : ''}`} aria-hidden="true">{doneNow && <Check className="w-4 h-4" strokeWidth={2} />}</span>
+                            <span className="now3-t font-display">{t('Тасбихат')}</span>
+                            <span className="now3-s">{doneNow ? t('Окулду · {0} / 5', readToday) : t('Бүгүн {0} / 5', readToday)}</span>
+                        </button>
+                        <button onClick={() => go('#/zikr/namaz')} className="now3-col">
+                            <span className="now3-n font-display tabular" aria-hidden="true">33</span>
+                            <span className="now3-t font-display">{t('Тасбих')}</span>
+                            <span className="now3-s tabular">33 · 33 · 34</span>
+                        </button>
+                        <button onClick={() => go(last ? (last.page && loadMode() === 'pages' ? `#/quran/p/${last.page}` : `#/quran/${last.surah}:${last.ayah}`) : '#/quran')} className="now3-col">
+                            <span className="now3-ar quran-text" aria-hidden="true">ق</span>
+                            <span className="now3-t font-display">{last ? last.name : t('Куран')}</span>
+                            <span className="now3-s">{last ? t('{0}-аят · бүгүн {1} бет', last.ayah, pagesOn(practice)) : t('Окуп баштоо')}</span>
+                        </button>
+                    </div>
                 </Section>
 
                 {/* Not signed in: the way in, as part of the page rather than a wall in front of it. */}
@@ -280,7 +278,6 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
                 {(linked || signedIn) && (
                     <Section eyebrow={t('Жамааттан кабар')}>
                         <NewsTeaser />
-                        <RowLink onClick={() => go('#/chat')} title={t('Баарлашуу')} sub={t('Жамааттын сөзү, үйдүн сөзү{0}', signedIn && role !== 'member' ? t(', капитандар') : '')} />
                     </Section>
                 )}
 
@@ -310,6 +307,15 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
                     <Section eyebrow={linked ? t('Менин үйүм') : t('Жамаат')}>
                         <Jamaat />
                     </Section>
+                )}
+
+                {/* The page closes with the places one goes from here, in one line. */}
+                {(linked || signedIn) && (
+                    <nav className="almanac day-end" aria-label={t('Бөлүмдөр')}>
+                        {linked && <button onClick={() => go('#/house/me')}><span>{t('Менин жыйынтыгым')}</span></button>}
+                        <button onClick={() => go('#/jamaat')}><span>{t('Жамаат')}</span></button>
+                        <button onClick={() => go('#/chat')}><span>{t('Баарлашуу')}</span></button>
+                    </nav>
                 )}
             </div>
             {sheet && <Suspense fallback={null}><PrayerSheet onClose={() => setSheet(false)} onCityChange={c => setCity(c)} /></Suspense>}

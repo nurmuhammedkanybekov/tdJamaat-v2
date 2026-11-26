@@ -1459,3 +1459,25 @@ button.help-where:hover { border-bottom-color: var(--gold); }
 
 /* My house on My Day: the two numbers open, no divider boxes. */
 .mine-sum { position: relative; }
+
+/* My day: the hour as three columns. */
+.now3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 1.6rem 0 .6rem; }
+.now3-col { position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; gap: .35rem; padding: 0 .4rem .4rem; min-width: 0; }
+.now3-col + .now3-col::before { content: ""; position: absolute; left: 0; top: .3rem; bottom: .3rem; width: 1px; background: var(--border); }
+.now3-gem, .now3-n, .now3-ar { height: 3.4rem; display: inline-flex; align-items: center; justify-content: center; }
+.now3-gem { width: 2.4rem; height: 2.4rem; margin: .5rem 0; transform: rotate(45deg); border: 1px solid var(--gold); color: var(--page-plane); transition: background .2s; }
+.now3-gem > svg { transform: rotate(-45deg); }
+.now3-gem.is-done { background: var(--gold); }
+.now3-n { font-size: 2.9rem; line-height: 1; color: var(--gold); }
+.now3-ar { font-size: 2.7rem; line-height: 1; color: var(--gold); }
+.now3-t { font-size: clamp(1.05rem, 3.6vw, 1.4rem); line-height: 1.15; color: var(--text-primary); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.now3-s { font-size: .76rem; line-height: 1.3; color: var(--text-muted); }
+.now3-col:hover .now3-t { color: var(--gold); }
+
+/* News: a letter with the jamaat's seal. */
+.news-letter { position: relative; display: block; width: 100%; text-align: left; margin-top: 1.2rem; padding: 1.4rem 0 1.2rem 1.6rem; border-left: 1px solid var(--gold); }
+.news-seal { position: absolute; left: 0; top: 1.3rem; transform: translateX(-50%); width: 34px; height: 34px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: var(--page-plane); background: radial-gradient(circle at 35% 30%, var(--gold-bright), var(--gold) 70%); box-shadow: 0 0 0 4px var(--page-plane); }
+.news-letter:hover .font-display { color: var(--gold); }
+
+/* The closing line of the day. */
+.day-end { display: flex; width: 100%; margin-top: 3rem; padding: .6rem 0; border-top: 1px solid var(--gold-dim); border-bottom: 1px solid var(--gold-dim); }

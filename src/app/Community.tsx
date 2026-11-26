@@ -3,6 +3,7 @@
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { Bell, BellOff, Check, Pencil, Pin, Trash2, X } from 'lucide-react';
 import type { Theme } from '../theme';
+import { Mark } from '../components/Ornament';
 import { isEnglish, t } from '../i18n';
 import { AppFrame, Waiting } from './AppFrame';
 import { AppContext } from './context';
@@ -50,7 +51,8 @@ export const NewsTeaser: React.FC = () => {
     const seen = newsSeenAt();
     const fresh = list.filter(a => !seen || a.createdAt > seen).length;
     return (
-        <button onClick={() => go('#/news')} className="row-link w-full text-left block pt-5 pb-4">
+        <button onClick={() => go('#/news')} className="news-letter">
+            <span className="news-seal" aria-hidden="true"><Mark size={22} /></span>
             <div className="flex items-baseline gap-3">
                 <span className="eyebrow" style={{ color: 'var(--gold)' }}>{first.pinned ? t('Бекитилген') : dateOf(first.createdAt)}</span>
                 {fresh > 0 && <span className="text-[0.7rem] px-1.5" style={{ border: '1px solid var(--gold)', color: 'var(--gold)' }}>{t('{0} жаңы', fresh)}</span>}
