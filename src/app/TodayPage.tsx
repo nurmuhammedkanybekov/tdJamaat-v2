@@ -96,6 +96,7 @@ const Jamaat: React.FC = () => {
                         <button onClick={() => { signOutMember().catch(() => undefined); }} className="text-[0.7rem] tracking-[0.16em] uppercase transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}>{t('Чыгуу')}</button>
                     </div>
                     <MemberSummary link={member.link} />
+                    <RowLink onClick={() => go('#/jamaat')} title={t('Жамааттын жыйынтыгы')} sub={t('Бирге окулган Куран, үйлөрдүн жарышы, аптанын пульсу')} />
                 </div>
             );
         }

@@ -1,15 +1,15 @@
 import React, { useMemo } from 'react';
-import { Share2 } from 'lucide-react';
-import type { DataFile, MetricValues, MiniCard } from '../../types';
+import type { DataFile, MiniCard } from '../../types';
 import type { Insights } from '../../utils/insights';
-import { METRICS, buildInsights } from '../../utils/insights';
+import { buildInsights } from '../../utils/insights';
 import type { Award } from '../../utils/badges';
 import { computeAwards } from '../../utils/badges';
-import { hallOfFame, seasonRecords, seasonTotals, weekOverWeek } from '../../utils/community';
-import { cardLabel, cardName, metricLabel, metricName } from '../../utils/metrics';
+import { hallOfFame, seasonRecords, seasonTotals } from '../../utils/community';
+import { cardLabel, cardName } from '../../utils/metrics';
 import { seasonView } from '../../utils/seasons';
 import { Medallion, OrnamentDivider } from '../Ornament';
 import { SectionHeader } from '../ui';
+import { JamaatStory } from '../JamaatStory';
 import { t } from '../../i18n';
 import { JattooCommunity } from '../Jattoo';
 
@@ -32,19 +32,9 @@ const ROMAN = ['I', 'II', 'III'];
 // 12400 → "12 400" (narrow no-break space, so a number never splits).
 const big = (n: number) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 
-const Change: React.FC<{ now: number; before: number }> = ({ now, before }) => {
-    if (before <= 0) return <span style={{ color: 'var(--text-muted)' }}>—</span>;
-    const pct = Math.round(((now - before) / before) * 100);
-    const color = pct > 0 ? 'var(--success)' : pct < 0 ? 'var(--danger)' : 'var(--text-muted)';
-    return <span className="tabular" style={{ color }}>{pct > 0 ? '▲' : pct < 0 ? '▼' : '='} {Math.abs(pct)}%</span>;
-};
-
-
 export const CommunityView: React.FC<CommunityViewProps> = ({ data, allData, insights, awards, seasonName, onOpenProfile, onShareWeek, onShareSeason }) => {
     const totals = useMemo(() => seasonTotals(data, insights), [data, insights]);
     const last = data.weeks.length - 1;
-    const wow = useMemo(() => weekOverWeek(data, insights, last), [data, insights, last]);
-    const thisWeek = wow.thisWeek, prevWeek = wow.lastWeek;
     const records = useMemo(() => seasonRecords(insights, awards), [insights, awards]);
 
     // Hall of Fame: every season that has weeks, newest first.
@@ -59,37 +49,15 @@ export const CommunityView: React.FC<CommunityViewProps> = ({ data, allData, ins
         })
         .filter((h): h is NonNullable<typeof h> => !!h), [allData]);
 
-    const latestWeek = data.weeks[last];
-    const submittedNow = latestWeek ? latestWeek.teams.filter(it => it.submitted).length : 0;
 
     return (
         <div className="space-y-16 sm:space-y-20">
-            {/* Season totals */}
-            <section>
-                <SectionHeader eyebrow={t('Сезон {0} · {1} апта', seasonName, data.weeks.length)} title={t('Жамааттын бул сезондогу жыйынтыгы')} action={onShareSeason && <button className="btn btn-ghost" onClick={onShareSeason}><Share2 className="w-3.5 h-3.5" />  {t('Бөлүшүү')}</button>} />
-                {/* What the jamaat did together: the Quran read, set large on its
-                    own; the seven other practices as a ledger beside it. */}
-                <div className="together">
-                    <div className="together-lead">
-                        <div className="eyebrow" style={{ color: 'var(--gold)' }}>{metricLabel(METRICS[0] as keyof MetricValues)}</div>
-                        <div className="font-display tabular leading-[0.85] together-lead-n gold-sheen">{big(totals.metrics[METRICS[0] as keyof MetricValues])}</div>
-                        <div className="font-display text-[1.4rem] sm:text-[1.6rem] mt-3" style={{ color: 'var(--text-primary)' }}>{metricName(METRICS[0] as keyof MetricValues)}</div>
-                        <p className="text-[0.85rem] italic mt-1" style={{ color: 'var(--text-muted)' }}>{t('{0} адам-апта эсептелди. Себептүү жана киргизиле элек апталар кирген жок.', totals.personWeeks)}</p>
-                    </div>
-                    <ul className="together-rest">
-                        {METRICS.slice(1).map(m => (
-                            <li key={m}>
-                                <span className="min-w-0">
-                                    <span className="block truncate" style={{ color: 'var(--text-primary)' }}>{metricName(m as keyof MetricValues)}</span>
-                                    <span className="eyebrow block mt-0.5" style={{ letterSpacing: '0.18em' }}>{metricLabel(m as keyof MetricValues)}</span>
-                                </span>
-                                <span className="font-display tabular text-[1.7rem] sm:text-[2rem] leading-none" style={{ color: 'var(--text-primary)' }}>{big(totals.metrics[m as keyof MetricValues])}</span>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
+            {/* The season together, the week's pulse, the race of the houses. */}
+            <JamaatStory data={data} insights={insights} seasonName={seasonName} onShareSeason={onShareSeason} onShareWeek={onShareWeek ? () => onShareWeek(last) : undefined} />
 
-                <h3 className="font-display text-[1.4rem] mt-12 mb-1" style={{ color: 'var(--text-primary)' }}>{t('Мини-карта: бардык үйлөр бирге')}</h3>
+            {/* The mini-card, all houses together. */}
+            <section>
+                <h3 className="font-display text-[1.6rem] mb-1" style={{ color: 'var(--text-primary)' }}>{t('Мини-карта: бардык үйлөр бирге')}</h3>
                 <p className="text-[0.85rem] mb-4" style={{ color: 'var(--text-muted)' }}>{t('{0} үй-апта эсептелди.', totals.houseWeeks)}</p>
                 <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-12">
                     {(Object.keys(totals.card) as Array<keyof MiniCard>).map(k => (
@@ -102,41 +70,6 @@ export const CommunityView: React.FC<CommunityViewProps> = ({ data, allData, ins
                     ))}
                 </ul>
             </section>
-
-            {/* This week vs last week */}
-            {latestWeek && (
-                <section>
-                    <SectionHeader
-                        eyebrow={t('{0}-апта{1}', latestWeek.weekNumber, last > 0 ? t(' · {0}-аптага караганда', data.weeks[last - 1].weekNumber) : '')}
-                        title={t('Жамааттын бул аптасы')}
-                        action={onShareWeek && <button className="btn btn-ghost" onClick={() => onShareWeek(last)}><Share2 className="w-3.5 h-3.5" />  {t('Бөлүшүү')}</button>}
-                        sub={t('Эки аптаны тең киргизген {0} үй салыштырылды{1}.', wow.houses, submittedNow < latestWeek.teams.length ? t(' · {0} / {1} үй бул аптаны киргизди, калгандары киргизгенде кошулат', submittedNow, latestWeek.teams.length) : '')}
-                    />
-                    {/* The week's pulse: each practice's total, and how far it moved
-                        from last week as a bar either side of the centre line. */}
-                    <ul className="pulse grid grid-cols-1 lg:grid-cols-2 lg:gap-x-14" style={{ borderTop: '1px solid var(--gold-dim)' }}>
-                        {METRICS.map(m => {
-                            const now = thisWeek.metrics[m as keyof MetricValues], before = prevWeek.metrics[m as keyof MetricValues];
-                            const pct = before > 0 ? ((now - before) / before) * 100 : null;
-                            const w = pct === null ? 0 : Math.min(Math.abs(pct), 50) / 50 * 100;
-                            return (
-                                <li key={m} className="pulse-row">
-                                    <span className="min-w-0">
-                                        <span className="block truncate" style={{ color: 'var(--text-primary)' }}>{metricName(m as keyof MetricValues)}</span>
-                                        <span className="eyebrow block mt-0.5" style={{ letterSpacing: '0.18em' }}>{metricLabel(m as keyof MetricValues)}</span>
-                                    </span>
-                                    <span className="font-display text-[1.4rem] tabular text-right" style={{ color: 'var(--text-primary)' }}>{big(now)}</span>
-                                    <span className="pulse-bar" aria-hidden="true">
-                                        <span className="pulse-axis" />
-                                        {pct !== null && pct !== 0 && <span className={`pulse-fill ${pct > 0 ? 'is-up' : 'is-down'}`} style={{ width: `${w / 2}%` }} />}
-                                    </span>
-                                    <span className="text-right text-[0.85rem]"><Change now={now} before={before} /></span>
-                                </li>
-                            );
-                        })}
-                    </ul>
-                </section>
-            )}
 
             {/* Season records */}
             {records.length > 0 && (

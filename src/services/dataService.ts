@@ -258,6 +258,24 @@ export const fetchDataFile = async (): Promise<DataFile> => {
     return jattoo ? { ...file, jattoo } : file;
 };
 
+/**
+ * The whole jamaat for a member (supabase/jamaat-view-2026-11.sql): every
+ * house's numbers, other houses' people without names or photos. Null when
+ * the function is not there yet or this is not a member's account.
+ */
+export const fetchJamaatFile = async (): Promise<DataFile | null> => {
+    const { data, error } = await supabase.rpc('jamaat_rows');
+    if (error || !data) return null;
+    const r = data as { houses: HouseRow[]; members: Array<Omit<MemberRow, 'name'> & { name: string | null }>; weeks: WeekRow[]; metrics: FullMetricRow[]; activities: ActivityRow[]; tazalyk: TazalykRow[] };
+    const [settings, seasons] = await Promise.all([fetchSeasonSettings(), fetchSeasons()]);
+    const members: MemberRow[] = r.members.map(m => ({ ...m, name: m.name ?? t('Мүчө') }));
+    return buildDataFile(
+        { houses: r.houses, members, weeks: r.weeks, metrics: r.metrics, activities: r.activities, seasons, tazalyk: r.tazalyk },
+        settings,
+        { normalizeMetrics, normalizeMiniCard, zeroMetrics: ZERO_METRICS }
+    );
+};
+
 // ---------------------------------------------------------------------------
 // Weekly data entry — write (RLS restricts a leader session to their own house_id)
 // ---------------------------------------------------------------------------

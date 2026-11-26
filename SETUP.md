@@ -111,6 +111,11 @@ In the Supabase dashboard, open **SQL Editor** and run, in order:
     (`inspector@tdjamaat.internal`, the CL password, Auto Confirm), then run
     this file. CL signs in with the "CL" tab and the password only.
 
+23. `supabase/jamaat-view-2026-11.sql` — members see the whole jamaat
+    (`#/jamaat`): the season together, the week's pulse, the race of the
+    houses. Other houses' people come without names or photos. Needs 16.
+    Safe to re-run.
+
 Notifications: in Үйдүн сөзү or Жамааттан кабар, "Билдирмелерди
 күйгүзүү". They arrive while the app is open or in the background (not
 when it is fully closed — that would need a push server). On an iPhone

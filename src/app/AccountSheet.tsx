@@ -2,7 +2,7 @@
 // the pages that are theirs (results, house, Жаттоо, conversations, prayer
 // times) — and the way out, in plain sight.
 import React, { useContext, useState } from 'react';
-import { BookOpenCheck, ChartNoAxesColumn, Clock3, Compass, Home, LogOut, MessageCircle, Settings2, Sparkles, Trophy } from 'lucide-react';
+import { BookOpenCheck, ChartNoAxesColumn, Clock3, Compass, Home, LogOut, MessageCircle, Settings2, Sparkles, Trophy, Users } from 'lucide-react';
 import { t } from '../i18n';
 import { Sheet } from '../components/ui';
 import { Avatar } from '../components/Avatar';
@@ -45,6 +45,7 @@ export const AccountSheet: React.FC<{ onClose: () => void }> = ({ onClose }) => 
             { key: 'house', icon: Home, label: person.houseName, sub: t('Менин үйүм'), to: '#/house' }
         ] : []),
         ...(role === 'admin' ? [{ key: 'houses', icon: Home, label: t('Бардык үйлөр'), sub: t('Ар бир үй жана анын сөзү'), to: '#/house' }] : []),
+        ...((ctx.signedIn && role !== 'inspector') || linked ? [{ key: 'jamaat', icon: Users, label: t('Жамааттын жыйынтыгы'), sub: t('Бирге окулган Куран, үйлөрдүн жарышы'), to: '#/jamaat' }] : []),
         ...(ctx.signedIn || linked ? [{ key: 'talk', icon: MessageCircle, label: t('Баарлашуу'), sub: t('Жамааттын сөзү жана башкалар'), to: '#/chat' }] : []),
         ...(ctx.signedIn && role !== 'inspector' ? [{ key: 'results', icon: Trophy, label: t('Жыйынтыктар'), sub: t('Үйлөрдүн апталык жарышы'), to: '#/overview' }] : []),
         ...(role === 'inspector' ? [{ key: 'tazalyk', icon: Sparkles, label: t('Тазалык'), sub: t('Үйлөрдү баалоо'), to: '#/overview' }] : []),
