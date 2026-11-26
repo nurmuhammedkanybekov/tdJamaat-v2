@@ -44,6 +44,11 @@ it, says what happened and what to do, and `#/kiruu` shows it as a red line.
 | `0d02b2b` | Google return handled by the app; failed sign-ins are explained (see §1). |
 | `dcbeb81` | **Тартип** on Менин күнүм: four weeks of practice as gold diamonds (zikr/salawat, tasbihat, Quran pages), current run and best run. Only what the phone already counts — nothing invented. Unit-tested. |
 | `c88eed9` | Сезон → 4-week reports: the leader set large, the climber and the span beside it; a period with only one week no longer repeats one number in four columns. |
+| `b9ed074` | This handover file. |
+| `7155355` | **Куран → Өтүү**: from any reading page, go to any page (type a number or drag a slider 1–604, the surah name shows as you drag), a surah by name or number, an ayah (`2:255`), or a juz (1–30). Works in Барак, Мааниси and Мусхаф. |
+| `1868a4a` | **Any week** of the season: tap the week name in the header (between ‹ and ›) and pick from the list with dates. |
+| `edf6e29` | After-prayer tasbih: the three steps (Субханаллах 33 · Алхамдулиллах 33 · Аллаху акбар 34) are tappable, so you can go straight to the one you are on. Сезон → reports: any 4-week period from a list (when there are more than two). |
+| `ff7bcdd` | Үйдүн сөзү: scrolled up to read older messages, a button takes you back to the newest and shows how many arrived meanwhile. |
 
 ## 3. Manual steps (in this order)
 
