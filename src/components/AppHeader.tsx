@@ -40,7 +40,7 @@ interface AppHeaderProps {
     installMode: InstallMode;
     onInstall: () => void;
     /** Week switcher; omitted on season-wide views. */
-    week?: { number: number; date: string; locked: boolean; canPrev: boolean; canNext: boolean; onPrev: () => void; onNext: () => void; isLatest: boolean };
+    week?: { number: number; date: string; locked: boolean; canPrev: boolean; canNext: boolean; onPrev: () => void; onNext: () => void; isLatest: boolean; index?: number; options?: string[]; onPick?: (i: number) => void };
     /** The big centered statement: who leads and by how much. */
     monument?: { kicker: string; title: string; value: string; sub: string; lead?: string; complete?: boolean };
     /** Opens the week's story (shown under the hero number). */
@@ -248,9 +248,18 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                             <button onClick={week.onPrev} disabled={!week.canPrev} aria-label={t('Мурунку апта')} className="w-9 h-9 inline-flex items-center justify-center rounded-full transition-colors disabled:opacity-20 hover:text-[var(--gold)]" style={{ border: '1px solid var(--border-strong)', color: 'var(--text-secondary)' }}>
                                 <ChevronLeft className="w-4 h-4" strokeWidth={1.5} />
                             </button>
-                            <div className="eyebrow inline-flex items-center gap-2" style={{ color: 'var(--gold)' }} aria-live="polite">
+                            <div className="relative eyebrow inline-flex items-center gap-2" style={{ color: 'var(--gold)' }} aria-live="polite">
                                 {monument?.kicker ?? t('{0}-апта', week.number)}
                                 {week.locked && <Lock className="w-3 h-3" aria-label={t('кулпуланган')} />}
+                                {week.options && week.onPick && week.options.length > 1 && (
+                                    <>
+                                        <ChevronRight className="w-3 h-3 rotate-90 opacity-70" aria-hidden="true" />
+                                        {/* The whole label opens the list of weeks (a native list: easy on a phone). */}
+                                        <select value={week.index} onChange={e => week.onPick!(Number(e.target.value))} aria-label={t('Аптаны тандоо')} className="absolute inset-0 w-full opacity-0 cursor-pointer">
+                                            {week.options.map((o, i) => <option key={i} value={i}>{o}</option>)}
+                                        </select>
+                                    </>
+                                )}
                             </div>
                             <button onClick={week.onNext} disabled={!week.canNext} aria-label={t('Кийинки апта')} className="w-9 h-9 inline-flex items-center justify-center rounded-full transition-colors disabled:opacity-20 hover:text-[var(--gold)]" style={{ border: '1px solid var(--border-strong)', color: 'var(--text-secondary)' }}>
                                 <ChevronRight className="w-4 h-4" strokeWidth={1.5} />

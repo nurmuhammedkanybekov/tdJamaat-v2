@@ -1131,5 +1131,6 @@ export const EN: Record<string, string> = {
     "Учурдагы: {0}": "Now: {0}",
     "Сүрө же аят": "Surah or ayah",
     "{0}-аят": "ayah {0}",
-    "Жүз": "Juz"
+    "Жүз": "Juz",
+    "Аптаны тандоо": "Choose a week"
 };

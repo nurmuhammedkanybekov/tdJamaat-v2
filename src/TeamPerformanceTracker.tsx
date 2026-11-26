@@ -10,6 +10,7 @@ import { buildInsights, weekComplete, weekOf } from './utils/insights';
 import { computeAwards } from './utils/badges';
 import { defaultSeasonId, seasonView } from './utils/seasons';
 import { adminDesk, houseDesk } from './utils/desk';
+import { formatWeekRange } from './utils/weekDates';
 import { useHashRoute } from './hooks/useHashRoute';
 import { useAppRoute } from './app/route';
 import { AppPages } from './app/AppPages';
@@ -233,7 +234,14 @@ const TeamPerformanceTracker: React.FC = () => {
         canPrev: weekIndex > 0,
         canNext: weekIndex < data.weeks.length - 1,
         onPrev: () => goWeek(weekIndex - 1),
-        onNext: () => goWeek(weekIndex + 1)
+        onNext: () => goWeek(weekIndex + 1),
+        // Any week of the season, straight from the list.
+        index: weekIndex,
+        options: data.weeks.map(w => {
+            const range = formatWeekRange(w.startDate ?? null, w.endDate ?? null);
+            return `${t('{0}-апта', w.weekNumber)}${range ? ` · ${range}` : ''}`;
+        }),
+        onPick: (i: number) => goWeek(i)
     };
 
     const profileSeries = route.memberId ? insights.members.get(route.memberId) : undefined;
