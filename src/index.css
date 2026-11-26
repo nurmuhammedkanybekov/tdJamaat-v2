@@ -758,7 +758,7 @@ li[data-ayah].is-reciting { background-color: color-mix(in oklab, var(--gold) 8%
     padding: 2.25rem 1.25rem 1.5rem;
 }
 @media (min-width: 640px) { .house-hero { padding: 3.25rem 3.25rem 2.25rem; } }
-.house-hero-edit { position: absolute; top: 1.4rem; right: 1.6rem; z-index: 1; }
+.house-hero-edit { position: absolute; top: 1.4rem; right: 0; z-index: 1; }
 .house-hero-rank { font-size: 4.6rem; }
 .house-hero-name { font-size: 2.7rem; }
 .house-hero-score { font-size: 3.4rem; }
@@ -1326,3 +1326,25 @@ button.help-where:hover { border-bottom-color: var(--gold); }
    read as one of them, so it moves down into the sky beside the crown,
    smaller, still travelling with the hour. */
 @media (max-width: 639px) { .sky { --sky-l0: 76%; --sky-lw: 14%; } .sky-body { width: 30px; height: 30px; top: 6.6rem !important; } }
+
+/* ---------------------------------------------------------------- open pages, not boxes */
+/* My house: the number stands on the page under a gold rule with a diamond,
+   like the head of a chapter, with no card around it. */
+.house-hero { background: transparent; border: 0; padding: 2.4rem 0 1rem; overflow: visible; }
+.house-hero.is-open { background: transparent; border: 0; padding: 2.4rem 0 1rem; overflow: visible; }
+.house-hero::before, .plate::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--gold) 20%, var(--gold) 80%, transparent); }
+.house-hero::after, .plate::after { content: ""; position: absolute; left: 50%; top: -5px; width: 9px; height: 9px; transform: translateX(-50%) rotate(45deg); background: var(--page-plane); border: 1px solid var(--gold); }
+.me-line { position: relative; padding-top: 1.6rem; border-top: 1px solid var(--gold-dim); }
+
+/* Jamaat: the season's numbers as a line of figures divided by small
+   diamonds, and the khatm as an engraved line, not boxes. */
+.js-khatm { border: 0; background: none; padding: .2rem 0 0; position: relative; }
+.js-khatm::before { content: ""; display: block; width: 3.5rem; height: 1px; margin: 0 auto .7rem; background: var(--gold); }
+.js-tiles { border-top: 0; row-gap: .4rem; }
+.js-tiles > li { box-shadow: none; position: relative; padding: 1rem .4rem; }
+.js-tiles > li::before { content: ""; position: absolute; left: 50%; top: 0; width: 5px; height: 5px; transform: translateX(-50%) rotate(45deg); background: var(--gold-dim); }
+
+/* A plate is a section under a gold rule, not a box. */
+.plate { background: transparent; border: 0; padding: 2rem 0 1.2rem; }
+.plate.is-tight { padding: 1.4rem 0 .6rem; }
+.plate.desk-plate > .card-pad { padding: 1.9rem 0 1.4rem; }

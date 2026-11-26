@@ -244,7 +244,7 @@ export const HousePage: React.FC<{ arg?: string | null; sub?: string | null; the
                 {data && team && (
                     <>
                         {/* The house: its number, how it is made, and how it moved. */}
-                        <section className="house-hero mt-8" style={{ '--house': 'var(--gold)' } as React.CSSProperties}>
+                        <section className="house-hero is-open mt-8" style={{ '--house': 'var(--gold)' } as React.CSSProperties}>
                             <div className="text-center">
                                 <div className="eyebrow">{t('Үйдүн рейтинги')}</div>
                                 <div className="font-display tabular leading-none mt-3 text-[4.4rem] sm:text-[5.4rem] gold-sheen">{rating === null ? '—' : fmt(rating)}</div>
@@ -265,7 +265,7 @@ export const HousePage: React.FC<{ arg?: string | null; sub?: string | null; the
                         </section>
 
                         {/* Me: my photo, my number this week and my place in the house. */}
-                        {!adminView && <section className="plate mt-10">
+                        {!adminView && <section className="me-line mt-10">
                             <div className="flex items-center justify-between gap-4">
                                 <div className="min-w-0"><MyPhoto houseId={link.houseId} memberId={link.memberId} name={link.name} photoUrl={me?.photoUrl ?? null} onChanged={reload} /></div>
                                 {myPlace && (
