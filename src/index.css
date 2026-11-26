@@ -937,14 +937,6 @@ li[data-ayah].is-reciting { background-color: color-mix(in oklab, var(--gold) 8%
     .profile-season > div:nth-child(n+4) { border-top: 1px solid var(--border) !important; }
 }
 /* The week against the plan: eight columns, the hairline at 100%. */
-.plan-columns { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 0.5rem; }
-@media (min-width: 640px) { .plan-columns { gap: 1.25rem; } }
-.plan-col { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; min-width: 0; text-align: center; }
-.plan-bar { position: relative; width: 100%; max-width: 0.9rem; height: 8.5rem; display: flex; align-items: flex-end; border-bottom: 1px solid var(--border-strong); }
-.plan-fill { width: 100%; display: block; transition: height .6s cubic-bezier(.2,.7,.2,1); }
-.plan-line { position: absolute; left: -0.9rem; right: -0.9rem; bottom: 50%; border-top: 1px dashed var(--text-muted); opacity: .6; }
-.plan-label { font-size: 0.62rem; letter-spacing: 0.14em; color: var(--text-secondary); white-space: nowrap; }
-@media (max-width: 639px) { .plan-col > span:last-child { display: none; } .plan-bar { max-width: 0.7rem; height: 7rem; } }
 /* The portrait's four figures: hairlines only between neighbours. */
 .profile-stats > div { border-left: 0 !important; }
 .profile-stats > div + div { box-shadow: inset 1px 0 0 var(--border); }
@@ -1086,3 +1078,50 @@ li[data-ayah].is-reciting { background-color: color-mix(in oklab, var(--gold) 8%
 .goto-juz-cell { height: 2.6rem; font-size: 1.1rem; color: var(--text-primary); border: 1px solid var(--border); transition: color .2s, border-color .2s, background-color .2s; }
 .goto-juz-cell:hover:not(:disabled) { color: var(--gold); border-color: var(--gold); background: var(--gold-soft); }
 .goto-juz-cell:disabled { opacity: .4; }
+
+/* ── Менин жыйынтыгым (#/house/me) ───────────────────────────────────── */
+.mine-hero { position: relative; padding: 2rem 0 2.2rem; border-bottom: 1px solid var(--gold-dim); }
+.mine-hero::before { content: ""; position: absolute; inset: 0 -1rem; z-index: -1; pointer-events: none;
+    background: radial-gradient(60% 55% at 50% 58%, color-mix(in oklab, var(--gold) 13%, transparent), transparent 72%); }
+.dark .mine-hero::before { background: radial-gradient(60% 55% at 50% 58%, color-mix(in oklab, var(--gold) 9%, transparent), transparent 70%),
+    radial-gradient(40% 30% at 50% 10%, rgba(120, 130, 200, 0.10), transparent 70%); }
+@keyframes mine-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.mine-rise { animation: mine-rise .5s cubic-bezier(.2,.8,.2,1) both; }
+.mine-meter { position: relative; height: 6px; max-width: 22rem; margin-inline: auto; background: var(--border); border-radius: 999px; }
+.mine-meter-fill { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: linear-gradient(90deg, var(--gold-dim), var(--gold)); transition: width .8s cubic-bezier(.2,.8,.2,1); }
+.mine-meter-plan { position: absolute; top: -6px; bottom: -6px; width: 1px; background: var(--text-secondary); }
+.mine-meter-plan > span { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 4px; white-space: nowrap; font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted); }
+.mine-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--border); margin-bottom: -2.2rem; }
+.mine-facts > div { text-align: center; padding: .9rem .25rem; }
+.mine-facts > div + div { border-left: 1px solid var(--border); }
+.mine-facts dd { font-size: 1.7rem; line-height: 1.1; margin-top: .35rem; color: var(--text-primary); }
+.mine-facts small, .mine-stats small { font-size: .55em; color: var(--text-muted); }
+.plan-rows > li { padding: .85rem 0 .7rem; border-bottom: 1px solid var(--border); }
+.plan-track { position: relative; flex: 1; height: 4px; border-radius: 999px; background: var(--border); overflow: hidden; }
+.plan-track > span { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: var(--text-secondary); opacity: .55; transition: width .7s cubic-bezier(.2,.8,.2,1); }
+.plan-rows > li.is-met .plan-track > span, .plan-track.block > span { background: var(--gold); opacity: 1; }
+.plan-rows > li.is-zero .plan-track { background: color-mix(in oklab, var(--danger) 22%, var(--border)); }
+.mine-legend { display: inline-flex; align-items: center; gap: .35rem; font-size: .72rem; color: var(--text-muted); }
+.mine-legend i { display: inline-block; width: 14px; height: 0; border-top: 2px solid var(--gold); margin-left: .5rem; }
+.mine-legend i.is-house { border-top: 1.5px solid var(--text-muted); }
+.mine-legend i.is-plan { border-top: 1.5px dashed var(--text-secondary); }
+.mine-path { overflow: visible; }
+.mine-path-plan { stroke: var(--text-secondary); stroke-width: 1; stroke-dasharray: 3 4; opacity: .7; }
+.mine-path-house { fill: none; stroke: var(--text-muted); stroke-width: 1.4; opacity: .7; }
+.mine-path-me { fill: none; stroke: var(--gold); stroke-width: 2.2; stroke-linejoin: round; stroke-linecap: round; }
+.mine-path-dot { fill: var(--page-plane); stroke: var(--gold); stroke-width: 1.6; }
+.mine-path-dot.is-on { fill: var(--gold); }
+.mine-path-cursor { stroke: var(--gold-dim); stroke-width: 1; }
+.mine-path-label { font-size: 10px; fill: var(--text-muted); font-variant-numeric: tabular-nums; }
+.mine-path-label.is-on { fill: var(--gold); font-weight: 600; }
+.mine-path-value { font-size: 11px; fill: var(--gold); font-variant-numeric: tabular-nums; }
+.mine-path-cursor { stroke-dasharray: 2 3; }
+.mine-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (min-width: 640px) { .mine-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.mine-stats > div { padding: 1.1rem .5rem 1rem; text-align: center; border-bottom: 1px solid var(--border); }
+.mine-stats dd { font-family: var(--font-display, inherit); font-size: 2rem; line-height: 1.1; margin-top: .4rem; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.mine-stats p { font-size: .74rem; font-style: italic; color: var(--text-muted); margin-top: .2rem; }
+.mine-link { font-size: .74rem; letter-spacing: .12em; text-transform: uppercase; color: var(--gold); margin-top: .2rem; }
+.mine-awards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.6rem .8rem; padding-top: 1.4rem; }
+@media (min-width: 640px) { .mine-awards { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.mine-award-why { margin-top: .6rem; padding: .7rem .8rem; border-top: 1px solid var(--gold-dim); text-align: left; }

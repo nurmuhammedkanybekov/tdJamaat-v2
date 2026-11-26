@@ -14,7 +14,7 @@ import type { Theme } from '../theme';
 import { t } from '../i18n';
 import { AppFrame, Section, Waiting } from './AppFrame';
 import { useMemberData } from './memberData';
-import { MemberResults } from './MemberResults';
+import { MyResults } from './MyResults';
 import { Avatar } from '../components/Avatar';
 import { Beads } from '../components/ui';
 import { SumTerm, Trajectory } from '../components/HouseParts';
@@ -155,6 +155,7 @@ export const HousePage: React.FC<{ arg?: string | null; sub?: string | null; the
             </AppFrame>
         );
     }
+    if (link && arg === 'me') return <MyResults link={link} theme={theme} onToggleTheme={onToggleTheme} />;
     if (link && arg === 'chat') {
         return <HouseChat self={link} canModerate={ctx.role === 'admin' || (ctx.role === 'leader' && ctx.houseId === link.houseId)} theme={theme} onToggleTheme={onToggleTheme} />;
     }
@@ -228,7 +229,15 @@ export const HousePage: React.FC<{ arg?: string | null; sub?: string | null; the
                                 )}
                             </div>
                             {link.via === 'staff' && <button onClick={() => choose(null)} className="mt-3 text-[0.72rem] tracking-[0.16em] uppercase transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}>{t('Башка адамды тандоо')}</button>}
-                            <MemberResults link={link} />
+                            {/* My own results have their own page: the week, every metric, the season, my awards. */}
+                            <button onClick={() => go('#/house/me')} className="row-link w-full mt-5 flex items-center gap-4 py-4 text-left" style={{ borderTop: '1px solid var(--gold-dim)', borderBottom: '1px solid var(--border)' }}>
+                                <span className="flex-1 min-w-0">
+                                    <span className="eyebrow block" style={{ color: 'var(--gold)' }}>{t('Менин жыйынтыгым')}</span>
+                                    <span className="block text-[0.85rem] mt-1" style={{ color: 'var(--text-secondary)' }}>{t('Ар бир көрсөткүч, сезондогу жол жана сыйлыктарым')}</span>
+                                </span>
+                                {me && !me.excused && team?.submitted && <span className="font-display tabular text-[2rem] leading-none" style={{ color: 'var(--gold)' }}>{fmt(calculateMemberScore(me))}</span>}
+                                <ChevronRight className="w-5 h-5 flex-shrink-0" style={{ color: 'var(--gold)' }} />
+                            </button>
                         </section>
 
                         <ChatEntry self={link} />

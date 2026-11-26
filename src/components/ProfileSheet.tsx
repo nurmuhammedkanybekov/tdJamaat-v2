@@ -1,9 +1,10 @@
+import { PlanRows } from './PlanRows';
 import React, { useMemo, useState } from 'react';
 import { Area, AreaChart, CartesianGrid, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { Columns2, Share2, X } from 'lucide-react';
 import type { DataFile } from '../types';
 import type { Insights, MemberSeries } from '../utils/insights';
-import { METRICS, PLAN_SCORE, ROLE_LABEL, houseNameAt, movement, roleAt, seasonSummary, streakUntil, weekOf } from '../utils/insights';
+import { PLAN_SCORE, ROLE_LABEL, houseNameAt, movement, roleAt, seasonSummary, streakUntil, weekOf } from '../utils/insights';
 import type { Award } from '../utils/badges';
 import { TIER_LABEL, bestPerfectStreak, groupAwards } from '../utils/badges';
 import { useModal } from '../hooks/useModal';
@@ -11,9 +12,8 @@ import { Avatar } from './Avatar';
 import { BadgeMedal } from './BadgeMedal';
 import { Corners } from './Ornament';
 import { ChartTooltip, Movement } from './ui';
-import { axisTick, perfBarColor, perfColor } from '../utils/style';
+import { axisTick } from '../utils/style';
 import { t } from '../i18n';
-import { metricLabel, metricName } from '../utils/metrics';
 import { averageBreakdown, weekBreakdown } from '../utils/breakdown';
 import { PointsBreakdown } from './PointsBreakdown';
 import { JattooProfile } from './Jattoo';
@@ -160,26 +160,9 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({ series, data, insigh
 
                         {/* Targets */}
                         <section>
-                            <H3 aside={<span className="text-[0.78rem] italic" style={{ color: 'var(--text-muted)' }}>{current.perfect ? t('бардык план аткарылды') : t('факт / план')}</span>}>{t('{0}-апта: планга карата', current.weekNumber)}</H3>
+                            <H3 aside={<span className="text-[0.78rem] italic" style={{ color: 'var(--text-muted)' }}>{current.perfect ? t('бардык план аткарылды') : t('аткарылды / план')}</span>}>{t('{0}-апта: планга карата', current.weekNumber)}</H3>
                             {current.submitted ? (
-                                // Eight columns, one per practice, measured against the plan:
-                                // the hairline is 100%, the column can rise to 200%.
-                                <div className="plan-columns" role="img" aria-label={METRICS.map(m => `${metricName(m)} ${Math.round(current.pct[m])}%`).join(', ')}>
-                                    {METRICS.map(m => {
-                                        const pct = current.pct[m];
-                                        return (
-                                            <div key={m} className="plan-col" title={`${metricName(m)}: ${current.member.actual[m]} / ${current.member.target[m]}`}>
-                                                <span className="font-display tabular text-[1.05rem] sm:text-[1.2rem] leading-none" style={{ color: pct >= 100 ? 'var(--gold)' : perfColor(pct) }}>{Math.round(pct)}<span className="text-[0.7em]">%</span></span>
-                                                <span className="plan-bar">
-                                                    <span className="plan-fill" style={{ height: `${Math.max(2, Math.min(200, pct)) / 2}%`, backgroundColor: pct >= 100 ? 'var(--gold)' : perfBarColor(pct) }} />
-                                                    <span className="plan-line" />
-                                                </span>
-                                                <span className="plan-label">{metricLabel(m)}</span>
-                                                <span className="text-[0.7rem] tabular" style={{ color: 'var(--text-muted)' }}>{current.member.actual[m]} / {current.member.target[m]}</span>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
+                                <PlanRows w={current} points={false} />
                             ) : (
                                 <p className="italic" style={{ color: 'var(--text-muted)' }}>{current.excused ? t('Бул апта себептүү деп белгиленген (ооруп же сапарда): эсепке кирбейт, сериялары үзүлбөйт.') : t('Бул апта үчүн маалымат азырынча киргизиле элек.')}</p>
                             )}
