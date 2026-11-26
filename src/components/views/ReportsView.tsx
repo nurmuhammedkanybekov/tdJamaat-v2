@@ -52,6 +52,8 @@ const PeriodReport: React.FC<ReportsViewProps> = ({ data, selectedPeriod, setSel
     const teams = data.weeks[0]?.teams ?? [];
 
     const rows = reportRows(weeks, teams);
+    // With one week in the period, best / worst / change would only repeat the rating.
+    const many = weeks.length > 1;
 
     const rising = rows.filter(r => r.trend === 'up').sort((a, b) => (b.change ?? 0) - (a.change ?? 0))[0];
     const chartData = weeks.map(w => {
@@ -75,21 +77,25 @@ const PeriodReport: React.FC<ReportsViewProps> = ({ data, selectedPeriod, setSel
                 </button>
             </div>
 
-            {/* One engraved plate: the period's three facts. */}
-            <div className="plate desk-plate overflow-hidden">
-            <div className="grid grid-cols-1 sm:grid-cols-3 stagger">
-                {[
-                    { label: t('Эң мыкты үй'), value: rows[0]?.average !== null && rows[0] ? rows[0].name : '—', sub: rows[0]?.average != null ? t('Рейтинг: {0}', rows[0].average) : '' },
-                    { label: t('Эң тез өсүү'), value: rising?.name ?? '—', sub: rising ? `${rising.scores[0]} → ${rising.scores.at(-1)}` : t('Өсүү байкалган жок') },
-                    { label: t('Мезгил'), value: t('{0} апта', weeks.length), sub: t('{0} үй катышты', rows.length) }
-                ].map(s => (
-                    <div key={s.label} className="px-5 py-5 sm:p-7 min-w-0 text-center" style={{ boxShadow: '1px 0 0 var(--border), 0 1px 0 var(--border)' }}>
-                        <div className="eyebrow">{s.label}</div>
-                        <div className="font-display text-[1.9rem] leading-tight mt-2 truncate" style={{ color: s.label === t('Эң мыкты үй') ? 'var(--gold)' : 'var(--text-primary)' }}>{s.value}</div>
-                        <div className="text-[0.8rem] italic mt-1" style={{ color: 'var(--text-muted)' }}>{s.sub}</div>
+            {/* The period's leader set large; the climber and the span beside it. */}
+            <div className="period-facts">
+                <div className="period-lead">
+                    <div className="eyebrow" style={{ color: 'var(--gold)' }}>{t('Эң мыкты үй')}</div>
+                    <div className="font-display leading-[0.95] period-lead-name">{rows[0]?.average != null ? rows[0].name : '—'}</div>
+                    {rows[0]?.average != null && <div className="font-display tabular text-[1.6rem] mt-2" style={{ color: 'var(--gold)' }}>{rows[0].average}</div>}
+                </div>
+                <dl className="period-side">
+                    <div>
+                        <dt className="eyebrow">{t('Эң тез өсүү')}</dt>
+                        <dd className="font-display text-[1.5rem] leading-tight mt-1" style={{ color: 'var(--text-primary)' }}>{rising?.name ?? (weeks.length > 1 ? '—' : t('бир апта гана'))}</dd>
+                        <dd className="text-[0.8rem] italic tabular" style={{ color: 'var(--text-muted)' }}>{rising ? `${rising.scores[0]} → ${rising.scores.at(-1)}` : weeks.length > 1 ? t('Өсүү байкалган жок') : t('Өсүү экинчи аптадан көрүнөт')}</dd>
                     </div>
-                ))}
-            </div>
+                    <div>
+                        <dt className="eyebrow">{t('Мезгил')}</dt>
+                        <dd className="font-display text-[1.5rem] leading-tight mt-1" style={{ color: 'var(--text-primary)' }}>{t('{0} апта', weeks.length)}</dd>
+                        <dd className="text-[0.8rem] italic" style={{ color: 'var(--text-muted)' }}>{t('{0} үй катышты', rows.length)}</dd>
+                    </div>
+                </dl>
             </div>
 
             <section>
@@ -100,11 +106,11 @@ const PeriodReport: React.FC<ReportsViewProps> = ({ data, selectedPeriod, setSel
                             <tr>
                                 <th style={{ paddingLeft: '1.25rem' }}>#</th>
                                 <th>{t('Үй')}</th>
-                                {weeks.map(w => <th key={w.weekNumber} className="hidden md:table-cell" style={{ textAlign: 'center' }}>{t('{0}-апта', w.weekNumber)}</th>)}
-                                <th style={{ textAlign: 'right' }}>{t('Рейтинг')}</th>
-                                <th className="hidden sm:table-cell" style={{ textAlign: 'right' }}>{t('Эң жакшы')}</th>
-                                <th className="hidden sm:table-cell" style={{ textAlign: 'right' }}>{t('Эң начар')}</th>
-                                <th style={{ textAlign: 'right', paddingRight: '1.25rem' }} title={t('Мезгилдин акыркы эсептелген аптасы биринчисине салыштырмалуу')}>{t('Мезгил ичинде')}</th>
+                                {many && weeks.map(w => <th key={w.weekNumber} className="hidden md:table-cell" style={{ textAlign: 'center' }}>{t('{0}-апта', w.weekNumber)}</th>)}
+                                <th style={{ textAlign: 'right', paddingRight: many ? undefined : '1.25rem' }}>{t('Рейтинг')}</th>
+                                {many && <th className="hidden sm:table-cell" style={{ textAlign: 'right' }}>{t('Эң жакшы')}</th>}
+                                {many && <th className="hidden sm:table-cell" style={{ textAlign: 'right' }}>{t('Эң начар')}</th>}
+                                {many && <th style={{ textAlign: 'right', paddingRight: '1.25rem' }} title={t('Мезгилдин акыркы эсептелген аптасы биринчисине салыштырмалуу')}>{t('Мезгил ичинде')}</th>}
                             </tr>
                         </thead>
                         <tbody>
@@ -116,15 +122,15 @@ const PeriodReport: React.FC<ReportsViewProps> = ({ data, selectedPeriod, setSel
                                         <td className="font-bold" style={{ color: 'var(--text-primary)' }}>
                                             <span className="inline-flex items-center gap-2.5 font-display text-[1.15rem]" style={{ fontWeight: 400 }}><span className="w-4 h-[2px]" style={{ backgroundColor: TEAM_COLORS[r.colorIndex % TEAM_COLORS.length] }} />{r.name}</span>
                                         </td>
-                                        {weeks.map((w, k) => <td key={w.weekNumber} className="hidden md:table-cell tabular" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>{r.cells[k] !== null ? r.cells[k]!.toFixed(1) : '—'}</td>)}
-                                        <td className="font-display text-[1.2rem] tabular" style={{ textAlign: 'right', color: 'var(--text-primary)' }}>{r.average ?? '—'}</td>
-                                        <td className="hidden sm:table-cell tabular font-bold" style={{ textAlign: 'right', color: r.best !== null && r.best !== r.worst ? 'var(--success)' : 'var(--text-secondary)' }}>{r.best !== null ? r.best.toFixed(1) : '—'}</td>
-                                        <td className="hidden sm:table-cell tabular font-bold" style={{ textAlign: 'right', color: r.worst !== null && r.best !== r.worst ? 'var(--danger)' : 'var(--text-secondary)' }}>{r.worst !== null ? r.worst.toFixed(1) : '—'}</td>
-                                        <td style={{ textAlign: 'right', paddingRight: '1.25rem' }}>
+                                        {many && weeks.map((w, k) => <td key={w.weekNumber} className="hidden md:table-cell tabular" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>{r.cells[k] !== null ? r.cells[k]!.toFixed(1) : '—'}</td>)}
+                                        <td className="font-display text-[1.2rem] tabular" style={{ textAlign: 'right', color: i === 0 && r.average !== null ? 'var(--gold)' : 'var(--text-primary)', paddingRight: many ? undefined : '1.25rem' }}>{r.average ?? '—'}</td>
+                                        {many && <td className="hidden sm:table-cell tabular font-bold" style={{ textAlign: 'right', color: r.best !== null && r.best !== r.worst ? 'var(--success)' : 'var(--text-secondary)' }}>{r.best !== null ? r.best.toFixed(1) : '—'}</td>}
+                                        {many && <td className="hidden sm:table-cell tabular font-bold" style={{ textAlign: 'right', color: r.worst !== null && r.best !== r.worst ? 'var(--danger)' : 'var(--text-secondary)' }}>{r.worst !== null ? r.worst.toFixed(1) : '—'}</td>}
+                                        {many && <td style={{ textAlign: 'right', paddingRight: '1.25rem' }}>
                                             <span className="inline-flex items-center gap-1 font-bold text-[0.82rem] tabular whitespace-nowrap" style={{ color: r.change === null ? 'var(--text-muted)' : T.color }} title={T.label}>
                                                 {r.change === null ? '—' : <><T.icon className="w-4 h-4" />{r.change > 0 ? '+' : ''}{r.change.toFixed(1)}</>}
                                             </span>
-                                        </td>
+                                        </td>}
                                     </tr>
                                 );
                             })}

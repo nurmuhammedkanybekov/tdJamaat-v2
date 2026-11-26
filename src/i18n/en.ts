@@ -441,7 +441,6 @@ export const EN: Record<string, string> = {
     "{0}–{1}-апталар": "Weeks {0}–{1}",
     "Кийинки мезгил": "Next period",
     "Эң мыкты үй": "Best house",
-    "Рейтинг: {0}": "Rating: {0}",
     "Эң тез өсүү": "Fastest growth",
     "Өсүү байкалган жок": "No upward trend",
     "Мезгил": "Period",
@@ -1123,5 +1122,7 @@ export const EN: Record<string, string> = {
     "бир түрү": "one kind",
     "эки түрү": "two kinds",
     "зикир, тасбихат жана Куран": "zikr, tasbihat and Quran",
-    "Тартип · акыркы 4 апта": "Discipline · last 4 weeks"
+    "Тартип · акыркы 4 апта": "Discipline · last 4 weeks",
+    "бир апта гана": "one week only",
+    "Өсүү экинчи аптадан көрүнөт": "Growth shows from the second week"
 };

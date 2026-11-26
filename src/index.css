@@ -1064,3 +1064,10 @@ li[data-ayah].is-reciting { background-color: color-mix(in oklab, var(--gold) 8%
 .daycal-legend { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 0.4rem 1.2rem; font-size: 0.72rem; color: var(--text-muted); }
 .daycal-legend span { display: inline-flex; align-items: center; gap: 0.5rem; }
 .daycal-legend i { width: 0.6rem; height: 0.6rem; }
+
+/* ── Сезон: the period's facts ───────────────────────────────────────── */
+.period-facts { display: grid; grid-template-columns: 1fr; gap: 2rem; padding: 2rem 0 0.5rem; }
+@media (min-width: 768px) { .period-facts { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 4rem; align-items: end; } }
+.period-lead-name { font-size: 3rem; margin-top: 0.6rem; color: var(--text-primary); }
+@media (min-width: 640px) { .period-lead-name { font-size: 4.4rem; } }
+.period-side { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; border-top: 1px solid var(--gold-dim); padding-top: 1.1rem; }
