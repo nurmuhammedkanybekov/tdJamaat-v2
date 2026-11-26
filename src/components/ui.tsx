@@ -2,6 +2,7 @@
 import React from 'react';
 import { ArrowDown, ArrowUp, Minus, X } from 'lucide-react';
 import { useModal } from '../hooks/useModal';
+import { useBackCloses } from '../hooks/useBackCloses';
 import { perfBarColor } from '../utils/style';
 import { Crown, Mark } from './Ornament';
 import { t } from '../i18n';
@@ -112,6 +113,7 @@ export const Sheet: React.FC<{
     bare?: boolean;
 }> = ({ title, onClose, children, footer, width = '44rem', headerExtra, bare }) => {
     useModal(onClose);
+    useBackCloses(onClose);
     return (
         <div
             className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-6 animate-fade-in"
