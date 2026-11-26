@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import type { City } from '../utils/prayer';
+import { SunArc } from '../app/SunArc';
 import { CITIES, PRAYER_NAMES, PRAYER_ORDER, clock, nextPrayer, prayerNow, prayerTimes, untilText } from '../utils/prayer';
 import { formatHijri, isRamadan, toHijri } from '../utils/hijri';
 import { Sheet } from './ui';
@@ -21,7 +22,7 @@ export const PrayerSheet: React.FC<{ onClose: () => void; onCityChange?: (c: Cit
 
 /** Today's times, the next prayer, the week ahead and the city: the sheet on
  *  the results site and the #/namaz page of the app. */
-export const PrayerTimetable: React.FC<{ onCityChange?: (c: City) => void }> = ({ onCityChange }) => {
+export const PrayerTimetable: React.FC<{ onCityChange?: (c: City) => void; arc?: boolean }> = ({ onCityChange, arc }) => {
     const [city, setCity] = useState<City>(loadCity);
     const now = useNow();
     const times = useMemo(() => prayerTimes(city, now), [city, now]);
@@ -72,18 +73,20 @@ export const PrayerTimetable: React.FC<{ onCityChange?: (c: City) => void }> = (
                     </div>
                 </div>
 
+                {arc ? <SunArc times={times} now={now} tz={city.tz} current={active?.key ?? null} /> : (
                 <ol>
-                    {PRAYER_ORDER.map(k => {
-                        const isNext = active ? k === active.key && active.at.toDateString() === now.toDateString() : k === next.key && next.at.toDateString() === now.toDateString();
-                        return (
-                            <li key={k} className="flex items-baseline gap-3 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
-                                <span className="font-display text-[1.35rem]" style={{ color: isNext ? 'var(--gold)' : k === 'sunrise' ? 'var(--text-muted)' : 'var(--text-primary)' }}>{PRAYER_NAMES[k]}</span>
-                                <span className="leader" />
-                                <span className="font-display text-[1.45rem] tabular" style={{ color: isNext ? 'var(--gold)' : 'var(--text-primary)' }}>{clock(times[k], city.tz)}</span>
-                            </li>
-                        );
-                    })}
-                </ol>
+                        {PRAYER_ORDER.map(k => {
+                            const isNext = active ? k === active.key && active.at.toDateString() === now.toDateString() : k === next.key && next.at.toDateString() === now.toDateString();
+                            return (
+                                <li key={k} className="flex items-baseline gap-3 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
+                                    <span className="font-display text-[1.35rem]" style={{ color: isNext ? 'var(--gold)' : k === 'sunrise' ? 'var(--text-muted)' : 'var(--text-primary)' }}>{PRAYER_NAMES[k]}</span>
+                                    <span className="leader" />
+                                    <span className="font-display text-[1.45rem] tabular" style={{ color: isNext ? 'var(--gold)' : 'var(--text-primary)' }}>{clock(times[k], city.tz)}</span>
+                                </li>
+                            );
+                        })}
+                    </ol>
+                )}
 
                 <div className="overflow-x-auto -mx-1">
                     <table className="data-table w-full" style={{ minWidth: 330 }}>

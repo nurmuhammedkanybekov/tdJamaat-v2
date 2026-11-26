@@ -1348,3 +1348,76 @@ button.help-where:hover { border-bottom-color: var(--gold); }
 .plate { background: transparent; border: 0; padding: 2rem 0 1.2rem; }
 .plate.is-tight { padding: 1.4rem 0 .6rem; }
 .plate.desk-plate > .card-pad { padding: 1.9rem 0 1.4rem; }
+
+/* ---------------------------------------------------------------- page heads */
+.page-medallion { position: absolute; left: 50%; top: 55%; transform: translate(-50%, -50%); z-index: -1; color: var(--gold); opacity: .09; pointer-events: none; }
+.dark .page-medallion { opacity: .13; }
+@media (max-width: 639px) { .page-medallion > svg { width: 330px; height: 330px; } }
+
+/* ---------------------------------------------------------------- quran */
+.q-mark { position: relative; margin-top: 2rem; padding: 1.6rem 0 1.2rem 2.4rem; border-top: 1px solid var(--gold-dim); border-bottom: 1px solid var(--border); }
+.q-ribbon { position: absolute; left: .4rem; top: -1px; width: 16px; height: 4.6rem; background: var(--gold); clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%); }
+.q-mark-main { display: flex; flex-direction: column; align-items: flex-start; gap: .15rem; width: 100%; text-align: left; }
+.q-mark-ar { font-size: clamp(2.4rem, 9vw, 3.4rem); line-height: 1.5; color: var(--gold); align-self: flex-end; margin-top: -1.6rem; }
+.q-mark-name { font-size: clamp(1.9rem, 6vw, 2.5rem); line-height: 1.05; color: var(--text-primary); margin-top: -.6rem; }
+.q-mark-main:hover .q-mark-name { color: var(--gold); }
+.q-progress { margin-top: 1.2rem; }
+.q-progress-line { position: relative; display: block; height: 1px; background: var(--border-strong); }
+.q-progress-line i { position: absolute; left: 0; top: 0; height: 1px; background: var(--gold); }
+.q-progress-line b { position: absolute; top: 50%; width: 9px; height: 9px; transform: translate(-50%, -50%) rotate(45deg); background: var(--gold); }
+.q-progress-l { display: flex; justify-content: space-between; margin-top: .55rem; font-size: .72rem; color: var(--text-muted); }
+.q-mushaf { display: inline-flex; align-items: center; gap: .55rem; margin-top: 1.2rem; font-size: .7rem; letter-spacing: .2em; text-transform: uppercase; color: var(--text-secondary); }
+.q-mushaf .quran-text { font-size: 1.3rem; color: var(--gold); letter-spacing: 0; }
+.q-mushaf:hover { color: var(--gold); }
+
+/* ---------------------------------------------------------------- zikr */
+.z-after { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 1rem; margin-top: 2rem; padding: 1.6rem 0 1.4rem; border-top: 1px solid var(--gold-dim); border-bottom: 1px solid var(--border); position: relative; }
+.z-after::before { content: ""; position: absolute; left: 50%; top: -5px; width: 9px; height: 9px; transform: translateX(-50%) rotate(45deg); background: var(--page-plane); border: 1px solid var(--gold); }
+.z-after-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: 100%; }
+.z-after-col { display: flex; flex-direction: column; align-items: center; gap: .15rem; padding: 0 .3rem; }
+.z-after-col + .z-after-col { border-left: 1px solid var(--border); }
+.z-after-ar { font-size: clamp(1.2rem, 4.6vw, 1.7rem); line-height: 1.8; color: var(--text-primary); white-space: nowrap; }
+.z-after-n { font-size: clamp(2.2rem, 9vw, 3rem); line-height: 1; color: var(--gold); }
+.z-after-l { font-size: .72rem; color: var(--text-muted); text-align: center; line-height: 1.25; }
+.z-after-go { display: inline-flex; align-items: center; gap: .35rem; font-size: .7rem; letter-spacing: .22em; text-transform: uppercase; color: var(--gold); }
+.z-after:hover .z-after-go { text-decoration: underline; text-underline-offset: 4px; }
+
+.bead-list { position: relative; }
+.bead-list::before { content: ""; position: absolute; left: 13px; top: 1.6rem; bottom: 1.6rem; width: 1px; background: linear-gradient(var(--gold-dim), var(--gold), var(--gold-dim)); }
+.bead-row { width: 100%; display: flex; align-items: center; gap: 1.1rem; text-align: left; padding: 1.1rem 0; border-bottom: 1px solid var(--border); }
+.bead-list > li:last-child .bead-row { border-bottom: 0; }
+.bead { position: relative; z-index: 1; width: 27px; height: 27px; flex-shrink: 0; border-radius: 50%; background: conic-gradient(var(--gold) var(--p, 0deg), var(--border-strong) 0); display: inline-flex; align-items: center; justify-content: center; }
+.bead i { width: 21px; height: 21px; border-radius: 50%; background: var(--page-plane); transition: background .3s; }
+.bead.is-full i { background: radial-gradient(circle at 35% 30%, var(--gold-bright), var(--gold) 70%); }
+.bead-row:hover .font-display { text-decoration: underline; text-underline-offset: 4px; }
+
+/* ---------------------------------------------------------------- namaz: the sun's path */
+.sun-arc { display: block; width: 100%; max-width: 30rem; margin: 0 auto 1.5rem; overflow: visible; }
+.sun-arc-horizon { stroke: var(--border-strong); stroke-width: 1; }
+.sun-arc-path { fill: none; stroke: var(--gold-dim); stroke-width: 1; stroke-dasharray: 2 4; }
+.sun-arc-done { fill: none; stroke: var(--gold); stroke-width: 1.6; }
+.sun-arc-mark { fill: var(--page-plane); stroke: var(--gold); stroke-width: 1; }
+.sun-arc-mark.is-past { fill: var(--gold); }
+.sun-arc-mark.is-on { fill: var(--gold); filter: drop-shadow(0 0 6px var(--gold)); }
+.sun-arc-name { font-size: 10px; fill: var(--text-muted); letter-spacing: .04em; }
+.sun-arc-time { font-family: var(--font-display); font-size: 13px; fill: var(--text-primary); }
+.sun-arc-name.is-on, .sun-arc-time.is-on { fill: var(--gold); }
+.sun-arc-sun circle { fill: var(--gold); }
+.sun-arc-sun .halo { fill: color-mix(in oklab, var(--gold) 22%, transparent); }
+.sun-arc-moon circle { fill: var(--gold); }
+.sun-arc-moon .cut { fill: var(--page-plane); }
+
+/* ---------------------------------------------------------------- tasbihat */
+.t-now { position: relative; isolation: isolate; overflow: hidden; width: 100%; display: flex; flex-direction: column; align-items: center; text-align: center; margin-top: 2rem; padding: 3rem 0 2.6rem; border-top: 1px solid var(--gold); border-bottom: 1px solid var(--gold-dim); }
+.t-now-medallion { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: -1; color: var(--gold); opacity: .12; pointer-events: none; }
+.t-now:hover .font-display { color: var(--gold) !important; }
+
+/* ---------------------------------------------------------------- my results */
+.mine-face { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 230px; height: 190px; margin: -1rem 0 -1.2rem; }
+.mine-face-medallion { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); color: var(--gold); opacity: .18; pointer-events: none; }
+.mine-face > img, .mine-face > div { box-shadow: 0 0 0 1px var(--gold), 0 0 0 5px var(--page-plane), 0 0 0 6px var(--gold-dim); }
+.mine-share { display: flex; width: 100%; margin-top: 1.6rem; }
+.mine-share button:disabled { opacity: .4; }
+.mine-facts { border-top: 1px solid var(--gold-dim); }
+.mine-face > img, .mine-face > div { position: relative; z-index: 1; }
+.mine-face > div { background-color: var(--page-plane) !important; }

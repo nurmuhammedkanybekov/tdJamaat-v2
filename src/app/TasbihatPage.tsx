@@ -87,21 +87,20 @@ const List: React.FC<{ theme: Theme; onToggleTheme: () => void }> = ({ theme, on
         <AppFrame page="tasbihat" title={t('Тасбихат')} kicker={t('Намаздан кийин')} theme={theme} onToggleTheme={onToggleTheme}>
             <div className="max-w-[46rem] mx-auto">
                 {/* The prayer whose time it is: the one to open. */}
-                <button onClick={() => go(`#/tasbihat/${current}`)} className="row-link w-full text-center mt-8 py-7 relative" style={{ borderTop: '1px solid var(--gold)', borderBottom: '1px solid var(--gold-dim)' }}>
+                <button onClick={() => go(`#/tasbihat/${current}`)} className="t-now">
                     <span className="eyebrow block" style={{ color: 'var(--gold)' }}>{doneNow ? t('Азыр · окулду') : t('Азыр')}</span>
-                    <span className="block font-display text-[2.4rem] sm:text-[2.8rem] leading-tight mt-2" style={{ color: 'var(--text-primary)' }}>{PRAYER_NAMES[current]}</span>
-                    <span className="block text-[0.9rem] mt-1" style={{ color: 'var(--text-muted)' }}>{t('{0} намазынын тасбихатын ачуу', PRAYER_NAMES[current])}</span>
+                    <span className="block font-display text-[3rem] sm:text-[3.6rem] leading-none mt-3" style={{ color: 'var(--text-primary)' }}>{PRAYER_NAMES[current]}</span>
                     <span className="inline-flex items-center gap-2 mt-4 text-[0.72rem] tracking-[0.2em] uppercase" style={{ color: 'var(--gold)' }}>{t('Баштоо')}<ChevronRight className="w-3.5 h-3.5" /></span>
                 </button>
                 <Section eyebrow={t('Беш убак')}>
                     <ol>
-                        {TASBIHAT_ORDER.map((id, i) => {
+                        {TASBIHAT_ORDER.map(id => {
                             const done = tasbihatDone(practice, id, now);
                             return (
                                 <li key={id} style={{ borderBottom: '1px solid var(--border)' }}>
                                     <button onClick={() => go(`#/tasbihat/${id}`)} className="row-link w-full text-left py-4 px-1 flex items-center gap-4" aria-current={id === current ? 'true' : undefined}>
                                         <span className="w-7 h-7 rotate-45 inline-flex items-center justify-center flex-shrink-0 mx-1" style={{ border: '1px solid var(--gold)', backgroundColor: done ? 'var(--gold)' : 'transparent' }} aria-label={done ? t('бүгүн окулду') : undefined}>
-                                            {done ? <Check className="w-3.5 h-3.5 -rotate-45" style={{ color: 'var(--page-plane)' }} /> : <span className="-rotate-45 font-display text-[0.85rem]" style={{ color: 'var(--gold)' }}>{i + 1}</span>}
+                                            {done ? <Check className="w-3.5 h-3.5 -rotate-45" style={{ color: 'var(--page-plane)' }} /> : null}
                                         </span>
                                         <span className="flex-1 min-w-0 font-display text-[1.4rem] leading-tight" style={{ color: id === current ? 'var(--gold)' : 'var(--text-primary)' }}>{PRAYER_NAMES[id]}</span>
                                         <span className="font-display text-[1.2rem] tabular" style={{ color: 'var(--text-muted)' }}>{clock(times[id], city.tz)}</span>

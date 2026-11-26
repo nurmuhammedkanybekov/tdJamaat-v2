@@ -8,10 +8,11 @@ import { AppFrame } from './AppFrame';
 import { PrayerTimetable } from '../components/PrayerSheet';
 import { go } from './route';
 
-export const NamazPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = ({ theme, onToggleTheme }) => (
+export const NamazPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = ({ theme, onToggleTheme }) => {
+    return (
     <AppFrame page="today" title={t('Намаз убактылары')} kicker={t('Бүгүн жана жуманын калганы')} theme={theme} onToggleTheme={onToggleTheme}>
         <div className="max-w-[38rem] mx-auto pt-6">
-            <PrayerTimetable />
+            <PrayerTimetable arc />
             <button onClick={() => go('#/qibla')} className="row-link w-full mt-8 py-4 flex items-center gap-4 text-left" style={{ borderTop: '1px solid var(--gold-dim)', borderBottom: '1px solid var(--border)' }}>
                 <Compass className="w-6 h-6 flex-shrink-0" strokeWidth={1.3} style={{ color: 'var(--gold)' }} />
                 <span className="flex-1">
@@ -21,4 +22,5 @@ export const NamazPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
             </button>
         </div>
     </AppFrame>
-);
+    );
+};

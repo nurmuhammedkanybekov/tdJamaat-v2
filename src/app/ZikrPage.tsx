@@ -212,31 +212,40 @@ export const ZikrPage: React.FC<{ arg: string | null; theme: Theme; onToggleThem
         <AppFrame page="zikr" title={t('Зикир')} kicker={t('Аллахты эскерүү')} sub={streak(store) > 1 ? t('Катары менен {0} күн', streak(store)) : t('Бүгүн: {0}', todayTotal(store))} theme={theme} onToggleTheme={onToggleTheme}>
             <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-14 lg:items-start max-w-[64rem] mx-auto">
                 <div>
-                    <button onClick={() => go('#/zikr/namaz')} className="row-link w-full text-left mt-6 py-4 flex items-center gap-4" style={{ borderTop: '1px solid var(--gold)', borderBottom: '1px solid var(--border)' }}>
-                        <span className="flex-1 min-w-0">
-                            <span className="eyebrow block" style={{ color: 'var(--gold)' }}>{t('Ар бир намаздан кийин')}</span>
-                            <span className="block font-display text-[1.55rem] leading-tight mt-1" style={{ color: 'var(--text-primary)' }}>{t('Намаздан кийинки тасбих')}</span>
-                            <span className="block text-[0.85rem] tabular" style={{ color: 'var(--text-muted)' }}>{t('Субханаллах 33 · Алхамдулиллах 33 · Аллаху акбар 34')}</span>
+                    {/* After every prayer: the three phrases and their counts, side by side. */}
+                    <button onClick={() => go('#/zikr/namaz')} className="z-after">
+                        <span className="eyebrow" style={{ color: 'var(--gold)' }}>{t('Ар бир намаздан кийин')}</span>
+                        <span className="z-after-row">
+                            {AFTER_PRAYER.map(x => {
+                                const z = ZIKRS.find(k => k.id === x.id)!;
+                                return (
+                                    <span key={x.id} className="z-after-col">
+                                        <span dir="rtl" lang="ar" className="quran-text z-after-ar">{z.arabic}</span>
+                                        <span className="font-display tabular z-after-n">{x.count}</span>
+                                        <span className="z-after-l">{z.reading}</span>
+                                    </span>
+                                );
+                            })}
                         </span>
-                        <ChevronRight className="w-5 h-5" style={{ color: 'var(--gold)' }} />
+                        <span className="z-after-go">{t('Баштоо')}<ChevronRight className="w-3.5 h-3.5" /></span>
                     </button>
                     <Section eyebrow={t('Зикирлер')}>
-                        <ul>
+                        {/* The zikrs as beads on a thread: a bead fills as today's count nears its number. */}
+                        <ul className="bead-list">
                             {ZIKRS.map(z => {
                                 const today = todayOf(store, z.id), target = targetOf(store, z);
+                                const part = target > 0 ? Math.min(1, today / target) : today > 0 ? 1 : 0;
                                 return (
-                                    <li key={z.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                                        <button onClick={() => go(`#/zikr/${z.id}`)} className="row-link w-full text-left py-5 px-1 flex items-center gap-4">
+                                    <li key={z.id}>
+                                        <button onClick={() => go(`#/zikr/${z.id}`)} className="bead-row">
+                                            <span className={`bead ${part >= 1 ? 'is-full' : ''}`} style={{ ['--p' as string]: `${part * 360}deg` }} aria-hidden="true"><i /></span>
                                             <span className="flex-1 min-w-0">
-                                                <span dir="rtl" lang="ar" className="block quran-text text-[1.65rem] sm:text-[1.9rem] leading-[1.7] truncate" style={{ color: 'var(--text-primary)' }}>{z.arabic}</span>
-                                                <span className="block font-display text-[1.2rem] leading-tight mt-1" style={{ color: 'var(--gold)' }}>{z.reading}</span>
-                                                <span className="block text-[0.85rem] italic mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>{z.meaning}</span>
-                                            </span>
-                                            <span className="tasbihat-ring tabular flex-shrink-0" aria-label={t('Бүгүн: {0}', today)} style={{ ['--p' as string]: `${target > 0 ? Math.min(1, today / target) * 360 : today > 0 ? 360 : 0}deg`, fontSize: '1rem' }}>
-                                                <span className="tasbihat-ring-in" style={{ backgroundColor: 'var(--page-plane)' }}>
-                                                    <span className="font-display text-[1.1em] leading-none" style={{ color: today > 0 ? 'var(--gold)' : 'var(--text-muted)' }}>{today}</span>
-                                                    <span className="text-[0.6em] mt-0.5" style={{ color: 'var(--text-muted)' }}>{target > 0 ? `/${target}` : '∞'}</span>
+                                                <span dir="rtl" lang="ar" className="block quran-text text-[1.75rem] sm:text-[2rem] leading-[1.7] truncate" style={{ color: 'var(--text-primary)' }}>{z.arabic}</span>
+                                                <span className="flex items-baseline justify-between gap-3 mt-1">
+                                                    <span className="font-display text-[1.2rem] leading-tight" style={{ color: 'var(--gold)' }}>{z.reading}</span>
+                                                    <span className="tabular text-[0.85rem] flex-shrink-0" style={{ color: today > 0 ? 'var(--gold)' : 'var(--text-muted)' }} aria-label={t('Бүгүн: {0}', today)}>{today}<span style={{ color: 'var(--text-muted)' }}> / {target > 0 ? target : '∞'}</span></span>
                                                 </span>
+                                                <span className="block text-[0.85rem] italic mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>{z.meaning}</span>
                                             </span>
                                         </button>
                                     </li>

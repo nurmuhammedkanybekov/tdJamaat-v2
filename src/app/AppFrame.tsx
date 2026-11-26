@@ -4,7 +4,7 @@
 // thumb reach (phone). The last section is the results themselves.
 import React, { useContext, useState } from 'react';
 import { ArrowLeft, BookOpen, CircleDot, Moon, ScrollText, Sun, SunMedium, Trophy, UserRound, Home as HomeIcon } from 'lucide-react';
-import { Crown, Mark } from '../components/Ornament';
+import { Crown, Mark, Medallion } from '../components/Ornament';
 import { HornBand, SkyLayer, StarField } from '../components/motion';
 import { useNow } from '../hooks/useNow';
 import { loadCity } from '../utils/city';
@@ -65,7 +65,7 @@ export const AppFrame: React.FC<{
             <header className={`hero page-gutter ${hero ? 'app-hero' : ''}`} style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top))' }}>
                 {/* The same sky as the results: tinted by the hour, stars at night. */}
                 <SkyLayer phase={sky.phase} body={hero ? sky.body : undefined} progress={sky.progress} />
-                {hero && (sky.phase === 'night' || sky.phase === 'sunset' || sky.phase === 'dawn') && <StarField />}
+                {hero ? (sky.phase === 'night' || sky.phase === 'sunset' || sky.phase === 'dawn') && <StarField /> : <StarField count={60} />}
                 <div className="app-container">
                     <div className="flex items-center gap-2 h-16">
                         {back !== undefined && (
@@ -101,7 +101,9 @@ export const AppFrame: React.FC<{
                     </div>
                     {back === undefined && hero}
                     {back === undefined && !hero && (
-                        <div className="monument is-compact flex flex-col items-center text-center pt-1 sm:pt-4 pb-6 sm:pb-8">
+                        <div className="monument is-compact relative flex flex-col items-center text-center pt-1 sm:pt-4 pb-6 sm:pb-8">
+                            {/* The same шырдак medallion as the sign-in page, turning slowly behind the page's name. */}
+                            <span className="page-medallion" aria-hidden="true"><Medallion size={420} className="spin-slow" /></span>
                             <Crown className="draw-in h-auto w-[min(10rem,46%)] sm:w-[min(12rem,50%)]" style={{ color: 'var(--gold)' }} />
                             {kicker && <div className="eyebrow mt-3" style={{ color: 'var(--gold)' }}>{kicker}</div>}
                             <h1 className="font-display leading-none mt-3 text-[2.3rem] sm:text-[3rem]" style={{ color: 'var(--text-primary)' }}>{title}</h1>

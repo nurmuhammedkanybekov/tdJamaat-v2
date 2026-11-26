@@ -6,6 +6,7 @@
 import React, { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import { BookOpenCheck, ChevronDown, ChevronLeft, ChevronRight, Share2 } from 'lucide-react';
 import type { Theme } from '../theme';
+import { Medallion } from '../components/Ornament';
 import { t } from '../i18n';
 import type { Self } from './self';
 import { AppFrame, Section, Waiting } from './AppFrame';
@@ -63,10 +64,10 @@ export const MyResults: React.FC<{ link: Self; theme: Theme; onToggleTheme: () =
         <div className="max-w-[46rem] mx-auto">
             <Hero series={series} cur={cur} pos={pos} weeks={weeks} data={view.d} ins={view.ins} onPick={i => pick(weeks[i])} />
             {/* A picture of my week or my season, ready for WhatsApp / Telegram. */}
-            <div className="flex flex-wrap justify-center gap-3 mt-6">
-                <button className="btn btn-primary" disabled={!cur.submitted} onClick={() => setShare('week')}><Share2 className="w-4 h-4" />{t('Аптамды бөлүшүү')}</button>
-                <button className="btn btn-ghost" onClick={() => setShare('season')}><Share2 className="w-4 h-4" />{t('Сезонумду бөлүшүү')}</button>
-            </div>
+            <nav className="almanac mine-share" aria-label={t('Бөлүшүү')}>
+                <button disabled={!cur.submitted} onClick={() => setShare('week')}><Share2 className="w-[1.05rem] h-[1.05rem]" strokeWidth={1.4} /><span>{t('Аптамды бөлүшүү')}</span></button>
+                <button onClick={() => setShare('season')}><Share2 className="w-[1.05rem] h-[1.05rem]" strokeWidth={1.4} /><span>{t('Сезонумду бөлүшүү')}</span></button>
+            </nav>
             <AgainstPlan w={cur} />
             {weeks.length > 1 && <Path series={series} houseWeeks={view.ins.houses.get(link.houseId)?.weeks ?? []} cur={cur} onPick={pick} />}
             <SeasonNumbers series={series} ins={view.ins} total={view.d.weeks.length} name={view.seasonName} onPick={pick} />
@@ -99,7 +100,11 @@ const Hero: React.FC<{ series: MemberSeries; cur: MemberWeek; pos: number; weeks
     return (
         <section className="mine-hero">
             <div className="flex flex-col items-center text-center">
-                <Avatar name={series.name} role={roleAt(series, cur.weekIndex)} photoUrl={series.photoUrl} size="xl" />
+                {/* The face inside the шырдак medallion, as the mark sits on the sign-in page. */}
+                <span className="mine-face">
+                    <span className="mine-face-medallion" aria-hidden="true"><Medallion size={230} className="spin-slow" /></span>
+                    <Avatar name={series.name} role={roleAt(series, cur.weekIndex)} photoUrl={series.photoUrl} size="2xl" />
+                </span>
                 <h1 className="font-display text-[2.3rem] sm:text-[2.7rem] leading-tight mt-3" style={{ color: 'var(--text-primary)' }}>{series.name}</h1>
                 <div className="eyebrow mt-1">{ROLE_LABEL[roleAt(series, cur.weekIndex)]} · {cur.houseName}</div>
             </div>

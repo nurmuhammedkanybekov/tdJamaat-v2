@@ -11,7 +11,7 @@ import { go } from './route';
 import { METRICS } from '../utils/insights';
 import { metricName } from '../utils/metrics';
 
-type Who = 'member' | 'leader' | 'inspector' | 'admin';
+type Who = 'member' | 'leader' | 'inspector';
 type Step = { title: string; body: string; where?: string; to?: string };
 
 const steps = (who: Who): Step[] => {
@@ -28,12 +28,6 @@ const steps = (who: Who): Step[] => {
         { title: t('Баалоо'), body: t('Ар бир бөлүккө 0дөн 5ке чейин. Админ тазалыкты күйгүзгөн аптада үйгө 25 упайга чейин кошулат.'), where: t('Жыйынтыктар → Тазалык'), to: '#/overview' },
         { title: t('Капитандар менен сүйлөшүү'), body: t('«Капитандар» сөзүн капитандар, CL жана админ гана көрөт.'), where: t('Меню → Баарлашуу'), to: '#/chat' }
     ];
-    if (who === 'admin') return [
-        { title: t('Апта ачуу'), body: t('Админ панели → жаңы апта жана анын даталары. Андан кийин капитандар сандарды киргизе алат.'), where: t('Меню → Админ панели'), to: '#/overview' },
-        { title: t('Капитандарды кармап туруу'), body: t('Апта бетинде ким киргизгени, ким киргизе элеги көрүнөт. Баары киргизгенде аптаны кулпулайсыз.'), where: t('Жыйынтыктар → Апта'), to: '#/overview' },
-        { title: t('Адамдар жана пландар'), body: t('Жаңы адам же башка үйгө көчүү админ панелинде. Пландар ролго жараша: капитан, орун басар, мүчө.'), where: t('Меню → Админ панели') },
-        { title: t('Баарлашуу'), body: t('Жаңы сөз ачып, ким көрөрүн тандайсыз: бүт жамаат же капитандар гана. Админдин билдирүүлөрү өз белгиси менен чыгат.'), where: t('Баарлашуу → Сөз ачуу'), to: '#/chat' }
-    ];
     return [
         { title: t('Google менен кирүү'), body: t('Google аркылуу. Gmail дарегиңиз капитанда жазылган болушу керек.'), where: t('Кирүү → Мүчө'), to: '#/overview' },
         { title: t('Күн сайын'), body: t('«Менин күнүм»: кийинки намаз, бүгүнкү тасбихат, Куран.'), where: t('Менин күнүм'), to: '#/today' },
@@ -44,12 +38,12 @@ const steps = (who: Who): Step[] => {
 };
 
 const WHO: Array<{ key: Who; label: () => string }> = [
-    { key: 'member', label: () => t('Мүчө') }, { key: 'leader', label: () => t('Капитан') }, { key: 'inspector', label: () => 'CL' }, { key: 'admin', label: () => t('Админ') }
+    { key: 'member', label: () => t('Мүчө') }, { key: 'leader', label: () => t('Капитан') }, { key: 'inspector', label: () => 'CL' }
 ];
 
 export const HelpPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = ({ theme, onToggleTheme }) => {
     const { signedIn, role } = useContext(AppContext);
-    const mine: Who = signedIn && (role === 'leader' || role === 'inspector' || role === 'admin') ? role : 'member';
+    const mine: Who = signedIn && (role === 'leader' || role === 'inspector') ? role : role === 'admin' ? 'leader' : 'member';
     const [who, setWho] = useState<Who>(mine);
     const list = steps(who);
     return (

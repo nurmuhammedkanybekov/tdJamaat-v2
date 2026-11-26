@@ -60,25 +60,27 @@ const Contents: React.FC<{ theme: Theme; onToggleTheme: () => void }> = ({ theme
     return (
         <AppFrame page="quran" title={t('Куран')} kicker={t('Курани Карим')} sub={t('{0} сүрө · 30 жүз · {1} бет', total, 604)} theme={theme} onToggleTheme={onToggleTheme}>
             <div className="max-w-[46rem] mx-auto">
-                {last && (
-                    <button onClick={() => go(loadMode() === 'pages' && last.page ? `#/quran/p/${last.page}` : `#/quran/${last.surah}:${last.ayah}`)} className="row-link w-full text-left mt-6 py-4 flex items-center gap-4" style={{ borderTop: '1px solid var(--gold)', borderBottom: '1px solid var(--border)' }}>
-                        <span className="flex-1 min-w-0">
-                            <span className="eyebrow block" style={{ color: 'var(--gold)' }}>{t('Улантуу')}</span>
-                            <span className="block font-display text-[1.6rem] leading-tight mt-1" style={{ color: 'var(--text-primary)' }}>{last.name}</span>
-                            <span className="block text-[0.85rem]" style={{ color: 'var(--text-muted)' }}>{t('{0}-сүрө, {1}-аят', last.surah, last.ayah)}</span>
-                        </span>
-                        <ChevronRight className="w-5 h-5" style={{ color: 'var(--gold)' }} />
+                {/* Where I stopped: a bookmark ribbon, the surah's own name in Arabic,
+                    and how far through the 604 pages of the mushaf that is. */}
+                <section className="q-mark">
+                    <span className="q-ribbon" aria-hidden="true" />
+                    <button onClick={() => go(last ? (loadMode() === 'pages' && last.page ? `#/quran/p/${last.page}` : `#/quran/${last.surah}:${last.ayah}`) : '#/quran/1')} className="q-mark-main">
+                        <span className="eyebrow" style={{ color: 'var(--gold)' }}>{last ? t('Улантуу') : t('Баштоо')}</span>
+                        {index && <span dir="rtl" lang="ar" className="quran-text q-mark-ar">{index[(last?.surah ?? 1) - 1]?.ar}</span>}
+                        <span className="font-display q-mark-name">{last?.name ?? index?.[0]?.name ?? ''}</span>
+                        <span className="text-[0.85rem]" style={{ color: 'var(--text-muted)' }}>{last ? t('{0}-сүрө, {1}-аят', last.surah, last.ayah) : t('{0} сүрө · 30 жүз · {1} бет', total, 604)}</span>
                     </button>
-                )}
+                    {last?.page && (
+                        <div className="q-progress" aria-label={t('{0}-бет, 604 беттен', last.page)}>
+                            <span className="q-progress-line"><i style={{ width: `${(last.page / 604) * 100}%` }} /><b style={{ left: `${(last.page / 604) * 100}%` }} /></span>
+                            <span className="q-progress-l tabular"><span>1</span><span style={{ color: 'var(--gold)' }}>{t('{0}-бет', last.page)}</span><span>604</span></span>
+                        </div>
+                    )}
+                    <button onClick={() => go(`#/quran/p/${last?.page ?? 1}`)} className="q-mushaf">
+                        <span className="quran-text" aria-hidden="true">۞</span>{t('Мусхафты барак боюнча окуу')}<ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                </section>
 
-                <button onClick={() => go(`#/quran/p/${last?.page ?? 1}`)} className="row-link w-full text-left py-4 flex items-center gap-4" style={{ borderBottom: '1px solid var(--border)', borderTop: last ? undefined : '1px solid var(--gold)', marginTop: last ? undefined : '1.5rem' }}>
-                    <span className="w-9 flex-shrink-0 text-center quran-text text-[1.6rem] leading-none" style={{ color: 'var(--gold)' }} aria-hidden="true">۞</span>
-                    <span className="flex-1 min-w-0">
-                        <span className="block font-display text-[1.3rem] leading-tight" style={{ color: 'var(--text-primary)' }}>{t('Мусхафты барак боюнча окуу')}</span>
-                        <span className="block text-[0.82rem]" style={{ color: 'var(--text-muted)' }}>{t('604 барак, бир барактан экинчисине токтобой')}</span>
-                    </span>
-                    <ChevronRight className="w-4 h-4" style={{ color: 'var(--gold)' }} />
-                </button>
                 <label className="relative block mt-6">
                     <Search className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--text-muted)' }} />
                     <input value={q} onChange={e => setQ(e.target.value)} placeholder={t('Сүрөнүн аты, номери же 2:255')} aria-label={t('Издөө')} inputMode="search" className="w-full pl-7 pr-8 py-3 text-[1.05rem] bg-transparent outline-none" style={{ borderBottom: '1px solid var(--border-strong)', color: 'var(--text-primary)' }} />
@@ -91,9 +93,9 @@ const Contents: React.FC<{ theme: Theme; onToggleTheme: () => void }> = ({ theme
                 )}
 
                 {!q && (
-                    <div className="flex gap-1 mt-5" role="tablist">
+                    <div className="jattoo-kinds mt-6" role="tablist">
                         {([['surah', t('Сүрөлөр')], ['juz', t('Жүздөр')], ['saved', t('Сакталгандар')]] as const).map(([k, label]) => (
-                            <button key={k} role="tab" aria-selected={tab === k} className={`chip ${tab === k ? 'is-active' : ''}`} onClick={() => setTab(k)}>{label}{k === 'saved' && marks.length > 0 ? ` · ${marks.length}` : ''}</button>
+                            <button key={k} role="tab" aria-selected={tab === k} data-on={tab === k || undefined} onClick={() => setTab(k)}>{label}{k === 'saved' && marks.length > 0 ? ` · ${marks.length}` : ''}</button>
                         ))}
                     </div>
                 )}
