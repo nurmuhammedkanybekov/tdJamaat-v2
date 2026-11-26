@@ -104,8 +104,10 @@ In the Supabase dashboard, open **SQL Editor** and run, in order:
 21. `supabase/jamaat-chat-2026-11.sql` — two more conversations (menu →
     **Баарлашуу**, `#/chat`): **Жамааттын сөзү** for everyone (members signed
     in with Google, captains, CL, the admin) and **Капитандар** for the
-    captains, CL and the admin only. The database sets who wrote each message.
-    Needs 14 and 16. Safe to re-run.
+    captains, CL and the admin only. The admin opens more chats, renames or
+    closes them (Баарлашуу → "Жаңы сөз", the pencil on a chat). The database
+    sets who wrote each message. Needs 14 and 16. Safe to re-run (also over
+    the earlier version of this file).
 22. `supabase/cl-account-2026-11.sql` — the **CL** login (the Тазалык
     inspector). First create the user in Authentication → Users → Add user
     (`inspector@tdjamaat.internal`, the CL password, Auto Confirm), then run

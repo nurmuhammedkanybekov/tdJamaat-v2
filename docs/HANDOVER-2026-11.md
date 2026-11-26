@@ -1,4 +1,4 @@
-# tdJamaat — handover, 26 November 2026
+# tdJamaat — handover, November 2026
 
 Branch: `nurmss-v3`. Already on master (live): everything up to `65f74c0`.
 Waiting for approval to go to master: the commits listed under "Not live yet".
@@ -82,3 +82,24 @@ was changed by me.
 - Season → people's ranking over the whole season as a chart.
 - Push reminders at prayer times (needs a push service; today notifications
   work only while the app is open or in the background).
+
+## 6. Round of 27 November (on `nurmss-v3`, not live yet)
+
+| Commit | What |
+|---|---|
+| `2e79904` | **Chats the admin manages**: Баарлашуу → "Жаңы сөз" opens a chat for the whole jamaat or for captains/CL/admin; the pencil renames, re-describes or closes one (the first two can only be renamed). **Notifications** for the shared chats (who wrote, which chat), alongside the house chat and announcements. **A captain is their own person automatically**: the captain login is matched to the person marked captain on the roster — no "who are you?". |
+| `5efef60` | **Members**: Жаттоо on Менин жыйынтыгым (records, plans, badges — or a hint how to start); **share my week / my season** as an image; the round mark in the top bar opens **Менин аккаунтум** — my results, Жаттоо, my house, Баарлашуу, Жамаат, prayer times, Кыбла and **Аккаунттан чыгуу** in plain sight. **Prayer times** are a page of their own (`#/namaz`) with a clear button on Менин күнүм. |
+| `2c15965` | **Жамаат redesigned**: the season together (Quran pages as whole readings of the 604-page mushaf, the other practices as tiles), the week's pulse in one sentence, the houses' race with each house's share. **Members see it** at `#/jamaat` (Менин күнүм → "Жамааттын жыйынтыгы", or the account panel) — other houses without names. |
+| `03925c4` | **Admin desk** on the week page: a line of houses with gold diamonds once entered, the state in one sentence, labelled "Эскертүү" and "Админ панели" buttons (was a box of tiles with two unlabelled icons). |
+| `f94cc52` | No "copy to captain" button for people whose numbers already reach the form. |
+
+### Manual steps for this round (Supabase → SQL Editor, in this order)
+
+1. `supabase/admin-chat-2026-11.sql` — the admin writes as Админ (if not run yet).
+2. `supabase/jamaat-chat-2026-11.sql` — Жамааттын сөзү, Капитандар, the admin's own chats. Run it again even if you ran the earlier version.
+3. `supabase/cl-account-2026-11.sql` — after creating the CL user (Authentication → Users → Add user, `inspector@tdjamaat.internal`, Auto Confirm).
+4. `supabase/jamaat-view-2026-11.sql` — members see the jamaat's results.
+
+Every file is safe to run more than once and was tested on a local Postgres
+(roles: admin, captain, CL, linked member, unlinked Google account, anonymous).
+Nothing was run against the production database.
