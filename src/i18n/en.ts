@@ -1230,6 +1230,5 @@ export const EN: Record<string, string> = {
     "Сандар капитандын формасына өзү жетет.": "Your numbers reach the captain's form by themselves.",
     "Сүрөт": "Photo",
     "CL ар бир үйдүн тазалыгын баалайт. Баалоо жана жамааттын сөзү — төмөндө.": "CL rates every house's cleanliness. Rating and the jamaat chat are below.",
-    "Жаттоо, сыйлыктар, бөлүшүү": "Memorization, awards, sharing",
-    "чыгыш": "rise"
+    "Жаттоо, сыйлыктар, бөлүшүү": "Memorization, awards, sharing"
 };

@@ -163,7 +163,7 @@ const DayPath: React.FC<{ times: Record<PrayerKey, Date>; now: Date; tz: string;
                 {PRAYER_ORDER.map(k => (
                     <li key={k} className="min-w-0">
                         {/* A narrow phone gets the two long names on two lines rather than cut. */}
-                        <div className="day-path-name text-[0.72rem] sm:text-[0.8rem]" style={{ color: k === next ? 'var(--gold)' : 'var(--text-muted)' }}>{k === 'sunrise' ? <>{t('Күн')}<span className="day-path-br"> </span>{t('чыгыш')}</> : PRAYER_NAMES[k]}</div>
+                        <div className="day-path-name text-[0.72rem] sm:text-[0.8rem]" style={{ color: k === next ? 'var(--gold)' : 'var(--text-muted)' }}>{PRAYER_NAMES[k].includes(' ') ? <>{PRAYER_NAMES[k].split(' ')[0]}<span className="day-path-br"> </span>{PRAYER_NAMES[k].split(' ').slice(1).join(' ')}</> : PRAYER_NAMES[k]}</div>
                         <div className="font-display tabular text-[1.05rem] sm:text-[1.25rem] mt-0.5" style={{ color: k === next ? 'var(--gold)' : k === 'sunrise' ? 'var(--text-muted)' : 'var(--text-primary)' }}>{clock(times[k], tz)}</div>
                     </li>
                 ))}
