@@ -4,7 +4,7 @@
 // a captain or the admin, how the houses stand.
 import React, { Suspense, lazy, useContext, useEffect, useMemo, useState } from 'react';
 import { Check, ChevronRight, Clock3, Compass, MapPin } from 'lucide-react';
-import { Crown, Mark, Medallion } from '../components/Ornament';
+import { Crown, Horn, Mark, Medallion, OrnamentDivider } from '../components/Ornament';
 import type { Theme } from '../theme';
 import { useNow } from '../hooks/useNow';
 import { loadCity } from '../utils/city';
@@ -210,7 +210,7 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
     const hero = (
         <div className="monument relative flex flex-col items-center text-center pt-4 sm:pt-8 pb-8 sm:pb-12">
             <Crown className="draw-in h-auto w-[min(12rem,52%)]" style={{ color: 'var(--gold)' }} />
-            <div className="eyebrow mt-4" style={{ color: 'var(--gold)' }}>{linked ? t('Ассалому алейкум, {0}', linked.name) : `${weekday(now)} · ${dayMonth(now)}`}</div>
+            <div className="eyebrow mt-4 inline-flex items-center gap-2.5" style={{ color: 'var(--gold)' }}><span className="greet-horn" aria-hidden="true"><Horn size={18} strokeWidth={4} /></span>{linked ? t('Ассалому алейкум, {0}', linked.name) : `${weekday(now)} · ${dayMonth(now)}`}<span className="greet-horn" aria-hidden="true"><Horn size={18} strokeWidth={4} /></span></div>
             <div className="text-[0.85rem] italic mt-1.5" style={{ color: 'var(--text-muted)' }}>
                 {linked && `${weekday(now)}, ${dayMonth(now)} · `}{hijri ? formatHijri(hijri) : ''}{ramadan && <span style={{ color: 'var(--gold)' }}> · {t('Рамазан мубарак')}</span>}
             </div>
@@ -223,6 +223,8 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
                     <circle cx="100" cy="100" r="94" className="dial-track" />
                     {Array.from({ length: 60 }, (_, i) => <line key={i} x1="100" x2="100" y1={i % 5 === 0 ? 1 : 3} y2="6" transform={`rotate(${i * 6} 100 100)`} className="dial-tick" />)}
                     <circle cx="100" cy="100" r="94" className="dial-arc" pathLength={100} strokeDasharray={`${elapsed * 100} 100`} transform="rotate(-90 100 100)" />
+                    {[90, 180, 270].map(a => <rect key={a} x="96.6" y="-3.4" width="6.8" height="6.8" transform={`rotate(${a} 100 100) rotate(45 100 0)`} className="dial-quarter" />)}
+                    {[45, 135, 225, 315].map(a => <circle key={a} cx="100" cy="-1" r="1.2" transform={`rotate(${a} 100 100)`} className="dial-dot" />)}
                     <g transform={`rotate(${elapsed * 360} 100 100)`}><rect x="95.5" y="1.5" width="9" height="9" transform="rotate(45 100 6)" className="dial-gem" /></g>
                 </svg>
                 <div className="dial-in">
@@ -296,6 +298,7 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
                     </Section>
                 )}
 
+                <OrnamentDivider className="mt-12 mb-2" />
                 <Section eyebrow={t('Күндүн аяты')}>
                     <DailyAyah now={now} />
                 </Section>
@@ -325,6 +328,7 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
                 )}
 
                 {/* The page closes with the places one goes from here, in one line. */}
+                {(linked || signedIn) && <OrnamentDivider className="mt-12" />}
                 {(linked || signedIn) && (
                     <nav className="almanac day-end" aria-label={t('Бөлүмдөр')}>
                         {linked && <button onClick={() => go('#/house/me')}><span>{t('Менин жыйынтыгым')}</span></button>}

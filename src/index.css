@@ -1495,3 +1495,8 @@ button.help-where:hover { border-bottom-color: var(--gold); }
 .dial-arc { fill: none; stroke: var(--gold); stroke-width: 1.6; stroke-linecap: round; transition: stroke-dasharray 1s ease; }
 .dial-gem { fill: var(--gold); filter: drop-shadow(0 0 4px var(--gold)); }
 .dial-in { position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 0 1.2rem; }
+.greet-horn { display: inline-flex; color: var(--gold); opacity: .8; }
+.greet-horn:last-child svg { transform: scaleX(-1); }
+.dial-quarter { fill: var(--page-plane); stroke: var(--gold); stroke-width: .7; }
+.dial-dot { fill: var(--gold-dim); }
+.day-end { margin-top: 1rem; }
