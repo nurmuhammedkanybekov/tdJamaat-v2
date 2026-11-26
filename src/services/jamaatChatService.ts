@@ -1,11 +1,40 @@
-// The jamaat's two shared conversations (supabase/jamaat-chat-2026-11.sql):
+// The jamaat's shared conversations (supabase/jamaat-chat-2026-11.sql):
 // 'all' — everyone (members, captains, CL, the admin); 'staff' — captains, CL
-// and the admin. The database fills in who wrote a message; the names travel
+// and the admin; and any the admin opens, for one of those two audiences. The database fills in who wrote a message; the names travel
 // with it, since a member can read only their own house's people.
 import { supabase } from '../lib/supabase';
 import { isMissingSchema } from './dataService';
 
-export type Room = 'all' | 'staff';
+/** A conversation's id: 'all', 'staff', or one the admin opened. */
+export type Room = string;
+export type Audience = 'all' | 'staff';
+export interface ChatRoom { id: string; name: string; about: string | null; audience: Audience; sort: number }
+
+/** The first two, as they are before the admin changes anything. */
+export const DEFAULT_ROOMS: ChatRoom[] = [
+    { id: 'all', name: 'Жамааттын сөзү', about: 'Бүт жамаат: мүчөлөр, капитандар, CL жана админ.', audience: 'all', sort: 0 },
+    { id: 'staff', name: 'Капитандар', about: 'Капитандар, CL жана админ гана көрөт.', audience: 'staff', sort: 1 }
+];
+
+/** The conversations this account may see (the database decides), in order.
+ *  Without chat_rooms (an older database) the first two, by role. */
+export const fetchRooms = async (staff: boolean): Promise<ChatRoom[]> => {
+    const { data, error } = await supabase.from('chat_rooms').select('id, name, about, audience, sort').order('sort').order('created_at');
+    if (error) return DEFAULT_ROOMS.filter(r => staff || r.audience === 'all');
+    return (data ?? []) as ChatRoom[];
+};
+export const createRoom = async (room: { name: string; about: string | null; audience: Audience }) => {
+    const { error } = await supabase.from('chat_rooms').insert({ ...room, sort: 100 });
+    if (error) throw error;
+};
+export const updateRoom = async (id: string, patch: { name: string; about: string | null; audience: Audience }) => {
+    const { error } = await supabase.from('chat_rooms').update(patch).eq('id', id);
+    if (error) throw error;
+};
+export const deleteRoom = async (id: string) => {
+    const { error } = await supabase.from('chat_rooms').delete().eq('id', id);
+    if (error) throw error;
+};
 
 export interface RoomMessage {
     id: number;

@@ -8,6 +8,7 @@ import type { AppCtx } from './context';
 import { AppContext } from './context';
 import { useMember, usePracticeSync } from './useMember';
 import { readStaff, saveStaffSelf, useSelf } from './self';
+import { useMemberData } from './memberData';
 
 const TodayPage = lazy(withReload(() => import('./TodayPage').then(m => ({ default: m.TodayPage }))));
 const QuranPage = lazy(withReload(() => import('./QuranPage').then(m => ({ default: m.QuranPage }))));
@@ -39,6 +40,22 @@ const AdminIsAdmin: React.FC = () => {
     return null;
 };
 
+/** A captain is the captain of their house: their person is chosen for them
+ *  (the house's captain on the roster), so the app never asks "who are you?".
+ *  A person chosen by hand in the same house is kept. */
+const CaptainIsSelf: React.FC<{ houseId: string }> = ({ houseId }) => {
+    const { data } = useMemberData();
+    useEffect(() => {
+        if (!data) return;
+        const current = readStaff();
+        if (current && current.houseId === houseId) return;
+        const team = data.weeks[data.weeks.length - 1]?.teams.find(tm => tm.id === houseId);
+        const captain = team?.members.find(m => m.role === 'imam');
+        if (team && captain) saveStaffSelf({ memberId: captain.id, name: captain.name, houseId: team.id, houseName: team.name });
+    }, [data, houseId]);
+    return null;
+};
+
 const TITLES: Record<AppRoute['page'], () => string> = {
     today: () => t('Менин күнүм'), house: () => t('Үйүм'), news: () => t('Жамааттан кабар'), quran: () => t('Куран'), tasbihat: () => t('Тасбихат'), zikr: () => t('Зикир'), kiruu: () => t('Кирүүнү текшерүү'), qibla: () => t('Кыбла'), chat: () => t('Баарлашуу')
 };
@@ -51,6 +68,7 @@ export const AppPages: React.FC<{ route: AppRoute; theme: Theme; onToggleTheme: 
         <AppContext.Provider value={{ ...ctx, member }}>
             <StaffSync />
             {ctx.signedIn && ctx.role === 'admin' && <AdminIsAdmin />}
+            {ctx.signedIn && ctx.role === 'leader' && ctx.houseId && <CaptainIsSelf houseId={ctx.houseId} />}
             <Suspense fallback={<Waiting />}>
                 {route.page === 'quran' ? <QuranPage arg={route.arg} sub={route.sub} {...props} />
                     : route.page === 'tasbihat' ? <TasbihatPage arg={route.arg} {...props} />

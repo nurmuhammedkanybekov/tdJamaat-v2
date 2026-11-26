@@ -10,6 +10,9 @@
 --    captain, CL (the Тазалык inspector) and the admin read and write in it.
 -- 2. КАПИТАНДАР ('staff'): the captains, CL and the admin only. Members do
 --    not see it.
+-- 3. The admin opens more conversations, renames them or closes them
+--    (chat_rooms). Each one is for everyone or for the captains, CL and the
+--    admin only. The first two cannot be removed, only renamed.
 --
 -- Who wrote a message is set by the database, not by the phone: the role,
 -- the person (a member: themselves; a captain: the person of their own house
@@ -19,9 +22,23 @@
 -- "Аамин" belongs to an account, so the admin, captains and CL can say it too.
 -- ============================================================================
 
+-- The conversations. Who may be in one: 'all' (everyone) or 'staff'.
+create table if not exists chat_rooms (
+  id text primary key default ('r' || substr(md5(random()::text || clock_timestamp()::text), 1, 10)),
+  name text not null check (length(btrim(name)) between 1 and 60),
+  about text check (about is null or length(about) <= 200),
+  audience text not null default 'all' check (audience in ('all', 'staff')),
+  sort int not null default 100,
+  created_at timestamptz not null default now()
+);
+insert into chat_rooms (id, name, about, audience, sort) values
+  ('all', 'Жамааттын сөзү', 'Бүт жамаат: мүчөлөр, капитандар, CL жана админ.', 'all', 0),
+  ('staff', 'Капитандар', 'Капитандар, CL жана админ гана көрөт.', 'staff', 1)
+on conflict (id) do nothing;
+
 create table if not exists jamaat_messages (
   id bigserial primary key,
-  room text not null check (room in ('all', 'staff')),
+  room text not null,
   user_id uuid not null default auth.uid(),
   author_role text not null default 'member',
   member_id uuid references members(id) on delete set null,
@@ -32,6 +49,14 @@ create table if not exists jamaat_messages (
   created_at timestamptz not null default now()
 );
 create index if not exists idx_jamaat_messages_room on jamaat_messages (room, created_at desc);
+-- (An earlier version of this file allowed only 'all' and 'staff'.)
+alter table jamaat_messages drop constraint if exists jamaat_messages_room_check;
+do $$
+begin
+  if not exists (select 1 from pg_constraint where conname = 'jamaat_messages_room_fkey') then
+    alter table jamaat_messages add constraint jamaat_messages_room_fkey foreign key (room) references chat_rooms(id) on delete cascade;
+  end if;
+end $$;
 
 create table if not exists jamaat_message_amins (
   message_id bigint not null references jamaat_messages(id) on delete cascade,
@@ -49,11 +74,13 @@ $$;
 -- Who may read (and so write in) a conversation.
 create or replace function can_read_room(r text) returns boolean
 language sql stable security definer set search_path = public as $$
-  select case r
-    when 'all'   then is_admin() or jwt_role() in ('leader', 'inspector') or member_house_id() is not null
-    when 'staff' then is_admin() or jwt_role() in ('leader', 'inspector')
-    else false
-  end;
+  select coalesce((
+    select case c.audience
+      when 'all'   then is_admin() or jwt_role() in ('leader', 'inspector') or member_house_id() is not null
+      when 'staff' then is_admin() or jwt_role() in ('leader', 'inspector')
+      else false
+    end
+    from chat_rooms c where c.id = r), false);
 $$;
 
 create or replace function prepare_jamaat_message() returns trigger
@@ -86,6 +113,16 @@ drop trigger if exists prepare_jamaat_message on jamaat_messages;
 create trigger prepare_jamaat_message before insert on jamaat_messages
   for each row execute function prepare_jamaat_message();
 
+alter table chat_rooms enable row level security;
+drop policy if exists "read chat_rooms" on chat_rooms;
+create policy "read chat_rooms" on chat_rooms for select to authenticated using (is_admin() or can_read_room(id));
+drop policy if exists "admin adds chat_rooms" on chat_rooms;
+create policy "admin adds chat_rooms" on chat_rooms for insert to authenticated with check (is_admin());
+drop policy if exists "admin changes chat_rooms" on chat_rooms;
+create policy "admin changes chat_rooms" on chat_rooms for update to authenticated using (is_admin()) with check (is_admin());
+drop policy if exists "admin removes chat_rooms" on chat_rooms;
+create policy "admin removes chat_rooms" on chat_rooms for delete to authenticated using (is_admin() and id not in ('all', 'staff'));
+
 alter table jamaat_messages enable row level security;
 alter table jamaat_message_amins enable row level security;
 
@@ -109,7 +146,8 @@ drop policy if exists "take back amin jamaat" on jamaat_message_amins;
 create policy "take back amin jamaat" on jamaat_message_amins for delete to authenticated
   using (user_id = auth.uid());
 
-revoke all on jamaat_messages, jamaat_message_amins from anon;
+revoke all on chat_rooms, jamaat_messages, jamaat_message_amins from anon;
+grant select, insert, update, delete on chat_rooms to authenticated;
 grant select, insert, delete on jamaat_messages, jamaat_message_amins to authenticated;
 grant usage, select on sequence jamaat_messages_id_seq to authenticated;
 
@@ -119,6 +157,9 @@ begin
   if exists (select 1 from pg_publication where pubname = 'supabase_realtime') then
     if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and tablename = 'jamaat_messages') then
       execute 'alter publication supabase_realtime add table jamaat_messages';
+    end if;
+    if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and tablename = 'chat_rooms') then
+      execute 'alter publication supabase_realtime add table chat_rooms';
     end if;
     if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and tablename = 'jamaat_message_amins') then
       execute 'alter publication supabase_realtime add table jamaat_message_amins';
@@ -130,7 +171,7 @@ notify pgrst, 'reload schema';
 
 -- Check: the rules, and whether Realtime carries the conversations.
 select tablename, policyname, cmd from pg_policies
-where tablename in ('jamaat_messages', 'jamaat_message_amins')
+where tablename in ('chat_rooms', 'jamaat_messages', 'jamaat_message_amins')
 union all
-select 'realtime', tablename, 'on' from pg_publication_tables where pubname = 'supabase_realtime' and tablename in ('jamaat_messages', 'jamaat_message_amins')
+select 'realtime', tablename, 'on' from pg_publication_tables where pubname = 'supabase_realtime' and tablename in ('chat_rooms', 'jamaat_messages', 'jamaat_message_amins')
 order by 1, 2;

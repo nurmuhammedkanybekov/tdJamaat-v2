@@ -1,5 +1,6 @@
 // Notifications while the app is open or in the background: a new message
-// in my house's conversation, a new announcement. They come from the same
+// in my house's conversation or in a shared one (Жамааттын сөзү,
+// Капитандар, the admin's own), a new announcement. They come from the same
 // live connection (Supabase Realtime) the pages use. When the app is fully
 // closed nothing arrives — that would need a push server (not set up).
 import { useEffect, useState } from 'react';
@@ -73,6 +74,22 @@ export const useNotifier = () => {
                 show(t('Үйдүн сөзү · {0}', self.houseName), `${row.author_role === 'admin' ? `${t('Админ')}: ` : ''}${row.body ?? ''}`.slice(0, 160), '/#/house/chat', 'house-chat');
             });
         }
+        // The shared conversations (Жамааттын сөзү, Капитандар, the admin's own):
+        // the database sends only those this account may read.
+        let me: string | null = null;
+        const names = new Map<string, string>();
+        supabase.auth.getSession().then(({ data }) => { me = data.session?.user.id ?? null; }).catch(() => undefined);
+        Promise.resolve(supabase.from('chat_rooms').select('id, name')).then(({ data }) => { (data ?? []).forEach((r: { id: string; name: string }) => names.set(r.id, r.name)); }).catch(() => undefined);
+        channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'jamaat_messages' }, payload => {
+            const row = payload.new as { room?: string; user_id?: string; body?: string; author_role?: string; author_name?: string | null; house_name?: string | null };
+            if (!row?.room || !me || row.user_id === me) return;
+            const reading = window.location.hash === `#/chat/${row.room}` && document.visibilityState === 'visible';
+            if (reading) return;
+            const who = row.author_role === 'admin' ? t('Админ') : row.author_role === 'inspector' ? 'CL' : row.author_name || row.house_name || '';
+            const room = names.get(row.room) ?? (row.room === 'staff' ? t('Капитандар') : t('Жамааттын сөзү'));
+            setBadge(badge + 1);
+            show(room, `${who ? `${who}: ` : ''}${row.body ?? ''}`.slice(0, 160), `/#/chat/${row.room}`, `room-${row.room}`);
+        });
         channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'announcements' }, payload => {
             const row = payload.new as { title?: string | null; body?: string };
             if (!row) return;

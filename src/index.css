@@ -1130,3 +1130,8 @@ li[data-ayah].is-reciting { background-color: color-mix(in oklab, var(--gold) 8%
 .mine-awards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.6rem .8rem; padding-top: 1.4rem; }
 @media (min-width: 640px) { .mine-awards { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .mine-award-why { margin-top: .6rem; padding: .7rem .8rem; border-top: 1px solid var(--gold-dim); text-align: left; }
+
+/* The admin's form for a conversation (#/chat). */
+.room-editor { margin: .4rem 0 1rem; padding: 1rem 1.1rem 1.1rem; border: 1px solid var(--gold-dim); border-left: 3px solid var(--gold); background: color-mix(in oklab, var(--gold) 5%, var(--surface)); }
+.room-editor-input { display: block; width: 100%; margin-top: .6rem; padding: .45rem 0; background: transparent; outline: none; color: var(--text-primary); border-bottom: 1px solid var(--border-strong); }
+.room-editor-input:focus { border-bottom-color: var(--gold); }
