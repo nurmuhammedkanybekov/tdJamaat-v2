@@ -1071,3 +1071,18 @@ li[data-ayah].is-reciting { background-color: color-mix(in oklab, var(--gold) 8%
 .period-lead-name { font-size: 3rem; margin-top: 0.6rem; color: var(--text-primary); }
 @media (min-width: 640px) { .period-lead-name { font-size: 4.4rem; } }
 .period-side { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; border-top: 1px solid var(--gold-dim); padding-top: 1.1rem; }
+
+/* ── Куран: Өтүү (go to) ─────────────────────────────────────────────── */
+.goto-page { width: 5.2ch; font-size: 3rem; line-height: 1; background: transparent; color: var(--gold); border: 0; border-bottom: 1.5px solid var(--border-strong); outline: none; -moz-appearance: textfield; }
+.goto-page::-webkit-outer-spin-button, .goto-page::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.goto-page:focus { border-bottom-color: var(--gold); }
+.goto-slider { width: 100%; height: 2.25rem; -webkit-appearance: none; appearance: none; background: transparent; cursor: pointer; touch-action: pan-y; }
+.goto-slider::-webkit-slider-runnable-track { height: 2px; background: linear-gradient(90deg, var(--gold) var(--v), var(--border-strong) var(--v)); }
+.goto-slider::-moz-range-track { height: 2px; background: linear-gradient(90deg, var(--gold) var(--v), var(--border-strong) var(--v)); }
+.goto-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 1.15rem; height: 1.15rem; margin-top: -0.53rem; transform: rotate(45deg); background: var(--gold); border: 3px solid var(--page-plane); box-shadow: 0 0 0 1px var(--gold); }
+.goto-slider::-moz-range-thumb { width: 0.9rem; height: 0.9rem; transform: rotate(45deg); border-radius: 0; background: var(--gold); border: 3px solid var(--page-plane); box-shadow: 0 0 0 1px var(--gold); }
+.goto-juz { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 0.45rem; }
+@media (min-width: 480px) { .goto-juz { grid-template-columns: repeat(10, minmax(0, 1fr)); } }
+.goto-juz-cell { height: 2.6rem; font-size: 1.1rem; color: var(--text-primary); border: 1px solid var(--border); transition: color .2s, border-color .2s, background-color .2s; }
+.goto-juz-cell:hover:not(:disabled) { color: var(--gold); border-color: var(--gold); background: var(--gold-soft); }
+.goto-juz-cell:disabled { opacity: .4; }

@@ -4,7 +4,7 @@
 // The Arabic is the King Fahd Complex's text in its own typeface; the meaning
 // is a published translation (quranData.ts). Nothing is typed in by hand.
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Bookmark, BookmarkCheck, Check, ChevronLeft, ChevronRight, Copy, Loader2, Minus, Pause, Play, Plus, Search, X } from 'lucide-react';
+import { Bookmark, BookmarkCheck, Check, ChevronLeft, ChevronDown, ChevronRight, Copy, Hash, Loader2, Minus, Pause, Play, Plus, Search, X } from 'lucide-react';
 import { RECITERS, loadReciter, recite, saveReciter, stopRecitation, useRecitation } from './recitation';
 import type { Theme } from '../theme';
 import { t } from '../i18n';
@@ -12,6 +12,7 @@ import { AppFrame, Problem, Waiting } from './AppFrame';
 import { go } from './route';
 import { useWakeLock } from './useWakeLock';
 import type { Ayah, Rendering, Surah } from './quranData';
+import { QuranGoTo } from './QuranGoTo';
 import { basmalaOf, cachedIndex, cachedSurah, loadIndex, loadJuz, loadSurah, loadTranslation, sourceNote, translationLang, withoutNumber } from './quranData';
 import type { ReadMode } from './quranStore';
 import { isMarked, loadLastRead, loadMarks, loadMode, loadSize, parseRef, saveLastRead, saveMode, saveSize, searchKey, toggleMark } from './quranStore';
@@ -200,10 +201,12 @@ const Footnote: React.FC<{ text: string }> = ({ text }) => {
 };
 
 /** The three ways of reading, at the top of every reading page. */
-const ModeBar: React.FC<{ mode: ReadMode; onMode: (m: ReadMode) => void; label: React.ReactNode }> = ({ mode, onMode, label }) => (
+const ModeBar: React.FC<{ mode: ReadMode; onMode: (m: ReadMode) => void; label: React.ReactNode; onGoTo?: () => void }> = ({ mode, onMode, label, onGoTo }) => (
     <div className="sticky top-0 z-30 quran-modebar">
         <div className="mx-auto max-w-[46rem] flex items-center gap-2 h-12">
-            <span className="flex-1 min-w-0 truncate text-[0.8rem]" style={{ color: 'var(--text-muted)' }}>{label}</span>
+            {onGoTo
+                ? <button onClick={onGoTo} className="flex-1 min-w-0 text-left inline-flex items-center gap-1.5 text-[0.8rem] transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }} aria-label={t('Өтүү')}><span className="truncate">{label}</span><ChevronDown className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--gold)' }} /></button>
+                : <span className="flex-1 min-w-0 truncate text-[0.8rem]" style={{ color: 'var(--text-muted)' }}>{label}</span>}
             <div className="flex items-center" role="group" aria-label={t('Окуу түрү')}>
                 {([['translation', t('Мааниси')], ['mushaf', t('Мусхаф')], ['pages', t('Барак')]] as const).map(([m, l]) => (
                     <button key={m} className={`chip ${mode === m ? 'is-active' : ''}`} aria-pressed={mode === m} onClick={() => onMode(m)} style={{ marginRight: m === 'pages' ? 0 : undefined }}>{l}</button>
@@ -243,7 +246,7 @@ const Settings: React.FC<{ size: number; onResize: (by: number) => void; onClose
 };
 
 /** The bottom bar of every reading page: back and forth, listen, settings. */
-const ReaderBar: React.FC<{ prev?: () => void; next?: () => void; prevLabel: string; nextLabel: string; listenFrom: () => { surah: number; ayah: number }; size: number; onResize: (by: number) => void }> = ({ prev, next, prevLabel, nextLabel, listenFrom, size, onResize }) => {
+const ReaderBar: React.FC<{ prev?: () => void; next?: () => void; prevLabel: string; nextLabel: string; listenFrom: () => { surah: number; ayah: number }; size: number; onResize: (by: number) => void; onGoTo: () => void }> = ({ prev, next, prevLabel, nextLabel, listenFrom, size, onResize, onGoTo }) => {
     const rec = useRecitation();
     const [settings, setSettings] = useState(false);
     return (
@@ -257,7 +260,11 @@ const ReaderBar: React.FC<{ prev?: () => void; next?: () => void; prevLabel: str
                     <button onClick={() => { if (rec.playing) stopRecitation(); else { const at = listenFrom(); recite(at.surah, at.ayah); } }} aria-label={rec.playing ? t('Токтотуу') : t('Угуу')} className="w-12 h-12 rounded-full inline-flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'var(--gold)', color: 'var(--page-plane)' }}>
                         {rec.loading ? <Loader2 className="w-5 h-5 animate-spin" /> : rec.playing ? <Pause className="w-5 h-5" fill="currentColor" /> : <Play className="w-5 h-5 ml-0.5" fill="currentColor" />}
                     </button>
-                    <span className="w-10 text-center text-[0.75rem] tabular" style={{ color: rec.failed ? 'var(--danger)' : 'var(--gold)' }} aria-live="polite">{rec.failed ? '!' : rec.surah && rec.playing ? `${rec.surah}:${rec.ayah}` : ''}</span>
+                    <button className="btn btn-ghost btn-icon relative" onClick={onGoTo} aria-label={t('Өтүү')}>
+                        {rec.failed || (rec.surah && rec.playing)
+                            ? <span className="text-[0.72rem] tabular" style={{ color: rec.failed ? 'var(--danger)' : 'var(--gold)' }} aria-live="polite">{rec.failed ? '!' : `${rec.surah}:${rec.ayah}`}</span>
+                            : <Hash className="w-4 h-4" />}
+                    </button>
                     <button className="btn btn-ghost btn-icon disabled:opacity-25" disabled={!prev} onClick={prev} aria-label={prevLabel}><ChevronRight className="w-4 h-4" /></button>
                 </div>
             </div>
@@ -305,6 +312,7 @@ const Reader: React.FC<{ n: number; at: number | null; theme: Theme; onToggleThe
     const [mode, setMode] = useState<ReadMode>(() => (loadMode() === 'pages' ? 'translation' : loadMode()));
     const [picked, setPicked] = useState<number | null>(null);
     const [where, setWhere] = useState<{ ayah: number; page: number; juz: number }>({ ayah: 1, page: 0, juz: 0 });
+    const [goto, setGoto] = useState(false);
     const startAt = useRef<number | null>(at ?? (loadLastRead()?.surah === n ? loadLastRead()!.ayah : null));
     useWakeLock();
     useFollowVoice(useCallback(() => n, [n]));
@@ -372,7 +380,8 @@ const Reader: React.FC<{ n: number; at: number | null; theme: Theme; onToggleThe
 
     return (
         <AppFrame page="quran" title={title} back="#/quran" theme={theme} onToggleTheme={onToggleTheme} ownBar>
-            <ModeBar mode={mode} onMode={switchMode} label={surah ? <>{surah.name} · <span className="tabular">{surah.n}:{where.ayah}</span>{where.juz ? ` · ${t('{0}-жүз', where.juz)}` : ''}{where.page ? ` · ${t('{0}-бет', where.page)}` : ''}</> : ''} />
+            {goto && index && <QuranGoTo index={index} pagesMode={false} page={where.page} onClose={() => setGoto(false)} />}
+            <ModeBar mode={mode} onMode={switchMode} onGoTo={() => setGoto(true)} label={surah ? <>{surah.name} · <span className="tabular">{surah.n}:{where.ayah}</span>{where.juz ? ` · ${t('{0}-жүз', where.juz)}` : ''}{where.page ? ` · ${t('{0}-бет', where.page)}` : ''}</> : ''} />
             <div className="quran-progress" style={{ transform: `scaleX(${progress / 100})` }} aria-hidden="true" />
             {failed && <Problem onRetry={() => setAttempt(a => a + 1)} />}
             {!ayahs && !failed && <Waiting />}
@@ -437,7 +446,7 @@ const Reader: React.FC<{ n: number; at: number | null; theme: Theme; onToggleThe
                     next={n < 114 ? () => go(`#/quran/${n + 1}`) : undefined} nextLabel={t('Кийинки сүрө')}
                     prev={n > 1 ? () => go(`#/quran/${n - 1}`) : undefined} prevLabel={t('Мурунку сүрө')}
                     listenFrom={() => ({ surah: n, ayah: where.ayah || 1 })}
-                    size={size} onResize={resize}
+                    size={size} onResize={resize} onGoTo={() => setGoto(true)}
                 />
             )}
         </AppFrame>
@@ -511,6 +520,7 @@ const PagesReader: React.FC<{ start: number; theme: Theme; onToggleTheme: () => 
     const [size, setSize] = useState(loadSize);
     const [picked, setPicked] = useState<PageLine | null>(null);
     const [where, setWhere] = useState({ p: start, surah: 1, ayah: 1 });
+    const [goto, setGoto] = useState(false);
     const loading = useRef(false);
     const bottom = useRef<HTMLDivElement>(null);
     useWakeLock();
@@ -565,7 +575,8 @@ const PagesReader: React.FC<{ start: number; theme: Theme; onToggleTheme: () => 
 
     return (
         <AppFrame page="quran" title={t('{0}-бет', where.p)} back="#/quran" theme={theme} onToggleTheme={onToggleTheme} ownBar>
-            <ModeBar mode="pages" onMode={switchMode} label={index ? <>{index[where.surah - 1]?.name} · <span className="tabular">{t('{0}-бет', where.p)}</span> / 604</> : ''} />
+            {goto && index && <QuranGoTo index={index} pagesMode page={where.p} onClose={() => setGoto(false)} />}
+            <ModeBar mode="pages" onMode={switchMode} onGoTo={() => setGoto(true)} label={index ? <>{index[where.surah - 1]?.name} · <span className="tabular">{t('{0}-бет', where.p)}</span> / 604</> : ''} />
             <div className="quran-progress" style={{ transform: `scaleX(${where.p / 604})` }} aria-hidden="true" />
             {failed && <Problem onRetry={() => { setFailed(false); add(last + 1); }} />}
             {!sheets.length && !failed && <Waiting />}
@@ -588,7 +599,7 @@ const PagesReader: React.FC<{ start: number; theme: Theme; onToggleTheme: () => 
                     next={where.p < 604 ? () => jump(where.p + 1) : undefined} nextLabel={t('Кийинки барак')}
                     prev={where.p > 1 ? () => jump(where.p - 1) : undefined} prevLabel={t('Мурунку барак')}
                     listenFrom={() => ({ surah: where.surah, ayah: where.ayah })}
-                    size={size} onResize={resize}
+                    size={size} onResize={resize} onGoTo={() => setGoto(true)}
                 />
             )}
         </AppFrame>

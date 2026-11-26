@@ -1124,5 +1124,12 @@ export const EN: Record<string, string> = {
     "зикир, тасбихат жана Куран": "zikr, tasbihat and Quran",
     "Тартип · акыркы 4 апта": "Discipline · last 4 weeks",
     "бир апта гана": "one week only",
-    "Өсүү экинчи аптадан көрүнөт": "Growth shows from the second week"
+    "Өсүү экинчи аптадан көрүнөт": "Growth shows from the second week",
+    "Өтүү": "Go to",
+    "Барактын номери": "Page number",
+    "Ачуу": "Open",
+    "Учурдагы: {0}": "Now: {0}",
+    "Сүрө же аят": "Surah or ayah",
+    "{0}-аят": "ayah {0}",
+    "Жүз": "Juz"
 };
