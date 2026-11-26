@@ -106,7 +106,7 @@ export const LoginScreen: React.FC<{ theme: Theme; onToggleTheme: () => void }> 
                             <Lock className="w-3 h-3" aria-hidden="true" />{t('Жабык сайт')}
                         </p>
                         <p className="text-[0.95rem] leading-relaxed mt-3 max-w-[22rem]" style={{ color: 'var(--text-secondary)' }}>
-                            {t('Жыйынтыктар жабык: мүчө өз үйүн көрөт, капитандар жана админ — баарын.')}
+                            {t('Мүчө өз үйүнүн жыйынтыгын көрөт. Капитандар менен админ баарын көрөт.')}
                         </p>
                     </div>
 
@@ -133,7 +133,7 @@ export const LoginScreen: React.FC<{ theme: Theme; onToggleTheme: () => void }> 
 
                         {mode === 'member' ? (
                             <div className="text-center pt-1">
-                                <p className="text-[0.95rem] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{t('Өз Google аккаунтуңуз менен кириңиз: өз жыйынтыгыңызды, үйүңүздү көрөсүз, ал эми колдонмодогу сандарыңыз капитанга өзү жетет.')}</p>
+                                <p className="text-[0.95rem] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{t('Google аккаунтуңуз менен кириңиз. Өз жыйынтыгыңызды жана үйүңүздү көрөсүз, колдонмодогу сандарыңыз капитанга өзү жетет.')}</p>
                                 <button type="button" onClick={() => { setLoading(true); signInWithGoogle().catch(err => { setLoading(false); setError(t('Кирүү мүмкүн болгон жок: {0}', err instanceof Error ? err.message : String(err))); }); }} disabled={loading} className="btn btn-primary w-full mt-5" style={{ minHeight: '3rem' }}>
                                     {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <span className="font-semibold text-[1.05rem]" aria-hidden="true">G</span>}{t('Google менен кирүү')}
                                 </button>

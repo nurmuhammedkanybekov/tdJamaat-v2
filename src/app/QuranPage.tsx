@@ -151,7 +151,7 @@ const Contents: React.FC<{ theme: Theme; onToggleTheme: () => void }> = ({ theme
                                 </li>
                             ))}
                         </ol>
-                    ) : <p className="py-10 text-center italic" style={{ color: 'var(--text-muted)' }}>{t('Аяттын номерин басып, сактап коюңуз — ушул жерде чогулат.')}</p>
+                    ) : <p className="py-10 text-center italic" style={{ color: 'var(--text-muted)' }}>{t('Аяттын номерин басып сактасаңыз, ушул жерге чогулат.')}</p>
                 )}
 
                 <p className="text-[0.78rem] italic mt-8 leading-relaxed" style={{ color: 'var(--text-muted)' }}>

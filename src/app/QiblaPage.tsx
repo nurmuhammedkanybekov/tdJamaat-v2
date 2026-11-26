@@ -99,7 +99,7 @@ export const QiblaPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
                     <button className="btn btn-ghost" onClick={locate} disabled={locating}><LocateFixed className="w-4 h-4" />  {locating ? t('Изделүүдө…') : t('Менин жайгашкан жерим')}</button>
                 </div>
                 {compass === 'denied' && <p className="text-[0.82rem] italic mt-3" style={{ color: 'var(--danger)' }}>{t('Компаска уруксат берилген жок. Браузердин жөндөөлөрүнөн уруксат бериңиз.')}</p>}
-                {compass === 'none' && <p className="text-[0.82rem] italic mt-3" style={{ color: 'var(--text-muted)' }}>{t('Бул түзмөктө компас жок — даражаны колдонуңуз.')}</p>}
+                {compass === 'none' && <p className="text-[0.82rem] italic mt-3" style={{ color: 'var(--text-muted)' }}>{t('Бул түзмөктө компас жок. Даражаны колдонуңуз.')}</p>}
                 {compass === 'on' && heading === null && <p className="text-[0.82rem] italic mt-3" style={{ color: 'var(--text-muted)' }}>{t('Компас күтүлүүдө… Телефонду сегиз сымал кыймылдатып көрүңүз.')}</p>}
                 <p className="text-[0.75rem] italic mt-6" style={{ color: 'var(--text-muted)' }}>{t('Телефондун компасы темирден жана магниттен алыс так иштейт.')}</p>
             </div>

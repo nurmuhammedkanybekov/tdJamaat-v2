@@ -45,7 +45,7 @@ export const FormulaSheet: React.FC<{ onClose: () => void }> = ({ onClose }) => 
             </Step>
             <Step n={3} title={t('Ар бир көрсөткүч боюнча упай')}>
                 <Formula>{t('Көрсөткүч упайы = (Эсептелген % ÷ 100) × Салмак')}</Formula>
-                <p className="text-[0.82rem] mt-2" style={{ color: 'var(--text-muted)' }}>{t('Ар кимдин планы ролуна жараша — ошондуктан упай адилеттүү.')}</p>
+                <p className="text-[0.82rem] mt-2" style={{ color: 'var(--text-muted)' }}>{t('Ар кимдин планы ролуна жараша коюлат, ошондуктан упай адилеттүү.')}</p>
             </Step>
             <Step n={4} title={t('Салмактар')}>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-6" style={{ borderTop: '1px solid var(--gold-dim)' }}>
@@ -66,7 +66,7 @@ export const FormulaSheet: React.FC<{ onClose: () => void }> = ({ onClose }) => 
                 <p className="text-[0.82rem] mt-2" style={{ color: 'var(--text-muted)' }}>{t('Үйлөрдө адам саны ар башка, ошондуктан жалпы эмес,')} <b>{t('орточо')}</b>  {t('упай алынат.')}</p>
                 <Formula>{t('Мини-карта = Σ (Факт ÷ План, эң көп 100%) × {0}', MINI_CARD_POINTS)}</Formula>
                 <p className="text-[0.82rem] mt-2" style={{ color: 'var(--text-muted)' }}>{t('Үй ал аптанын маалыматын киргизе элек болсо, апта ачык турганда «—» көрсөтүлөт жана эсепке кирбейт. Админ аптаны кулпулагандан кийин, киргизбеген үй ал апта үчүн 0 алат.')}</p>
-                <p className="text-[0.82rem] mt-2" style={{ color: 'var(--text-muted)' }}>{t('7 иштин ар бири толук аткарылса {0} упай, бардыгы — {1} упай. Ар бир иш 100% менен чектелет: мисалы, СПОРТ планы 1 болсо, 7 жолу кылуу 700% болуп кетпейт.', MINI_CARD_POINTS, MINI_CARD_POINTS * 7)}</p>
+                <p className="text-[0.82rem] mt-2" style={{ color: 'var(--text-muted)' }}>{t('7 иштин ар бири толук аткарылса {0} упай берет, баары {1} упай. Ар бир иш 100% менен чектелет. Мисалы, СПОРТ планы 1 болсо, 7 жолу кылганда да 100% эсептелет.', MINI_CARD_POINTS, MINI_CARD_POINTS * 7)}</p>
                 <Formula>{t('Тазалык = (пункттардын баасы ÷ (5 × пункт саны)) × {0}', TAZALYK_MAX)}</Formula>
                 <p className="text-[0.82rem] mt-2" style={{ color: 'var(--text-muted)' }}>{t('Тазалык админ күйгүзгөн апталарда гана кошулат: ар бир пункт 0–5 менен бааланат, үй эң көп {0} упай алат. Бааланбаган үй ал аптада 0 алат.', TAZALYK_MAX)}</p>
             </Step>

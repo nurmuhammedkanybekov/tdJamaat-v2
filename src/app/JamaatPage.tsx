@@ -41,7 +41,7 @@ export const JamaatPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> =
                     <button className="btn btn-primary mt-6" onClick={() => { signInWithGoogle('#/jamaat').catch(() => undefined); }}>{t('Google менен кирүү')}</button>
                 </div>
             ) : member && mine === null ? (
-                <p className="max-w-[34rem] mx-auto text-center pt-10 text-[0.95rem]" style={{ color: 'var(--text-muted)' }}>{t('Жамааттын жыйынтыгы мүчөлөр үчүн азырынча ачыла элек — админ supabase/jamaat-view-2026-11.sql файлын иштетиши керек.')}</p>
+                <p className="max-w-[34rem] mx-auto text-center pt-10 text-[0.95rem]" style={{ color: 'var(--text-muted)' }}>{t('Жамааттын жыйынтыгы мүчөлөр үчүн азырынча ачыла элек. Админ supabase/jamaat-view-2026-11.sql файлын иштетиши керек.')}</p>
             ) : !view ? <Waiting /> : (
                 <div className="max-w-[60rem] mx-auto pt-2">
                     <JamaatStory data={view.d} insights={view.ins} seasonName={view.name} ownHouseId={self?.houseId ?? ctx.houseId ?? null} />

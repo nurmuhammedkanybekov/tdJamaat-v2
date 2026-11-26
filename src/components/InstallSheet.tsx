@@ -47,14 +47,14 @@ export const InstallSheet: React.FC<{ onClose: () => void }> = ({ onClose }) => 
                     <img src="/apple-touch-icon.png" alt="" className="flex-shrink-0 w-16 h-16 rounded-[16px]" style={{ border: '1px solid var(--border-strong)' }} />
                     <p className="text-[0.92rem]" style={{ color: 'var(--text-secondary)' }}>
                         
-                        {t('tdJamaat экраныңызда кадимки тиркеме сыяктуу турат: бир басуу менен, толук экранда ачылат.')}
+                        {t('tdJamaat телефонуңузда кадимки тиркемедей турат жана толук экранда ачылат.')}
                     </p>
                 </div>
 
                 {ios && (
                     <p className="text-[0.85rem] italic mt-6 pl-3" style={{ color: 'var(--text-muted)', borderLeft: '1px solid var(--gold)' }}>
                         
-                        {t('iPhone\'до сайттар өзүн-өзү орното албайт — Apple уруксат бербейт. Ошондуктан бул үч кадам колго жасалат, бир мүнөт да кетпейт.')}
+                        {t('iPhone\'до сайтты өзүңүз кошосуз, Apple башкача уруксат бербейт. Бир мүнөт да кетпейт.')}
                     </p>
                 )}
                 {inAppBrowser() && (

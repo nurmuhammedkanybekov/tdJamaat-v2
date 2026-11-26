@@ -59,12 +59,12 @@ export const metricsAtPlan = (w: MemberWeek) =>
 export const strongWeek = (w: MemberWeek) => w.submitted && metricsAtPlan(w) >= STRONG_METRICS;
 
 export const BADGES: Record<string, BadgeDef> = {
-    'week-star': { id: 'week-star', scope: 'person', name: t('Апта жылдызы'), tier: 'gold', icon: 'star', rule: t('Аптанын эң жогорку жеке упайы — бардык катышуучулардын ичинен 1-орун.') },
+    'week-star': { id: 'week-star', scope: 'person', name: t('Апта жылдызы'), tier: 'gold', icon: 'star', rule: t('Аптанын эң жогорку жеке упайы, бүт жамаат боюнча 1-орун.') },
     'podium': { id: 'podium', scope: 'person', name: t('Сыйлык тепкичи'), tier: 'silver', icon: 'podium', rule: t('Аптанын жеке рейтингинде 2- же 3-орун.') },
     'perfect': { id: 'perfect', scope: 'person', name: t('Толук план'), tier: 'bronze', icon: 'target', rule: t('Бир аптада 8 көрсөткүчтүн баары боюнча планды аткаруу.') },
     'iron-3': { id: 'iron-3', scope: 'person', name: t('Темир тартип'), tier: 'silver', icon: 'flame', rule: t('Толук планды катары менен 3 апта аткаруу.') },
     'iron-5': { id: 'iron-5', scope: 'person', name: t('Болот тартип'), tier: 'gold', icon: 'chain5', rule: t('Толук планды катары менен 5 апта аткаруу.') },
-    'double': { id: 'double', scope: 'person', name: t('Эки эсе'), tier: 'bronze', icon: 'zap', rule: t('Бир көрсөткүч боюнча планды эки эсе аткаруу (СВТ жана ИСТГ эсепке кирбейт — алардын планы чоң сан болгондуктан, тез көбөйөт).') },
+    'double': { id: 'double', scope: 'person', name: t('Эки эсе'), tier: 'bronze', icon: 'zap', rule: t('Бир көрсөткүч боюнча планды эки эсе аткаруу. СВТ менен ИСТГ кирбейт: алардын планы чоң сан, ошондуктан тез эки эселенет.') },
     'leap': { id: 'leap', scope: 'person', name: t('Чоң секирик'), tier: 'silver', icon: 'leap', rule: t('Аптанын эң чоң өсүшү: мурунку аптага караганда эң көп упай кошкон адам (кеминде +10).') },
     'rising': { id: 'rising', scope: 'person', name: t('Өсүү жолу'), tier: 'bronze', icon: 'rising', rule: t('Упай катары менен 3 апта өстү: ар бир апта кеминде +{0}, жалпысынан кеминде +{1}.', RISING_STEP, RISING_TOTAL) },
     'steady-4': { id: 'steady-4', scope: 'person', name: t('Туруктуу'), tier: 'bronze', icon: 'steady', rule: t('Катары менен 4 күчтүү апта: ар бир аптада кеминде {0}/8 көрсөткүч боюнча план аткарылган.', STRONG_METRICS) },
@@ -97,7 +97,7 @@ export const computeAwards = (data: DataFile, insights: Insights, opts: { season
 
         // Podium (only if somebody actually scored)
         rows.filter(r => r.w.rank === 1 && r.w.score > 0).forEach(r =>
-            give('week-star', r.p.id, r.p.name, r.w.houseName, r.w, t('{0}-апта: бардык катышуучулардын ичинен эң жогорку упай — {1}.', n, fmt(r.w.score))));
+            give('week-star', r.p.id, r.p.name, r.w.houseName, r.w, t('{0}-апта: бүт жамааттагы эң жогорку упай, {1}.', n, fmt(r.w.score))));
         rows.filter(r => (r.w.rank === 2 || r.w.rank === 3) && r.w.score > 0).forEach(r =>
             give('podium', r.p.id, r.p.name, r.w.houseName, r.w, t('{0}-апта: жеке рейтингде {1}-орун, {2} упай.', n, r.w.rank, fmt(r.w.score))));
 
@@ -114,7 +114,7 @@ export const computeAwards = (data: DataFile, insights: Insights, opts: { season
                 .sort((a, b) => w.pct[b] - w.pct[a]);
             if (doubles.length) {
                 const m = doubles[0];
-                give('double', p.id, p.name, w.houseName, w, t('{0}-апта: {1} боюнча {2} / {3} — планды {4} эсе аткарды.', n, metricLabel(m), w.member.actual[m], w.member.target[m], fmt(w.pct[m] / 100)));
+                give('double', p.id, p.name, w.houseName, w, t('{0}-апта: {1} боюнча {2} / {3}, планды {4} эсе аткарды.', n, metricLabel(m), w.member.actual[m], w.member.target[m], fmt(w.pct[m] / 100)));
             }
 
             const strongRun = streakUntil(p.weeks, weekIndex, strongWeek);
@@ -177,7 +177,7 @@ export const computeAwards = (data: DataFile, insights: Insights, opts: { season
                 const top = totals[0].avg;
                 const first = data.weeks[period[0]].weekNumber;
                 totals.filter(it => it.avg === top).forEach(it =>
-                    give('house-month', it.h.id, it.h.name, it.h.name, { weekIndex, weekNumber: n }, t('{0}–{1}-апталар: орточо рейтинг {2} — мезгилдин эң мыкты үйү.', first, n, fmt(it.avg))));
+                    give('house-month', it.h.id, it.h.name, it.h.name, { weekIndex, weekNumber: n }, t('{0}–{1}-апталар: орточо рейтинг {2}, мезгилдин эң мыкты үйү.', first, n, fmt(it.avg))));
             }
         }
     });
@@ -202,7 +202,7 @@ export const computeAwards = (data: DataFile, insights: Insights, opts: { season
         if (season[0] && season[0].avg > 0) {
             const top = season[0].avg;
             season.filter(x => x.avg === top).forEach(x =>
-                give('house-season', x.h.id, x.h.name, x.h.name, last, t('{0}: орточо рейтинг {1} — эң мыкты үй.', label, fmt(x.avg))));
+                give('house-season', x.h.id, x.h.name, x.h.name, last, t('{0}: орточо рейтинг {1}, эң мыкты үй.', label, fmt(x.avg))));
         }
     }
 

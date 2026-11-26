@@ -97,7 +97,7 @@ const Jamaat: React.FC = () => {
                         <button onClick={() => { signOutMember().catch(() => undefined); }} className="hit text-[0.7rem] tracking-[0.16em] uppercase transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}>{t('Чыгуу')}</button>
                     </div>
                     <MemberSummary link={member.link} />
-                    <RowLink onClick={() => go('#/jamaat')} title={t('Жамааттын жыйынтыгы')} sub={t('Бирге окулган Куран, үйлөрдүн жарышы, аптанын пульсу')} />
+                    <RowLink onClick={() => go('#/jamaat')} title={t('Жамааттын жыйынтыгы')} sub={t('Үйлөрдүн жарышы жана бирге окулган Куран')} />
                 </div>
             );
         }
@@ -115,7 +115,7 @@ const Jamaat: React.FC = () => {
         }
         return (
             <div>
-                <RowLink onClick={() => { signInWithGoogle().catch(() => undefined); }} title={t('Мүчө катары кирүү')} sub={t('Google аккаунту менен — өз жыйынтыгыңыз жана сандарыңыз капитанга өзү жетет')} />
+                <RowLink onClick={() => { signInWithGoogle().catch(() => undefined); }} title={t('Мүчө катары кирүү')} sub={t('Google аккаунтуңуз менен. Жыйынтыгыңызды көрөсүз, сандарыңыз капитанга өзү жетет')} />
                 <RowLink onClick={() => go('#/overview')} title={t('Капитандар үчүн кирүү')} sub={t('Үйлөрдүн апталык жыйынтыктары')} />
             </div>
         );

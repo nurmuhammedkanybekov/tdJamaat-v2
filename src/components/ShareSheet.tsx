@@ -82,7 +82,7 @@ export const ShareSheet: React.FC<ShareSheetProps> = ({ data, weekIndex: selecte
         try {
             await navigator.share({ files: [file], title: `tdJamaat — ${title}` });
         } catch (err) {
-            if ((err as Error)?.name !== 'AbortError') setStatus(t('Бөлүшүү мүмкүн болгон жок — сүрөттү жүктөп алып, кол менен жибериңиз.'));
+            if ((err as Error)?.name !== 'AbortError') setStatus(t('Бөлүшүү ачылган жок. Сүрөттү жүктөп алып, өзүңүз жибериңиз.'));
         }
     };
     const download = () => {

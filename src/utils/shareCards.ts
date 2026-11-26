@@ -287,7 +287,7 @@ export async function drawSeasonCard(canvas: HTMLCanvasElement, theme: CardTheme
     if (summary.best) {
         ctx.textAlign = 'center';
         ctx.fillStyle = p.muted; ctx.font = `italic 400 23px ${TEXT}`;
-        ctx.fillText(t('эң мыкты апта — {0}-апта', summary.best.weekNumber), CARD_W / 2, top + 3 * ch + 44);
+        ctx.fillText(t('эң мыкты апта: {0}-апта', summary.best.weekNumber), CARD_W / 2, top + 3 * ch + 44);
     }
     const names = [...new Set(awards.map(a => a.def.name))];
     if (names.length) {

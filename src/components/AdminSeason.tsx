@@ -308,7 +308,7 @@ export const RosterTab: React.FC<{ data: DataFile; busy: string | null; run: Run
             })()}
             {nameChanged(m) && (
                 <p className="col-span-3 sm:col-span-4 text-[0.82rem]" style={{ color: 'var(--warning)' }}>
-                    {t('Ат каталарын оңдоо үчүн гана. Бул адамдын ордуна башка адам келсе, жаңысын «Кошуу» менен кошуп, муну курамдан чыгарыңыз — антпесе бул адамдын жыйынтыктары жаңысына өтүп кетет.')}
+                    {t('Бул жерде атты гана оңдоңуз. Ордуна башка адам келсе, аны «Кошуу» менен кошуп, бул адамды курамдан чыгарыңыз. Болбосо мунун жыйынтыктары жаңы адамга өтүп кетет.')}
                 </p>
             )}
         </li>
@@ -318,7 +318,7 @@ export const RosterTab: React.FC<{ data: DataFile; busy: string | null; run: Run
         <div className="px-5 sm:px-7 pb-8 space-y-10">
             <p className="text-[0.9rem]" style={{ color: 'var(--text-secondary)' }}>
                 
-                {t('Адамды башка үйгө которуу же ролун өзгөртүү үчүн тандап, кайсы аптадан баштап экенин көрсөтүп, «Сактоо» басыңыз. Мурунку апталары мурдагы үйүндө жана ролунда калат. Кеткен адамды курамдан чыгарыңыз — тарыхы сакталат.')}
+                {t('Адамды башка үйгө которуу же ролун алмаштыруу үчүн аны тандап, кайсы аптадан баштап экенин көрсөтүп, «Сактоо» басыңыз. Мурунку апталары эски үйүндө калат. Кеткен адамды курамдан чыгарсаңыз, тарыхы өчпөйт.')}
             </p>
 
             {history.length > 0 && (
@@ -335,7 +335,7 @@ export const RosterTab: React.FC<{ data: DataFile; busy: string | null; run: Run
                                     <span className="font-bold" style={{ color: 'var(--text-primary)' }}>{h.member.name}</span>
                                     <span className="text-[0.82rem]" style={{ color: 'var(--text-muted)' }}>{t('азыр: {0} · {1}', houses.find(x => x.id === h.member.houseId)?.name ?? '—', ROLE_LABEL[h.member.role].toLowerCase())}</span>
                                     <span className="text-[0.82rem]" style={{ color: h.status === 'plan' ? 'var(--danger)' : h.status === 'move' ? 'var(--text-muted)' : 'var(--success)' }}>
-                                        {h.status === 'plan' ? t('пландары оңдолушу керек') : h.status === 'move' ? t('которуу кийинки аптадан башталса — туура') : t('туура келет')}
+                                        {h.status === 'plan' ? t('пландары оңдолушу керек') : h.status === 'move' ? t('которуу кийинки аптадан башталса, туура') : t('туура келет')}
                                     </span>
                                 </div>
                                 {timeline(h)}

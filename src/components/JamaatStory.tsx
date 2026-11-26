@@ -95,9 +95,9 @@ export const JamaatStory: React.FC<{ data: DataFile; insights: Insights; seasonN
                     <p className="font-display text-[1.6rem] sm:text-[2rem] leading-snug mt-2" style={{ color: 'var(--text-primary)' }}>
                         {pulse.best.pct > 0
                             ? t('Бул апта жамаат {0} {1}% көбүрөөк аткарды.', metricName(pulse.best.m).toLowerCase(), Math.round(pulse.best.pct))
-                            : t('Бул апта бардык көрсөткүчтөр өткөн аптадан бир аз төмөн — кийинки апта бирге көтөрөбүз.')}
+                            : t('Бул апта бардык көрсөткүч өткөн аптадан бир аз төмөн. Кийинки аптада көтөрөбүз, иншаллах.')}
                     </p>
-                    {pulse.worst && pulse.worst.pct < -5 && pulse.best.pct > 0 && <p className="text-[0.95rem] italic mt-2" style={{ color: 'var(--text-muted)' }}>{t('Көңүл бурууга: {0} ({1}%).', metricName(pulse.worst.m).toLowerCase(), Math.round(pulse.worst.pct))}</p>}
+                    {pulse.worst && pulse.worst.pct < -5 && pulse.best.pct > 0 && <p className="text-[0.95rem] italic mt-2" style={{ color: 'var(--text-muted)' }}>{t('Эң көп төмөндөгөнү: {0} ({1}%).', metricName(pulse.worst.m).toLowerCase(), Math.round(pulse.worst.pct))}</p>}
                     <ul className="js-pulse mt-6">
                         {pulse.rows.map(r => {
                             const up = r.pct >= 0;

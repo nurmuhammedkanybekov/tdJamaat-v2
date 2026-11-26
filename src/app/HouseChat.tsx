@@ -125,7 +125,7 @@ export const HouseChat: React.FC<{ self: Self; canModerate: boolean; theme: Them
                     <Mark size={44} className="mx-auto" style={{ color: 'var(--gold)' }} />
                     <div className="eyebrow mt-3" style={{ color: 'var(--gold)' }}>{t('Үйдүн сөзү')}</div>
                     <h1 className="font-display text-[2rem] leading-tight mt-1" style={{ color: 'var(--text-primary)' }}>{self.houseName}</h1>
-                    <p className="text-[0.8rem] mt-1" style={{ color: 'var(--text-muted)' }}>{asAdmin ? t('Сиз бул жерде «Админ» катары жазасыз — баары муну көрөт. Билдирүүлөрдү өчүрө аласыз.') : t('Үйдүн адамдары, капитан жана админ гана көрөт.')}</p>
+                    <p className="text-[0.8rem] mt-1" style={{ color: 'var(--text-muted)' }}>{asAdmin ? t('Бул жерде «Админ» болуп жазасыз. Билдирүүлөрдү өчүрө аласыз.') : t('Үйдүн адамдары, капитан жана админ гана көрөт.')}</p>
                     <div className="mt-2"><NotifyToggle /></div>
                     <HornBand className="mt-3" />
                 </header>
@@ -133,7 +133,7 @@ export const HouseChat: React.FC<{ self: Self; canModerate: boolean; theme: Them
 
                 {messages === undefined && <Waiting />}
                 {messages === null && (
-                    <p className="mt-8 px-4 py-3 text-[0.9rem]" style={{ borderLeft: '2px solid var(--gold)', color: 'var(--text-secondary)' }}>{t('Үйдүн сөзү азырынча ачыла элек — админ supabase/house-chat-2026-11.sql файлын иштетиши керек.')}</p>
+                    <p className="mt-8 px-4 py-3 text-[0.9rem]" style={{ borderLeft: '2px solid var(--gold)', color: 'var(--text-secondary)' }}>{t('Үйдүн сөзү азырынча ачыла элек. Админ supabase/house-chat-2026-11.sql файлын иштетиши керек.')}</p>
                 )}
                 {messages && messages.length === 0 && (
                     <div className="text-center pt-10">

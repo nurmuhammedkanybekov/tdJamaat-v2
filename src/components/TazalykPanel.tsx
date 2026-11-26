@@ -149,7 +149,7 @@ export const TazalykPanel: React.FC<{
                     {formatWeekRange(current.startDate, current.endDate) && <span className="tabular">{formatWeekRange(current.startDate, current.endDate)}. </span>}
                     {current.tazalyk
                         ? <span style={{ color: 'var(--gold)' }}>{t('Бул аптада Тазалык үй рейтингине кошулат (эң көп {0} упай).', TAZALYK_MAX)}</span>
-                        : t('Бул аптада Тазалык рейтингге азырынча кошулбайт — админ күйгүзгөндө кошулат. Баалай берсеңиз болот.')}
+                        : t('Бул аптада Тазалык азырынча рейтингге кошулбайт, админ күйгүзгөндө кошулат. Баалай берсеңиз болот.')}
                     {current.locked && <span className="inline-flex items-center gap-1 ml-1"><Lock className="w-3.5 h-3.5" />{isAdmin ? t('Апта кулпуланган (админ өзгөртө алат).') : t('Апта кулпуланган.')}</span>}
                 </p>
             )}

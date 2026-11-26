@@ -326,7 +326,7 @@ const Reader: React.FC<{ id: string; theme: Theme; onToggleTheme: () => void }> 
                             {heads.length > 0 && <div className="text-[0.8rem] mt-1" style={{ color: 'var(--text-muted)' }}>{t('{0} бөлүм', heads.length)}</div>}
                         </header>
                         {script === 'ar' && hasArabic && (
-                            <p className="text-[0.75em] italic text-center mt-3 px-4" style={{ color: 'var(--text-muted)' }}>{t('Арабча текст текшерилген булагы бар жерлерде гана: Куран аяттары жана «Хисн аль-Муслимдеги» дуба. Калганы — кыргыз тамгалары менен.')}</p>
+                            <p className="text-[0.75em] italic text-center mt-3 px-4" style={{ color: 'var(--text-muted)' }}>{t('Арабча текст текшерилген булагы бар жерде гана берилет: Куран аяттары жана «Хисн аль-Муслимдеги» дуба. Калганы кыргыз тамгалары менен.')}</p>
                         )}
                         {data.blocks.map((b, i) => {
                             if (b.t !== 'h') return <Paragraph key={i} block={b} all={all} script={script} />;

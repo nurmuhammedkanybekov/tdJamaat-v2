@@ -187,7 +187,7 @@ const TeamPerformanceTracker: React.FC = () => {
             <div className="min-h-screen" style={{ backgroundColor: 'var(--page-plane)' }}>
                 <StateCard
                     title={t('Сезон {0}', season.name)}
-                    text={t('Жаңы сезон даярдалууда. Админ биринчи аптаны ачканда, жыйынтыктар ушул жерде чыгат.')}
+                    text={t('Жаңы сезон башталып жатат. Админ биринчи аптаны ачканда жыйынтыктар ушул жерде чыгат.')}
                     action={
                         <div className="flex flex-wrap gap-2 justify-center">
                             {previous && <button className="btn btn-ghost" onClick={() => chooseSeason(previous.id)}>{t('Сезон {0}', previous.name)}</button>}

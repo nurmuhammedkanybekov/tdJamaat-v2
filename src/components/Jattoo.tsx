@@ -185,7 +185,7 @@ export const JattooSheet: React.FC<{
     return (
         <Sheet title={t('Жаттоо')} onClose={onClose} width="44rem">
             <div className="px-5 sm:px-7 py-5 space-y-6">
-                <p className="text-[0.9rem]" style={{ color: 'var(--text-muted)' }}>{t('Адам жатталганын айтып бергенде, ушул жерге жазыңыз. Упай кошулбайт — профилде, үйдө жана сыйлыктарда көрүнөт.')}</p>
+                <p className="text-[0.9rem]" style={{ color: 'var(--text-muted)' }}>{t('Адам жаттаганын окуп бергенде, ушул жерге жазыңыз. Упай берилбейт, бирок профилинде жана үйдүн бетинде көрүнөт.')}</p>
                 {houses.length > 1 && (
                     <div className="flex flex-wrap gap-1" role="tablist" aria-label={t('Үй')}>
                         {houses.map(h => <button key={h.id} role="tab" aria-selected={house === h.id} onClick={() => { setHouse(h.id); setMemberId(h.members[0]?.id ?? ''); }} className={`chip ${house === h.id ? 'is-active' : ''}`}>{h.name}</button>)}
@@ -329,7 +329,7 @@ export const JattooAwards: React.FC<{ data: DataFile; onOpenProfile: (id: string
     if (!groups.size) return null;
     return (
         <section>
-            <SectionHeader eyebrow={t('Упайсыз, ыраазычылык менен')} title={t('Жаттоо сыйлыктары')} />
+            <SectionHeader eyebrow={t('Упай үчүн эмес')} title={t('Жаттоо сыйлыктары')} />
             <ul>
                 {[...groups.values()].map((g, i) => (
                     <li key={g.name} className="py-3.5" style={{ borderTop: i ? '1px solid var(--border)' : undefined }}>

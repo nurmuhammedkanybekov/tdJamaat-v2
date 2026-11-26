@@ -49,7 +49,7 @@ export const signInAsAdmin = async (password: string) => {
 export const requireActiveSession = async () => {
     const { data, error } = await supabase.auth.getSession();
     if (error || !data.session) {
-        throw new Error(t('Кирүү мөөнөтү бүттү — чыгып, кайра кириңиз.'));
+        throw new Error(t('Кирүү мөөнөтү бүттү. Чыгып, кайра кириңиз.'));
     }
     return data.session;
 };

@@ -17,7 +17,7 @@ const Status: React.FC<{ entered: boolean; locked: boolean }> = ({ entered, lock
     entered
         ? <span className="inline-flex items-center gap-1.5" style={{ color: 'var(--success)' }}><CheckCircle2 className="w-3.5 h-3.5" />{t('маалымат киргизилди')}</span>
         : locked
-            ? <span className="inline-flex items-center gap-1.5" style={{ color: 'var(--danger)' }}><Lock className="w-3.5 h-3.5" />{t('апта бекитилди — киргизилген жок')}</span>
+            ? <span className="inline-flex items-center gap-1.5" style={{ color: 'var(--danger)' }}><Lock className="w-3.5 h-3.5" />{t('апта бекитилди, киргизилген жок')}</span>
             : <span className="inline-flex items-center gap-1.5" style={{ color: 'var(--gold)' }}><Clock3 className="w-3.5 h-3.5" />{t('маалымат күтүлүүдө')}</span>
 );
 
@@ -166,7 +166,7 @@ export const AdminDeskPanel: React.FC<{
                         : t('{0} үй киргизди, {1} үй калды', desk.entered, left)}
             </h2>
             <p className="text-[0.9rem] mt-1" style={{ color: allIn ? 'var(--success)' : 'var(--text-muted)' }}>
-                {desk.locked ? t('Жыйынтыктар акыркы.') : allIn ? t('Эми аптаны бекитсеңиз болот — жыйынтыктар акыркы болот.') : t('Күтүлүүдө: {0}', desk.waiting.map(h => h.name).join(', '))}
+                {desk.locked ? t('Жыйынтыктар акыркы.') : allIn ? t('Эми аптаны бекитсеңиз болот. Анда жыйынтыктар өзгөрбөйт.') : t('Күтүлүүдө: {0}', desk.waiting.map(h => h.name).join(', '))}
                 {desk.tazalyk && <span style={{ color: desk.tazalyk.rated === desk.tazalyk.total ? 'var(--success)' : 'var(--text-muted)' }}> · {t('Тазалык: {0} / {1} үй бааланды', desk.tazalyk.rated, desk.tazalyk.total)}</span>}
             </p>
 

@@ -295,7 +295,7 @@ export const assertWeekExists = async (weekNumber: number) => {
         .eq('week_number', weekNumber)
         .maybeSingle();
     if (error) fail(error);
-    if (!data) throw new Error(t('{0}-апта али ачыла элек — админ ачышы керек.', weekNumber));
+    if (!data) throw new Error(t('{0}-апта али ачыла элек. Аны админ ачат.', weekNumber));
 };
 
 // Admin: open the next week. INSERT … ON CONFLICT DO NOTHING — never touches

@@ -126,7 +126,7 @@ const Counter: React.FC<{ zikr: Zikr; store: ZikrStore; update: (fn: (s: ZikrSto
                     </span>
                 </Ring>
                 <div className="text-[0.82rem] mt-6 lg:hidden" style={{ color: 'var(--text-muted)' }}>{t('Саноо үчүн экрандын каалаган жерин басыңыз')}</div>
-                <div className="text-[0.82rem] mt-6 hidden lg:block" style={{ color: 'var(--text-muted)' }}>{t('Саноо үчүн басыңыз — же клавиатурадан Боштук баскычын')}</div>
+                <div className="text-[0.82rem] mt-6 hidden lg:block" style={{ color: 'var(--text-muted)' }}>{t('Санаш үчүн басыңыз же Боштук баскычын басыңыз')}</div>
             </button>
 
             {/* Controls: small, at the bottom, away from the counting thumb. */}

@@ -111,7 +111,7 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({ series, data, insigh
                     <div className="px-6 sm:px-12 pb-12 space-y-14">
                         {/* Trend */}
                         <section>
-                            <H3 aside={<span className="text-[0.78rem] italic" style={{ color: 'var(--text-muted)' }}>{t('пунктир — план 100% ({0})', PLAN_SCORE)}</span>}>{t('Упай динамикасы')}</H3>
+                            <H3 aside={<span className="text-[0.78rem] italic" style={{ color: 'var(--text-muted)' }}>{t('үзүк сызык: план 100% ({0})', PLAN_SCORE)}</span>}>{t('Упай динамикасы')}</H3>
                             {chartData.length >= 2 ? (
                                 <div className="-ml-3">
                                     <ResponsiveContainer width="100%" height={210}>
@@ -154,8 +154,8 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({ series, data, insigh
                                     </div>
                                 ))}
                             </div>
-                            {summary.best && <p className="text-[0.82rem] italic text-center mt-3" style={{ color: 'var(--text-muted)' }}>{t('Эң мыкты апта — {0}-апта. Орун сезондогу орточо упай боюнча.', summary.best.weekNumber)}</p>}
-                            {summary.excusedWeeks > 0 && <p className="text-[0.82rem] italic text-center mt-1" style={{ color: 'var(--text-muted)' }}>{t('{0} апта себептүү (ооруп / сапарда) — эсепке кирген жок.', summary.excusedWeeks)}</p>}
+                            {summary.best && <p className="text-[0.82rem] italic text-center mt-3" style={{ color: 'var(--text-muted)' }}>{t('Эң мыкты апта: {0}-апта. Орун сезондогу орточо упай менен эсептелет.', summary.best.weekNumber)}</p>}
+                            {summary.excusedWeeks > 0 && <p className="text-[0.82rem] italic text-center mt-1" style={{ color: 'var(--text-muted)' }}>{t('{0} апта себептүү (ооруп же сапарда), эсепке кирген жок.', summary.excusedWeeks)}</p>}
                         </section>
 
                         {/* Targets */}
@@ -190,7 +190,7 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({ series, data, insigh
                         <section>
                             <H3>{t('Сыйлыктар')}</H3>
                             {grouped.length === 0 ? (
-                                <p className="italic" style={{ color: 'var(--text-muted)' }}>{t('Азырынча сыйлык жок — биринчиси алдыда.')}</p>
+                                <p className="italic" style={{ color: 'var(--text-muted)' }}>{t('Азырынча сыйлык жок. Биринчиси алдыда.')}</p>
                             ) : (
                                 <>
                                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-8">

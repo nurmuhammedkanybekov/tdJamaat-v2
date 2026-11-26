@@ -45,7 +45,7 @@ export const AccountSheet: React.FC<{ onClose: () => void }> = ({ onClose }) => 
             { key: 'house', icon: Home, label: person.houseName, sub: t('Менин үйүм'), to: '#/house' }
         ] : []),
         ...(role === 'admin' ? [{ key: 'houses', icon: Home, label: t('Бардык үйлөр'), sub: t('Ар бир үй жана анын сөзү'), to: '#/house' }] : []),
-        ...((ctx.signedIn && role !== 'inspector') || linked ? [{ key: 'jamaat', icon: Users, label: t('Жамааттын жыйынтыгы'), sub: t('Бирге окулган Куран, үйлөрдүн жарышы'), to: '#/jamaat' }] : []),
+        ...((ctx.signedIn && role !== 'inspector') || linked ? [{ key: 'jamaat', icon: Users, label: t('Жамааттын жыйынтыгы'), sub: t('Үйлөрдүн жарышы жана бирге окулган Куран'), to: '#/jamaat' }] : []),
         ...(ctx.signedIn || linked ? [{ key: 'talk', icon: MessageCircle, label: t('Баарлашуу'), sub: t('Жамааттын сөзү жана башкалар'), to: '#/chat' }] : []),
         ...(ctx.signedIn && role !== 'inspector' ? [{ key: 'results', icon: Trophy, label: t('Жыйынтыктар'), sub: t('Үйлөрдүн апталык жарышы'), to: '#/overview' }] : []),
         ...(role === 'inspector' ? [{ key: 'tazalyk', icon: Sparkles, label: t('Тазалык'), sub: t('Үйлөрдү баалоо'), to: '#/overview' }] : []),

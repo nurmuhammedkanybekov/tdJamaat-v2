@@ -30,7 +30,7 @@ export const SignInCheck: React.FC<{ theme: Theme; onToggleTheme: () => void }> 
 
             const back = readReturn();
             if (!back) out.push({ label: t('Google\'дан кайтуу'), state: 'none', text: t('Бул браузерде азырынча Google аркылуу кирүү аракети болгон жок. Төмөнкү баскыч менен кирип, бул бетке кайра келиңиз.') });
-            else if (back.error) out.push({ label: t('Google\'дан кайтуу'), state: 'bad', text: back.error, fix: /exchange external code/i.test(back.error) ? t('Supabase Google\'дан кодду алды, бирок Google аны кабыл алган жок — Supabase\'теги Google «Client Secret» (же Client ID) туура эмес. Google Cloud → APIs & Services → Credentials → OAuth client → жаңы Client secret түзүп, Client ID жана Client secret экөөнү тең Supabase → Authentication → Sign In / Providers → Google\'га кайра чаптап, Save басыңыз.') : /signups? not allowed|signup.*disabled/i.test(back.error) ? t('Supabase → Authentication → Sign In / Providers → «Allow new users to sign up» күйгүзүлүшү керек.') : /provider is not enabled|unsupported provider/i.test(back.error) ? t('Supabase → Authentication → Providers → Google күйгүзүлүшү керек.') : undefined });
+            else if (back.error) out.push({ label: t('Google\'дан кайтуу'), state: 'bad', text: back.error, fix: /exchange external code/i.test(back.error) ? t('Supabase Google\'дан код алды, бирок Google аны кабыл алган жок. Supabase\'теги Google Client Secret же Client ID туура эмес. Google Cloud → APIs & Services → Credentials → OAuth client бөлүмүндө жаңы Client secret түзүңүз, анан Client ID менен Client secret экөөн тең Supabase → Authentication → Sign In / Providers → Google\'га чаптап, Save басыңыз.') : /signups? not allowed|signup.*disabled/i.test(back.error) ? t('Supabase → Authentication → Sign In / Providers → «Allow new users to sign up» күйгүзүлүшү керек.') : /provider is not enabled|unsupported provider/i.test(back.error) ? t('Supabase → Authentication → Providers → Google күйгүзүлүшү керек.') : undefined });
             else if (back.exchangeError) out.push({ label: t('Google\'дан кайтуу'), state: 'bad', text: back.exchangeError, fix: t('Кирүү башка браузерде аяктады. Сайтты Safari же Chrome\'до ачып, ошол жерден кайра «Google менен кирүү» басыңыз (Gmail, Telegram, Instagram ичиндеги браузерден эмес).') })
             else out.push({ label: t('Google\'дан кайтуу'), state: 'ok', text: t('Google кирүүнү кабыл алды ({0}).', new Date(back.at).toLocaleString()) });
 
@@ -41,7 +41,7 @@ export const SignInCheck: React.FC<{ theme: Theme; onToggleTheme: () => void }> 
             else {
                 const role = (user.app_metadata as { role?: string } | undefined)?.role;
                 out.push({ label: t('Сессия'), state: 'ok', text: `${user.email ?? '—'} · ${user.app_metadata?.provider ?? '—'}` });
-                if (role) out.push({ label: t('Ролу'), state: 'bad', text: role, fix: t('Бул аккаунт капитан/админ катары белгиленген — мүчө катары кирүү үчүн башка Gmail колдонуңуз.') });
+                if (role) out.push({ label: t('Ролу'), state: 'bad', text: role, fix: t('Бул аккаунт капитандыкы же админдики. Мүчө катары кирүү үчүн башка Gmail колдонуңуз.') });
                 else {
                     out.push({ label: t('Почта ырасталганбы'), state: user.email_confirmed_at ? 'ok' : 'bad', text: user.email_confirmed_at ? t('ооба') : t('жок'), fix: user.email_confirmed_at ? undefined : t('Google аккаунттун почтасы ырасталган болушу керек.') });
                     const { data: link, error: linkError } = await supabase.rpc('link_member_account');
@@ -64,7 +64,7 @@ export const SignInCheck: React.FC<{ theme: Theme; onToggleTheme: () => void }> 
     return (
         <AppFrame page="today" title={t('Кирүүнү текшерүү')} kicker={t('Google менен кирүү')} theme={theme} onToggleTheme={onToggleTheme}>
             <div className="max-w-[40rem] mx-auto">
-                <p className="text-[0.95rem] leading-relaxed text-center" style={{ color: 'var(--text-secondary)' }}>{t('Бул бет Google аркылуу кирүүнүн ар бир кадамын текшерет. Кызыл белги кайсы жерде токтогонун көрсөтөт — скриншот жиберсеңиз болот.')}</p>
+                <p className="text-[0.95rem] leading-relaxed text-center" style={{ color: 'var(--text-secondary)' }}>{t('Бул бет Google менен кирүүнү кадам-кадамы менен текшерет. Кызыл белги кайсы жерде токтогонун көрсөтөт. Скриншотун админге жиберсеңиз болот.')}</p>
                 {!steps ? <div className="flex justify-center py-12"><Loader2 className="w-5 h-5 animate-spin" style={{ color: 'var(--gold)' }} /></div> : (
                     <ol className="mt-8" style={{ borderTop: '1px solid var(--gold-dim)' }}>
                         {steps.map((s, i) => (

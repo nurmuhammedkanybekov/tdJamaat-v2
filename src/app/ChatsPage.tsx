@@ -222,7 +222,7 @@ const RoomChat: React.FC<{ room: ChatRoom; theme: Theme; onToggleTheme: () => vo
         setSending(true); setError('');
         // A captain signs as the person of their house they chose ("Мен").
         try { await sendToRoom(room, clean, access.role === 'leader' && self?.via === 'staff' ? self.memberId : null); setText(''); stick.current = true; load(); input.current?.focus(); }
-        catch (e) { const msg = (e as Error)?.message ?? ''; setError(/relation|does not exist|schema cache|row-level security/i.test(msg) ? t('Бул сөз азырынча ачыла элек — админ supabase/jamaat-chat-2026-11.sql файлын иштетиши керек.') : msg || t('Жөнөтүлгөн жок')); }
+        catch (e) { const msg = (e as Error)?.message ?? ''; setError(/relation|does not exist|schema cache|row-level security/i.test(msg) ? t('Бул сөз азырынча ачыла элек. Админ supabase/jamaat-chat-2026-11.sql файлын иштетиши керек.') : msg || t('Жөнөтүлгөн жок')); }
         finally { setSending(false); }
     };
     const amin = async (m: RoomMessage) => {
@@ -250,7 +250,7 @@ const RoomChat: React.FC<{ room: ChatRoom; theme: Theme; onToggleTheme: () => vo
 
                 {messages === undefined && <Waiting />}
                 {messages === null && (
-                    <p className="mt-8 px-4 py-3 text-[0.9rem]" style={{ borderLeft: '2px solid var(--gold)', color: 'var(--text-secondary)' }}>{t('Бул сөз азырынча ачыла элек — админ supabase/jamaat-chat-2026-11.sql файлын иштетиши керек.')}</p>
+                    <p className="mt-8 px-4 py-3 text-[0.9rem]" style={{ borderLeft: '2px solid var(--gold)', color: 'var(--text-secondary)' }}>{t('Бул сөз азырынча ачыла элек. Админ supabase/jamaat-chat-2026-11.sql файлын иштетиши керек.')}</p>
                 )}
                 {messages && messages.length === 0 && (
                     <p className="text-center font-display text-[1.4rem] pt-10" style={{ color: 'var(--text-primary)' }}>{t('Биринчи сөз сизден болсун')}</p>

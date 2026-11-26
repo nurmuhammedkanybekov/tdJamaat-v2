@@ -16,7 +16,7 @@ export const NamazPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
                 <Compass className="w-6 h-6 flex-shrink-0" strokeWidth={1.3} style={{ color: 'var(--gold)' }} />
                 <span className="flex-1">
                     <span className="block font-display text-[1.3rem]" style={{ color: 'var(--text-primary)' }}>{t('Кыбла')}</span>
-                    <span className="block text-[0.85rem]" style={{ color: 'var(--text-muted)' }}>{t('Кааба кайсы тарапта — компас менен')}</span>
+                    <span className="block text-[0.85rem]" style={{ color: 'var(--text-muted)' }}>{t('Кааба кайсы тарапта экенин компас көрсөтөт')}</span>
                 </span>
             </button>
         </div>

@@ -40,7 +40,7 @@ const MyPhoto: React.FC<{ houseId: string; memberId: string; name: string; photo
         if (!file) return;
         setBusy(true); setError('');
         try { setUrl(await uploadMemberPhoto(houseId, memberId, file)); onChanged(); }
-        catch (e) { setError(/row-level|policy|not allowed|403/i.test(String((e as Error)?.message)) ? t('Сүрөт коюу азырынча ачыла элек — админ supabase/member-photos-2026-11.sql файлын иштетиши керек.') : (e as Error)?.message ?? ''); }
+        catch (e) { setError(/row-level|policy|not allowed|403/i.test(String((e as Error)?.message)) ? t('Сүрөт коюу азырынча ачыла элек. Админ supabase/member-photos-2026-11.sql файлын иштетиши керек.') : (e as Error)?.message ?? ''); }
         finally { setBusy(false); }
     };
     return (
@@ -69,7 +69,7 @@ const ChooseSelf: React.FC<{ data: DataFile; onlyHouse: string | null; onChoose:
     const team = teams.find(tm => tm.id === house) ?? teams[0];
     return (
         <div className="max-w-[36rem] mx-auto pt-8">
-            <p className="text-center text-[1rem] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{t('Сиз да бир үйдүн адамысыз. Ким экениңизди бир жолу тандаңыз — анан өз үйүңүздү, сүрөтүңүздү, үйдүн сөзүн көрөсүз, ал эми колдонмодогу сандарыңыз формага түшөт.')}</p>
+            <p className="text-center text-[1rem] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{t('Сиз да үйдүн бир адамысыз. Ким экениңизди бир жолу тандаңыз. Ошондо үйүңүз ачылат жана колдонмодогу сандарыңыз формага өзү түшөт.')}</p>
             {teams.length > 1 && (
                 <div className="chip-row mt-6 justify-center" role="tablist">
                     {teams.map(tm => <button key={tm.id} role="tab" aria-selected={tm.id === team?.id} className={`chip ${tm.id === team?.id ? 'is-active' : ''}`} onClick={() => setHouse(tm.id)}>{tm.name}</button>)}
@@ -116,7 +116,7 @@ const AdminHouses: React.FC<{ data: DataFile }> = ({ data }) => {
     const teams = [...(latest?.teams ?? [])].map(tm => ({ tm, rating: tm.submitted ? calculateHouseRating(tm) : null })).sort((a, b) => (b.rating ?? -1) - (a.rating ?? -1));
     return (
         <div className="max-w-[44rem] mx-auto">
-            <p className="text-center text-[0.95rem] leading-relaxed pt-6" style={{ color: 'var(--text-secondary)' }}>{t('Сиз жамааттын админисиз — бир үйдүн адамы эмессиз. Бардык үйлөрдү ачып, ар бир үйдүн сөзүнө «Админ» катары жаза аласыз.')}</p>
+            <p className="text-center text-[0.95rem] leading-relaxed pt-6" style={{ color: 'var(--text-secondary)' }}>{t('Админ катары бардык үйлөрдү көрөсүз жана ар биринин сөзүнө «Админ» болуп жаза аласыз.')}</p>
             <div className="grid grid-cols-2 gap-3 mt-6">
                 <button onClick={() => go('#/chat/all')} className="row-link text-left p-4 flex items-center gap-3" style={{ border: '1px solid var(--gold-dim)' }}>
                     <Users className="w-5 h-5 flex-shrink-0" strokeWidth={1.5} style={{ color: 'var(--gold)' }} />
@@ -177,7 +177,7 @@ export const HousePage: React.FC<{ arg?: string | null; sub?: string | null; the
         return (
             <AppFrame page="house" title={t('Үйлөр')} kicker="CL" theme={theme} onToggleTheme={onToggleTheme}>
                 <div className="max-w-[34rem] mx-auto text-center pt-8">
-                    <p className="text-[1rem] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{t('CL ар бир үйдүн тазалыгын баалайт. Баалоо жана жамааттын сөзү — төмөндө.')}</p>
+                    <p className="text-[1rem] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{t('CL ар бир үйдүн тазалыгын баалайт.')}</p>
                     <div className="flex flex-wrap justify-center gap-3 mt-6">
                         <button className="btn btn-primary" onClick={() => go('#/overview')}>{t('Тазалык')}</button>
                         <button className="btn btn-ghost" onClick={() => go('#/chat')}>{t('Баарлашуу')}</button>

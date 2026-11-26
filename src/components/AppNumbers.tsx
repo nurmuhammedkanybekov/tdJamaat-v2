@@ -34,7 +34,7 @@ export const AppNumbersBar: React.FC<{
             </span>
             {applied === null
                 ? <button type="button" className="btn btn-ghost" onClick={() => setApplied(onApply(numbers))}>{t('Формага коюу')}</button>
-                : <span className="inline-flex items-center gap-1.5" style={{ color: 'var(--gold)' }}><Check className="w-4 h-4" />{t('{0} сан коюлду — текшерип, сактаңыз', applied)}</span>}
+                : <span className="inline-flex items-center gap-1.5" style={{ color: 'var(--gold)' }}><Check className="w-4 h-4" />{t('{0} сан коюлду. Текшерип, сактаңыз', applied)}</span>}
         </div>
     );
 };

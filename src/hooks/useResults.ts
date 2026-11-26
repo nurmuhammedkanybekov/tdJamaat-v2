@@ -51,7 +51,7 @@ export const useResults = (who: string | null, checked: boolean, paused: () => b
             setUpdatedAt(new Date());
         } catch (err) {
             if (silent) setStale(true);
-            else setError(t('Маалыматты жүктөөдө ката кетти. Интернет байланышын текшерип, бир аздан кийин кайра аракет кылыңыз.'));
+            else setError(t('Маалымат жүктөлгөн жок. Интернетти текшерип, кайра аракет кылыңыз.'));
             console.error('Error loading data:', err);
         } finally {
             setLoading(false);

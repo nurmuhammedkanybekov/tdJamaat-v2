@@ -103,7 +103,7 @@ export const NewsPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = (
                 {isAdmin && <Composer onPosted={load} />}
                 {!someone && <p className="text-center pt-10" style={{ color: 'var(--text-muted)' }}>{t('Кабарларды окуу үчүн кириңиз.')}</p>}
                 {someone && list === undefined && <Waiting />}
-                {someone && list === null && <p className="mt-8 px-4 py-3 text-[0.9rem]" style={{ borderLeft: '2px solid var(--gold)', color: 'var(--text-secondary)' }}>{t('Кабарлар азырынча ачыла элек — админ supabase/community-2026-11.sql файлын иштетиши керек.')}</p>}
+                {someone && list === null && <p className="mt-8 px-4 py-3 text-[0.9rem]" style={{ borderLeft: '2px solid var(--gold)', color: 'var(--text-secondary)' }}>{t('Кабарлар азырынча ачыла элек. Админ supabase/community-2026-11.sql файлын иштетиши керек.')}</p>}
                 {someone && list && list.length === 0 && <p className="text-center pt-10 italic" style={{ color: 'var(--text-muted)' }}>{t('Азырынча кабар жок.')}</p>}
                 {list && list.map(a => (
                     <article key={a.id} className="news-item">

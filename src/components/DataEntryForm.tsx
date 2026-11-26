@@ -72,7 +72,7 @@ const describeSaveError = (err: unknown): string => {
         return t('Базага жазууга уруксат жок: бул үйгө же бул аптага маалымат киргизүү укугуңуз жок. Админге кайрылыңыз.');
     }
     if (code === '23503') {
-        return t('Бул апта базада жок — админ аны ачышы керек.');
+        return t('Бул апта азырынча ачыла элек. Аны админ ачат.');
     }
     if (err instanceof Error && err.message) return t('Сакталган жок: {0}', err.message);
     return t('Сакталган жок: белгисиз ката. Интернетти текшерип, кайра аракет кылыңыз.');
@@ -389,7 +389,7 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
             a.click();
             a.remove();
             setTimeout(() => URL.revokeObjectURL(url), 1000);
-            setNotice(t('Камдык көчүрмө жүктөлдү — аны сактап коюңуз.'));
+            setNotice(t('Көчүрмө жүктөлдү. Аны ишенимдүү жерге сактаңыз.'));
         } catch (err) {
             setError(describeSaveError(err));
         } finally {
@@ -436,11 +436,11 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
             return;
         }
         if (members.length === 0) {
-            setError(t('Бул үйдө азырынча мүчө жок — админ аркылуу кошуу керек'));
+            setError(t('Бул үйдө азырынча эч ким жок. Мүчөлөрдү админ кошот.'));
             return;
         }
         if (!weekNumbers.includes(weekNumber)) {
-            setError(t('{0} али ачыла элек — админ ачышы керек.', label(weekNumber)));
+            setError(t('{0} али ачыла элек. Аны админ ачат.', label(weekNumber)));
             return;
         }
 
@@ -576,7 +576,7 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                             {weekLocked && (
                                 <div className="mb-6 px-4 py-3 flex items-start gap-2.5 text-sm" style={{ backgroundColor: 'var(--gold-soft)', border: '1px solid color-mix(in oklab, var(--gold) 35%, transparent)', color: 'var(--text-secondary)' }}>
                                     <Lock className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: 'var(--gold)' }} />
-                                    <p>{isAdmin ? t('{0} кулпуланган: капитандар өзгөртө алышпайт, бирок админ катары сиз өзгөртө аласыз.', label(weekNumber)) : t('{0} кулпуланган — өзгөртүү үчүн админге кайрылыңыз.', label(weekNumber))}</p>
+                                    <p>{isAdmin ? t('{0} кулпуланган: капитандар өзгөртө алышпайт, бирок админ катары сиз өзгөртө аласыз.', label(weekNumber)) : t('{0} кулпуланган. Өзгөртүү керек болсо, админге айтыңыз.', label(weekNumber))}</p>
                                 </div>
                             )}
 
@@ -792,14 +792,14 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
                                     <li key={`${it.owner}|${it.key}`} className="tabular">
                                         <b style={{ color: 'var(--text-primary)' }}>{it.owner === 'card' ? t('Мини-карта') : members.find(m => m.id === it.owner)?.name ?? ''}</b>
                                         {' — '}{it.owner === 'card' ? cardLabel(it.key as keyof MiniCard) : metricLabel(it.key as keyof MetricValues)} <b style={{ color: 'var(--danger)' }}>{it.value}</b>{' '}{it.usual
-                                            ? t('(план {0}, адатта ~{1}) — {2}× көп', it.target, Math.round(it.usual), Math.round(it.value / it.target))
-                                            : t('(план {0}) — {1}× көп', it.target, Math.round(it.value / it.target))}
+                                            ? t('(план {0}, адатта ~{1}), {2} эсе көп', it.target, Math.round(it.usual), Math.round(it.value / it.target))
+                                            : t('(план {0}), {1} эсе көп', it.target, Math.round(it.value / it.target))}
                                     </li>
                                 ))}
                             </ul>
                             <div className="flex flex-wrap gap-2 mt-2.5">
                                 <button type="button" onClick={() => setAskTypos(false)} className="px-3 py-2 text-sm font-semibold" style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--text-secondary)' }}>{t('Оңдоо')}</button>
-                                <button type="button" onClick={() => handleSubmit(null, true)} className="px-3 py-2 text-sm font-semibold" style={{ border: '1px solid var(--danger)', borderRadius: 'var(--radius-sm)', color: 'var(--danger)' }}>{t('Ооба, туура — сактоо')}</button>
+                                <button type="button" onClick={() => handleSubmit(null, true)} className="px-3 py-2 text-sm font-semibold" style={{ border: '1px solid var(--danger)', borderRadius: 'var(--radius-sm)', color: 'var(--danger)' }}>{t('Ооба, туура, сактоо')}</button>
                             </div>
                         </div>
                     )}

@@ -111,7 +111,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
                     {/* The jamaat week runs Thursday → Wednesday. */}
                     <div className="card card-pad mb-5">
                         <div className="flex items-center gap-2 font-bold" style={{ color: 'var(--text-primary)' }}><CalendarDays className="w-4 h-4" style={{ color: 'var(--gold)' }} />{t('Апталардын даталары')}</div>
-                        <p className="text-[0.8rem] mt-1" style={{ color: 'var(--text-muted)' }}>{t('Апта бейшембиден шаршембиге чейин. Сезондун {0} башталган бейшембини тандаңыз — калган апталар өзү эсептелет.', label(seasonFirst))}</p>
+                        <p className="text-[0.8rem] mt-1" style={{ color: 'var(--text-muted)' }}>{t('Апта бейшембиден шаршембиге чейин. Сезондун {0} башталган бейшембини тандасаңыз, калган апталар өзү эсептелет.', label(seasonFirst))}</p>
                         <div className="flex flex-wrap items-center gap-2 mt-3">
                             <input type="date" value={firstThursday} onChange={e => setFirstThursday(e.target.value)} className="login-field px-3 py-2 text-[0.95rem]" style={{ ...inputStyle, colorScheme: 'light dark' }} aria-label={t('Биринчи бейшемби')} />
                             <button
@@ -161,7 +161,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
                                         onClick={() => run(`lock${w.globalWeek}`, async () => {
                                             await setWeekLocked(w.globalWeek, !w.locked);
                                             onChanged();
-                                            return w.locked ? t('{0} ачылды — капитандар кайра өзгөртө алышат.', label(w.globalWeek)) : t('{0} кулпуланды.', label(w.globalWeek));
+                                            return w.locked ? t('{0} ачылды. Капитандар кайра өзгөртө алат.', label(w.globalWeek)) : t('{0} кулпуланды.', label(w.globalWeek));
                                         })}
                                     >
                                         {busy === `lock${w.globalWeek}` ? <Loader2 className="w-4 h-4 animate-spin" /> : w.locked ? <Lock className="w-4 h-4" /> : <LockOpen className="w-4 h-4" />}
@@ -290,7 +290,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
                     <div className="card card-pad">
                         <p className="text-[0.88rem] mb-4" style={{ color: 'var(--text-secondary)' }}>
                             
-                            {t('Бүт базанын (үйлөр, мүчөлөр, апталар, жыйынтыктар, пландар) толук көчүрмөсү — бир JSON файл. Ар бир аптадан кийин сактап коюңуз.')}
+                            {t('Бүт базанын көчүрмөсү бир JSON файлда. Ар бир аптадан кийин бирди сактап коюңуз.')}
                         </p>
                         <button
                             className="btn btn-primary"
@@ -305,7 +305,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
                                 a.click();
                                 a.remove();
                                 setTimeout(() => URL.revokeObjectURL(url), 1000);
-                                return t('Камдык көчүрмө жүктөлдү — аны сактап коюңуз.');
+                                return t('Көчүрмө жүктөлдү. Аны ишенимдүү жерге сактаңыз.');
                             })}
                         >
                             {busy === 'backup' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />} {t('Камдык көчүрмөнү жүктөп алуу')}

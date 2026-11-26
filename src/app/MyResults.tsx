@@ -232,7 +232,7 @@ const Awards: React.FC<{ memberId: string; awards: ReturnType<typeof computeAwar
     return (
         <Section eyebrow={t('Менин сыйлыктарым')} action={mine.length > 0 ? <span className="text-[0.8rem] tabular" style={{ color: 'var(--text-muted)' }}>{t('{0} түр', mine.length)}</span> : undefined}>
             {mine.length === 0 ? (
-                <p className="text-[0.95rem] italic py-5 text-center" style={{ color: 'var(--text-muted)' }}>{t('Азырынча сыйлык жок — биринчиси жакын. Төмөндө эмнеге канча калганы көрсөтүлгөн.')}</p>
+                <p className="text-[0.95rem] italic py-5 text-center" style={{ color: 'var(--text-muted)' }}>{t('Азырынча сыйлык жок. Төмөндө кайсынысына канча калганын көрөсүз.')}</p>
             ) : (
                 <ul className="mine-awards">
                     {mine.map(a => {
@@ -296,7 +296,7 @@ const MyJattoo: React.FC<{ data: Parameters<typeof JattooProfile>[0]['data']; me
                 <div className="text-center py-4">
                     <BookOpenCheck className="w-7 h-7 mx-auto" strokeWidth={1.3} style={{ color: 'var(--gold)' }} />
                     <div className="font-display text-[1.6rem] mt-2" style={{ color: 'var(--text-primary)' }}>{t('Жаттоо')}</div>
-                    <p className="text-[0.9rem] mt-1 max-w-[28rem] mx-auto" style={{ color: 'var(--text-muted)' }}>{t('Жаттаганыңызды капитанга окуп бериңиз — ал жазып коёт, бул жерде аяттарыңыз, хадистериңиз жана пландарыңыз чыгат.')}</p>
+                    <p className="text-[0.9rem] mt-1 max-w-[28rem] mx-auto" style={{ color: 'var(--text-muted)' }}>{t('Жаттаганыңызды капитанга окуп бериңиз. Ал жазып койгондо, бул жерде көрүнөт.')}</p>
                 </div>
             )}
         </div>

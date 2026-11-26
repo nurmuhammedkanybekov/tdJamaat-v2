@@ -54,7 +54,7 @@ export const MemberAccountsSheet: React.FC<{ data: DataFile; houseId: string | n
         <Sheet title={t('Мүчөлөрдүн кирүүсү')} onClose={onClose} width="34rem">
             <div className="px-5 sm:px-7 py-6">
                 <p className="text-[0.92rem] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-                    {t('Адамдын Gmail дарегин жазыңыз. Ал сайтка «Google менен кирүү» аркылуу кирип, өз жыйынтыгын көрөт, ал эми колдонмодогу сандары (салават, зикир, тасбихат, Куран) сиздин формаңызга бир басуу менен түшөт.')}
+                    {t('Адамдын Gmail дарегин жазыңыз. Ал «Google менен кирүү» аркылуу кирип, өз жыйынтыгын көрөт. Колдонмодогу сандары сиздин формаңызга бир басуу менен түшөт.')}
                 </p>
                 {!houseId && teams.length > 1 && (
                     <div className="chip-row mt-5" role="tablist">
