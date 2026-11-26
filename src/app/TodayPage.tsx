@@ -189,6 +189,10 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
     // its time ends; between sunrise and Dhuhr, the next one and how long.
     const hour = prayerNow(city, now);
     const shown = hour.active ?? null;
+    // How much of the current stretch has passed: the running prayer's time,
+    // or (between sunrise and Dhuhr) the wait for Dhuhr.
+    const span = shown ? [shown.at.getTime(), shown.endsAt.getTime()] : [times.sunrise.getTime(), next.at.getTime()];
+    const elapsed = Math.min(1, Math.max(0, (now.getTime() - span[0]) / Math.max(1, span[1] - span[0])));
     const hijri = toHijri(now);
     const ramadan = isRamadan(hijri);
     const prayer = currentPrayer(city, now);
@@ -205,21 +209,32 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
 
     const hero = (
         <div className="monument relative flex flex-col items-center text-center pt-4 sm:pt-8 pb-8 sm:pb-12">
-            <Crown className="draw-in h-auto w-[min(15rem,64%)]" style={{ color: 'var(--gold)' }} />
+            <Crown className="draw-in h-auto w-[min(12rem,52%)]" style={{ color: 'var(--gold)' }} />
             <div className="eyebrow mt-4" style={{ color: 'var(--gold)' }}>{linked ? t('Ассалому алейкум, {0}', linked.name) : `${weekday(now)} · ${dayMonth(now)}`}</div>
             <div className="text-[0.85rem] italic mt-1.5" style={{ color: 'var(--text-muted)' }}>
                 {linked && `${weekday(now)}, ${dayMonth(now)} · `}{hijri ? formatHijri(hijri) : ''}{ramadan && <span style={{ color: 'var(--gold)' }}> · {t('Рамазан мубарак')}</span>}
             </div>
-            <div className="eyebrow mt-6" style={{ color: 'var(--text-muted)' }}>{shown ? t('Азыр') : t('Кийинки намаз')}</div>
-            <h1 className="font-display leading-none mt-2 text-[2.2rem] sm:text-[3rem] animate-view-in" style={{ color: 'var(--text-primary)' }}>{shown ? PRAYER_NAMES[shown.key] : ramadan && next.key === 'maghrib' ? t('Ифтар') : PRAYER_NAMES[next.key]}</h1>
-            <div className="relative mt-1">
+            {/* The hour as a dial: the шырдак medallion turning behind it, a gold
+                ring that fills as the prayer's time passes, the prayer inside. */}
+            <div className="dial mt-5" role="timer" aria-label={`${shown ? PRAYER_NAMES[shown.key] : PRAYER_NAMES[next.key]} ${clock(shown ? shown.at : next.at, city.tz)}`}>
+                <span className="dial-medallion" aria-hidden="true"><Medallion size={430} className="spin-slow" /></span>
                 <span className="hero-glow" aria-hidden="true" />
-                <div className="font-display tabular leading-[0.9] text-[5.4rem] sm:text-[7.5rem] gold-sheen">{clock(shown ? shown.at : next.at, city.tz)}</div>
-            </div>
-            <div className="mt-2 text-[0.95rem] tracking-[0.04em]" style={{ color: 'var(--text-muted)' }}>
-                {shown
-                    ? <>{ramadan && shown.endsKey === 'maghrib' ? t('Ифтар') : PRAYER_NAMES[shown.endsKey]} <span className="tabular" style={{ color: 'var(--gold)' }}>{clock(shown.endsAt, city.tz)}</span> · {t('{0} калды', untilText(shown.endsAt.getTime() - now.getTime()))}</>
-                    : t('{0} калды', untilText(next.at.getTime() - now.getTime()))}
+                <svg viewBox="0 0 200 200" className="dial-ring" aria-hidden="true">
+                    <circle cx="100" cy="100" r="94" className="dial-track" />
+                    {Array.from({ length: 60 }, (_, i) => <line key={i} x1="100" x2="100" y1={i % 5 === 0 ? 1 : 3} y2="6" transform={`rotate(${i * 6} 100 100)`} className="dial-tick" />)}
+                    <circle cx="100" cy="100" r="94" className="dial-arc" pathLength={100} strokeDasharray={`${elapsed * 100} 100`} transform="rotate(-90 100 100)" />
+                    <g transform={`rotate(${elapsed * 360} 100 100)`}><rect x="95.5" y="1.5" width="9" height="9" transform="rotate(45 100 6)" className="dial-gem" /></g>
+                </svg>
+                <div className="dial-in">
+                    <div className="eyebrow" style={{ color: 'var(--gold)' }}>{shown ? t('Азыр') : t('Кийинки намаз')}</div>
+                    <h1 className="font-display leading-none mt-1.5 text-[2rem] sm:text-[2.6rem] animate-view-in" style={{ color: 'var(--text-primary)' }}>{shown ? PRAYER_NAMES[shown.key] : ramadan && next.key === 'maghrib' ? t('Ифтар') : PRAYER_NAMES[next.key]}</h1>
+                    <div className="font-display tabular leading-[0.9] text-[4.3rem] sm:text-[5.6rem] gold-sheen">{clock(shown ? shown.at : next.at, city.tz)}</div>
+                    <div className="mt-2 text-[0.82rem] sm:text-[0.9rem]" style={{ color: 'var(--text-muted)' }}>
+                        {shown
+                            ? <>{ramadan && shown.endsKey === 'maghrib' ? t('Ифтар') : PRAYER_NAMES[shown.endsKey]} <span className="tabular" style={{ color: 'var(--gold)' }}>{clock(shown.endsAt, city.tz)}</span><br />{t('{0} калды', untilText(shown.endsAt.getTime() - now.getTime()))}</>
+                            : t('{0} калды', untilText(next.at.getTime() - now.getTime()))}
+                    </div>
+                </div>
             </div>
             <DayPath times={times} now={now} tz={city.tz} next={shown ? shown.key : next.key} />
             {/* The almanac line: the day's times, the Qibla, the city, as one

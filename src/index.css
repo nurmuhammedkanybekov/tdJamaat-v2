@@ -1481,3 +1481,17 @@ button.help-where:hover { border-bottom-color: var(--gold); }
 
 /* The closing line of the day. */
 .day-end { display: flex; width: 100%; margin-top: 3rem; padding: .6rem 0; border-top: 1px solid var(--gold-dim); border-bottom: 1px solid var(--gold-dim); }
+
+/* ---------------------------------------------------------------- my day: the dial */
+.dial { position: relative; width: min(21rem, 84vw); aspect-ratio: 1; display: flex; align-items: center; justify-content: center; }
+@media (min-width: 640px) { .dial { width: 25rem; } }
+.dial-medallion { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: -1; color: var(--gold); opacity: .09; pointer-events: none; }
+.dark .dial-medallion { opacity: .13; }
+@media (max-width: 639px) { .dial-medallion > svg { width: min(350px, 90vw); height: min(350px, 90vw); } }
+.dial .hero-glow { width: 120%; }
+.dial-ring { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.dial-track { fill: none; stroke: var(--border-strong); stroke-width: .6; }
+.dial-tick { stroke: var(--gold-dim); stroke-width: .5; }
+.dial-arc { fill: none; stroke: var(--gold); stroke-width: 1.6; stroke-linecap: round; transition: stroke-dasharray 1s ease; }
+.dial-gem { fill: var(--gold); filter: drop-shadow(0 0 4px var(--gold)); }
+.dial-in { position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 0 1.2rem; }

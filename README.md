@@ -17,7 +17,7 @@ The interface is in Kyrgyz, with an English version.
   <img src="docs/desktop-night.jpg" alt="The week in the night theme: the leading house and its rating" width="100%">
 </p>
 <p align="center">
-  <img src="docs/phone-today.jpg" alt="My day: the hour's tasbihat, tasbih and Quran, the jamaat's news and the ayah of the day" width="31%">
+  <img src="docs/phone-today.jpg" alt="My day: the prayer whose time it is, inside a dial that fills as its time passes" width="31%">
   &nbsp;
   <img src="docs/phone-results.jpg" alt="A member's own results for the week" width="31%">
   &nbsp;
@@ -75,8 +75,9 @@ cards. Each page also gets its own form: prayer times are drawn as the
 sun's path over the day, the zikrs hang as beads on a thread, the Quran
 page keeps a bookmark with your place in the 604 pages.
 
-My day, the first page, follows the clock. It shows the prayer whose time
-is running and when it ends, then what that hour asks for in three
+My day, the first page, follows the clock. The prayer whose time is
+running sits inside a dial, the шырдак medallion behind it and a gold
+ring filling as that prayer's time passes, with when it ends. Below come what that hour asks for in three
 columns (the prayer's tasbihat, the 33 · 33 · 34, the Quran where you
 stopped), the jamaat's latest news under its seal, an ayah of the day
 framed like a page of the mushaf, and your week in four numbers.
