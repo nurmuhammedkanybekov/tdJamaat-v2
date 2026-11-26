@@ -1,14 +1,16 @@
-// "Менин аккаунтум": opened from the round mark in the top bar. Who is here,
-// the pages that are theirs (results, house, Жаттоо, conversations, prayer
-// times) — and the way out, in plain sight.
-import React, { useContext, useState } from 'react';
-import { BookOpenCheck, ChartNoAxesColumn, Clock3, Compass, Home, LogOut, MessageCircle, Settings2, Sparkles, Trophy, Users } from 'lucide-react';
+// The menu of the everyday pages: three lines and the person's own face in
+// the top bar. It opens a drawer that names every place in the app in plain
+// words (what it is, not just its title), grouped the way people think about
+// them: my day, my results, the jamaat, and the account itself.
+import React, { useContext, useEffect, useState } from 'react';
+import { BookOpen, BookOpenCheck, ChartNoAxesColumn, CircleDot, CircleHelp, Clock3, Compass, Home, LogIn, LogOut, MessageCircle, ScrollText, Settings2, Sparkles, SunMedium, Trophy, Users, X } from 'lucide-react';
 import { t } from '../i18n';
-import { Sheet } from '../components/ui';
-import { Avatar } from '../components/Avatar';
 import { Mark } from '../components/Ornament';
+import { useModal } from '../hooks/useModal';
+import { useBackCloses } from '../hooks/useBackCloses';
 import { AppContext } from './context';
 import { useSelf } from './self';
+import { useMyPhoto } from './myPhoto';
 import { go } from './route';
 import { signOutMember } from '../services/memberService';
 import { signOut } from '../services/authService';
@@ -17,41 +19,87 @@ const ROLE_NAME: Record<string, () => string> = {
     admin: () => t('Жамааттын админи'), leader: () => t('Капитан'), inspector: () => t('CL · Тазалык'), member: () => t('Мүчө')
 };
 
-/** The round mark in the top bar: the admin's seal, CL, or the person's initial. */
+// ---------------------------------------------------------------- my photo
+
+/** A round face: the photo, or the first letter of the name on gold. */
+const Face: React.FC<{ name: string; url: string | null; size: number }> = ({ name, url, size }) => {
+    const [bad, setBad] = useState(false);
+    useEffect(() => setBad(false), [url]);
+    if (url && !bad) return <img src={url} alt="" onError={() => setBad(true)} className="rounded-full object-cover flex-shrink-0" style={{ width: size, height: size, boxShadow: '0 0 0 1px var(--gold), 0 0 0 3px var(--page-plane)' }} />;
+    return (
+        <span aria-hidden="true" className="rounded-full inline-flex items-center justify-center font-display flex-shrink-0" style={{ width: size, height: size, fontSize: size * 0.46, color: 'var(--gold)', border: '1px solid var(--gold)' }}>
+            {name ? name.slice(0, 1) : '·'}
+        </span>
+    );
+};
+
+/** The menu button in the top bar: three lines, and who is here. */
 export const AccountMark: React.FC<{ onClick: () => void }> = ({ onClick }) => {
     const ctx = useContext(AppContext);
     const { self } = useSelf();
-    const role = ctx.signedIn ? ctx.role : 'member';
+    const photo = useMyPhoto(self);
+    const role = ctx.signedIn ? ctx.role : ctx.member?.status === 'linked' ? 'member' : null;
     const name = self?.name ?? (ctx.member?.status === 'linked' ? ctx.member.link.name : '');
-    const label = t('Менин аккаунтум');
-    if (role === 'admin') return <button onClick={onClick} aria-label={label} title={label} className="mr-1 w-9 h-9 rounded-full inline-flex items-center justify-center chat-admin-seal"><Mark size={18} /></button>;
-    if (role === 'inspector') return <button onClick={onClick} aria-label={label} title={label} className="mr-1 chat-cl-seal" style={{ width: '2.25rem', height: '2.25rem' }}>CL</button>;
-    return <button onClick={onClick} aria-label={label} title={label} className="mr-1 w-9 h-9 rounded-full inline-flex items-center justify-center font-display text-[1.05rem]" style={{ border: '1px solid var(--gold)', color: 'var(--gold)' }}>{name ? name.slice(0, 1) : '·'}</button>;
+    return (
+        <button onClick={onClick} aria-label={t('Меню')} title={t('Меню')} className="menu-pill mr-1">
+            <span className="menu-lines" aria-hidden="true"><i /><i /><i /></span>
+            {role === 'admin' ? <span className="chat-admin-seal" style={{ width: 30, height: 30 }}><Mark size={16} /></span>
+                : role === 'inspector' && !self ? <span className="chat-cl-seal" style={{ width: 30, height: 30, fontSize: '0.62rem' }}>CL</span>
+                    : role ? <Face name={name} url={photo} size={30} />
+                        : null}
+        </button>
+    );
 };
+
+type Item = { key: string; icon: React.ComponentType<{ className?: string; strokeWidth?: number }>; label: string; sub: string; to: string; dot?: boolean };
 
 export const AccountSheet: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const ctx = useContext(AppContext);
     const { self } = useSelf();
+    const photo = useMyPhoto(self);
     const [busy, setBusy] = useState(false);
+    useModal(onClose);
+    useBackCloses(onClose);
     const linked = ctx.member?.status === 'linked' ? ctx.member.link : null;
-    const role = ctx.signedIn ? ctx.role ?? 'member' : 'member';
+    const role = ctx.signedIn ? ctx.role ?? 'member' : linked ? 'member' : null;
     const person = self ?? (linked ? { ...linked, via: 'google' as const } : null);
+    const here = window.location.hash.split('?')[0];
     const open = (hash: string) => { onClose(); go(hash); };
+    const staff = ctx.signedIn && role !== 'inspector';
 
-    const items: Array<{ key: string; icon: React.ComponentType<{ className?: string; strokeWidth?: number }>; label: string; sub?: string; to: string }> = [
-        ...(person ? [
-            { key: 'me', icon: ChartNoAxesColumn, label: t('Менин жыйынтыгым'), sub: t('Апта, сезон, сыйлыктар, бөлүшүү'), to: '#/house/me' },
-            { key: 'jattoo', icon: BookOpenCheck, label: t('Жаттоо'), sub: t('Жаттаганым жана пландарым'), to: '#/house/me?jattoo' },
-            { key: 'house', icon: Home, label: person.houseName, sub: t('Менин үйүм'), to: '#/house' }
-        ] : []),
-        ...(role === 'admin' ? [{ key: 'houses', icon: Home, label: t('Бардык үйлөр'), sub: t('Ар бир үй жана анын сөзү'), to: '#/house' }] : []),
-        ...((ctx.signedIn && role !== 'inspector') || linked ? [{ key: 'jamaat', icon: Users, label: t('Жамааттын жыйынтыгы'), sub: t('Үйлөрдүн жарышы жана бирге окулган Куран'), to: '#/jamaat' }] : []),
-        ...(ctx.signedIn || linked ? [{ key: 'talk', icon: MessageCircle, label: t('Баарлашуу'), sub: t('Жамааттын сөзү жана башкалар'), to: '#/chat' }] : []),
-        ...(ctx.signedIn && role !== 'inspector' ? [{ key: 'results', icon: Trophy, label: t('Жыйынтыктар'), sub: t('Үйлөрдүн апталык жарышы'), to: '#/overview' }] : []),
-        ...(role === 'inspector' ? [{ key: 'tazalyk', icon: Sparkles, label: t('Тазалык'), sub: t('Үйлөрдү баалоо'), to: '#/overview' }] : []),
-        { key: 'namaz', icon: Clock3, label: t('Намаз убактылары'), to: '#/namaz' },
-        { key: 'qibla', icon: Compass, label: t('Кыбла'), to: '#/qibla' },
-        ...(role === 'admin' ? [{ key: 'check', icon: Settings2, label: t('Кирүүнү текшерүү'), sub: t('Google менен кирүү кадам-кадамы менен'), to: '#/kiruu' }] : [])
+    const groups: Array<{ title: string; items: Item[] }> = [
+        ...(person ? [{
+            title: t('Мен'), items: [
+                { key: 'me', icon: ChartNoAxesColumn, label: t('Менин жыйынтыгым'), sub: t('Апта, сезон, сыйлыктар'), to: '#/house/me' },
+                { key: 'jattoo', icon: BookOpenCheck, label: t('Жаттоо'), sub: t('Жаттаганым жана пландарым'), to: '#/house/me?jattoo' },
+                { key: 'house', icon: Home, label: person.houseName, sub: t('Үйүмдүн адамдары жана сөзү'), to: '#/house' }
+            ]
+        }] : []),
+        ...(ctx.signedIn || linked ? [{
+            title: t('Жамаат'), items: [
+                ...(staff ? [{ key: 'results', icon: Trophy, label: t('Жыйынтыктар'), sub: ctx.role === 'admin' ? t('Апта, үйлөр, сезон, админ куралдары') : t('Апта, үйлөр, сезон; сандарды ушул жерден киргизесиз'), to: '#/overview' }] : []),
+                ...(role === 'inspector' ? [{ key: 'tazalyk', icon: Sparkles, label: t('Тазалык'), sub: t('Үйлөрдү баалоо'), to: '#/overview' }] : []),
+                ...(role !== 'inspector' ? [{ key: 'jamaat', icon: Users, label: t('Жамааттын жыйынтыгы'), sub: t('Үйлөрдүн жарышы жана бирге окулган Куран'), to: '#/jamaat' }] : []),
+                ...(role === 'admin' ? [{ key: 'houses', icon: Home, label: t('Бардык үйлөр'), sub: t('Ар бир үй жана анын сөзү'), to: '#/house' }] : []),
+                { key: 'talk', icon: MessageCircle, label: t('Баарлашуу'), sub: t('Жамааттын, капитандардын жана үйдүн сөзү'), to: '#/chat' }
+            ]
+        }] : []),
+        {
+            title: t('Күн сайын'), items: [
+                { key: 'today', icon: SunMedium, label: t('Менин күнүм'), sub: t('Кийинки намаз, бүгүнкү тасбихат жана окуу'), to: '#/today' },
+                { key: 'namaz', icon: Clock3, label: t('Намаз убактылары'), sub: t('Бүгүнкү жана бул аптанын убактылары'), to: '#/namaz' },
+                { key: 'quran', icon: BookOpen, label: t('Куран'), sub: t('Сүрөлөр, мусхаф, кыргызча мааниси'), to: '#/quran' },
+                { key: 'tasbihat', icon: ScrollText, label: t('Тасбихат'), sub: t('Ар бир намаздан кийинки зикирлер'), to: '#/tasbihat' },
+                { key: 'zikr', icon: CircleDot, label: t('Зикир'), sub: t('Санагыч: басып эле санай бериңиз'), to: '#/zikr' },
+                { key: 'qibla', icon: Compass, label: t('Кыбла'), sub: t('Телефондун компасы менен'), to: '#/qibla' }
+            ]
+        },
+        {
+            title: t('Жардам'), items: [
+                { key: 'help', icon: CircleHelp, label: t('Кантип колдонуу керек'), sub: role === 'leader' || role === 'admin' ? t('Капитанга кадам-кадамы менен') : t('Кыскача, ар бир бөлүм эмне үчүн'), to: '#/help' },
+                ...(role === 'admin' ? [{ key: 'check', icon: Settings2, label: t('Кирүүнү текшерүү'), sub: t('Google менен кирүү кадам-кадамы менен'), to: '#/kiruu' }] : [])
+            ]
+        }
     ];
 
     const leave = async () => {
@@ -62,35 +110,70 @@ export const AccountSheet: React.FC<{ onClose: () => void }> = ({ onClose }) => 
         window.location.reload();
     };
 
+    const name = role === 'admin' ? t('Админ') : role === 'inspector' && !person ? 'CL' : person?.name ?? '';
     return (
-        <Sheet title={t('Менин аккаунтум')} onClose={onClose} width="30rem">
-            <div className="px-5 sm:px-7 pb-7">
-                <div className="flex items-center gap-4 pt-5 pb-5" style={{ borderBottom: '1px solid var(--gold-dim)' }}>
-                    {role === 'admin' ? <span className="chat-admin-seal" style={{ width: '3.5rem', height: '3.5rem' }}><Mark size={30} /></span>
-                        : role === 'inspector' && !person ? <span className="chat-cl-seal" style={{ width: '3.5rem', height: '3.5rem', fontSize: '1.1rem' }}>CL</span>
-                            : <Avatar name={person?.name ?? '?'} role={role === 'leader' ? 'imam' : 'member'} photoUrl={null} size="lg" />}
-                    <div className="min-w-0">
-                        <div className="font-display text-[1.6rem] leading-tight truncate" style={{ color: 'var(--text-primary)' }}>{role === 'admin' ? t('Админ') : role === 'inspector' ? 'CL' : person?.name ?? t('Мүчө')}</div>
-                        <div className="eyebrow mt-1">{ROLE_NAME[role]?.()}{person && role !== 'admin' ? ` · ${person.houseName}` : ''}</div>
-                    </div>
+        <div className="fixed inset-0 z-50 animate-fade-in" role="dialog" aria-modal="true" aria-label={t('Меню')}
+            style={{ backgroundColor: 'color-mix(in oklab, #000 55%, transparent)', backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)' }}
+            onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
+            <aside className="nav-drawer">
+                <div className="flex items-center justify-between px-6 pt-4 pb-2" style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}>
+                    <span className="inline-flex items-center gap-2" style={{ color: 'var(--gold)' }}><Mark size={26} solid /><span className="font-display text-[1.15rem]">tdJamaat</span></span>
+                    <button onClick={onClose} aria-label={t('Жабуу')} className="w-10 h-10 -mr-2 inline-flex items-center justify-center transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}><X className="w-5 h-5" strokeWidth={1.3} /></button>
                 </div>
-                <ul>
-                    {items.map(it => (
-                        <li key={it.key} style={{ borderBottom: '1px solid var(--border)' }}>
-                            <button onClick={() => open(it.to)} className="row-link w-full text-left py-3.5 px-1 flex items-center gap-4">
-                                <it.icon className="w-5 h-5 flex-shrink-0" strokeWidth={1.4} />
-                                <span className="flex-1 min-w-0">
-                                    <span className="block text-[1.02rem]" style={{ color: 'var(--text-primary)' }}>{it.label}</span>
-                                    {it.sub && <span className="block text-[0.8rem]" style={{ color: 'var(--text-muted)' }}>{it.sub}</span>}
-                                </span>
-                            </button>
-                        </li>
+
+                {/* Who is here */}
+                {role ? (
+                    <div className="nav-who">
+                        {role === 'admin' ? <span className="chat-admin-seal" style={{ width: 64, height: 64 }}><Mark size={34} /></span>
+                            : role === 'inspector' && !person ? <span className="chat-cl-seal" style={{ width: 64, height: 64, fontSize: '1.2rem' }}>CL</span>
+                                : <Face name={name} url={photo} size={64} />}
+                        <div className="min-w-0">
+                            <div className="font-display text-[1.75rem] leading-[1.05] truncate" style={{ color: 'var(--text-primary)' }}>{name}</div>
+                            <div className="text-[0.82rem] mt-1" style={{ color: 'var(--text-muted)' }}>{ROLE_NAME[role]?.()}{person && role !== 'admin' ? ` · ${person.houseName}` : ''}</div>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="nav-who">
+                        <div className="min-w-0">
+                            <div className="font-display text-[1.5rem] leading-tight" style={{ color: 'var(--text-primary)' }}>{t('Сиз кире элексиз')}</div>
+                            <div className="text-[0.85rem] mt-1" style={{ color: 'var(--text-muted)' }}>{t('Намаз, Куран, тасбихат жана зикир кирбей эле иштейт.')}</div>
+                            <button onClick={() => open('#/overview')} className="btn btn-primary mt-4"><LogIn className="w-4 h-4" />{t('Кирүү')}</button>
+                        </div>
+                    </div>
+                )}
+
+                <nav className="flex-1 overflow-y-auto overscroll-contain px-6 pb-4">
+                    {groups.map(g => (
+                        <section key={g.title} className="pt-5">
+                            <h3 className="nav-group">{g.title}</h3>
+                            <ul>
+                                {g.items.map(it => {
+                                    const current = it.to.split('?')[0] === here && !it.to.includes('?') && it.key !== 'tazalyk';
+                                    return (
+                                        <li key={it.key}>
+                                            <button onClick={() => open(it.to)} className={`nav-item ${current ? 'is-here' : ''}`} aria-current={current ? 'page' : undefined}>
+                                                <it.icon className="w-[1.15rem] h-[1.15rem] flex-shrink-0 mt-[0.2rem]" strokeWidth={1.3} />
+                                                <span className="min-w-0">
+                                                    <span className="nav-item-l">{it.label}</span>
+                                                    <span className="nav-item-s">{it.sub}</span>
+                                                </span>
+                                            </button>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        </section>
                     ))}
-                </ul>
-                <button onClick={leave} disabled={busy} className="btn btn-ghost w-full mt-6" style={{ color: 'var(--danger)', borderColor: 'color-mix(in oklab, var(--danger) 45%, transparent)' }}>
-                    <LogOut className="w-4 h-4" />{t('Аккаунттан чыгуу')}
-                </button>
-            </div>
-        </Sheet>
+                </nav>
+
+                {role && (
+                    <div className="px-6 pt-3" style={{ borderTop: '1px solid var(--border)', paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
+                        <button onClick={leave} disabled={busy} className="w-full h-11 inline-flex items-center justify-center gap-2 text-[0.72rem] tracking-[0.2em] uppercase transition-opacity hover:opacity-80" style={{ color: 'var(--danger)' }}>
+                            <LogOut className="w-4 h-4" />{t('Аккаунттан чыгуу')}
+                        </button>
+                    </div>
+                )}
+            </aside>
+        </div>
     );
 };

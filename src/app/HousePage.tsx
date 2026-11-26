@@ -39,7 +39,7 @@ const MyPhoto: React.FC<{ houseId: string; memberId: string; name: string; photo
     const pick = async (file: File | undefined) => {
         if (!file) return;
         setBusy(true); setError('');
-        try { setUrl(await uploadMemberPhoto(houseId, memberId, file)); onChanged(); }
+        try { setUrl(await uploadMemberPhoto(houseId, memberId, file)); onChanged(); try { sessionStorage.removeItem('tdjamaat-photo-v1'); } catch { /* not critical */ } window.dispatchEvent(new Event('tdjamaat-photo')); }
         catch (e) { setError(/row-level|policy|not allowed|403/i.test(String((e as Error)?.message)) ? t('Сүрөт коюу азырынча ачыла элек. Админ supabase/member-photos-2026-11.sql файлын иштетиши керек.') : (e as Error)?.message ?? ''); }
         finally { setBusy(false); }
     };

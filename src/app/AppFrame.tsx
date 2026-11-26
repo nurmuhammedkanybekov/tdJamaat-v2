@@ -45,10 +45,10 @@ export const AppFrame: React.FC<{
     hero?: React.ReactNode;
     children: React.ReactNode;
 }> = ({ page, title, kicker, sub, back, theme, onToggleTheme, ownBar, hero, children }) => {
-    const { signedIn, member, role } = useContext(AppContext);
+    const { signedIn, member } = useContext(AppContext);
     const now = useNow(60_000);
     const sky = skyAt(loadCity(), now);
-    const { self, canChoose } = useSelf();
+    const { self } = useSelf();
     const [account, setAccount] = useState(false);
     const unread = useUnread(self);
     const linked = member?.status === 'linked' ? member.link : null;
@@ -82,16 +82,11 @@ export const AppFrame: React.FC<{
                         {/* Who is here: the results for a captain or the admin; a member's
                             own initial; otherwise the way in. */}
                         {signedIn ? (
-                            <>
-                                <span className="hidden md:inline-flex mr-1">
-                                    <button onClick={() => open('results')} className="btn btn-ghost" style={{ minHeight: '2.5rem' }}><Trophy className="w-3.5 h-3.5" />{t('Жыйынтыктар')}</button>
-                                </span>
-                                {(role === 'admin' || role === 'inspector' || canChoose) && <AccountMark onClick={() => setAccount(true)} />}
-                            </>
-                        ) : linked ? (
-                            <AccountMark onClick={() => setAccount(true)} />
-                        ) : (
-                            <button onClick={() => go('#/overview')} aria-label={t('Кирүү')} className={`mr-1 h-10 px-2 inline-flex items-center gap-1.5 text-[0.7rem] tracking-[0.2em] uppercase ${quiet}`} style={{ color: 'var(--text-secondary)' }}>
+                            <span className="hidden md:inline-flex mr-1">
+                                <button onClick={() => open('results')} className="btn btn-ghost" style={{ minHeight: '2.5rem' }}><Trophy className="w-3.5 h-3.5" />{t('Жыйынтыктар')}</button>
+                            </span>
+                        ) : !linked && (
+                            <button onClick={() => go('#/overview')} className={`h-10 px-2 inline-flex items-center gap-1.5 text-[0.7rem] tracking-[0.2em] uppercase ${quiet}`} style={{ color: 'var(--text-secondary)' }}>
                                 <UserRound className="w-[1.1rem] h-[1.1rem]" strokeWidth={1.5} /><span className="hidden min-[400px]:inline">{t('Кирүү')}</span>
                             </button>
                         )}
@@ -101,6 +96,8 @@ export const AppFrame: React.FC<{
                         <button onClick={onToggleTheme} aria-label={theme === 'dark' ? t('Жарык тема') : t('Караңгы тема')} className={`w-10 h-10 inline-flex items-center justify-center ${quiet}`} style={{ color: 'var(--text-secondary)' }}>
                             <ThemeIcon className="w-[1.1rem] h-[1.1rem]" strokeWidth={1.5} />
                         </button>
+                        {/* The menu: three lines and the person's face. Every page, named plainly. */}
+                        <AccountMark onClick={() => setAccount(true)} />
                     </div>
                     {back === undefined && hero}
                     {back === undefined && !hero && (

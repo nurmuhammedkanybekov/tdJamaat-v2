@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Compass, MessageCircle,
+import { CircleHelp, Compass, MessageCircle,
     BookOpen, BookOpenCheck, KeyRound, Home as HomeIcon, Megaphone, ChevronLeft, CircleDot, ScrollText, SunMedium, ChevronRight, Clock3, Sparkles, Columns2, Download, ExternalLink, History, Info, Lock, LogIn, LogOut,
-    Menu, Monitor, Moon, PenLine, Play, Settings2, Share2, Sun
+    Monitor, Moon, PenLine, Play, Settings2, Share2, Sun
 } from 'lucide-react';
 import type { AuthUser } from '../services/authService';
 import type { Theme } from '../theme';
@@ -158,6 +158,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         { key: 'share', group: RESULTS, label: t('Жыйынтыкты бөлүшүү'), icon: Share2, onClick: onShare },
         { key: 'formula', group: RESULTS, label: t('Упай формуласы'), icon: Info, onClick: onFormula },
         { key: 'screen', group: MORE, label: screen ? t('Чоң экран: өчүрүү') : t('Чоң экран (жыйын үчүн)'), icon: Monitor, onClick: onToggleScreen },
+        { key: 'help', group: MORE, label: t('Кантип колдонуу керек'), icon: CircleHelp, onClick: () => { window.location.hash = '#/help'; } },
         ...(installMode !== 'none' ? [{ key: 'install', group: MORE, label: t('Телефонго орнотуу'), icon: Download, onClick: onInstall }] : []),
         authUser
             ? { key: 'logout', group: MORE, label: t('Чыгуу'), icon: LogOut, onClick: onLogout, tone: 'danger' as const }
@@ -209,7 +210,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                             items={items}
                             header={authUser ? <div className="text-[0.8rem]" style={{ color: 'var(--text-muted)' }}>{t('Кирген:')} <span style={{ color: 'var(--gold)' }}>{who}</span></div> : undefined}
                             button={(open, toggle) => (
-                                <IconButton label={t('Меню')} onClick={toggle} expanded={open}><Menu className="w-[1.2rem] h-[1.2rem]" strokeWidth={1.5} /></IconButton>
+                                <button onClick={toggle} aria-label={t('Меню')} title={t('Меню')} aria-expanded={open} className="menu-pill ml-1"><span className="menu-lines" aria-hidden="true"><i /><i /><i /></span></button>
                             )}
                         />
                     </div>
