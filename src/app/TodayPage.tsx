@@ -19,6 +19,7 @@ import { withReload } from '../lazyLoad';
 import { isEnglish, t } from '../i18n';
 import { AppFrame, Section } from './AppFrame';
 import { AppContext } from './context';
+import { useSelf } from './self';
 import { go } from './route';
 import { TASBIHAT_ORDER, currentPrayer } from './tasbihat';
 import type { Ayah, Rendering, Surah } from './quranData';
@@ -197,6 +198,7 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
     const totals = useWeekTotals();
     const { member, signedIn, role } = useContext(AppContext);
     const linked = member?.status === 'linked' ? member.link : null;
+    const { self } = useSelf();
     const zikrToday = todayTotal(zikr);
     const readToday = TASBIHAT_ORDER.filter(p => tasbihatDone(practice, p, now)).length;
     const doneNow = tasbihatDone(practice, prayer, now);
@@ -280,7 +282,7 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
                     </div>
                     <div className="flex flex-wrap items-center justify-between gap-2 pt-2" style={{ borderTop: '1px solid var(--border)' }}>
                         <span className="text-[0.8rem]" style={{ color: 'var(--text-muted)' }}>{t('Бүгүн {0} зикир', zikrToday)}</span>
-                        {linked ? <span className="text-[0.8rem]" style={{ color: 'var(--gold)' }}>{t('Капитаныңыз бул сандарды өзү көрөт.')}</span> : <CopyWeek totals={totals} />}
+                        {self ? <span className="text-[0.8rem]" style={{ color: 'var(--gold)' }}>{t('Капитаныңыз бул сандарды өзү көрөт.')}</span> : <CopyWeek totals={totals} />}
                     </div>
                 </Section>
 

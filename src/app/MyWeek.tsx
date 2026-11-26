@@ -33,7 +33,9 @@ export const MyWeek: React.FC<{ totals: WeekTotals; synced?: boolean }> = ({ tot
             </ul>
             <div className="flex flex-wrap items-center justify-between gap-3 mt-4">
                 <span className="text-[0.8rem]" style={{ color: 'var(--text-muted)' }}>{t('{0} · бейшембиден шаршембиге', formatWeekRange(totals.start, totals.end))}{synced && <><br />{t('Капитаныңыз бул сандарды өзү көрөт.')}</>}</span>
-                <button className="btn btn-ghost" onClick={share}>{copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}{copied ? t('Көчүрүлдү') : t('Капитанга көчүрүү')}</button>
+                {/* Synced (a member signed in, or a captain who is their own person):
+                    the numbers reach the form by themselves — no copying. */}
+                {!synced && <button className="btn btn-ghost" onClick={share}>{copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}{copied ? t('Көчүрүлдү') : t('Капитанга көчүрүү')}</button>}
             </div>
         </div>
     );

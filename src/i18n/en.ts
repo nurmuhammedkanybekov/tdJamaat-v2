@@ -1228,5 +1228,5 @@ export const EN: Record<string, string> = {
     "Эми аптаны бекитсеңиз болот — жыйынтыктар акыркы болот.": "You can lock the week now — the results become final.",
     "Күтүлүүдө: {0}": "Waiting for: {0}",
     "киргизүү": "enter",
-
+    "Сандар капитандын формасына өзү жетет.": "Your numbers reach the captain's form by themselves."
 };
