@@ -687,6 +687,10 @@ li[data-ayah].is-reciting { background-color: color-mix(in oklab, var(--gold) 8%
 .chat-name { font-family: var(--font-display); font-size: 0.95rem; color: var(--gold); margin-bottom: 0.2rem; display: flex; align-items: baseline; gap: 0.4rem; }
 .chat-tag { font-family: var(--font-serif); font-size: 0.6rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-muted); }
 .chat-bubble { padding: 0.6rem 0.85rem; font-size: 1.02rem; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--text-primary); background: var(--surface); border: 1px solid var(--border); }
+.chat-admin-seal { width: 2.25rem; height: 2.25rem; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; color: var(--page-plane); background: radial-gradient(circle at 35% 30%, var(--gold-bright), var(--gold) 70%); box-shadow: 0 0 0 1px var(--gold), 0 0 0 3px color-mix(in oklab, var(--gold) 22%, transparent); }
+.chat-name.is-admin { color: var(--gold); letter-spacing: .02em; }
+.chat-row.is-admin .chat-bubble { border-color: var(--gold); border-left-width: 3px; background: color-mix(in oklab, var(--gold) 12%, var(--surface)); }
+.dark .chat-row.is-admin .chat-bubble { background: color-mix(in oklab, var(--gold) 10%, var(--surface)); }
 .chat-row.is-mine .chat-bubble { border-color: color-mix(in oklab, var(--gold) 55%, transparent); background: color-mix(in oklab, var(--gold) 9%, var(--surface)); }
 .chat-meta { display: flex; align-items: center; gap: 0.7rem; margin-top: 0.25rem; font-size: 0.72rem; color: var(--text-muted); }
 .chat-amin { letter-spacing: 0.08em; transition: color 200ms ease; }

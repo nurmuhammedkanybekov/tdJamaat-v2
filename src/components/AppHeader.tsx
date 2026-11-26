@@ -150,7 +150,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             ...(onJattoo ? [{ key: 'jattoo', group: WORK, label: t('Жаттоо'), icon: BookOpenCheck, onClick: onJattoo }] : []),
             ...(onAccounts ? [{ key: 'accounts', group: WORK, label: t('Мүчөлөрдүн кирүүсү'), icon: KeyRound, onClick: onAccounts }] : []),
             { key: 'history', group: WORK, label: t('Өзгөртүүлөр тарыхы'), icon: History, onClick: onHistory },
-            ...(isAdmin ? [{ key: 'chats', group: WORK, label: t('Үйлөрдүн сөзү'), icon: MessageCircle, onClick: () => { window.location.hash = '#/house/chats'; } }] : []),
+            ...(isAdmin ? [{ key: 'chats', group: WORK, label: t('Бардык үйлөр'), icon: MessageCircle, onClick: () => { window.location.hash = '#/house'; } }] : []),
             ...(isAdmin ? [{ key: 'admin', group: WORK, label: t('Админ панели'), icon: Settings2, onClick: onAdmin }] : [])
         ] : []),
         { key: 'compare', group: RESULTS, label: t('Салыштыруу'), icon: Columns2, onClick: onCompare },

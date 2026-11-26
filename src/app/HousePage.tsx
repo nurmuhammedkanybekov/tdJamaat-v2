@@ -61,7 +61,7 @@ const MyPhoto: React.FC<{ houseId: string; memberId: string; name: string; photo
     );
 };
 
-/** For a captain or the admin: which person of a house am I? Asked once. */
+/** For a captain: which person of the house am I? Asked once. */
 const ChooseSelf: React.FC<{ data: DataFile; onlyHouse: string | null; onChoose: (s: Omit<Self, 'via'>) => void }> = ({ data, onlyHouse, onChoose }) => {
     const latest = data.weeks[data.weeks.length - 1];
     const teams = (latest?.teams ?? []).filter(tm => !onlyHouse || tm.id === onlyHouse);
@@ -78,7 +78,7 @@ const ChooseSelf: React.FC<{ data: DataFile; onlyHouse: string | null; onChoose:
             <ul className="mt-4">
                 {team?.members.map(m => (
                     <li key={m.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                        <button onClick={() => onChoose({ memberId: m.id, name: m.name, houseId: team.id, houseName: team.name, manual: true })} className="row-link w-full text-left py-3 px-1 flex items-center gap-3">
+                        <button onClick={() => onChoose({ memberId: m.id, name: m.name, houseId: team.id, houseName: team.name })} className="row-link w-full text-left py-3 px-1 flex items-center gap-3">
                             <Avatar name={m.name} role={m.role} photoUrl={m.photoUrl} size="sm" />
                             <span className="flex-1 font-display text-[1.25rem]" style={{ color: 'var(--text-primary)' }}>{m.name}</span>
                             <span className="text-[0.72rem] tracking-[0.16em] uppercase" style={{ color: 'var(--gold)' }}>{t('Мен')}</span>
@@ -91,11 +91,11 @@ const ChooseSelf: React.FC<{ data: DataFile; onlyHouse: string | null; onChoose:
 };
 
 /** The way into the house's conversation, with what is new. */
-const ChatEntry: React.FC<{ self: Self }> = ({ self }) => {
+const ChatEntry: React.FC<{ self: Self; to: string }> = ({ self, to }) => {
     const [unread, setUnread] = useState(0);
     useEffect(() => { countUnread(self.houseId, self.memberId).then(setUnread).catch(() => undefined); }, [self]);
     return (
-        <button onClick={() => go('#/house/chat')} className="row-link w-full text-left mt-8 py-4 flex items-center gap-4" style={{ borderTop: '1px solid var(--gold)', borderBottom: '1px solid var(--border)' }}>
+        <button onClick={() => go(to)} className="row-link w-full text-left mt-8 py-4 flex items-center gap-4" style={{ borderTop: '1px solid var(--gold)', borderBottom: '1px solid var(--border)' }}>
             <span className="w-11 h-11 rounded-full inline-flex items-center justify-center flex-shrink-0 relative" style={{ border: '1px solid var(--gold)', color: 'var(--gold)' }}>
                 <MessageCircle className="w-5 h-5" strokeWidth={1.5} />
                 {unread > 0 && <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full text-[0.7rem] font-semibold inline-flex items-center justify-center" style={{ backgroundColor: 'var(--gold)', color: 'var(--page-plane)' }}>{unread > 99 ? '99+' : unread}</span>}
@@ -109,32 +109,53 @@ const ChatEntry: React.FC<{ self: Self }> = ({ self }) => {
     );
 };
 
-/** For the admin: every house's conversation, with its new messages. */
-const AllChats: React.FC<{ data: DataFile; own: string | null }> = ({ data, own }) => {
-    const teams = data.weeks[data.weeks.length - 1]?.teams ?? [];
+/** For the admin, who is no house's person: every house, its number this
+ *  week, a tap to open it, and its conversation with what is new. */
+const AdminHouses: React.FC<{ data: DataFile }> = ({ data }) => {
+    const latest = data.weeks[data.weeks.length - 1];
+    const teams = [...(latest?.teams ?? [])].map(tm => ({ tm, rating: tm.submitted ? calculateHouseRating(tm) : null })).sort((a, b) => (b.rating ?? -1) - (a.rating ?? -1));
     return (
-        <ul className="max-w-[40rem] mx-auto mt-6" style={{ borderTop: '1px solid var(--gold-dim)' }}>
-            {teams.map(tm => (
-                <li key={tm.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                    <button onClick={() => go(tm.id === own ? '#/house/chat' : `#/house/chat/${tm.id}`)} className="row-link w-full text-left py-4 px-1 flex items-center gap-4">
-                        <span className="w-10 h-10 rounded-full inline-flex items-center justify-center flex-shrink-0" style={{ border: '1px solid var(--gold)', color: 'var(--gold)' }}><MessageCircle className="w-4 h-4" strokeWidth={1.5} /></span>
-                        <span className="flex-1 min-w-0">
-                            <span className="block font-display text-[1.35rem] leading-tight" style={{ color: 'var(--text-primary)' }}>{tm.name}</span>
-                            <span className="block text-[0.8rem] italic" style={{ color: 'var(--text-muted)' }}>{tm.id === own ? t('сиздин үйүңүз') : t('админ катары')}</span>
-                        </span>
-                        <ChevronRight className="w-4 h-4" style={{ color: 'var(--gold)' }} />
-                    </button>
-                </li>
-            ))}
-        </ul>
+        <div className="max-w-[44rem] mx-auto">
+            <p className="text-center text-[0.95rem] leading-relaxed pt-6" style={{ color: 'var(--text-secondary)' }}>{t('Сиз жамааттын админисиз — бир үйдүн адамы эмессиз. Бардык үйлөрдү ачып, ар бир үйдүн сөзүнө «Админ» катары жаза аласыз.')}</p>
+            <ul className="mt-6" style={{ borderTop: '1px solid var(--gold-dim)' }}>
+                {teams.map(({ tm, rating }, i) => (
+                    <li key={tm.id} className="flex items-center gap-2" style={{ borderBottom: '1px solid var(--border)' }}>
+                        <button onClick={() => go(`#/house/h/${tm.id}`)} className="row-link flex-1 min-w-0 text-left py-4 px-1 flex items-center gap-4">
+                            <span className="w-8 text-center font-display text-[1.2rem] tabular" style={{ color: rating !== null && i < 3 ? 'var(--gold)' : 'var(--text-muted)' }}>{rating === null ? '·' : roman(i + 1)}</span>
+                            <span className="flex-1 min-w-0">
+                                <span className="block font-display text-[1.4rem] leading-tight truncate" style={{ color: 'var(--text-primary)' }}>{tm.name}</span>
+                                <span className="block text-[0.8rem] italic" style={{ color: 'var(--text-muted)' }}>{rating === null ? t('бул аптанын маалыматы али киргизиле элек') : t('{0} адам', tm.members.length)}</span>
+                            </span>
+                            {rating !== null && <span className="font-display tabular text-[1.6rem]" style={{ color: 'var(--text-primary)' }}>{fmt(rating)}</span>}
+                        </button>
+                        <AdminChatLink houseId={tm.id} name={tm.name} />
+                    </li>
+                ))}
+            </ul>
+        </div>
+    );
+};
+
+/** The way into one house's conversation for the admin, with what is new. */
+const AdminChatLink: React.FC<{ houseId: string; name: string }> = ({ houseId, name }) => {
+    const [unread, setUnread] = useState(0);
+    useEffect(() => { countUnread(houseId, '').then(setUnread).catch(() => undefined); }, [houseId]);
+    return (
+        <button onClick={() => go(`#/house/chat/${houseId}`)} aria-label={t('{0}: үйдүн сөзү', name)} className="w-11 h-11 rounded-full inline-flex items-center justify-center flex-shrink-0 relative mr-1 transition-colors hover:bg-[var(--gold-soft)]" style={{ border: '1px solid var(--gold)', color: 'var(--gold)' }}>
+            <MessageCircle className="w-[1.1rem] h-[1.1rem]" strokeWidth={1.5} />
+            {unread > 0 && <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full text-[0.7rem] font-semibold inline-flex items-center justify-center" style={{ backgroundColor: 'var(--gold)', color: 'var(--page-plane)' }}>{unread > 99 ? '99+' : unread}</span>}
+        </button>
     );
 };
 
 export const HousePage: React.FC<{ arg?: string | null; sub?: string | null; theme: Theme; onToggleTheme: () => void }> = ({ arg, sub, theme, onToggleTheme }) => {
     const ctx = useContext(AppContext);
     const { self, canChoose, choose } = useSelf();
-    const link = self;
     const { data, failed, reload } = useMemberData();
+    const adminView = ctx.signedIn && ctx.role === 'admin';
+    // The admin looks at a house as the admin (no "me" in it).
+    const adminHouse = adminView && arg === 'h' && sub ? data?.weeks[data.weeks.length - 1]?.teams.find(tm => tm.id === sub) : undefined;
+    const link: Self | null = adminHouse ? { memberId: '', name: t('Админ'), houseId: adminHouse.id, houseName: adminHouse.name, via: 'staff' } : self;
 
     const series = useMemo(() => {
         if (!data || !link) return [];
@@ -142,21 +163,22 @@ export const HousePage: React.FC<{ arg?: string | null; sub?: string | null; the
     }, [data, link]);
 
     const isAdmin = ctx.signedIn && ctx.role === 'admin';
-    // The admin opens any house's conversation: #/house/chat/<house id>.
-    if (isAdmin && arg === 'chat' && sub && sub !== link?.houseId) {
-        const house = data?.weeks[data.weeks.length - 1]?.teams.find(tm => tm.id === sub);
-        if (!data) return <AppFrame page="house" title={t('Үйдүн сөзү')} back="#/house/chats" theme={theme} onToggleTheme={onToggleTheme}><Waiting /></AppFrame>;
-        if (house) return <HouseChat key={house.id} self={{ memberId: link?.memberId ?? '', name: link?.name ?? '', houseId: house.id, houseName: house.name, via: 'staff' }} canModerate readOnly theme={theme} onToggleTheme={onToggleTheme} />;
+    if (isAdmin) {
+        // The admin: #/house — every house; #/house/h/<id> — one house;
+        // #/house/chat/<id> — its conversation, written as "Админ".
+        const teams = data?.weeks[data.weeks.length - 1]?.teams ?? [];
+        const house = sub ? teams.find(tm => tm.id === sub) : undefined;
+        if (arg === 'chat' && house) return <HouseChat key={house.id} self={{ memberId: '', name: t('Админ'), houseId: house.id, houseName: house.name, via: 'staff' }} canModerate back={`#/house/h/${house.id}`} theme={theme} onToggleTheme={onToggleTheme} />;
+        if (!(arg === 'h' && house)) {
+            return (
+                <AppFrame page="house" title={t('Үйлөр')} kicker={t('Админ')} theme={theme} onToggleTheme={onToggleTheme}>
+                    {failed ? <p className="py-10 text-center" style={{ color: 'var(--text-muted)' }}>{t('Жыйынтыктар жүктөлгөн жок.')}</p> : data ? <AdminHouses data={data} /> : <Waiting />}
+                </AppFrame>
+            );
+        }
     }
-    if (isAdmin && arg === 'chats') {
-        return (
-            <AppFrame page="house" title={t('Үйлөрдүн сөзү')} kicker={t('Админ')} back="#/house" theme={theme} onToggleTheme={onToggleTheme}>
-                {data ? <AllChats data={data} own={link?.houseId ?? null} /> : <Waiting />}
-            </AppFrame>
-        );
-    }
-    if (link && arg === 'me') return <MyResults link={link} theme={theme} onToggleTheme={onToggleTheme} />;
-    if (link && arg === 'chat') {
+    if (link && arg === 'me' && !adminView) return <MyResults link={link} theme={theme} onToggleTheme={onToggleTheme} />;
+    if (link && arg === 'chat' && !adminView) {
         return <HouseChat self={link} canModerate={ctx.role === 'admin' || (ctx.role === 'leader' && ctx.houseId === link.houseId)} theme={theme} onToggleTheme={onToggleTheme} />;
     }
 
@@ -190,7 +212,7 @@ export const HousePage: React.FC<{ arg?: string | null; sub?: string | null; the
     const trajectory = series.slice(-10).map((r, i) => ({ weekIndex: i, weekNumber: r.week.weekNumber, avg: r.team!.submitted ? calculateHouseRating(r.team!) : 0, rank: null, submitted: r.team!.submitted }));
 
     return (
-        <AppFrame page="house" title={link.houseName} kicker={t('Менин үйүм')} sub={latest ? `${t('{0}-апта', latest.week.weekNumber)}${latest.week.startDate ? ` · ${formatWeekRange(latest.week.startDate, latest.week.endDate ?? null)}` : ''}` : undefined} theme={theme} onToggleTheme={onToggleTheme}>
+        <AppFrame page="house" title={link.houseName} kicker={adminView ? t('Админ') : t('Менин үйүм')} back={adminView ? '#/house' : undefined} sub={latest ? `${t('{0}-апта', latest.week.weekNumber)}${latest.week.startDate ? ` · ${formatWeekRange(latest.week.startDate, latest.week.endDate ?? null)}` : ''}` : undefined} theme={theme} onToggleTheme={onToggleTheme}>
             <div className="max-w-[46rem] mx-auto">
                 {failed && <p className="py-10 text-center" style={{ color: 'var(--text-muted)' }}>{t('Жыйынтыктар жүктөлгөн жок.')}</p>}
                 {!data && !failed && <Waiting />}
@@ -218,7 +240,7 @@ export const HousePage: React.FC<{ arg?: string | null; sub?: string | null; the
                         </section>
 
                         {/* Me: my photo, my number this week and my place in the house. */}
-                        <section className="plate mt-10">
+                        {!adminView && <section className="plate mt-10">
                             <div className="flex items-center justify-between gap-4">
                                 <div className="min-w-0"><MyPhoto houseId={link.houseId} memberId={link.memberId} name={link.name} photoUrl={me?.photoUrl ?? null} onChanged={reload} /></div>
                                 {myPlace && (
@@ -238,12 +260,9 @@ export const HousePage: React.FC<{ arg?: string | null; sub?: string | null; the
                                 {me && !me.excused && team?.submitted && <span className="font-display tabular text-[2rem] leading-none" style={{ color: 'var(--gold)' }}>{fmt(calculateMemberScore(me))}</span>}
                                 <ChevronRight className="w-5 h-5 flex-shrink-0" style={{ color: 'var(--gold)' }} />
                             </button>
-                        </section>
+                        </section>}
 
-                        <ChatEntry self={link} />
-                        {ctx.signedIn && ctx.role === 'admin' && (
-                            <button onClick={() => go('#/house/chats')} className="w-full text-left py-3 text-[0.72rem] tracking-[0.18em] uppercase transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)', borderBottom: '1px solid var(--border)' }}>{t('Бардык үйлөрдүн сөзү')} →</button>
-                        )}
+                        <ChatEntry self={link} to={adminView ? `#/house/chat/${link.houseId}` : '#/house/chat'} />
                         <GoalBanner houseId={link.houseId} week={latest?.week.globalWeek ?? null} canEdit={ctx.role === 'admin' || (ctx.role === 'leader' && ctx.houseId === link.houseId)} />
 
                         <Section eyebrow={t('Үйдүн адамдары')}>

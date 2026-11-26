@@ -62,12 +62,15 @@ export const useNotifier = () => {
         const channel = supabase.channel('tdjamaat-notify');
         if (self) {
             channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'house_messages', filter: `house_id=eq.${self.houseId}` }, payload => {
-                const row = payload.new as { member_id?: string; body?: string };
-                if (!row || row.member_id === self.memberId) return;
+                const row = payload.new as { member_id?: string; body?: string; author_role?: string | null };
+                if (!row) return;
+                // My own message — but the admin's messages are the admin's, not the person's.
+                const viaMember = !!cachedLink();
+                if (row.member_id === self.memberId && !(viaMember && row.author_role === 'admin')) return;
                 const reading = window.location.hash.startsWith('#/house/chat') && document.visibilityState === 'visible';
                 if (reading) return;
                 setBadge(badge + 1);
-                show(t('Үйдүн сөзү · {0}', self.houseName), (row.body ?? '').slice(0, 160), '/#/house/chat', 'house-chat');
+                show(t('Үйдүн сөзү · {0}', self.houseName), `${row.author_role === 'admin' ? `${t('Админ')}: ` : ''}${row.body ?? ''}`.slice(0, 160), '/#/house/chat', 'house-chat');
             });
         }
         channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'announcements' }, payload => {

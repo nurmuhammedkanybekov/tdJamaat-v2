@@ -1,12 +1,10 @@
 // Who "I" am on the everyday pages: a member signed in with Google, or a
-// captain / the admin who said once which person of a house they are.
+// captain who said once which person of their house they are. The admin is
+// nobody's person: the admin's account is the admin everywhere.
 import { useCallback, useContext, useEffect, useState } from 'react';
 import { AppContext } from './context';
 
-export interface Self { memberId: string; name: string; houseId: string; houseName: string; via: 'google' | 'staff'; /** Chosen by hand (not the admin's default). */ manual?: boolean }
-
-/** The admin is Нур unless the admin chooses someone else by hand. */
-export const ADMIN_DEFAULT_NAME = 'Нур';
+export interface Self { memberId: string; name: string; houseId: string; houseName: string; via: 'google' | 'staff' }
 
 const KEY = 'tdjamaat-self-v1';
 export const readStaff = (): Omit<Self, 'via'> | null => { try { return JSON.parse(localStorage.getItem(KEY) ?? 'null'); } catch { return null; } };
@@ -25,9 +23,9 @@ export const useSelf = (): { self: Self | null; canChoose: boolean; choose: (s: 
     }, []);
     const choose = useCallback((s: Omit<Self, 'via'> | null) => saveStaffSelf(s), []);
     if (member?.status === 'linked') return { self: { ...member.link, via: 'google' }, canChoose: false, choose };
-    const staffOk = signedIn && (role === 'admin' || role === 'leader');
-    // A captain is a person of their own house only.
-    const valid = staff && staffOk && (role === 'admin' || staff.houseId === houseId) ? staff : null;
+    // A captain is a person of their own house only; the admin is no one's person.
+    const staffOk = signedIn && role === 'leader';
+    const valid = staff && staffOk && staff.houseId === houseId ? staff : null;
     return { self: valid ? { ...valid, via: 'staff' } : null, canChoose: !!staffOk, choose };
 };
 

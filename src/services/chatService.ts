@@ -5,9 +5,9 @@
 import { supabase } from '../lib/supabase';
 import { isMissingSchema } from './dataService';
 
-export interface ChatMessage { id: number; houseId: string; memberId: string; body: string; createdAt: string; authorRole: string | null; amins: string[] }
+export interface ChatMessage { id: number; houseId: string; /** Null for the admin, who is nobody's person. */ memberId: string | null; body: string; createdAt: string; authorRole: string | null; amins: string[] }
 
-type Row = { id: number; house_id: string; member_id: string; body: string; created_at: string; author_role: string | null; house_message_amins?: Array<{ member_id: string }> };
+type Row = { id: number; house_id: string; member_id: string | null; body: string; created_at: string; author_role: string | null; house_message_amins?: Array<{ member_id: string }> };
 const toMessage = (r: Row): ChatMessage => ({ id: r.id, houseId: r.house_id, memberId: r.member_id, body: r.body, createdAt: r.created_at, authorRole: r.author_role, amins: (r.house_message_amins ?? []).map(a => a.member_id) });
 
 /** The latest `limit` messages, oldest first (null: the chat is not set up yet). */
@@ -19,7 +19,7 @@ export const fetchMessages = async (houseId: string, limit = 150): Promise<ChatM
     return ((data ?? []) as Row[]).map(toMessage).reverse();
 };
 
-export const sendMessage = async (houseId: string, memberId: string, body: string) => {
+export const sendMessage = async (houseId: string, memberId: string | null, body: string) => {
     const { error } = await supabase.from('house_messages').insert({ house_id: houseId, member_id: memberId, body });
     if (error) throw error;
 };
@@ -62,10 +62,10 @@ export const markSeen = (houseId: string, at = new Date().toISOString()) => {
 };
 export const lastSeen = (houseId: string) => seenMap()[houseId] ?? null;
 
-/** How many messages from others came after the last visit. */
+/** How many messages from others came after the last visit (memberId '' = the admin, whose own messages are the admin's). */
 export const countUnread = async (houseId: string, memberId: string): Promise<number> => {
     const since = lastSeen(houseId) ?? new Date(0).toISOString();
     const { count, error } = await supabase.from('house_messages').select('id', { count: 'exact', head: true })
-        .eq('house_id', houseId).gt('created_at', since).neq('member_id', memberId);
+        .eq('house_id', houseId).gt('created_at', since).or(memberId ? `member_id.is.null,member_id.neq.${memberId},author_role.eq.admin` : 'author_role.neq.admin,author_role.is.null');
     return error ? 0 : count ?? 0;
 };

@@ -95,9 +95,11 @@ In the Supabase dashboard, open **SQL Editor** and run, in order:
     menu → Жамааттан кабар) and **Аптанын максаты** (one line a captain
     pins for the house's week, above the house's conversation). Needs 18.
     Safe to re-run.
-20. `supabase/admin-chat-2026-11.sql` — the admin writes in **every**
-    house's conversation (menu → Үйлөрдүн сөзү), marked "админ". Captains
-    and members are unchanged. Needs 18. Safe to re-run.
+20. `supabase/admin-chat-2026-11.sql` — the admin is the admin: the admin's
+    account is nobody's person and writes in **every** house's conversation
+    as **Админ** (Үйүм → all houses → a house's conversation). The database
+    marks the message as the admin's and keeps no member on it, whatever the
+    phone sends. Captains and members are unchanged. Needs 18. Safe to re-run.
 
 Notifications: in Үйдүн сөзү or Жамааттан кабар, "Билдирмелерди
 күйгүзүү". They arrive while the app is open or in the background (not

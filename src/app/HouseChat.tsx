@@ -1,7 +1,7 @@
 // Үйдүн сөзү — the house's own conversation. Only the people of the house,
 // its captain and the admin can read it (supabase/house-chat-2026-11.sql).
 // Messages arrive at once; a message can be answered with "Аамин".
-import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ArrowDown, ArrowUp, Loader2, Trash2 } from 'lucide-react';
 import type { Theme } from '../theme';
 import { isEnglish, t } from '../i18n';
@@ -14,6 +14,7 @@ import { deleteMessage, fetchMessages, markSeen, sendMessage, setAmin, watchHous
 import type { Self } from './self';
 import { useMemberData } from './memberData';
 import { GoalBanner, NotifyToggle } from './Community';
+import { AppContext } from './context';
 
 const KY_MONTHS = ['январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'];
 const dayLabel = (d: Date, now = new Date()) => {
@@ -33,8 +34,17 @@ const STARTERS = [
     () => t('Ушул аптанын планын бирге аткаралы!')
 ];
 
-export const HouseChat: React.FC<{ self: Self; canModerate: boolean; theme: Theme; onToggleTheme: () => void; /** The admin in another house: writes as the admin (needs supabase/admin-chat-2026-11.sql). */ readOnly?: boolean }> = ({ self, canModerate, theme, onToggleTheme, readOnly }) => {
+/** The admin's mark in the conversation: the jamaat's seal instead of a face. */
+const AdminSeal: React.FC = () => (
+    <span className="chat-admin-seal" aria-hidden="true"><Mark size={20} /></span>
+);
+
+export const HouseChat: React.FC<{ self: Self; canModerate: boolean; theme: Theme; onToggleTheme: () => void; back?: string }> = ({ self, canModerate, theme, onToggleTheme, back = '#/house' }) => {
     const { data } = useMemberData();
+    // The admin's account speaks as "Админ", its own voice, not as the person
+    // the admin is on the site (the database marks every admin message).
+    const ctx = useContext(AppContext);
+    const asAdmin = ctx.signedIn && ctx.role === 'admin';
     const week = data?.weeks.length ? data.weeks[data.weeks.length - 1].globalWeek : null;
     const [messages, setMessages] = useState<ChatMessage[] | null | undefined>(undefined);
     const [text, setText] = useState('');
@@ -55,7 +65,6 @@ export const HouseChat: React.FC<{ self: Self; canModerate: boolean; theme: Them
         fetchMessages(self.houseId).then(m => { setMessages(m); markSeen(self.houseId); }).catch(() => setMessages(null));
     }, [self.houseId]);
     useEffect(() => { load(); return watchHouse(self.houseId, load); }, [load, self.houseId]);
-    const back = readOnly ? '#/house/chats' : '#/house';
 
     // Follow the newest message — unless the reader has scrolled up to read.
     // Scrolled up, a button brings the reader back down and counts what came meanwhile.
@@ -83,11 +92,13 @@ export const HouseChat: React.FC<{ self: Self; canModerate: boolean; theme: Them
         const clean = body.trim();
         if (!clean || sending) return;
         setSending(true); setError('');
-        try { await sendMessage(self.houseId, self.memberId, clean); setText(''); stick.current = true; load(); input.current?.focus(); }
-        catch (e) { const msg = (e as Error)?.message ?? ''; setError(readOnly && /row-level security|violates/i.test(msg) ? t('Башка үйгө жазуу үчүн админ supabase/admin-chat-2026-11.sql файлын иштетиши керек.') : msg || t('Жөнөтүлгөн жок')); }
+        try { await sendMessage(self.houseId, asAdmin ? null : self.memberId, clean); setText(''); stick.current = true; load(); input.current?.focus(); }
+        catch (e) { const msg = (e as Error)?.message ?? ''; setError(asAdmin && /row-level security|violates|null value/i.test(msg) ? t('«Админ» катары жазуу үчүн supabase/admin-chat-2026-11.sql файлын иштетүү керек.') : msg || t('Жөнөтүлгөн жок')); }
         finally { setSending(false); }
     };
     const amin = async (m: ChatMessage) => {
+        // "Аамин" is a person's word; the admin's account only sees the count.
+        if (asAdmin) return;
         const on = !m.amins.includes(self.memberId);
         // At once on screen; the database confirms a moment later.
         setMessages(cur => cur?.map(x => (x.id === m.id ? { ...x, amins: on ? [...x.amins, self.memberId] : x.amins.filter(a => a !== self.memberId) } : x)));
@@ -114,7 +125,7 @@ export const HouseChat: React.FC<{ self: Self; canModerate: boolean; theme: Them
                     <Mark size={44} className="mx-auto" style={{ color: 'var(--gold)' }} />
                     <div className="eyebrow mt-3" style={{ color: 'var(--gold)' }}>{t('Үйдүн сөзү')}</div>
                     <h1 className="font-display text-[2rem] leading-tight mt-1" style={{ color: 'var(--text-primary)' }}>{self.houseName}</h1>
-                    <p className="text-[0.8rem] mt-1" style={{ color: 'var(--text-muted)' }}>{readOnly ? t('Сиз бул үйгө админ катары жазасыз; билдирүүлөрдү өчүрө аласыз.') : t('Үйдүн адамдары, капитан жана админ гана көрөт.')}</p>
+                    <p className="text-[0.8rem] mt-1" style={{ color: 'var(--text-muted)' }}>{asAdmin ? t('Сиз бул жерде «Админ» катары жазасыз — баары муну көрөт. Билдирүүлөрдү өчүрө аласыз.') : t('Үйдүн адамдары, капитан жана админ гана көрөт.')}</p>
                     <div className="mt-2"><NotifyToggle /></div>
                     <HornBand className="mt-3" />
                 </header>
@@ -138,23 +149,27 @@ export const HouseChat: React.FC<{ self: Self; canModerate: boolean; theme: Them
                     const prev = messages[i - 1];
                     const newDay = !prev || new Date(prev.createdAt).toDateString() !== at.toDateString();
                     // Messages close together from one person read as one.
-                    const sameRun = !newDay && prev && prev.memberId === m.memberId && at.getTime() - new Date(prev.createdAt).getTime() < 5 * 60000;
-                    const mine = m.memberId === self.memberId;
-                    const who = people.get(m.memberId);
+                    const byAdmin = m.authorRole === 'admin';
+                    const sameRun = !newDay && prev && prev.memberId === m.memberId && (prev.authorRole === 'admin') === byAdmin && at.getTime() - new Date(prev.createdAt).getTime() < 5 * 60000;
+                    const mine = asAdmin ? byAdmin : m.memberId === self.memberId && !byAdmin;
+                    const who = byAdmin || !m.memberId ? null : people.get(m.memberId);
                     const said = m.amins.includes(self.memberId);
                     return (
                         <React.Fragment key={m.id}>
                             {newDay && <div className="chat-day"><span>{dayLabel(at)}</span></div>}
-                            <div className={`chat-row ${mine ? 'is-mine' : ''} ${sameRun ? 'is-run' : ''}`}>
-                                {!mine && <div className="w-9 flex-shrink-0">{!sameRun && <Avatar name={who?.name ?? '?'} role={who?.role ?? 'member'} photoUrl={who?.photoUrl ?? null} size="sm" />}</div>}
+                            <div className={`chat-row ${mine ? 'is-mine' : ''} ${sameRun ? 'is-run' : ''} ${byAdmin ? 'is-admin' : ''}`}>
+                                {!mine && <div className="w-9 flex-shrink-0">{!sameRun && (byAdmin ? <AdminSeal /> : <Avatar name={who?.name ?? '?'} role={who?.role ?? 'member'} photoUrl={who?.photoUrl ?? null} size="sm" />)}</div>}
                                 <div className="chat-body">
                                     {!mine && !sameRun && (
-                                        <div className="chat-name">{who?.name ?? (m.authorRole === 'admin' ? t('Админ') : t('Мүчө'))}{m.authorRole === 'leader' && <span className="chat-tag">{t('капитан')}</span>}{m.authorRole === 'admin' && <span className="chat-tag">{t('админ')}</span>}</div>
+                                        byAdmin
+                                            ? <div className="chat-name is-admin">{t('Админ')}<span className="chat-tag">{t('жамааттын админи')}</span></div>
+                                            : <div className="chat-name">{who?.name ?? t('Мүчө')}{m.authorRole === 'leader' && <span className="chat-tag">{t('капитан')}</span>}</div>
                                     )}
+                                    {mine && byAdmin && !sameRun && <div className="chat-name is-admin justify-end">{t('Админ')}</div>}
                                     <div className="chat-bubble">{m.body}</div>
                                     <div className="chat-meta">
                                         <span className="tabular">{hm(at)}</span>
-                                        <button onClick={() => amin(m)} aria-pressed={said} className={`chat-amin ${said ? 'is-on' : ''}`} aria-label={t('Аамин')}>
+                                        <button onClick={() => amin(m)} disabled={asAdmin} aria-pressed={said} className={`chat-amin ${said ? 'is-on' : ''}`} aria-label={t('Аамин')}>
                                             {t('Аамин')}{m.amins.length > 0 && <span className="tabular"> · {m.amins.length}</span>}
                                         </button>
                                         {(mine || canModerate) && <button onClick={() => remove(m)} aria-label={t('Өчүрүү')} className="chat-delete"><Trash2 className="w-3.5 h-3.5" /></button>}
@@ -182,7 +197,7 @@ export const HouseChat: React.FC<{ self: Self; canModerate: boolean; theme: Them
                             ref={input} rows={1} value={text} maxLength={2000}
                             onChange={e => setText(e.target.value)}
                             onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && !('ontouchstart' in window)) { e.preventDefault(); send(); } }}
-                            placeholder={t('{0} үйүнө жазуу…', self.houseName)} aria-label={t('Билдирүү')}
+                            placeholder={asAdmin ? t('Админ катары жазуу…') : t('{0} үйүнө жазуу…', self.houseName)} aria-label={t('Билдирүү')}
                             className="login-field flex-1 min-w-0 resize-none px-3.5 py-3 text-base leading-snug"
                             style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border-strong)', color: 'var(--text-primary)' }}
                         />

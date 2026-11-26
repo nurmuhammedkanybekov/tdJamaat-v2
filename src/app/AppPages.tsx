@@ -7,8 +7,7 @@ import type { AppRoute } from './route';
 import type { AppCtx } from './context';
 import { AppContext } from './context';
 import { useMember, usePracticeSync } from './useMember';
-import { ADMIN_DEFAULT_NAME, readStaff, saveStaffSelf, useSelf } from './self';
-import { useMemberData } from './memberData';
+import { readStaff, saveStaffSelf, useSelf } from './self';
 
 const TodayPage = lazy(withReload(() => import('./TodayPage').then(m => ({ default: m.TodayPage }))));
 const QuranPage = lazy(withReload(() => import('./QuranPage').then(m => ({ default: m.QuranPage }))));
@@ -25,29 +24,17 @@ const Waiting: React.FC = () => (
     </div>
 );
 
-/** A captain or the admin who chose "Мен": their counts reach the form too. */
+/** A captain who chose "Мен": their counts reach the form too. */
 const StaffSync: React.FC = () => {
     const { self } = useSelf();
     usePracticeSync(self?.via === 'staff' ? self.memberId : null);
     return null;
 };
 
-/** The admin is Нур by default: set unless the admin picked someone by hand. */
-const AdminDefaultSelf: React.FC = () => {
-    const { data } = useMemberData();
-    useEffect(() => {
-        if (!data) return;
-        const current = readStaff();
-        if (current?.manual) return;
-        const latest = data.weeks[data.weeks.length - 1];
-        for (const tm of latest?.teams ?? []) {
-            const m = tm.members.find(x => x.name.trim() === ADMIN_DEFAULT_NAME);
-            if (m) {
-                if (current?.memberId !== m.id) saveStaffSelf({ memberId: m.id, name: m.name, houseId: tm.id, houseName: tm.name });
-                return;
-            }
-        }
-    }, [data]);
+/** The admin's account is the admin, not a person of a house: forget a
+ *  person chosen earlier (when the admin used to be Нур by default). */
+const AdminIsAdmin: React.FC = () => {
+    useEffect(() => { if (readStaff()) saveStaffSelf(null); }, []);
     return null;
 };
 
@@ -62,7 +49,7 @@ export const AppPages: React.FC<{ route: AppRoute; theme: Theme; onToggleTheme: 
     return (
         <AppContext.Provider value={{ ...ctx, member }}>
             <StaffSync />
-            {ctx.signedIn && ctx.role === 'admin' && <AdminDefaultSelf />}
+            {ctx.signedIn && ctx.role === 'admin' && <AdminIsAdmin />}
             <Suspense fallback={<Waiting />}>
                 {route.page === 'quran' ? <QuranPage arg={route.arg} sub={route.sub} {...props} />
                     : route.page === 'tasbihat' ? <TasbihatPage arg={route.arg} {...props} />

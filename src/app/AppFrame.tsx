@@ -44,7 +44,7 @@ export const AppFrame: React.FC<{
     hero?: React.ReactNode;
     children: React.ReactNode;
 }> = ({ page, title, kicker, sub, back, theme, onToggleTheme, ownBar, hero, children }) => {
-    const { signedIn, member } = useContext(AppContext);
+    const { signedIn, member, role } = useContext(AppContext);
     const now = useNow(60_000);
     const sky = skyAt(loadCity(), now);
     const { self, canChoose } = useSelf();
@@ -84,6 +84,11 @@ export const AppFrame: React.FC<{
                                 <span className="hidden md:inline-flex mr-1">
                                     <button onClick={() => open('results')} className="btn btn-ghost" style={{ minHeight: '2.5rem' }}><Trophy className="w-3.5 h-3.5" />{t('Жыйынтыктар')}</button>
                                 </span>
+                                {role === 'admin' && (
+                                    <button onClick={() => go('#/house')} aria-label={t('Админ — бардык үйлөр')} title={t('Админ')} className="mr-1 w-9 h-9 rounded-full inline-flex items-center justify-center chat-admin-seal">
+                                        <Mark size={18} />
+                                    </button>
+                                )}
                                 {canChoose && (
                                     <button onClick={() => go('#/house')} aria-label={self ? self.name : t('Менин үйүм')} title={self ? self.name : t('Менин үйүм')} className="mr-1 w-9 h-9 rounded-full inline-flex items-center justify-center font-display text-[1.05rem]" style={{ border: '1px solid var(--gold)', color: 'var(--gold)' }}>
                                         {self ? self.name.slice(0, 1) : <UserRound className="w-4 h-4" strokeWidth={1.5} />}
