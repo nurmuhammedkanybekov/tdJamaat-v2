@@ -2,7 +2,7 @@
 // its captain and the admin can read it (supabase/house-chat-2026-11.sql).
 // Messages arrive at once; a message can be answered with "Аамин".
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { ArrowUp, Loader2, Trash2 } from 'lucide-react';
+import { ArrowDown, ArrowUp, Loader2, Trash2 } from 'lucide-react';
 import type { Theme } from '../theme';
 import { isEnglish, t } from '../i18n';
 import { AppFrame, Waiting } from './AppFrame';
@@ -58,12 +58,26 @@ export const HouseChat: React.FC<{ self: Self; canModerate: boolean; theme: Them
     const back = readOnly ? '#/house/chats' : '#/house';
 
     // Follow the newest message — unless the reader has scrolled up to read.
+    // Scrolled up, a button brings the reader back down and counts what came meanwhile.
+    const [away, setAway] = useState(false);
+    const [fresh, setFresh] = useState(0);
+    const seenCount = useRef(0);
     useEffect(() => {
-        const onScroll = () => { stick.current = window.innerHeight + window.scrollY > document.documentElement.scrollHeight - 160; };
+        const onScroll = () => {
+            stick.current = window.innerHeight + window.scrollY > document.documentElement.scrollHeight - 160;
+            setAway(!stick.current);
+            if (stick.current) setFresh(0);
+        };
         window.addEventListener('scroll', onScroll, { passive: true });
         return () => window.removeEventListener('scroll', onScroll);
     }, []);
-    useLayoutEffect(() => { if (stick.current) window.scrollTo(0, document.documentElement.scrollHeight); }, [messages]);
+    useLayoutEffect(() => {
+        const n = messages?.length ?? 0;
+        if (stick.current) window.scrollTo(0, document.documentElement.scrollHeight);
+        else if (n > seenCount.current) setFresh(f => f + n - seenCount.current);
+        seenCount.current = n;
+    }, [messages]);
+    const toNewest = () => { setFresh(0); window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }); };
 
     const send = async (body = text) => {
         const clean = body.trim();
@@ -155,6 +169,13 @@ export const HouseChat: React.FC<{ self: Self; canModerate: boolean; theme: Them
             {/* Writing, at the bottom within thumb reach. */}
             {messages !== null && (
                 <div className="fixed left-0 right-0 bottom-0 z-30 page-gutter" style={{ paddingBottom: 'max(0.6rem, env(safe-area-inset-bottom))', paddingTop: '0.6rem', backgroundColor: 'color-mix(in oklab, var(--page-plane) 94%, transparent)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderTop: '1px solid var(--border)' }}>
+                    {away && (
+                        <button onClick={toNewest} aria-label={t('Акыркы билдирүүлөргө')} className="absolute right-4 sm:right-8 -top-14 h-10 min-w-10 px-3 inline-flex items-center justify-center gap-1.5 rounded-full pop-in"
+                            style={{ backgroundColor: 'var(--page-plane)', border: `1px solid ${fresh ? 'var(--gold)' : 'var(--border-strong)'}`, color: fresh ? 'var(--gold)' : 'var(--text-secondary)', boxShadow: '0 6px 18px -10px rgba(0,0,0,0.35)' }}>
+                            {fresh > 0 && <span className="text-[0.8rem] tabular">{t('{0} жаңы', fresh)}</span>}
+                            <ArrowDown className="w-4 h-4" />
+                        </button>
+                    )}
                     {error && <p className="max-w-[42rem] mx-auto text-[0.82rem] mb-2" style={{ color: 'var(--danger)' }}>{error}</p>}
                     <form className="max-w-[42rem] mx-auto flex items-end gap-2" onSubmit={e => { e.preventDefault(); send(); }}>
                         <textarea
