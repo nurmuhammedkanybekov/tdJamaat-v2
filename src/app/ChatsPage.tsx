@@ -87,10 +87,10 @@ const ChatList: React.FC<{ rooms: ChatRoom[]; onChanged: () => void }> = ({ room
         rooms.forEach(r => countRoomUnread(r.id).then(n => setUnread(u => ({ ...u, [r.id]: n }))).catch(() => undefined));
         if (self) countUnread(self.houseId, self.memberId).then(n => setUnread(u => ({ ...u, 'house:': n }))).catch(() => undefined);
     }, [rooms, self]);
-    const rows: Array<{ key: string; to: string; title: string; sub: string; icon: React.ReactNode; room?: ChatRoom }> = [
-        ...rooms.map(r => ({ key: r.id, to: `#/chat/${r.id}`, title: r.name, sub: r.about || (r.audience === 'staff' ? t('Капитандар, CL жана админ') : t('Бүт жамаат бир жерде')), icon: r.audience === 'staff' ? <Shield className="w-5 h-5" strokeWidth={1.5} /> : <Users className="w-5 h-5" strokeWidth={1.5} />, room: r })),
-        ...(self ? [{ key: 'house:', to: '#/house/chat', title: t('Үйдүн сөзү'), sub: self.houseName, icon: <MessageCircle className="w-5 h-5" strokeWidth={1.5} /> }] : []),
-        ...(access.isAdmin ? [{ key: 'houses:', to: '#/house', title: t('Үйлөрдүн сөзү'), sub: t('Ар бир үйгө «Админ» катары'), icon: <MessageCircle className="w-5 h-5" strokeWidth={1.5} /> }] : [])
+    const rows: Array<{ key: string; to: string; title: string; sub: string; icon: React.ReactNode; tag: string; room?: ChatRoom }> = [
+        ...rooms.map(r => ({ key: r.id, to: `#/chat/${r.id}`, title: r.name, sub: r.about || (r.audience === 'staff' ? t('Капитандар, CL жана админ') : t('Бүт жамаат бир жерде')), icon: r.audience === 'staff' ? <Shield className="w-5 h-5" strokeWidth={1.5} /> : <Users className="w-5 h-5" strokeWidth={1.5} />, tag: r.audience === 'staff' ? t('Капитандарга') : t('Баарына'), room: r })),
+        ...(self ? [{ key: 'house:', to: '#/house/chat', title: t('Үйдүн сөзү'), sub: self.houseName, icon: <MessageCircle className="w-5 h-5" strokeWidth={1.5} />, tag: t('Үйгө') }] : []),
+        ...(access.isAdmin ? [{ key: 'houses:', to: '#/house', title: t('Үйлөрдүн сөзү'), sub: t('Ар бир үйгө «Админ» катары'), icon: <MessageCircle className="w-5 h-5" strokeWidth={1.5} />, tag: t('Ар бир үйгө') }] : [])
     ];
     return (
         <div className="max-w-[40rem] mx-auto mt-6">
@@ -105,16 +105,16 @@ const ChatList: React.FC<{ rooms: ChatRoom[]; onChanged: () => void }> = ({ room
                     return (
                         <li key={r.key} style={{ borderBottom: '1px solid var(--border)' }}>
                             <div className="flex items-center gap-1">
-                                <button onClick={() => go(r.to)} className="row-link flex-1 min-w-0 text-left py-4 px-1 flex items-center gap-4">
-                                    <span className="w-11 h-11 rounded-full inline-flex items-center justify-center flex-shrink-0 relative" style={{ border: '1px solid var(--gold)', color: 'var(--gold)' }}>
-                                        {r.icon}
-                                        {n > 0 && <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full text-[0.7rem] font-semibold inline-flex items-center justify-center" style={{ backgroundColor: 'var(--gold)', color: 'var(--page-plane)' }}>{n > 99 ? '99+' : n}</span>}
-                                    </span>
+                                <button onClick={() => go(r.to)} className="room-row flex-1 min-w-0" data-new={n > 0 || undefined}>
+                                    <span className="room-seal" aria-hidden="true"><span>{r.title.slice(0, 1)}</span></span>
                                     <span className="flex-1 min-w-0">
-                                        <span className="block font-display text-[1.4rem] leading-tight truncate" style={{ color: 'var(--text-primary)' }}>{r.title}</span>
-                                        <span className="block text-[0.85rem] truncate" style={{ color: n ? 'var(--gold)' : 'var(--text-muted)' }}>{n ? t('{0} жаңы билдирүү', n) : r.sub}</span>
+                                        <span className="room-tag">{r.tag}</span>
+                                        <span className="block font-display text-[1.55rem] sm:text-[1.75rem] leading-tight truncate" style={{ color: 'var(--text-primary)' }}>{r.title}</span>
+                                        <span className="block text-[0.86rem] truncate" style={{ color: 'var(--text-muted)' }}>{r.sub}</span>
                                     </span>
-                                    <ChevronRight className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--gold)' }} />
+                                    {n > 0
+                                        ? <span className="room-new" aria-label={t('{0} жаңы билдирүү', n)}><span className="font-display tabular">{n > 99 ? '99+' : n}</span>{t('жаңы')}</span>
+                                        : <ChevronRight className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--gold)' }} />}
                                 </button>
                                 {access.isAdmin && r.room && (
                                     <button onClick={() => setEditing(editing && editing !== 'new' && editing.id === r.room!.id ? null : r.room!)} aria-label={t('Өзгөртүү: {0}', r.title)} className="w-10 h-10 inline-flex items-center justify-center flex-shrink-0 transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}><Pencil className="w-4 h-4" /></button>

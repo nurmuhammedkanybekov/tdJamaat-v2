@@ -2,7 +2,7 @@
 // recited, and the sections that show it — on a profile, a house page, the
 // community page and the awards. No points; badges only.
 import React, { useMemo, useState } from 'react';
-import { BookOpenCheck, Check, Loader2, Plus, Trash2 } from 'lucide-react';
+import { Check, Loader2, Plus, Trash2 } from 'lucide-react';
 import type { DataFile } from '../types';
 import { Sheet, SectionHeader } from './ui';
 import { addJattooGoal, addJattooRecord, deleteJattooGoal, deleteJattooRecord } from '../services/dataService';
@@ -10,6 +10,7 @@ import type { JattooCategory, JattooGoal, JattooRecord } from '../utils/jattoo';
 import { CATEGORIES, CATEGORY_LABEL, goalProgress, jattooBadges, summarize, unitLabel } from '../utils/jattoo';
 import { SURAHS, surah as surahOf } from '../utils/quranMeta';
 import { isoDay } from '../utils/weekDates';
+import { Avatar } from './Avatar';
 import { t } from '../i18n';
 
 const today = () => isoDay(new Date(Date.UTC(new Date().getFullYear(), new Date().getMonth(), new Date().getDate())));
@@ -70,8 +71,8 @@ const RecordForm: React.FC<{ memberId: string; mode: 'record' | 'goal'; onSaved:
 
     return (
         <div className="space-y-4">
-            <div className="flex flex-wrap gap-1" role="radiogroup" aria-label={t('Түрү')}>
-                {CATEGORIES.map(c => <button key={c} type="button" role="radio" aria-checked={category === c} onClick={() => { setCategory(c); setSaved(false); }} className={`chip ${category === c ? 'is-active' : ''}`}>{CATEGORY_LABEL[c]}</button>)}
+            <div className="jattoo-kinds" role="radiogroup" aria-label={t('Түрү')}>
+                {CATEGORIES.map(c => <button key={c} type="button" role="radio" aria-checked={category === c} onClick={() => { setCategory(c); setSaved(false); }} data-on={category === c || undefined}>{CATEGORY_LABEL[c]}</button>)}
             </div>
             {category === 'quran' ? (
                 <div className="grid grid-cols-[1fr_auto_auto] gap-2 items-end">
@@ -99,6 +100,7 @@ const RecordForm: React.FC<{ memberId: string; mode: 'record' | 'goal'; onSaved:
                         <input type="number" inputMode="numeric" min={1} value={amount} onChange={e => { setAmount(Number(e.target.value)); setSaved(false); }} className="w-[4.6rem] px-2.5 py-2.5 text-[0.95rem] tabular" style={field} /></label>
                 </div>
             )}
+            <div className="jattoo-step pt-3"><span>3</span>{mode === 'record' ? t('Качан жана сактоо') : t('Мөөнөт жана сактоо')}</div>
             <div className="flex flex-wrap items-end gap-2">
                 {mode === 'record'
                     ? <label><span className="eyebrow block mb-1.5">{t('Качан айтып берди')}</span><input type="date" value={date} max={today()} onChange={e => setDate(e.target.value)} className="px-2.5 py-2 text-[0.95rem]" style={{ ...field, colorScheme: 'light dark' }} /></label>
@@ -192,18 +194,25 @@ export const JattooSheet: React.FC<{
                     </div>
                 )}
                 <div>
-                    <div className="eyebrow mb-2">{t('Ким')}</div>
-                    <div className="flex flex-wrap gap-1.5">
+                    <div className="jattoo-step"><span>1</span>{t('Ким айтып берди')}</div>
+                    {/* The house as a row of faces: easier to find someone than in a list of names. */}
+                    <div className="jattoo-roster">
                         {people.map(p => {
                             const has = (data.jattoo?.records ?? []).some(r => r.memberId === p.id);
-                            return <button key={p.id} type="button" onClick={() => setMemberId(p.id)} aria-pressed={memberId === p.id} className="jattoo-person" data-on={memberId === p.id || undefined}>{p.name}{has && <BookOpenCheck className="w-3.5 h-3.5 inline ml-1.5 -mt-0.5" style={{ color: 'var(--gold)' }} />}</button>;
+                            return (
+                                <button key={p.id} type="button" onClick={() => setMemberId(p.id)} aria-pressed={memberId === p.id} className="jattoo-face" data-on={memberId === p.id || undefined}>
+                                    <span className="relative"><Avatar name={p.name} role={p.role} photoUrl={p.photoUrl} size="md" />{has && <i className="jattoo-has" title={t('Жаттаганы бар')} />}</span>
+                                    <span className="jattoo-face-n">{p.name}</span>
+                                </button>
+                            );
                         })}
                     </div>
-                    {memberId && <div className="text-[0.85rem] mt-2" style={{ color: 'var(--text-secondary)' }}>{summaryLine(records) || t('Азырынча жазуу жок.')}</div>}
+                    {memberId && <div className="text-[0.88rem] mt-3 italic" style={{ color: 'var(--text-secondary)' }}>{summaryLine(records) || t('Азырынча жазуу жок.')}</div>}
                 </div>
 
                 {memberId && (
                     <section className="pt-5" style={{ borderTop: '1px solid var(--border)' }}>
+                        <div className="jattoo-step"><span>2</span>{t('Эмнени')}</div>
                         <div className="flex gap-6 mb-4" role="tablist">
                             {(['record', 'goal'] as const).map(m => <button key={m} role="tab" aria-selected={mode === m} onClick={() => setMode(m)} className="jattoo-tab" data-on={mode === m || undefined}>{m === 'record' ? t('Жатталды') : t('План')}</button>)}
                         </div>

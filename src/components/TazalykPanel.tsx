@@ -19,26 +19,20 @@ const seasonWeekOf = (board: TazalykBoard, week: number) => {
     return season ? week - season.firstWeek + 1 : week;
 };
 
-// One item: six small squares, 0 … 5 (a tap sets the rating).
+// One item: a zero and five diamonds (the шырдак's lozenge). A tap on the
+// third diamond means 3; the word beside it says what the number means.
+const WORD = [() => t('жок'), () => t('начар'), () => t('алсыз'), () => t('орто'), () => t('жакшы'), () => t('мыкты')];
 const Rating: React.FC<{ value: number | undefined; onChange: (v: number) => void; disabled: boolean; label: string }> = ({ value, onChange, disabled, label }) => (
-    <div className="flex items-center gap-1" role="radiogroup" aria-label={label}>
-        {Array.from({ length: ITEM_MAX + 1 }).map((_, v) => {
-            const on = value === v;
+    <div className="taz-rate" role="radiogroup" aria-label={label}>
+        <button type="button" role="radio" aria-checked={value === 0} aria-label={`${label}: 0`} disabled={disabled} onClick={() => onChange(0)} className="taz-zero" data-on={value === 0 || undefined}>0</button>
+        {Array.from({ length: ITEM_MAX }).map((_, i) => {
+            const v = i + 1;
             return (
-                <button
-                    key={v}
-                    type="button"
-                    role="radio"
-                    aria-checked={on}
-                    aria-label={`${label}: ${v}`}
-                    disabled={disabled}
-                    onClick={() => onChange(v)}
-                    className="taz-cell"
-                    data-on={on || undefined}
-                    data-filled={value !== undefined && v <= value && v > 0 ? true : undefined}
-                >{v}</button>
+                <button key={v} type="button" role="radio" aria-checked={value === v} aria-label={`${label}: ${v}`} disabled={disabled} onClick={() => onChange(v)}
+                    className="taz-gem" data-filled={value !== undefined && v <= value ? true : undefined}><i /></button>
             );
         })}
+        <span className="taz-word">{value === undefined ? '' : WORD[value]?.()}</span>
     </div>
 );
 
@@ -85,9 +79,10 @@ const HouseRow: React.FC<{
                     <span className="text-[0.85rem] tabular" style={{ color: 'var(--text-muted)' }}> / {TAZALYK_MAX}</span>
                 </div>
             </header>
-            <ul className="mt-3">
+            <div className="taz-meter" aria-hidden="true"><span style={{ width: `${(total / TAZALYK_MAX) * 100}%` }} /></div>
+            <ul className="mt-2">
                 {board.items.map(item => (
-                    <li key={item} className="flex items-center justify-between gap-3 py-2.5" style={{ borderTop: '1px solid var(--border)' }}>
+                    <li key={item} className="taz-item">
                         <span className="text-[0.95rem] min-w-0" style={{ color: 'var(--text-secondary)' }}>{item}</span>
                         <Rating value={scores[item]} disabled={!editable || busy} label={item} onChange={v => { setScores(s => ({ ...s, [item]: v })); setDone(false); }} />
                     </li>

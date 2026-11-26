@@ -218,14 +218,13 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
             </div>
             <div className="mt-2 text-[0.95rem] tracking-[0.04em]" style={{ color: 'var(--text-muted)' }}>{t('{0} калды', untilText(next.at.getTime() - now.getTime()))}</div>
             <DayPath times={times} now={now} tz={city.tz} next={next.key} />
-            {/* The day's times and the Qibla, as two clear buttons (the city on the first). */}
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-                <button onClick={() => go('#/namaz')} className="btn btn-primary"><Clock3 className="w-4 h-4" />{t('Намаз убактылары')}</button>
-                <button onClick={() => go('#/qibla')} className="btn btn-ghost"><Compass className="w-4 h-4" />{t('Кыбла')}</button>
-            </div>
-            <button onClick={() => setSheet(true)} className="hit mt-3 inline-flex items-center gap-1.5 text-[0.72rem] tracking-[0.18em] uppercase transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}>
-                <MapPin className="w-3.5 h-3.5" />{city.name} · {t('шаарды алмаштыруу')}
-            </button>
+            {/* The almanac line: the day's times, the Qibla, the city, as one
+                engraved row rather than a pair of generic buttons. */}
+            <nav className="almanac mt-7" aria-label={t('Намаз')}>
+                <button onClick={() => go('#/namaz')}><Clock3 className="w-[1.05rem] h-[1.05rem]" strokeWidth={1.4} /><span>{t('Бардык убактылар')}</span></button>
+                <button onClick={() => go('#/qibla')}><Compass className="w-[1.05rem] h-[1.05rem]" strokeWidth={1.4} /><span>{t('Кыбла')}</span></button>
+                <button onClick={() => setSheet(true)} title={t('шаарды алмаштыруу')}><MapPin className="w-[1.05rem] h-[1.05rem]" strokeWidth={1.4} /><span>{city.name}</span></button>
+            </nav>
         </div>
     );
 
@@ -242,12 +241,28 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
 
                 {/* What the hour asks for: this prayer's tasbihat, the 33-33-34, the Quran. */}
                 <Section eyebrow={t('Азыр · {0}', PRAYER_NAMES[prayer])}>
-                    <RowLink
-                        onClick={() => go(`#/tasbihat/${prayer}`)}
-                        mark={<span className="w-7 h-7 rotate-45 inline-flex items-center justify-center flex-shrink-0 mx-1" style={{ border: '1px solid var(--gold)', backgroundColor: doneNow ? 'var(--gold)' : 'transparent' }}>{doneNow && <Check className="w-3.5 h-3.5 -rotate-45" style={{ color: 'var(--page-plane)' }} />}</span>}
-                        title={t('{0} намазынын тасбихаты', PRAYER_NAMES[prayer])}
-                        sub={doneNow ? t('Окулду · бүгүн {0} / 5', readToday) : t('Бүгүн окулду: {0} / 5', readToday)}
-                    />
+                    {/* The day's five tasbihat as five stones: read, the one whose time it is, still ahead. */}
+                    <ol className="five" aria-label={t('Бүгүн окулду: {0} / 5', readToday)}>
+                        {TASBIHAT_ORDER.map(p => {
+                            const done = tasbihatDone(practice, p, now);
+                            const cur = p === prayer;
+                            return (
+                                <li key={p}>
+                                    <button onClick={() => go(`#/tasbihat/${p}`)} className={`five-stone ${done ? 'is-done' : ''} ${cur ? 'is-now' : ''}`} aria-current={cur ? 'time' : undefined}>
+                                        <span className="five-d" aria-hidden="true">{done && <Check className="w-3 h-3" strokeWidth={2.2} />}</span>
+                                        <span className="five-n">{PRAYER_NAMES[p as PrayerKey]}</span>
+                                    </button>
+                                </li>
+                            );
+                        })}
+                    </ol>
+                    <button onClick={() => go(`#/tasbihat/${prayer}`)} className="now-line">
+                        <span className="min-w-0">
+                            <span className="block font-display text-[1.6rem] sm:text-[1.9rem] leading-tight" style={{ color: 'var(--text-primary)' }}>{doneNow ? t('{0} тасбихаты окулду', PRAYER_NAMES[prayer]) : t('{0} намазынын тасбихатын окуу', PRAYER_NAMES[prayer])}</span>
+                            <span className="block text-[0.88rem] mt-1" style={{ color: 'var(--text-muted)' }}>{doneNow ? t('Бүгүн {0} / 5. Кийинкиси намаз убактысы киргенде.', readToday) : t('Бүгүн {0} / 5 окулду', readToday)}</span>
+                        </span>
+                        <ChevronRight className="w-5 h-5 flex-shrink-0" style={{ color: 'var(--gold)' }} />
+                    </button>
                     <RowLink
                         onClick={() => go('#/zikr/namaz')}
                         mark={<span className="w-7 mx-1 text-center font-display text-[1.1rem]" style={{ color: 'var(--gold)' }}>33</span>}

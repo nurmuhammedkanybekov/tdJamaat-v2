@@ -476,7 +476,7 @@ export const DataEntryForm: React.FC<DataEntryFormProps> = ({ authUser, defaultW
             <div className="fixed inset-0 flex items-center justify-center z-50 p-6" style={{ backgroundColor: 'color-mix(in oklab, var(--text-primary) 50%, transparent)' }}>
                 <div className="p-8 max-w-sm w-full text-center" style={{ backgroundColor: 'var(--surface)', borderRadius: 'var(--radius)' }}>
                     <CheckCircle className="w-12 h-12 mx-auto mb-4" style={{ color: 'var(--success)' }} />
-                    <h2 className="font-display text-[2rem] mb-2" style={{ color: 'var(--text-primary)' }}>{t('Ийгиликтүү сакталды!')}</h2>
+                    <h2 className="font-display text-[2rem] mb-2" style={{ color: 'var(--text-primary)' }}>{t('Сакталды')}</h2>
                     <p style={{ color: 'var(--text-secondary)' }}>{t('{0} үчүн маалымат жаңыртылды.', label(weekNumber))}</p>
                 </div>
             </div>

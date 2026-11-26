@@ -74,10 +74,21 @@ export const QiblaPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
                         {Array.from({ length: 72 }, (_, i) => (
                             <line key={i} y1={-112} y2={i % 18 === 0 ? -100 : i % 2 === 0 ? -105 : -108} className={i % 18 === 0 ? 'qibla-tick is-major' : 'qibla-tick'} transform={`rotate(${i * 5})`} />
                         ))}
-                        <text y={-82} className="qibla-point" textAnchor="middle" dominantBaseline="middle">N</text>
+                        {/* An eight-petalled rosette of horns in the centre, like the middle of a шырдак. */}
+                        {Array.from({ length: 8 }, (_, i) => (
+                            <path key={`h${i}`} transform={`rotate(${i * 45}) translate(0,-44) scale(.32)`} className="qibla-horn"
+                                d="M0 30 C0 10 8 -2 21 -5 C35 -8 42 5 37 15 C32 24 20 23 20 15 C20 9 26 7 29 11 M0 30 C0 10 -8 -2 -21 -5 C-35 -8 -42 5 -37 15 C-32 24 -20 23 -20 15 C-20 9 -26 7 -29 11" />
+                        ))}
+                        <circle r="62" className="qibla-ring is-thin" />
+                        {/* The angle itself: an arc from north round to the Qibla. */}
+                        <path className="qibla-arc" d={`M0 -78 A78 78 0 ${bearing > 180 ? 1 : 0} 1 ${78 * Math.sin(bearing * Math.PI / 180)} ${-78 * Math.cos(bearing * Math.PI / 180)}`} />
+                        {(['N', 'E', 'S', 'W'] as const).map((c, i) => (
+                            <text key={c} transform={`rotate(${i * 90}) translate(0,-86) rotate(${-i * 90})`} className={`qibla-point ${c === 'N' ? 'is-north' : ''}`} textAnchor="middle" dominantBaseline="middle">{c}</text>
+                        ))}
                         {/* The Kaaba on the dial, at the Qibla bearing. */}
                         <g transform={`rotate(${bearing})`}>
-                            <line y1={-20} y2={-70} className="qibla-needle" />
+                            <path d="M0 -70 L5 -12 L0 0 L-5 -12 Z" className="qibla-needle" />
+                            <path d="M0 0 L3 10 L0 22 L-3 10 Z" className="qibla-tail" />
                             <g transform="translate(0,-84)">
                                 <rect x={-9} y={-9} width={18} height={18} className="qibla-kaaba" />
                                 <line x1={-9} x2={9} y1={-4} y2={-4} className="qibla-kaaba-band" />
@@ -94,10 +105,10 @@ export const QiblaPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
                     {facing ? t('Сиз Кыблага карап турасыз.') : heading !== null ? t('Телефонду Кааба белгиси жогору келгенче буруңуз.') : t('Меккеге чейин {0} км.', KM_TO_MECCA(place.lat, place.lng).toLocaleString())}
                 </p>
 
-                <div className="flex flex-wrap justify-center gap-3 mt-7">
-                    {compass !== 'on' && <button className="btn btn-primary" onClick={startCompass}><Compass className="w-4 h-4" />  {t('Компасты күйгүзүү')}</button>}
-                    <button className="btn btn-ghost" onClick={locate} disabled={locating}><LocateFixed className="w-4 h-4" />  {locating ? t('Изделүүдө…') : t('Менин жайгашкан жерим')}</button>
-                </div>
+                <nav className="almanac mt-8" aria-label={t('Кыбла')} style={{ ['--n' as string]: compass !== 'on' ? 2 : 1 }}>
+                    {compass !== 'on' && <button onClick={startCompass}><Compass className="w-[1.05rem] h-[1.05rem]" strokeWidth={1.4} /><span>{t('Компасты күйгүзүү')}</span></button>}
+                    <button onClick={locate} disabled={locating}><LocateFixed className="w-[1.05rem] h-[1.05rem]" strokeWidth={1.4} /><span>{locating ? t('Изделүүдө…') : t('Менин жайгашкан жерим')}</span></button>
+                </nav>
                 {compass === 'denied' && <p className="text-[0.82rem] italic mt-3" style={{ color: 'var(--danger)' }}>{t('Компаска уруксат берилген жок. Браузердин жөндөөлөрүнөн уруксат бериңиз.')}</p>}
                 {compass === 'none' && <p className="text-[0.82rem] italic mt-3" style={{ color: 'var(--text-muted)' }}>{t('Бул түзмөктө компас жок. Даражаны колдонуңуз.')}</p>}
                 {compass === 'on' && heading === null && <p className="text-[0.82rem] italic mt-3" style={{ color: 'var(--text-muted)' }}>{t('Компас күтүлүүдө… Телефонду сегиз сымал кыймылдатып көрүңүз.')}</p>}
