@@ -11,7 +11,7 @@ import { loadCity } from '../utils/city';
 import type { City, PrayerKey } from '../utils/prayer';
 import { PRAYER_NAMES, PRAYER_ORDER, clock, nextPrayer, prayerTimes, untilText } from '../utils/prayer';
 import { formatHijri, isRamadan, toHijri } from '../utils/hijri';
-import { loadZikr, streak, todayTotal } from '../utils/zikr';
+import { loadZikr, todayTotal } from '../utils/zikr';
 import { calculateHouseRating } from '../utils/scoring';
 import { weekComplete } from '../utils/insights';
 import { formatWeekRange } from '../utils/weekDates';
@@ -30,6 +30,7 @@ import { MemberSummary } from './MemberResults';
 import { signInWithGoogle, signOutMember, takeAuthError } from '../services/memberService';
 import { useWeekTotals } from './useWeekTotals';
 import { NewsTeaser } from './Community';
+import { DayCalendar } from './DayCalendar';
 
 const PrayerSheet = lazy(withReload(() => import('../components/PrayerSheet').then(m => ({ default: m.PrayerSheet }))));
 
@@ -195,7 +196,7 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
     const totals = useWeekTotals();
     const { member, signedIn } = useContext(AppContext);
     const linked = member?.status === 'linked' ? member.link : null;
-    const zikrToday = todayTotal(zikr), days = streak(zikr);
+    const zikrToday = todayTotal(zikr);
     const readToday = TASBIHAT_ORDER.filter(p => tasbihatDone(practice, p, now)).length;
     const doneNow = tasbihatDone(practice, prayer, now);
 
@@ -276,9 +277,13 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
                         <Figure value={totals.pages} label={t('Бет')} onClick={() => go('#/quran')} />
                     </div>
                     <div className="flex flex-wrap items-center justify-between gap-2 pt-2" style={{ borderTop: '1px solid var(--border)' }}>
-                        <span className="text-[0.8rem]" style={{ color: 'var(--text-muted)' }}>{days > 1 ? t('Бүгүн {0} зикир · катары менен {1} күн', zikrToday, days) : t('Бүгүн {0} зикир', zikrToday)}</span>
+                        <span className="text-[0.8rem]" style={{ color: 'var(--text-muted)' }}>{t('Бүгүн {0} зикир', zikrToday)}</span>
                         {linked ? <span className="text-[0.8rem]" style={{ color: 'var(--gold)' }}>{t('Капитаныңыз бул сандарды өзү көрөт.')}</span> : <CopyWeek totals={totals} />}
                     </div>
+                </Section>
+
+                <Section eyebrow={t('Тартип · акыркы 4 апта')}>
+                    <DayCalendar now={now} />
                 </Section>
 
                 <Section eyebrow={linked ? t('Менин үйүм') : t('Жамаат')}>

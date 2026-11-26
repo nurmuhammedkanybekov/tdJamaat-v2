@@ -1042,3 +1042,25 @@ li[data-ayah].is-reciting { background-color: color-mix(in oklab, var(--gold) 8%
 .qibla-hub { fill: var(--gold); }
 .qibla-top { position: absolute; left: 50%; top: -0.9rem; width: 0; height: 0; transform: translateX(-50%); border-left: 7px solid transparent; border-right: 7px solid transparent; border-top: 10px solid var(--gold); }
 .qibla.is-facing .qibla-ring { stroke-width: 2.4; filter: drop-shadow(0 0 12px color-mix(in oklab, var(--gold) 60%, transparent)); }
+
+/* ── Тартип: four weeks of practice ─────────────────────────────────── */
+.daycal { display: grid; grid-template-columns: 1fr; gap: 1.5rem; padding-top: 1.25rem; }
+@media (min-width: 640px) { .daycal { grid-template-columns: 11rem minmax(0, 1fr); gap: 2.5rem; align-items: center; } }
+.daycal-figures { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; }
+@media (min-width: 640px) { .daycal-figures { flex-direction: column; align-items: flex-start; } }
+.daycal-run { font-size: 4rem; }
+.daycal-side { display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.82rem; color: var(--text-muted); text-align: right; }
+@media (min-width: 640px) { .daycal-side { text-align: left; } }
+.daycal-side b { font-weight: 400; font-size: 1.15rem; color: var(--text-primary); margin-right: 0.15rem; }
+.daycal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 0.55rem 0.4rem; justify-items: center; }
+.daycal-head { font-size: 0.6rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted); }
+.daycal-day { width: 1.6rem; height: 1.6rem; display: inline-flex; align-items: center; justify-content: center; }
+.daycal-day i, .daycal-legend i { display: block; width: 0.8rem; height: 0.8rem; transform: rotate(45deg); border: 1px solid var(--border-strong); transition: background-color .3s, border-color .3s, transform .3s; }
+.daycal-day.lv-1 i, .daycal-legend i.lv-1 { border-color: var(--gold-dim); background: color-mix(in oklab, var(--gold) 28%, transparent); }
+.daycal-day.lv-2 i, .daycal-legend i.lv-2 { border-color: var(--gold); background: color-mix(in oklab, var(--gold) 62%, transparent); }
+.daycal-day.lv-3 i, .daycal-legend i.lv-3 { border-color: var(--gold); background: var(--gold); }
+.daycal-day.is-today i { width: 1rem; height: 1rem; box-shadow: 0 0 0 3px var(--gold-soft); }
+.daycal-day:hover i { transform: rotate(45deg) scale(1.2); }
+.daycal-legend { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 0.4rem 1.2rem; font-size: 0.72rem; color: var(--text-muted); }
+.daycal-legend span { display: inline-flex; align-items: center; gap: 0.5rem; }
+.daycal-legend i { width: 0.6rem; height: 0.6rem; }

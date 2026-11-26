@@ -868,7 +868,6 @@ export const EN: Record<string, string> = {
     "{0}-аяттан улантуу · бүгүн {1} бет": "Continue from ayah {0} · {1} pages today",
     "Мадина мусхафы, кыргызча мааниси менен": "The Madinah mushaf, with the meaning",
     "Намаздан кийинки тасбих": "Tasbih after the prayer",
-    "Бүгүн {0} зикир · катары менен {1} күн": "{0} dhikr today · {1} days in a row",
     "Бүгүн {0} зикир": "{0} dhikr today",
     "Күндүн аяты": "Ayah of the day",
     "Менин аптам": "My week",
@@ -1115,5 +1114,14 @@ export const EN: Record<string, string> = {
     "Колдонмо режими": "App mode",
     "Сайт телефонго орнотулган колдонмо катары ачылган.": "The site is open as an app installed on the phone.",
     "iPhone'до орнотулган колдонмо Google кирүүсүн өзүнчө браузерде аяктайт. Биринчи жолу Safari'де кириңиз.": "On an iPhone the installed app finishes the Google sign-in in a separate browser. Sign in the first time in Safari.",
-    "Кирүү башка браузерде аяктады. Сайтты Safari же Chrome'до ачып, ошол жерден кайра «Google менен кирүү» басыңыз (Gmail, Telegram, Instagram ичиндеги браузерден эмес).": "The sign-in finished in a different browser. Open the site in Safari or Chrome and press «Sign in with Google» again there (not in the browser inside Gmail, Telegram or Instagram)."
+    "Кирүү башка браузерде аяктады. Сайтты Safari же Chrome'до ачып, ошол жерден кайра «Google менен кирүү» басыңыз (Gmail, Telegram, Instagram ичиндеги браузерден эмес).": "The sign-in finished in a different browser. Open the site in Safari or Chrome and press «Sign in with Google» again there (not in the browser inside Gmail, Telegram or Instagram).",
+    "күн катары менен": "days in a row",
+    "эң узун катар": "longest run",
+    "күн": "days",
+    "Акыркы {0} күндүн {1} күнүндө практика болду": "Practice on {1} of the last {0} days",
+    "зикир {0} · тасбихат {1} · бет {2}": "zikr {0} · tasbihat {1} · pages {2}",
+    "бир түрү": "one kind",
+    "эки түрү": "two kinds",
+    "зикир, тасбихат жана Куран": "zikr, tasbihat and Quran",
+    "Тартип · акыркы 4 апта": "Discipline · last 4 weeks"
 };
