@@ -11,7 +11,7 @@ import { placeSuffix, t } from '../i18n';
 
 const fmt = (n: number) => (Math.round(n * 10) / 10).toString();
 const signed = (n: number) => `${n > 0 ? '+' : n < 0 ? '−' : '±'}${fmt(Math.abs(n))}`;
-const cell: React.CSSProperties = { boxShadow: '1px 0 0 var(--border), 0 1px 0 var(--border)' };
+const cell: React.CSSProperties = {};
 
 const Status: React.FC<{ entered: boolean; locked: boolean }> = ({ entered, locked }) => (
     entered
@@ -22,7 +22,7 @@ const Status: React.FC<{ entered: boolean; locked: boolean }> = ({ entered, lock
 );
 
 const Fact: React.FC<{ label: string; children: React.ReactNode; note?: React.ReactNode }> = ({ label, children, note }) => (
-    <div className="px-5 py-4 sm:px-6 sm:py-5 min-w-0" style={cell}>
+    <div className="desk-fact min-w-0" style={cell}>
         <div className="eyebrow">{label}</div>
         <div className="font-display text-[1.45rem] leading-tight mt-1.5 tabular truncate" style={{ color: 'var(--text-primary)' }}>{children}</div>
         {note && <div className="text-[0.8rem] mt-1 line-clamp-2" style={{ color: 'var(--text-muted)' }}>{note}</div>}
@@ -74,7 +74,7 @@ export const CaptainDesk: React.FC<{
             </div>
 
             {desk.entered && desk.rank !== null ? (
-                <div className="grid grid-cols-1 sm:grid-cols-3" style={{ borderTop: '1px solid var(--border)' }}>
+                <div className="desk-facts grid grid-cols-1 sm:grid-cols-3">
                     {desk.above ? (
                         <Fact label={t('Алдыңкы орунга чейин')} note={t('{0} үйүнө жетиш үчүн', desk.above.name)}>
                             {t('{0} упай', fmt(desk.above.gap))}

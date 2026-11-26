@@ -1421,3 +1421,22 @@ button.help-where:hover { border-bottom-color: var(--gold); }
 .mine-facts { border-top: 1px solid var(--gold-dim); }
 .mine-face > img, .mine-face > div { position: relative; z-index: 1; }
 .mine-face > div { background-color: var(--page-plane) !important; }
+
+/* ---------------------------------------------------------------- results: open, with the house's marks */
+.monument > .page-medallion { top: 48%; opacity: .065; }
+.dark .monument > .page-medallion { opacity: .1; }
+.desk-facts { border-top: 1px solid var(--gold-dim); }
+.desk-fact { padding: 1.1rem 0; position: relative; }
+.desk-fact + .desk-fact { border-top: 1px solid var(--border); }
+@media (min-width: 640px) { .desk-fact { padding: 1.3rem 1.6rem 1.2rem; } .desk-fact:first-child { padding-left: 0; } .desk-fact + .desk-fact { border-top: 0; } .desk-fact + .desk-fact::before { content: ""; position: absolute; left: 0; top: 1.3rem; bottom: 1.2rem; width: 1px; background: var(--border); } }
+/* Season table: no card; each week's place is a diamond, gold when first. */
+.league { background: transparent; border: 0; border-top: 1px solid var(--gold); padding: .4rem 0 .6rem; }
+.league-form-cell { border: 0 !important; background: none !important; position: relative; z-index: 0; color: var(--text-secondary); }
+.league-form-cell::before { content: ""; position: absolute; inset: 15%; z-index: -1; transform: rotate(45deg); border: 1px solid var(--border-strong); }
+.league-form-cell.is-top::before { border-color: var(--gold); }
+.league-form-cell.is-first { color: var(--page-plane); }
+.league-form-cell.is-first::before { background: var(--gold); border-color: var(--gold); }
+.league-form-cell.is-empty::before { border-style: dotted; }
+/* The awards collection: medals on the page, not in a cabinet. */
+.cabinet { background: transparent; border: 0; border-top: 1px solid var(--gold-dim); padding-left: 0; padding-right: 0; }
+.jattoo-badge { border: 0; padding-left: 0; }

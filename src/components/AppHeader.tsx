@@ -6,7 +6,7 @@ import { CircleHelp, Compass, MessageCircle,
 import type { AuthUser } from '../services/authService';
 import type { Theme } from '../theme';
 import type { InstallMode } from '../pwa';
-import { Crown, Mark } from './Ornament';
+import { Crown, Mark, Medallion } from './Ornament';
 import { loadCity } from '../utils/city';
 import { useNow } from '../hooks/useNow';
 import { formatHijri, isRamadan, toHijri } from '../utils/hijri';
@@ -178,7 +178,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                     </div>
                     <div className="flex items-center">
                         <a href="#/today" className="mr-1 px-2.5 h-10 inline-flex items-center gap-1.5 text-[0.7rem] tracking-[0.2em] uppercase transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-secondary)' }}>
-                            <SunMedium className="w-4 h-4" strokeWidth={1.5} /><span className="hidden min-[400px]:inline">{t('Күнүм')}</span>
+                            <SunMedium className="w-4 h-4 hidden min-[400px]:inline" strokeWidth={1.5} /><span>{t('Күнүм')}</span>
                         </a>
                         {authUser && (
                             // The wrapper does the hiding: .btn sets display itself and would override Tailwind's `hidden`.
@@ -219,7 +219,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                 {/* Monument */}
                 {/* The full monument only on the overview; the other sections get a
                     compact version so their content starts on the first screen. */}
-                <div className={`monument flex flex-col items-center text-center ${monument ? 'pt-6 sm:pt-10 pb-10 sm:pb-14' : 'is-compact pt-1 sm:pt-4 pb-6 sm:pb-9'}`}>
+                <div className={`monument relative flex flex-col items-center text-center ${monument ? 'pt-6 sm:pt-10 pb-10 sm:pb-14' : 'is-compact pt-1 sm:pt-4 pb-6 sm:pb-9'}`}>
+                    {/* The шырдак medallion turning slowly behind the week's number, as on the sign-in page. */}
+                    <span className="page-medallion" aria-hidden="true"><Medallion size={monument ? 560 : 420} className="spin-slow" /></span>
                     {ramadan && (
                         <div className="flex flex-col items-center mb-2 animate-fade-in" aria-label={t('Рамазан')}>
                             <svg width="34" height="34" viewBox="0 0 40 40" aria-hidden="true"><defs><mask id="ramadan-m"><rect width="40" height="40" fill="#fff" /><circle cx="25" cy="16" r="12" fill="#000" /></mask></defs><circle cx="20" cy="20" r="14" fill="var(--gold)" mask="url(#ramadan-m)" /></svg>
