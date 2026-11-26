@@ -1,7 +1,7 @@
 // Жаттоо (memorization, hifz): what each person has learned by heart —
 // Quran (surah and ayahs), hadith, duas, zikr / adhkar, the 99 Names, or
 // anything else. Captains write it down after hearing it recited. It gives
-// no points (Nur, Nov 2026): it shows on profiles, the house page and the
+// no points: it shows on profiles, the house page and the
 // community page, and earns badges.
 import { t } from '../i18n';
 import { surah } from './quranMeta';

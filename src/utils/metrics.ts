@@ -1,4 +1,4 @@
-// Metric codes and their full names (from Nur). The stored keys stay the
+// Metric codes and their full names. The stored keys stay the
 // Kyrgyz codes (database, formulas); these are only what people see.
 // In English mode the codes get English short labels as well.
 import type { MetricValues, MiniCard } from '../types';

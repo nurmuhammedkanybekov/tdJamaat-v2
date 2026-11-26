@@ -5,7 +5,7 @@ import { weekOf } from './insights';
 import { houseDisplayName } from './houseName';
 import { t } from '../i18n';
 
-// Houses by city (Nur, Oct 2026): Pannonia, Damjanich and Mester are in
+// Houses by city: Pannonia, Damjanich and Mester are in
 // Budapest; every other house is in Debrecen. A new Budapest house needs
 // adding here.
 export type City = 'budapest' | 'debrecen';

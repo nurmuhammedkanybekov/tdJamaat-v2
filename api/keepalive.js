@@ -6,15 +6,20 @@
 //
 // Uses the same public URL + publishable key the website itself ships with
 // (Vercel → Project → Settings → Environment Variables).
+//
+// When CRON_SECRET is set in Vercel, only Vercel's own cron may call it
+// (Vercel sends "Authorization: Bearer <CRON_SECRET>"); anyone else gets 401.
 export default async function handler(req, res) {
+    const secret = process.env.CRON_SECRET;
+    if (secret && req.headers.authorization !== `Bearer ${secret}`) {
+        res.status(401).json({ ok: false });
+        return;
+    }
     const url = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
     const key = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
 
     if (!url || !key) {
-        res.status(500).json({
-            ok: false,
-            error: 'VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY are not set in Vercel → Settings → Environment Variables'
-        });
+        res.status(500).json({ ok: false, error: 'not configured' });
         return;
     }
 
@@ -24,6 +29,7 @@ export default async function handler(req, res) {
         });
         res.status(r.ok ? 200 : 502).json({ ok: r.ok, supabaseStatus: r.status, at: new Date().toISOString() });
     } catch (err) {
-        res.status(502).json({ ok: false, error: String(err), at: new Date().toISOString() });
+        console.error('keepalive:', err);
+        res.status(502).json({ ok: false, at: new Date().toISOString() });
     }
 }

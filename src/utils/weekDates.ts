@@ -1,4 +1,4 @@
-// The jamaat week runs Thursday → Wednesday (Nur, Nov 2026). Week dates are
+// The jamaat week runs Thursday → Wednesday. Week dates are
 // stored on each week (weeks.start_date / end_date); the admin sets the
 // Thursday the season's first week began and every week follows from it.
 import { isEnglish } from '../i18n';

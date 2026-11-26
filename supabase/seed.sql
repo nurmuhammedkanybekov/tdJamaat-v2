@@ -1,30 +1,28 @@
 -- ============================================================================
--- tdJamaat v2 seed data — houses and members from the current roster
+-- tdJamaat — demo data for a fresh project.
 --
--- Run this AFTER schema.sql, once, in the same Supabase project.
--- Photos aren't set here (photo_url is left null) — see SETUP.md for how to
--- add them once you have the image files.
---
--- Names are in Kyrgyz/Russian Cyrillic per the community's actual roster.
+-- Five houses and six invented people in each, so a new setup has something
+-- to look at. The names are made up; the real roster is entered on the site
+-- (Админ панели → Курам). Run after schema.sql, once.
 -- ============================================================================
 
 insert into houses (name, slug, display_order) values
-  ('Mester',      'mester',      1),
-  ('Damjanich',   'damjanich',   2),
-  ('Pannonia',    'pannonia',    3),
-  ('Baksai',      'baksai',      4),
-  ('Dobozy',      'dobozy',      5);
+  ('Mester', 'mester', 1),
+  ('Damjanich', 'damjanich', 2),
+  ('Pannonia', 'pannonia', 3),
+  ('Baksai', 'baksai', 4),
+  ('Dobozy', 'dobozy', 5);
 
 -- Mester
 insert into members (house_id, name, role, display_order)
 select id, m.name, m.role, m.ord
 from houses, (values
-  ('Дөөлөт',     'imam',   1),
-  ('Дауд',       'zam',    2),
-  ('Азирет',     'member', 3),
-  ('Эрбол',      'member', 4),
-  ('Азат',       'member', 5),
-  ('Майрамбек',  'member', 6)
+  ('Айбек', 'imam', 1),
+  ('Бектур', 'zam', 2),
+  ('Нурсултан', 'member', 3),
+  ('Эмир', 'member', 4),
+  ('Самат', 'member', 5),
+  ('Улан', 'member', 6)
 ) as m(name, role, ord)
 where houses.slug = 'mester';
 
@@ -32,12 +30,12 @@ where houses.slug = 'mester';
 insert into members (house_id, name, role, display_order)
 select id, m.name, m.role, m.ord
 from houses, (values
-  ('Абдулазим', 'imam',   1),
-  ('Адилет',    'zam',    2),
-  ('Мухаммед',  'member', 3),
-  ('Байэл',     'member', 4),
-  ('Тилек',     'member', 5),
-  ('Шахрук',    'member', 6)
+  ('Жоомарт', 'imam', 1),
+  ('Темирлан', 'zam', 2),
+  ('Курманбек', 'member', 3),
+  ('Алмаз', 'member', 4),
+  ('Кутман', 'member', 5),
+  ('Бакай', 'member', 6)
 ) as m(name, role, ord)
 where houses.slug = 'damjanich';
 
@@ -45,12 +43,12 @@ where houses.slug = 'damjanich';
 insert into members (house_id, name, role, display_order)
 select id, m.name, m.role, m.ord
 from houses, (values
-  ('Бахтиер', 'imam',   1),
-  ('Мехмет',  'zam',    2),
-  ('Данияр',  'member', 3),
-  ('Нур',     'member', 4),
-  ('Арафат',  'member', 5),
-  ('Эсен',    'member', 6)
+  ('Нурлан', 'imam', 1),
+  ('Марат', 'zam', 2),
+  ('Азамат', 'member', 3),
+  ('Талант', 'member', 4),
+  ('Эрлан', 'member', 5),
+  ('Бекжан', 'member', 6)
 ) as m(name, role, ord)
 where houses.slug = 'pannonia';
 
@@ -58,11 +56,12 @@ where houses.slug = 'pannonia';
 insert into members (house_id, name, role, display_order)
 select id, m.name, m.role, m.ord
 from houses, (values
-  ('Азимбек',   'imam',   1),
-  ('Нурманбет', 'zam',    2),
-  ('Улук',      'member', 3),
-  ('Исабек',    'member', 4),
-  ('Бобомурот', 'member', 5)
+  ('Мирлан', 'imam', 1),
+  ('Чубак', 'zam', 2),
+  ('Айдар', 'member', 3),
+  ('Эрмек', 'member', 4),
+  ('Санжар', 'member', 5),
+  ('Дастан', 'member', 6)
 ) as m(name, role, ord)
 where houses.slug = 'baksai';
 
@@ -70,16 +69,14 @@ where houses.slug = 'baksai';
 insert into members (house_id, name, role, display_order)
 select id, m.name, m.role, m.ord
 from houses, (values
-  ('Айбек',   'imam',   1),
-  ('Хамза',   'zam',    2),
-  ('Алихан',  'member', 3),
-  ('Алиер',   'member', 4),
-  ('Алкелди', 'member', 5),
-  ('Абдурахмон', 'member', 6),
-  ('Адилет',  'member', 7)
+  ('Руслан', 'imam', 1),
+  ('Бектемир', 'zam', 2),
+  ('Нурбек', 'member', 3),
+  ('Медер', 'member', 4),
+  ('Жыргал', 'member', 5),
+  ('Атай', 'member', 6)
 ) as m(name, role, ord)
 where houses.slug = 'dobozy';
 
--- First reporting week — adjust the date range to whatever week 1 actually is
-insert into weeks (week_number, start_date, end_date) values
-  (1, null, null);
+-- The first week; its dates are set on the site (Админ панели → Апталар).
+insert into weeks (week_number, start_date, end_date) values (1, null, null);

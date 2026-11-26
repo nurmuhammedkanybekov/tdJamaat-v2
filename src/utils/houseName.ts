@@ -1,7 +1,6 @@
-// House names are always shown in Latin letters, in both languages (Nur, Oct
-// 2026): they are Hungarian place and street names. A name stored in Latin
-// is shown exactly as stored; one stored in Cyrillic is shown in its Latin
-// spelling. The database keeps whatever was entered.
+// House names are always shown in Latin letters, in both languages: they
+// are Hungarian place and street names. A name stored in Latin is shown
+// exactly as stored; one stored in Cyrillic is shown in its Latin spelling. The database keeps whatever was entered.
 
 // Known names, with their Hungarian spelling (a letter-by-letter
 // transliteration would give "Damyanich", "Debretsen").

@@ -32,3 +32,6 @@ dist-ssr
 !.env.example
 !.env.admin.example
 scripts/syr_sozdor.json
+# Local notes and tools
+CLAUDE.md
+.claude/

@@ -50,7 +50,7 @@ const DOUBLE_EXCLUDED: Array<keyof MetricValues> = ['СВТ', 'ИСТГ'];
 // these medals only needed "some score", which nearly everyone has every week,
 // so the whole jamaat got them at once and they meant nothing.
 export const STRONG_METRICS = 6;
-/** Rising (Nur, Oct 2026: only for real progress): three rises in a row,
+/** Rising (only real progress counts): three rises in a row,
  *  each at least RISING_STEP points, together at least RISING_TOTAL. */
 export const RISING_STEP = 5;
 export const RISING_TOTAL = 30;

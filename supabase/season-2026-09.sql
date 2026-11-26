@@ -177,7 +177,7 @@ where wm.member_id = m.id
 
 -- ---------------------------------------------------------------------------
 -- Check (one result table). You should see:
---   * 6 "Pannonia week 2" rows: Бахтиер imam → К-К 20, Мехмет zam → К-К 10,
+--   * 6 "Pannonia week 2" rows: the captain → К-К 20, the deputy → К-К 10,
 --     the four members → К-К 7
 --   * 2 "trigger" rows
 --   * "weeks policy" rows WITHOUT "leader opens next week"
