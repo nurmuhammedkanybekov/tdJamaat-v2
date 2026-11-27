@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight, Minus, Plus } from 'lucide-react';
 import type { Theme } from '../theme';
 import { t, dateLocale } from '../i18n';
 import { AppFrame } from './AppFrame';
-import { OrnamentDivider } from '../components/Ornament';
+import { Horn, OrnamentDivider } from '../components/Ornament';
 import { HIJRI_MONTHS, formatHijri } from '../utils/hijri';
 import { daysBetween, hijriOf, holyDaysOf, noFast, ramadanDays, sunnahFast, upcoming } from '../utils/islamicCalendar';
 import type { FastKind } from './fasting';
@@ -16,6 +16,7 @@ import { dayKey } from '../utils/zikr';
 const KY_MONTHS = ['январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'];
 const monthName = (d: Date) => (dateLocale() ? d.toLocaleDateString(dateLocale()!, { month: 'long', year: 'numeric' }) : `${d.getFullYear()}-жыл, ${KY_MONTHS[d.getMonth()]}`);
 const dayLabel = (d: Date) => (dateLocale() ? d.toLocaleDateString(dateLocale()!, { weekday: 'long', day: 'numeric', month: 'long' }) : `${d.getDate()}-${KY_MONTHS[d.getMonth()]}, ${[t('жекшемби'), t('дүйшөмбү'), t('шейшемби'), t('шаршемби'), t('бейшемби'), t('жума'), t('ишемби')][d.getDay()]}`);
+const monthShort = (d: Date) => (dateLocale() ? d.toLocaleDateString(dateLocale()!, { month: 'short' }).replace('.', '') : KY_MONTHS[d.getMonth()].slice(0, 3));
 const WEEK = () => [t('Дш'), t('Шш'), t('Шр'), t('Бш'), t('Жм'), t('Иш'), t('Жш')];
 
 const KINDS: Array<[FastKind, () => string]> = [['sunnah', () => t('Сүннөт')], ['nafl', () => t('Нафил')], ['qaza', () => t('Каза')], ['nazr', () => t('Назир')]];
@@ -82,7 +83,7 @@ export const CalendarPage: React.FC<{ theme: Theme; onToggleTheme: () => void }>
             <div className="max-w-[46rem] mx-auto pt-6">
                 {/* Today */}
                 <header className="cal-today">
-                    <div className="eyebrow" style={{ color: 'var(--gold)' }}>{t('Бүгүн')}</div>
+                    <div className="eyebrow" style={{ color: 'var(--gold)' }}><span className="greet-horn" aria-hidden="true"><Horn size={18} strokeWidth={4} /></span>{t('Бүгүн')}<span className="greet-horn" aria-hidden="true"><Horn size={18} strokeWidth={4} /></span></div>
                     <div className="font-display cal-today-h">{h ? formatHijri(h) : ''}</div>
                     <div className="text-[0.95rem]" style={{ color: 'var(--text-muted)' }}>{dayLabel(today)}</div>
                     {(todayHoly.length > 0 || todaySunnah) && (
@@ -125,40 +126,35 @@ export const CalendarPage: React.FC<{ theme: Theme; onToggleTheme: () => void }>
                     <div className="cal-legend">
                         <span><i className="lg-fast" />{t('орозо кармалды')}</span>
                         <span><i className="lg-holy" />{t('майрам, түн')}</span>
-                        <span><i className="lg-sunnah" />{t('сүннөт орозо күнү')}</span>
+                        <span><i className="lg-sunnah"><b className="font-display" style={{ color: 'var(--gold)', fontWeight: 400 }}>14</b></i>{t('сүннөт орозо күнү')}</span>
                     </div>
                 </section>
 
-                {/* The chosen day */}
+                {/* The chosen day: an almanac leaf between two gold rules. */}
                 <section className="cal-pick">
                     <div className="eyebrow" style={{ color: 'var(--gold)' }}>{ph ? formatHijri(ph) : ''}</div>
-                    <h2 className="font-display text-[1.7rem] leading-tight mt-1" style={{ color: 'var(--text-primary)' }}>{dayLabel(picked)}</h2>
+                    <h2 className="font-display text-[1.9rem] sm:text-[2.2rem] leading-tight mt-2" style={{ color: 'var(--text-primary)' }}>{dayLabel(picked)}</h2>
                     {pickedHoly.map(x => (
-                        <p key={x.key} className="mt-2"><span className="font-display text-[1.2rem]" style={{ color: 'var(--gold)' }}>{x.name()}</span>{x.note && <span className="block text-[0.88rem]" style={{ color: 'var(--text-muted)' }}>{x.note()}</span>}</p>
+                        <p key={x.key} className="cal-pick-holy"><b>{x.name()}</b>{x.note && <span>{x.note()}</span>}</p>
                     ))}
                     {pickedNo ? (
-                        <p className="mt-3 text-[0.95rem]" style={{ color: 'var(--danger)' }}>{t('Бул күнү орозо кармалбайт.')}</p>
+                        <p className="mt-4 text-[0.95rem] italic" style={{ color: 'var(--danger)' }}>{t('Бул күнү орозо кармалбайт.')}</p>
                     ) : (
-                        <div className="mt-4">
-                            <div className="text-[0.9rem]" style={{ color: 'var(--text-secondary)' }}>
+                        <div className="mt-5">
+                            <div className="text-[0.92rem] italic" style={{ color: 'var(--text-secondary)' }}>
                                 {inRamadan ? t('Рамазан, {0}-орозо', ph!.day) : pickedSunnah ? t('Орозо кармоо сүннөт: {0}', pickedSunnah) : t('Орозо')}
                             </div>
-                            <div className="cal-kinds mt-3">
-                                {inRamadan ? (
-                                    <button data-on={pickedFast === 'ramadan' || undefined} onClick={() => save(s => setFast(s, picked, pickedFast === 'ramadan' ? null : 'ramadan'))}>{pickedFast === 'ramadan' ? t('Кармадым ✓') : t('Кармадым')}</button>
-                                ) : (
-                                    <>
-                                        {KINDS.map(([k, l]) => <button key={k} data-on={pickedFast === k || undefined} onClick={() => save(s => setFast(s, picked, pickedFast === k ? null : k))}>{l()}</button>)}
-                                    </>
-                                )}
-                                {pickedFast && pickedFast !== 'ramadan' && !inRamadan && <span className="cal-kept">{t('{0} орозо кармалды', kindName(pickedFast))}</span>}
+                            <div className="cal-kinds mt-2">
+                                {inRamadan
+                                    ? <button data-on={pickedFast === 'ramadan' || undefined} onClick={() => save(s => setFast(s, picked, pickedFast === 'ramadan' ? null : 'ramadan'))}>{t('Кармадым')}</button>
+                                    : KINDS.map(([k, l]) => <button key={k} data-on={pickedFast === k || undefined} onClick={() => save(s => setFast(s, picked, pickedFast === k ? null : k))}>{l()}</button>)}
                             </div>
-                            {daysBetween(today, picked) > 0 && pickedFast && <p className="mt-2 text-[0.8rem]" style={{ color: 'var(--text-muted)' }}>{t('Алдыга белгиленди: ниет катары.')}</p>}
+                            {pickedFast && <p className="mt-1 text-[0.82rem]" style={{ color: 'var(--success)' }}>{daysBetween(today, picked) > 0 ? t('Алдыга белгиленди: ниет катары.') : t('{0} орозо кармалды', kindName(pickedFast))}</p>}
                         </div>
                     )}
-                    <label className="block mt-6">
+                    <label className="block mt-7">
                         <span className="eyebrow">{t('Бул күнгө план')}</span>
-                        <textarea value={note} onChange={e => setNoteText(e.target.value)} onBlur={() => save(s => setNote(s, picked, note))} rows={2} maxLength={500}
+                        <textarea value={note} onChange={e => setNoteText(e.target.value)} onBlur={() => save(s => setNote(s, picked, note))} rows={1} maxLength={500}
                             placeholder={t('мис. Куптандан кийин 1 пара; ата-энеме телефон')} className="cal-plan" />
                     </label>
                 </section>
@@ -167,7 +163,7 @@ export const CalendarPage: React.FC<{ theme: Theme; onToggleTheme: () => void }>
 
                 {/* Fasts */}
                 <section className="mt-8">
-                    <h2 className="font-display text-[1.8rem]" style={{ color: 'var(--text-primary)' }}>{t('Орозо')}</h2>
+                    <h2 className="font-display text-[2rem] text-center" style={{ color: 'var(--text-primary)' }}>{t('Орозо')}</h2>
                     <dl className="acct-held">
                         <div><dt>{t('Бул айда')}</dt><dd className="tabular">{monthFasts}</dd></div>
                         <div><dt>{t('Рамазан')}</dt><dd className="tabular">{ramadanKept}<small>/{ramadan.length || 30}</small></dd></div>
@@ -176,15 +172,15 @@ export const CalendarPage: React.FC<{ theme: Theme; onToggleTheme: () => void }>
                     </dl>
                     {ramadan.length > 0 && (
                         <div className="mt-6">
-                            <div className="eyebrow">{t('Рамазан {0}', hijriOf(ramadan[0], off)?.year ?? '')} · {ramadan[0].getDate()}.{String(ramadan[0].getMonth() + 1).padStart(2, '0')} – {ramadan[ramadan.length - 1].getDate()}.{String(ramadan[ramadan.length - 1].getMonth() + 1).padStart(2, '0')}</div>
+                            <div className="eyebrow text-center" style={{ color: 'var(--gold)' }}>{t('Рамазан {0}', hijriOf(ramadan[0], off)?.year ?? '')} · {ramadan[0].getDate()}.{String(ramadan[0].getMonth() + 1).padStart(2, '0')} – {ramadan[ramadan.length - 1].getDate()}.{String(ramadan[ramadan.length - 1].getMonth() + 1).padStart(2, '0')}</div>
                             <div className="cal-ram mt-3">
                                 {ramadan.map((d, i) => {
                                     const kept = fastOn(store, d) === 'ramadan';
                                     const past = daysBetween(d, today) >= 0;
-                                    return <button key={i} onClick={() => { setPicked(d); setMonth(new Date(d.getFullYear(), d.getMonth(), 1, 12)); }} data-kept={kept || undefined} data-past={past || undefined} aria-label={t('{0}-орозо', i + 1)} className="tabular">{i + 1}</button>;
+                                    return <button key={i} onClick={() => { setPicked(d); setMonth(new Date(d.getFullYear(), d.getMonth(), 1, 12)); window.scrollTo({ top: 0, behavior: 'smooth' }); }} data-kept={kept || undefined} data-past={past || undefined} aria-label={t('{0}-орозо', i + 1)} className="tabular"><i aria-hidden="true" />{i + 1}</button>;
                                 })}
                             </div>
-                            {daysBetween(today, ramadan[0]) > 0 && <p className="mt-2 text-[0.88rem]" style={{ color: 'var(--text-muted)' }}>{t('Рамазанга {0} күн калды.', daysBetween(today, ramadan[0]))}</p>}
+                            {daysBetween(today, ramadan[0]) > 0 && <p className="mt-3 text-center italic text-[0.9rem]" style={{ color: 'var(--text-muted)' }}>{t('Рамазанга {0} күн калды.', daysBetween(today, ramadan[0]))}</p>}
                         </div>
                     )}
                     <div className="cal-qaza mt-7">
@@ -204,12 +200,12 @@ export const CalendarPage: React.FC<{ theme: Theme; onToggleTheme: () => void }>
 
                 {/* The year ahead */}
                 <section className="mt-8">
-                    <h2 className="font-display text-[1.8rem]" style={{ color: 'var(--text-primary)' }}>{t('Алдыдагы күндөр')}</h2>
+                    <h2 className="font-display text-[2rem] text-center" style={{ color: 'var(--text-primary)' }}>{t('Алдыдагы күндөр')}</h2>
                     <ul className="mt-3">
                         {next.map(x => (
-                            <li key={`${x.day.key}-${x.inDays}`} className="cal-next">
-                                <button onClick={() => { setPicked(x.date); setMonth(new Date(x.date.getFullYear(), x.date.getMonth(), 1, 12)); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="row-link w-full text-left py-3.5 flex items-baseline gap-4">
-                                    <span className={`cal-next-mark is-${x.day.kind}`} aria-hidden="true" />
+                            <li key={`${x.day.key}-${x.inDays}`} className={`cal-next is-${x.day.kind}`}>
+                                <button onClick={() => { setPicked(x.date); setMonth(new Date(x.date.getFullYear(), x.date.getMonth(), 1, 12)); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="row-link w-full text-left py-4 flex items-center gap-4">
+                                    <span className="cal-next-date" aria-hidden="true"><b className="tabular">{x.date.getDate()}</b><small>{monthShort(x.date)}</small></span>
                                     <span className="flex-1 min-w-0">
                                         <span className="block font-display text-[1.25rem] leading-tight" style={{ color: 'var(--text-primary)' }}>{x.day.name()}</span>
                                         <span className="block text-[0.82rem]" style={{ color: 'var(--text-muted)' }}>{dayLabel(x.date)}{x.day.kind === 'night' ? ` · ${t('мурунку кечте башталат')}` : ''}</span>

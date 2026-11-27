@@ -8,7 +8,6 @@ import { t, dateLocale } from '../i18n';
 import { AppFrame, Waiting } from './AppFrame';
 import { go } from './route';
 import { Mark } from '../components/Ornament';
-import { Avatar } from '../components/Avatar';
 import type { Dm, DmPerson } from '../services/dmService';
 import { deleteDm, fetchDmPeople, fetchDms, fetchThread, markDmRead, personLine, sendDm, watchDms } from '../services/dmService';
 import { myUserId } from '../services/jamaatChatService';
@@ -24,7 +23,7 @@ const labels = () => ({ captain: t('Капитан'), admin: t('Жамаатты
 const Face: React.FC<{ p?: DmPerson; name: string }> = ({ p, name }) =>
     p?.role === 'admin' ? <span className="chat-admin-seal" aria-hidden="true"><Mark size={20} /></span>
         : p?.role === 'inspector' ? <span className="chat-cl-seal" aria-hidden="true">CL</span>
-            : <Avatar name={name} role={p?.role === 'leader' ? 'imam' : 'member'} photoUrl={null} size="sm" />;
+            : <span className={`room-seal ${p?.role === 'leader' ? 'is-captain' : ''}`} aria-hidden="true"><span>{name.slice(0, 1)}</span></span>;
 
 /** The conversations on #/chat, and the way to start one. Hidden until the SQL has run. */
 export const DmSection: React.FC = () => {

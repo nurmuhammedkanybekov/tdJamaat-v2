@@ -1428,7 +1428,6 @@ export const EN: Record<string, string> = {
     "Рамазан, {0}-орозо": "Ramadan, fast {0}",
     "Орозо кармоо сүннөт: {0}": "Fasting is sunnah: {0}",
     "Орозо": "Fasting",
-    "Кармадым ✓": "Fasted ✓",
     "Кармадым": "I fasted",
     "{0} орозо кармалды": "{0} fast kept",
     "Алдыга белгиленди: ниет катары.": "Marked ahead, as an intention.",

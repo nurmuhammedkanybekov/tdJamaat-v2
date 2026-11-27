@@ -5,6 +5,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Check, Search, X } from 'lucide-react';
 import { Sheet } from '../components/ui';
+import { Horn } from '../components/Ornament';
 import { t } from '../i18n';
 import type { Surah } from './quranData';
 import { loadIndex } from './quranData';
@@ -90,13 +91,14 @@ export const ReadSheet: React.FC<{ page: number; surah?: number; onClose: () => 
                 {/* The page that is open, and whether it is marked (the button below marks it). */}
                 {page > 0 && (
                     <div className="read-this">
-                        <div className="min-w-0">
-                            <div className="eyebrow">{t('Ачык турган бет')}</div>
-                            <div className="font-display text-[1.6rem] leading-tight tabular" style={{ color: 'var(--text-primary)' }}>{t('{0}-бет', page)} <span className="text-[1rem]" style={{ color: 'var(--text-muted)' }}>· {t('{0}-пара', juzOf(page))}</span></div>
+                        <div className="eyebrow" style={{ color: 'var(--gold)' }}><span className="greet-horn" aria-hidden="true"><Horn size={16} strokeWidth={4} /></span>{t('Ачык турган бет')}<span className="greet-horn" aria-hidden="true"><Horn size={16} strokeWidth={4} /></span></div>
+                        <div className="read-this-n tabular">{page}</div>
+                        <div className="read-this-j">{t('{0}-пара', juzOf(page))} · {index?.[surahAt(page) - 1]?.name ?? ''}</div>
+                        <div className="read-this-state">
+                            {onPage
+                                ? <button className="read-this-done" onClick={() => unmark([page])} aria-pressed="true"><Check className="w-4 h-4" strokeWidth={2.4} />{t('Окулду')}<span className="read-undo">{t('кайтаруу')}</span></button>
+                                : <span className="read-this-not">{t('белгилене элек')}</span>}
                         </div>
-                        {onPage
-                            ? <button className="read-this-done" onClick={() => unmark([page])} aria-pressed="true"><Check className="w-4 h-4" strokeWidth={2.4} />{t('Окулду')}<span className="read-undo">{t('кайтаруу')}</span></button>
-                            : <span className="read-this-not">{t('белгилене элек')}</span>}
                     </div>
                 )}
 

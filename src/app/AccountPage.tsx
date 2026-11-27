@@ -76,21 +76,23 @@ export const AccountPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> 
                         <OrnamentDivider className="mt-10" />
 
                         <section className="mt-8">
-                            <div className="flex items-center justify-between gap-4">
-                                <h3 className="font-display text-[1.5rem]" style={{ color: 'var(--text-primary)' }}>{t('Аккаунтта сакталат')}</h3>
-                                <button className="acct-sync" onClick={() => { syncCloud().catch(() => undefined); }} disabled={status.state === 'saving'}><RefreshCw className="w-3.5 h-3.5" />{t('Азыр сактоо')}</button>
+                            <div className="text-center">
+                                <h3 className="font-display text-[2rem]" style={{ color: 'var(--text-primary)' }}>{t('Аккаунтта сакталат')}</h3>
+                                <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1 mt-1">
+                                    {statusLine && <span className="acct-status" data-state={status.state}>{statusLine}</span>}
+                                    <button className="acct-sync" onClick={() => { syncCloud().catch(() => undefined); }} disabled={status.state === 'saving'}><RefreshCw className="w-3.5 h-3.5" />{t('Азыр сактоо')}</button>
+                                </div>
                             </div>
-                            {statusLine && <p className="acct-status" data-state={status.state}>{statusLine}</p>}
                             <dl className="acct-held">
                                 <div><dt>{t('Зикир')}</dt><dd className="tabular">{held.counts.toLocaleString()}</dd></div>
                                 <div><dt>{t('Тасбихат')}</dt><dd className="tabular">{held.tasbihat}</dd></div>
                                 <div><dt>{t('Куран, бет')}</dt><dd className="tabular">{held.pages}</dd></div>
                                 <div><dt>{t('Белгилер')}</dt><dd className="tabular">{held.marks}</dd></div>
                             </dl>
-                            <p className="text-[0.88rem] mt-4 leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+                            <p className="text-[0.88rem] mt-5 leading-relaxed text-center italic" style={{ color: 'var(--text-muted)' }}>
                                 {held.last ? t('Куранда акыркы жолу: {0}, {1}-аят.', held.last.name, held.last.ayah) + ' ' : ''}{t('Шаар: {0}.', held.city)}
                             </p>
-                            <p className="text-[0.95rem] mt-5 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                            <p className="text-[0.95rem] mt-5 leading-relaxed text-center max-w-[32rem] mx-auto" style={{ color: 'var(--text-secondary)' }}>
                                 {linked ? t('Мунун баарын сиз гана көрөсүз. Жамааттын мүчөсү катары салават, зикир, тасбихат жана Куран сандарыңыз апталык жыйынтык үчүн капитаныңызга да барат.') : t('Мунун баарын сиз гана көрөсүз: капитан да, админ да көрбөйт.')}
                             </p>
                         </section>
