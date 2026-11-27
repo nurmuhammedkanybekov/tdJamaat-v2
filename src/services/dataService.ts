@@ -7,7 +7,8 @@ import { t } from '../i18n';
 import { houseDisplayName } from '../utils/houseName';
 import { DEFAULT_TAZALYK_ITEMS } from '../utils/tazalyk';
 import type { TazalykScores } from '../utils/tazalyk';
-import type { JattooCategory, JattooGoal, JattooRecord } from '../utils/jattoo';
+import type { JattooCategory, JattooGoal, JattooRecord, PlanStatus, PlanTrack } from '../utils/jattoo';
+import type { PlanEvent, StudyEntry } from '../utils/plans';
 
 const ZERO_METRICS: MetricValues = {
     'К-К': 0, 'СВТ': 0, 'КТП': 0, 'ТХЖ': 0, 'ДТА': 0, 'ИСТГ': 0, 'НФ': 0, 'ТСП': 0
@@ -678,30 +679,42 @@ export const fetchTazalykBoard = async (): Promise<TazalykBoard> => {
 // Жаттоо (supabase/jattoo-2026-11.sql)
 // ---------------------------------------------------------------------------
 
-type JattooRow = { id: number; member_id: string; house_id: string | null; category: JattooCategory; title: string; surah: number | null; ayah_from: number | null; ayah_to: number | null; amount: number; recited_on: string; note: string | null };
-type GoalRow = { id: number; member_id: string; category: JattooCategory; title: string; surah: number | null; ayah_from: number | null; ayah_to: number | null; target: number; due_date: string | null; start_date: string };
+type JattooRow = { id: number; member_id: string; house_id: string | null; category: JattooCategory; title: string; surah: number | null; ayah_from: number | null; ayah_to: number | null; amount: number; recited_on: string; note: string | null; verified?: boolean };
+type GoalRow = { id: number; member_id: string; category: JattooCategory; title: string; surah: number | null; ayah_from: number | null; ayah_to: number | null; target: number; due_date: string | null; start_date: string; track?: PlanTrack; status?: PlanStatus; author?: string | null; page_from?: number | null; page_to?: number | null; created_by_role?: string | null };
+type LogRow = { id: number; goal_id: number | null; member_id: string; track: 'reading' | 'book'; title: string | null; amount: number; page_from: number | null; page_to: number | null; on_day: string; note: string | null };
+type EventRow = { id: number; goal_id: number; kind: PlanEvent['kind']; old_due: string | null; new_due: string | null; note: string | null; by_role: string | null; at: string };
 
 const toRecord = (r: JattooRow): JattooRecord => ({
     id: r.id, memberId: r.member_id, houseId: r.house_id, category: r.category, title: r.title, surah: r.surah,
-    ayahFrom: r.ayah_from, ayahTo: r.ayah_to, amount: r.amount, recitedOn: r.recited_on, note: r.note
+    ayahFrom: r.ayah_from, ayahTo: r.ayah_to, amount: r.amount, recitedOn: r.recited_on, note: r.note, verified: r.verified ?? true
 });
 const toGoal = (r: GoalRow): JattooGoal => ({
     id: r.id, memberId: r.member_id, category: r.category, title: r.title, surah: r.surah, ayahFrom: r.ayah_from,
-    ayahTo: r.ayah_to, target: r.target, dueDate: r.due_date, startDate: r.start_date
+    ayahTo: r.ayah_to, target: r.target, dueDate: r.due_date, startDate: r.start_date,
+    track: r.track ?? 'hifz', status: r.status ?? 'active', author: r.author ?? null, pageFrom: r.page_from ?? null, pageTo: r.page_to ?? null, createdByRole: r.created_by_role ?? null
 });
 
-/** Every record and goal; null before the migration (Жаттоо is then hidden). */
-export const fetchJattoo = async (): Promise<{ records: JattooRecord[]; goals: JattooGoal[] } | null> => {
-    const [rec, goals] = await Promise.all([
+/** Every record, plan, reading entry and plan event; null before the
+ *  Жаттоо migration. The reading log and history come only once
+ *  supabase/plans-2026-11.sql has run (empty until then). */
+export const fetchJattoo = async (): Promise<{ records: JattooRecord[]; goals: JattooGoal[]; log: StudyEntry[]; events: PlanEvent[] } | null> => {
+    const [rec, goals, log, events] = await Promise.all([
         supabase.from('memorization').select('*').order('recited_on').limit(10000),
-        supabase.from('memorization_goals').select('*').order('id').limit(5000)
+        supabase.from('memorization_goals').select('*').order('id').limit(5000),
+        supabase.from('study_log').select('*').order('on_day').limit(20000),
+        supabase.from('plan_events').select('*').order('at').limit(20000)
     ]);
     if (rec.error || goals.error) {
         const e = (rec.error ?? goals.error)!;
         if (!isMissingSchema(e)) console.warn('[tdJamaat] Жаттоо unavailable:', e.message);
         return null;
     }
-    return { records: ((rec.data ?? []) as JattooRow[]).map(toRecord), goals: ((goals.data ?? []) as GoalRow[]).map(toGoal) };
+    return {
+        records: ((rec.data ?? []) as JattooRow[]).map(toRecord),
+        goals: ((goals.data ?? []) as GoalRow[]).map(toGoal),
+        log: log.error ? [] : ((log.data ?? []) as LogRow[]).map(r => ({ id: r.id, goalId: r.goal_id, memberId: r.member_id, track: r.track, title: r.title, amount: r.amount, pageFrom: r.page_from, pageTo: r.page_to, onDay: r.on_day, note: r.note })),
+        events: events.error ? [] : ((events.data ?? []) as EventRow[]).map(r => ({ id: r.id, goalId: r.goal_id, kind: r.kind, oldDue: r.old_due, newDue: r.new_due, note: r.note, byRole: r.by_role, at: r.at }))
+    };
 };
 
 export interface JattooInput {
@@ -735,6 +748,54 @@ export const addJattooGoal = async (g: JattooInput & { target?: number; dueDate?
         member_id: g.memberId, category: g.category, title: g.title.trim(), surah: g.surah ?? null,
         ayah_from: g.ayahFrom ?? null, ayah_to: g.ayahTo ?? null, target: Math.max(1, Math.round(g.target ?? 1)), due_date: g.dueDate || null
     });
+    if (error) fail(error);
+};
+
+/** Plans (supabase/plans-2026-11.sql). */
+export interface PlanInput {
+    memberId: string;
+    track: PlanTrack;
+    title: string;
+    surah?: number | null;
+    ayahFrom?: number | null;
+    ayahTo?: number | null;
+    pageFrom?: number | null;
+    pageTo?: number | null;
+    author?: string | null;
+    target: number;
+    dueDate?: string | null;
+    category?: JattooCategory;
+}
+export const addPlan = async (p: PlanInput) => {
+    const { error } = await supabase.from('memorization_goals').insert({
+        member_id: p.memberId, track: p.track, category: p.category ?? (p.track === 'hifz' ? 'quran' : 'other'), title: p.title.trim(),
+        surah: p.surah ?? null, ayah_from: p.ayahFrom ?? null, ayah_to: p.ayahTo ?? null, page_from: p.pageFrom ?? null, page_to: p.pageTo ?? null,
+        author: p.author?.trim() || null, target: Math.max(1, Math.round(p.target)), due_date: p.dueDate || null
+    });
+    if (error) fail(error);
+};
+/** Status, due date or both; `note` is kept in the plan's history. */
+export const updatePlan = async (id: number, patch: { status?: PlanStatus; dueDate?: string | null; note?: string | null }) => {
+    const row: Record<string, unknown> = { change_note: patch.note?.trim() || null };
+    if (patch.status) row.status = patch.status;
+    if (patch.dueDate !== undefined) row.due_date = patch.dueDate;
+    const { error } = await supabase.from('memorization_goals').update(row).eq('id', id);
+    if (error) fail(error);
+};
+export const addStudyEntry = async (e: { memberId: string; goalId: number | null; track: 'reading' | 'book'; title?: string | null; amount: number; pageFrom?: number | null; pageTo?: number | null; onDay?: string; note?: string | null }) => {
+    const { error } = await supabase.from('study_log').insert({
+        member_id: e.memberId, goal_id: e.goalId, track: e.track, title: e.title?.trim() || null, amount: Math.max(1, Math.round(e.amount)),
+        page_from: e.pageFrom ?? null, page_to: e.pageTo ?? null, on_day: e.onDay, note: e.note?.trim() || null
+    });
+    if (error) fail(error);
+};
+export const deleteStudyEntry = async (id: number) => {
+    const { error } = await supabase.from('study_log').delete().eq('id', id);
+    if (error) fail(error);
+};
+/** A captain or the admin confirms a recitation they have listened to. */
+export const verifyRecitation = async (id: number) => {
+    const { error } = await supabase.from('memorization').update({ verified: true }).eq('id', id);
     if (error) fail(error);
 };
 

@@ -123,6 +123,12 @@ In the Supabase dashboard, open **SQL Editor** and run, in order:
     🙏 😊 🔥 😁 😂, one per person per message) and the general chat's new
     name. Earlier "Аамин"s become 🤲. Needs 22. Safe to re-run. Until it
     runs, the chats still work with 🤲 only.
+25. `supabase/plans-2026-11.sql` — Пландар: memorization, Quran reading
+    and book plans with a status (going, paused, done, dropped), a history
+    of every extension, and a reading log. Members can note their own
+    memorization; it stays unconfirmed until a captain or the admin listens
+    ("Угулду"). Needs the jattoo, members and private-site files first.
+    Safe to re-run.
 
 Notifications: in Үйдүн чаты or Жамааттан кабар, "Билдирмелерди
 күйгүзүү". They arrive while the app is open or in the background (not

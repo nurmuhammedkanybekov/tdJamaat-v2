@@ -251,15 +251,16 @@ const BadgeRow: React.FC<{ records: JattooRecord[] }> = ({ records }) => {
 };
 
 /** Profile: what this person has memorized. */
-export const JattooProfile: React.FC<{ data: DataFile; memberId: string }> = ({ data, memberId }) => {
-    const records = (data.jattoo?.records ?? []).filter(r => r.memberId === memberId);
-    const goals = (data.jattoo?.goals ?? []).filter(g => g.memberId === memberId);
+export const JattooProfile: React.FC<{ data: DataFile; memberId: string; hideGoals?: boolean }> = ({ data, memberId, hideGoals }) => {
+    // Only what a captain has heard counts as memorized.
+    const records = (data.jattoo?.records ?? []).filter(r => r.memberId === memberId && r.verified !== false);
+    const goals = hideGoals ? [] : (data.jattoo?.goals ?? []).filter(g => g.memberId === memberId);
     if (!data.jattoo || (!records.length && !goals.length)) return null;
     const s = summarize(records);
     return (
         <section>
             <div className="flex items-baseline justify-between gap-3 mb-4">
-                <h3 className="font-display text-[1.6rem]" style={{ color: 'var(--text-primary)' }}>{t('Жаттоо')}</h3>
+                <h3 className="font-display text-[1.6rem]" style={{ color: 'var(--text-primary)' }}>{hideGoals ? t('Жатталганы') : t('Жаттоо')}</h3>
                 <span className="text-[0.8rem]" style={{ color: 'var(--text-muted)' }}>{s.lastDate ? t('акыркысы {0}', dateLabel(s.lastDate)) : ''}</span>
             </div>
             <div className="flex flex-wrap items-baseline gap-x-6 gap-y-2">

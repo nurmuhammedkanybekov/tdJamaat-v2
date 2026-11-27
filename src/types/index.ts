@@ -9,6 +9,7 @@
 
 import type { TazalykEntry } from '../utils/tazalyk';
 import type { JattooGoal, JattooRecord } from '../utils/jattoo';
+import type { PlanEvent, StudyEntry } from '../utils/plans';
 
 export type Role = 'imam' | 'zam' | 'member';
 
@@ -122,5 +123,5 @@ export interface DataFile {
     /** Every season, oldest first. */
     seasons: Season[];
     /** Жаттоо (memorization), all time; undefined until supabase/jattoo-2026-11.sql has run. */
-    jattoo?: { records: JattooRecord[]; goals: JattooGoal[] };
+    jattoo?: { records: JattooRecord[]; goals: JattooGoal[]; log?: StudyEntry[]; events?: PlanEvent[] };
 }

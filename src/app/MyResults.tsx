@@ -4,7 +4,7 @@
 // person's own awards with the next ones in reach. Computed from the member's
 // own house only (the database gives them nothing else).
 import React, { Suspense, lazy, useEffect, useMemo, useState } from 'react';
-import { BookOpenCheck, ChevronDown, ChevronLeft, ChevronRight, Share2 } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronRight, Share2 } from 'lucide-react';
 import type { Theme } from '../theme';
 import { Medallion } from '../components/Ornament';
 import { t } from '../i18n';
@@ -13,6 +13,7 @@ import { AppFrame, Section, Waiting } from './AppFrame';
 import { useMemberData } from './memberData';
 import { SELF_CONTAINED, houseOnly, myAwards, nextGoals, STRONG_METRICS } from './myResults';
 import { JattooProfile } from '../components/Jattoo';
+import { PlanList } from '../components/Plans';
 import { Avatar } from '../components/Avatar';
 import { BadgeMedal } from '../components/BadgeMedal';
 import { PlanRows } from '../components/PlanRows';
@@ -30,7 +31,7 @@ const fmt = (n: number) => (Math.round(n * 10) / 10).toFixed(1);
 const signed = (n: number) => `${n > 0 ? '+' : n < 0 ? '−' : '±'}${fmt(Math.abs(n))}`;
 
 export const MyResults: React.FC<{ link: Self; theme: Theme; onToggleTheme: () => void }> = ({ link, theme, onToggleTheme }) => {
-    const { data, failed } = useMemberData();
+    const { data, failed, reload } = useMemberData();
     const view = useMemo(() => {
         if (!data) return null;
         const sid = defaultSeasonId(data);
@@ -53,7 +54,7 @@ export const MyResults: React.FC<{ link: Self; theme: Theme; onToggleTheme: () =
     if (failed) return frame(<p className="text-center py-10" style={{ color: 'var(--text-muted)' }}>{t('Жыйынтыктар жүктөлгөн жок.')}</p>);
     if (!view) return frame(<Waiting />);
     const { series } = view;
-    if (!series || series.weeks.length === 0) return frame(<p className="text-center py-10 max-w-[30rem] mx-auto" style={{ color: 'var(--text-muted)' }}>{t('Азырынча сиздин жыйынтыгыңыз жок. Капитан аптанын маалыматын киргизгенде бул жерде көрүнөт.')}</p>);
+    if (!series || series.weeks.length === 0) return frame(<div className="max-w-[46rem] mx-auto"><p className="text-center py-10 max-w-[30rem] mx-auto" style={{ color: 'var(--text-muted)' }}>{t('Азырынча сиздин жыйынтыгыңыз жок. Капитан аптанын маалыматын киргизгенде бул жерде көрүнөт.')}</p><MyJattoo data={view.d} memberId={link.memberId} onChanged={reload} /></div>);
 
     const weeks = series.weeks;
     const pos = picked === null ? weeks.length - 1 : Math.max(0, Math.min(weeks.length - 1, weeks.findIndex(w => w.weekIndex === picked)));
@@ -72,7 +73,7 @@ export const MyResults: React.FC<{ link: Self; theme: Theme; onToggleTheme: () =
             {weeks.length > 1 && <Path series={series} houseWeeks={view.ins.houses.get(link.houseId)?.weeks ?? []} cur={cur} onPick={pick} />}
             <SeasonNumbers series={series} ins={view.ins} total={view.d.weeks.length} name={view.seasonName} onPick={pick} />
             <Awards memberId={link.memberId} awards={view.awards} weeks={weeks} />
-            <MyJattoo data={view.d} memberId={link.memberId} />
+            <MyJattoo data={view.d} memberId={link.memberId} onChanged={reload} />
             <div className="text-center mt-10"><button className="btn btn-ghost" onClick={() => go('#/house')}>{t('Үйгө кайтуу')}</button></div>
             {share && (
                 <Suspense fallback={null}>
@@ -293,17 +294,16 @@ const Awards: React.FC<{ memberId: string; awards: ReturnType<typeof computeAwar
 
 /* ── Жаттоо: what I have memorized, and my plans ─────────────────────────── */
 
-const MyJattoo: React.FC<{ data: Parameters<typeof JattooProfile>[0]['data']; memberId: string }> = ({ data, memberId }) => {
-    const has = !!data.jattoo && (data.jattoo.records.some(r => r.memberId === memberId) || data.jattoo.goals.some(g => g.memberId === memberId));
+const MyJattoo: React.FC<{ data: Parameters<typeof JattooProfile>[0]['data']; memberId: string; onChanged: () => void }> = ({ data, memberId, onChanged }) => {
+    if (!data.jattoo) return null;
+    const has = data.jattoo.records.some(r => r.memberId === memberId && r.verified !== false);
     return (
         <div id="jattoo" className="pt-10 mt-8" style={{ borderTop: '1px solid var(--gold-dim)' }}>
-            {has ? <JattooProfile data={data} memberId={memberId} /> : (
-                <div className="text-center py-4">
-                    <BookOpenCheck className="w-7 h-7 mx-auto" strokeWidth={1.3} style={{ color: 'var(--gold)' }} />
-                    <div className="font-display text-[1.6rem] mt-2" style={{ color: 'var(--text-primary)' }}>{t('Жаттоо')}</div>
-                    <p className="text-[0.9rem] mt-1 max-w-[28rem] mx-auto" style={{ color: 'var(--text-muted)' }}>{t('Жаттаганыңызды капитанга окуп бериңиз. Ал жазып койгондо, бул жерде көрүнөт.')}</p>
-                </div>
-            )}
+            <div className="eyebrow" style={{ color: 'var(--gold)' }}>{t('Жаттоо, Куран, китептер')}</div>
+            <h2 className="font-display text-[2rem] sm:text-[2.4rem] leading-tight mt-1" style={{ color: 'var(--text-primary)' }}>{t('Пландарым')}</h2>
+            <PlanList data={data} memberId={memberId} onChanged={onChanged} />
+            {/* What has been heard and confirmed so far, with its badges. */}
+            {has && <div className="mt-12"><JattooProfile data={data} memberId={memberId} hideGoals /></div>}
         </div>
     );
 };

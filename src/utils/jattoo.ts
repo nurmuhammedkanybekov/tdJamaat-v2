@@ -34,6 +34,8 @@ export interface JattooRecord {
     /** 'YYYY-MM-DD' — the day it was recited to the captain. */
     recitedOn: string;
     note: string | null;
+    /** false: the person noted it themselves; a captain has not listened yet. */
+    verified?: boolean;
 }
 
 export interface JattooGoal {
@@ -50,7 +52,18 @@ export interface JattooGoal {
     dueDate: string | null;
     /** 'YYYY-MM-DD' the goal was set (for the pace). */
     startDate: string;
+    /** supabase/plans-2026-11.sql: memorization, Quran reading or a book. */
+    track?: PlanTrack;
+    status?: PlanStatus;
+    author?: string | null;
+    /** Quran reading: the pages planned (1–604). */
+    pageFrom?: number | null;
+    pageTo?: number | null;
+    createdByRole?: string | null;
 }
+
+export type PlanTrack = 'hifz' | 'reading' | 'book';
+export type PlanStatus = 'active' | 'paused' | 'done' | 'dropped';
 
 const norm = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ');
 

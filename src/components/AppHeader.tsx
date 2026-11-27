@@ -165,7 +165,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         ...(authUser ? [
             { key: 'entry', group: WORK, label: t('Маалымат кошуу'), icon: PenLine, onClick: onDataEntry },
             { key: 'tazalyk', group: WORK, label: t('Тазалык'), icon: Sparkles, onClick: onTazalyk },
-            ...(onJattoo ? [{ key: 'jattoo', group: WORK, label: t('Жаттоо'), icon: BookOpenCheck, onClick: onJattoo }] : []),
+            ...(onJattoo ? [{ key: 'jattoo', group: WORK, label: t('Пландар'), icon: BookOpenCheck, onClick: onJattoo }] : []),
             ...(onAccounts ? [{ key: 'accounts', group: WORK, label: t('Мүчөлөрдүн кирүүсү'), icon: KeyRound, onClick: onAccounts }] : []),
             { key: 'history', group: WORK, label: t('Өзгөртүүлөр тарыхы'), icon: History, onClick: onHistory },
             ...(isAdmin ? [{ key: 'chats', group: WORK, label: t('Бардык үйлөр'), icon: MessageCircle, onClick: () => { window.location.hash = '#/house'; } }] : []),
