@@ -40,7 +40,11 @@ export const mergeZikr = (local: unknown, saved: unknown) => {
     const l = obj(local), s = obj(saved);
     const current: Record<string, number> = {};
     for (const src of [obj(s.current), obj(l.current)]) for (const [id, n] of Object.entries(src)) current[id] = Math.max(current[id] ?? 0, num(n));
-    return { ...s, ...l, days: maxCounts(l.days, s.days), current, targets: { ...obj(s.targets), ...obj(l.targets) } };
+    // Own zikrs: both devices' kept (by id; this device's version first).
+    const custom = new Map<string, Obj>();
+    for (const src of [s.custom, l.custom]) if (Array.isArray(src)) for (const c of src) if (isObj(c) && typeof c.id === 'string') custom.set(c.id, c);
+    const favs = Array.isArray(l.favs) && (l.favs.length || !Array.isArray(s.favs)) ? l.favs : Array.isArray(s.favs) ? s.favs : [];
+    return { ...s, ...l, days: maxCounts(l.days, s.days), current, targets: { ...obj(s.targets), ...obj(l.targets) }, custom: [...custom.values()], favs, weekGoal: num(l.weekGoal) || num(s.weekGoal) };
 };
 
 export const mergePractice = (local: unknown, saved: unknown) => {

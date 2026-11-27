@@ -35,4 +35,11 @@ describe('cloud merge', () => {
         expect(mergePractice(undefined, { tasbihat: { d: 'no' } })).toEqual({ tasbihat: {}, pages: {} });
         expect(mergeSettings({ a: 1 }, { a: 2, b: 3 })).toEqual({ a: 1, b: 3 });
     });
+
+    it('zikr: own zikrs joined, favourites from this device', () => {
+        const m = mergeZikr({ custom: [{ id: 'c-a', reading: 'A', english: 'A' }], favs: ['c-a'], weekGoal: 0 }, { custom: [{ id: 'c-b', reading: 'B', english: 'B' }], favs: ['salawat'], weekGoal: 1000 });
+        expect(m.custom.map(c => c.id).sort()).toEqual(['c-a', 'c-b']);
+        expect(m.favs).toEqual(['c-a']);
+        expect(m.weekGoal).toBe(1000);
+    });
 });

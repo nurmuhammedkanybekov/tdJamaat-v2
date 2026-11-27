@@ -64,7 +64,17 @@ export interface ZikrStore {
     current: Record<string, number>;
     /** Chosen target per zikr (overrides the default). */
     targets: Record<string, number>;
+    /** Zikrs marked as favourites, shown first. */
+    favs?: string[];
+    /** The person's own zikrs. */
+    custom?: CustomZikr[];
+    /** How many zikrs a jamaat week (Thursday → Wednesday) should hold; 0 or none: no goal. */
+    weekGoal?: number;
 }
+
+/** A zikr the person adds: how it is read (Kyrgyz letters) and its English
+ *  are required; the Arabic is optional and only ever what they typed. */
+export interface CustomZikr { id: string; reading: string; english: string; meaning?: string; arabic?: string; target: number }
 
 const KEY = 'tdjamaat-zikr-v1';
 const KEEP_DAYS = 400;
@@ -75,7 +85,7 @@ export const dayKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1
 export const loadZikr = (): ZikrStore => {
     try {
         const s = JSON.parse(localStorage.getItem(KEY) ?? 'null') as Partial<ZikrStore> | null;
-        return { days: s?.days ?? {}, current: s?.current ?? {}, targets: s?.targets ?? {} };
+        return { days: s?.days ?? {}, current: s?.current ?? {}, targets: s?.targets ?? {}, favs: s?.favs ?? [], custom: s?.custom ?? [], weekGoal: s?.weekGoal ?? 0 };
     } catch { return emptyStore(); }
 };
 export const saveZikr = (s: ZikrStore) => { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch { /* storage blocked: counts live for this visit only */ } localChanged(); };
@@ -121,5 +131,36 @@ export const streak = (s: ZikrStore, now = new Date()): number => {
         if (total > 0) n++;
         else if (i > 0) break;
     }
+    return n;
+};
+
+// ---------------------------------------------------------------------------
+// Favourites, own zikrs, the weekly goal.
+// ---------------------------------------------------------------------------
+export const isFav = (s: ZikrStore, id: string) => (s.favs ?? []).includes(id);
+export const toggleFav = (s: ZikrStore, id: string): ZikrStore => ({ ...s, favs: isFav(s, id) ? (s.favs ?? []).filter(x => x !== id) : [...(s.favs ?? []), id] });
+
+/** An own zikr shaped like the built-in ones (in English, its English). */
+export const asZikr = (c: CustomZikr, english: boolean): Zikr => ({
+    id: c.id, arabic: c.arabic ?? '', reading: english ? c.english : c.reading,
+    meaning: english ? (c.meaning ? c.english : '') : (c.meaning ?? c.english), target: c.target
+});
+
+export const addCustom = (s: ZikrStore, c: Omit<CustomZikr, 'id'>): ZikrStore => {
+    const clean = (v?: string, n = 160) => (v ?? '').trim().slice(0, n);
+    const z: CustomZikr = { id: `c-${Date.now().toString(36)}`, reading: clean(c.reading), english: clean(c.english), meaning: clean(c.meaning, 240) || undefined, arabic: clean(c.arabic, 240) || undefined, target: Math.max(0, Math.min(100000, Math.round(c.target) || 0)) };
+    if (!z.reading || !z.english) return s;
+    return { ...s, custom: [...(s.custom ?? []), z], favs: [...(s.favs ?? []), z.id] };
+};
+export const removeCustom = (s: ZikrStore, id: string): ZikrStore => ({ ...s, custom: (s.custom ?? []).filter(c => c.id !== id), favs: (s.favs ?? []).filter(x => x !== id) });
+
+/** Every zikr this person can count: the built-in ones, then their own. */
+export const allZikrs = (s: ZikrStore, english: boolean): Zikr[] => [...ZIKRS, ...(s.custom ?? []).map(c => asZikr(c, english))];
+
+/** The jamaat week's total (Thursday → today). */
+export const weekTotal = (s: ZikrStore, now = new Date()) => {
+    const back = (now.getDay() + 3) % 7;
+    let n = 0;
+    for (let i = 0; i <= back; i++) n += Object.values(s.days[dayKey(new Date(now.getFullYear(), now.getMonth(), now.getDate() - i))] ?? {}).reduce((a, b) => a + b, 0);
     return n;
 };

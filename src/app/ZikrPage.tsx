@@ -3,11 +3,11 @@
 // Counts stay on this device (src/utils/zikr.ts) and add up into the jamaat
 // week for the captain (MyWeek).
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Check, ChevronDown, ChevronRight, Minus, RotateCcw } from 'lucide-react';
+import { Check, ChevronDown, ChevronRight, Minus, Plus, RotateCcw, Star, Trash2, X } from 'lucide-react';
 import type { Theme } from '../theme';
 import type { Zikr, ZikrStore } from '../utils/zikr';
-import { AFTER_PRAYER, ZIKRS, addCount, allTime, dayKey, lastDays, loadZikr, resetCurrent, saveZikr, setTarget, streak, targetOf, todayOf, todayTotal } from '../utils/zikr';
-import { t } from '../i18n';
+import { AFTER_PRAYER, ZIKRS, addCount, addCustom, allTime, allZikrs, dayKey, isFav, lastDays, loadZikr, removeCustom, resetCurrent, saveZikr, setTarget, streak, targetOf, todayOf, todayTotal, toggleFav, weekTotal } from '../utils/zikr';
+import { t, isEnglish } from '../i18n';
 import { AppFrame, Section } from './AppFrame';
 import { go } from './route';
 import { useWakeLock } from './useWakeLock';
@@ -115,8 +115,8 @@ const Counter: React.FC<{ zikr: Zikr; store: ZikrStore; update: (fn: (s: ZikrSto
             {/* The whole upper area is the button. */}
             <button onClick={tap} className="zikr-tap flex-1 flex flex-col items-center justify-center text-center select-none py-6 w-full" aria-label={t('Саноо: {0}', zikr.reading)}>
                 {sequence && <div className="eyebrow mb-3" style={{ color: 'var(--gold)' }}>{t('Намаздан кийин · {0} / 3', sequence.index + 1)}</div>}
-                <div dir="rtl" lang="ar" className="quran-text text-[2.4rem] sm:text-[2.9rem] leading-[1.8] px-2" style={{ color: 'var(--text-primary)' }}>{zikr.arabic}</div>
-                <div className="font-display text-[1.5rem] sm:text-[1.7rem] leading-tight mt-1 px-2" style={{ color: 'var(--gold)' }}>{zikr.reading}</div>
+                {zikr.arabic && <div dir="rtl" lang="ar" className="quran-text text-[2.4rem] sm:text-[2.9rem] leading-[1.8] px-2" style={{ color: 'var(--text-primary)' }}>{zikr.arabic}</div>}
+                <div className={`font-display leading-tight mt-1 px-2 ${zikr.arabic ? 'text-[1.5rem] sm:text-[1.7rem]' : 'text-[2rem] sm:text-[2.4rem]'}`} style={{ color: 'var(--gold)' }}>{zikr.reading}</div>
                 <div className="text-[0.85rem] italic mt-0.5 mb-6 max-w-[26rem]" style={{ color: 'var(--text-muted)' }}>{zikr.meaning}</div>
                 <Ring value={count} target={target} full={done}>
                     <span key={pulse} className="zikr-number font-display tabular leading-none" style={{ fontSize: 'clamp(4.5rem, 24vw, 7rem)', color: done ? 'var(--gold)' : 'var(--text-primary)' }}>{target > 0 && !done ? inRound : target > 0 ? target : count}</span>
@@ -131,7 +131,15 @@ const Counter: React.FC<{ zikr: Zikr; store: ZikrStore; update: (fn: (s: ZikrSto
 
             {/* Controls: small, at the bottom, away from the counting thumb. */}
             <div className="pb-2">
-                {!sequence && <div className="pb-3"><Virtue zikr={zikr} /></div>}
+                {!sequence && (
+                    <div className="pb-3 flex items-center justify-center gap-6">
+                        <Virtue zikr={zikr} />
+                        <button type="button" onClick={() => update(s => toggleFav(s, zikr.id))} aria-pressed={isFav(store, zikr.id)} className="z-fav" data-on={isFav(store, zikr.id) || undefined}>
+                            <Star className="w-3.5 h-3.5" fill={isFav(store, zikr.id) ? 'currentColor' : 'none'} />{isFav(store, zikr.id) ? t('Тандалган') : t('Тандоо')}
+                        </button>
+                        {zikr.id.startsWith('c-') && <button type="button" onClick={() => { if (window.confirm(t('Бул зикирди өчүрөсүзбү? Саналгандары калат.'))) { update(s => removeCustom(s, zikr.id)); go('#/zikr'); } }} className="z-fav" style={{ color: 'var(--danger)' }}><Trash2 className="w-3.5 h-3.5" />{t('Өчүрүү')}</button>}
+                    </div>
+                )}
                 <div className="grid grid-cols-3 text-center py-3" style={{ borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}>
                     <div><div className="eyebrow">{t('Азыр')}</div><div className="font-display text-[1.4rem] tabular" style={{ color: 'var(--text-primary)' }}>{count}</div></div>
                     <div><div className="eyebrow">{t('Бүгүн')}</div><div className="font-display text-[1.4rem] tabular" style={{ color: 'var(--gold)' }}>{todayOf(store, zikr.id)}</div></div>
@@ -154,6 +162,93 @@ const Counter: React.FC<{ zikr: Zikr; store: ZikrStore; update: (fn: (s: ZikrSto
     );
 };
 
+/** One zikr in the list: its bead fills as today's count nears its number. */
+const BeadRow: React.FC<{ z: Zikr; store: ZikrStore }> = ({ z, store }) => {
+    const today = todayOf(store, z.id), target = targetOf(store, z);
+    const part = target > 0 ? Math.min(1, today / target) : today > 0 ? 1 : 0;
+    return (
+        <li>
+            <button onClick={() => go(`#/zikr/${z.id}`)} className="bead-row">
+                <span className={`bead ${part >= 1 ? 'is-full' : ''}`} style={{ ['--p' as string]: `${part * 360}deg` }} aria-hidden="true"><i /></span>
+                <span className="flex-1 min-w-0">
+                    {z.arabic && <span dir="rtl" lang="ar" className="block quran-text text-[1.75rem] sm:text-[2rem] leading-[1.7] truncate" style={{ color: 'var(--text-primary)' }}>{z.arabic}</span>}
+                    <span className="flex items-baseline justify-between gap-3 mt-1">
+                        <span className="font-display text-[1.2rem] leading-tight min-w-0 truncate" style={{ color: 'var(--gold)' }}>{isFav(store, z.id) && <Star className="inline w-3 h-3 mr-1.5 -mt-1" fill="currentColor" aria-label={t('Тандалган')} />}{z.reading}</span>
+                        <span className="tabular text-[0.85rem] flex-shrink-0" style={{ color: today > 0 ? 'var(--gold)' : 'var(--text-muted)' }} aria-label={t('Бүгүн: {0}', today)}>{today}<span style={{ color: 'var(--text-muted)' }}> / {target > 0 ? target : '∞'}</span></span>
+                    </span>
+                    {z.meaning && <span className="block text-[0.85rem] italic mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>{z.meaning}</span>}
+                </span>
+            </button>
+        </li>
+    );
+};
+
+/** Add an own zikr: how it is read and its English are required. */
+const NewZikr: React.FC<{ onAdd: (c: { reading: string; english: string; meaning?: string; arabic?: string; target: number }) => void }> = ({ onAdd }) => {
+    const [open, setOpen] = useState(false);
+    const [f, setF] = useState({ reading: '', english: '', meaning: '', arabic: '', target: 33 });
+    const ok = f.reading.trim().length > 1 && f.english.trim().length > 1;
+    if (!open) return <button onClick={() => setOpen(true)} className="z-new"><Plus className="w-4 h-4" />{t('Жаңы зикир кошуу')}</button>;
+    const field = (k: 'reading' | 'english' | 'meaning' | 'arabic', label: string, hint: string, req = false, rtl = false) => (
+        <label className="block mt-4">
+            <span className="eyebrow">{label}{req && <span style={{ color: 'var(--gold)' }}> *</span>}</span>
+            <input value={f[k]} onChange={e => setF({ ...f, [k]: e.target.value })} placeholder={hint} dir={rtl ? 'rtl' : undefined} lang={rtl ? 'ar' : undefined} maxLength={k === 'reading' || k === 'english' ? 160 : 240}
+                className={`z-input ${rtl ? 'quran-text text-[1.5rem]' : ''}`} />
+        </label>
+    );
+    return (
+        <form className="z-form" onSubmit={e => { e.preventDefault(); if (!ok) return; onAdd({ ...f }); setF({ reading: '', english: '', meaning: '', arabic: '', target: 33 }); setOpen(false); }}>
+            <div className="flex items-center justify-between">
+                <span className="font-display text-[1.3rem]" style={{ color: 'var(--text-primary)' }}>{t('Жаңы зикир')}</span>
+                <button type="button" onClick={() => setOpen(false)} aria-label={t('Жабуу')} className="w-9 h-9 inline-flex items-center justify-center" style={{ color: 'var(--text-muted)' }}><X className="w-4 h-4" /></button>
+            </div>
+            {field('reading', t('Кантип окулат'), t('кириллица менен'), true)}
+            {field('english', t('Англисче'), 'in English', true)}
+            {field('meaning', t('Мааниси (кыргызча)'), '')}
+            {field('arabic', t('Арабча (каалоо боюнча)'), '', false, true)}
+            <div className="flex items-end justify-between gap-4 mt-5">
+                <label className="flex items-center gap-2 text-[0.85rem]" style={{ color: 'var(--text-muted)' }}>{t('Максат')}
+                    <input type="number" inputMode="numeric" min={0} max={100000} value={f.target} onChange={e => setF({ ...f, target: Number(e.target.value) || 0 })} className="z-input w-24 tabular" />
+                </label>
+                <button type="submit" disabled={!ok} className="btn btn-primary"><Check className="w-4 h-4" />{t('Кошуу')}</button>
+            </div>
+            <p className="mt-3 text-[0.8rem]" style={{ color: 'var(--text-muted)' }}>{t('Англисчеси сайт англисче ачылганда көрүнөт. Арабча текстти өзүңүз текшерип жазыңыз.')}</p>
+        </form>
+    );
+};
+
+const GOALS = [300, 700, 1000, 3000, 7000];
+
+/** The week's goal: how many zikrs from Thursday to Wednesday. */
+const WeekGoal: React.FC<{ store: ZikrStore; update: (fn: (s: ZikrStore) => ZikrStore) => ZikrStore }> = ({ store, update }) => {
+    const goal = store.weekGoal ?? 0;
+    const have = weekTotal(store);
+    const [edit, setEdit] = useState(false);
+    const part = goal > 0 ? Math.min(1, have / goal) : 0;
+    return (
+        <Section eyebrow={t('Апталык максат')}>
+            {goal > 0 && !edit ? (
+                <div className="pt-4">
+                    <div className="flex items-baseline justify-between gap-3">
+                        <span className="font-display text-[2rem] tabular leading-none" style={{ color: part >= 1 ? 'var(--success)' : 'var(--text-primary)' }}>{have}<span className="text-[1rem]" style={{ color: 'var(--text-muted)' }}> / {goal}</span></span>
+                        <button onClick={() => setEdit(true)} className="z-fav">{t('Өзгөртүү')}</button>
+                    </div>
+                    <div className="z-goal mt-3"><i style={{ width: `${part * 100}%` }} /></div>
+                    <p className="mt-2 text-[0.85rem]" style={{ color: 'var(--text-muted)' }}>{part >= 1 ? t('Бул аптанын максаты орундалды. Аллах кабыл кылсын.') : t('Шаршембиге чейин дагы {0}.', goal - have)}</p>
+                </div>
+            ) : (
+                <div className="pt-4">
+                    <p className="text-[0.88rem]" style={{ color: 'var(--text-muted)' }}>{t('Бейшембиден шаршембиге чейин канча зикир айтасыз?')}</p>
+                    <div className="cal-kinds mt-3">
+                        {GOALS.map(g => <button key={g} data-on={goal === g || undefined} onClick={() => { update(s => ({ ...s, weekGoal: g })); setEdit(false); }} className="tabular">{g}</button>)}
+                        {goal > 0 && <button onClick={() => { update(s => ({ ...s, weekGoal: 0 })); setEdit(false); }}>{t('Максатсыз')}</button>}
+                    </div>
+                </div>
+            )}
+        </Section>
+    );
+};
+
 export const ZikrPage: React.FC<{ arg: string | null; theme: Theme; onToggleTheme: () => void }> = ({ arg, theme, onToggleTheme }) => {
     const [store, setStore] = useState<ZikrStore>(loadZikr);
     const ref = useRef(store);
@@ -170,6 +265,10 @@ export const ZikrPage: React.FC<{ arg: string | null; theme: Theme; onToggleThem
     const synced = !!self;
     const weekMax = Math.max(1, ...week.map(d => d.total));
     const todayKey = dayKey(new Date());
+    const every = allZikrs(store, isEnglish());
+    const favs = every.filter(z => isFav(store, z.id));
+    const rest = ZIKRS.filter(z => !isFav(store, z.id));
+    const own = every.filter(z => z.id.startsWith('c-') && !isFav(store, z.id));
 
     // The after-prayer set: three counters in a row.
     const [step, setStep] = useState(0);
@@ -201,7 +300,7 @@ export const ZikrPage: React.FC<{ arg: string | null; theme: Theme; onToggleThem
         );
     }
 
-    const zikr = ZIKRS.find(z => z.id === arg);
+    const zikr = allZikrs(store, isEnglish()).find(z => z.id === arg);
     if (zikr) {
         return (
             <AppFrame page="zikr" title={zikr.reading} back="#/zikr" theme={theme} onToggleTheme={onToggleTheme} ownBar>
@@ -231,29 +330,18 @@ export const ZikrPage: React.FC<{ arg: string | null; theme: Theme; onToggleThem
                         </span>
                         <span className="z-after-go">{t('Баштоо')}<ChevronRight className="w-3.5 h-3.5" /></span>
                     </button>
+                    {favs.length > 0 && (
+                        <Section eyebrow={t('Тандалгандар')}>
+                            <ul className="bead-list">{favs.map(z => <BeadRow key={z.id} z={z} store={store} />)}</ul>
+                        </Section>
+                    )}
                     <Section eyebrow={t('Зикирлер')}>
                         {/* The zikrs as beads on a thread: a bead fills as today's count nears its number. */}
-                        <ul className="bead-list">
-                            {ZIKRS.map(z => {
-                                const today = todayOf(store, z.id), target = targetOf(store, z);
-                                const part = target > 0 ? Math.min(1, today / target) : today > 0 ? 1 : 0;
-                                return (
-                                    <li key={z.id}>
-                                        <button onClick={() => go(`#/zikr/${z.id}`)} className="bead-row">
-                                            <span className={`bead ${part >= 1 ? 'is-full' : ''}`} style={{ ['--p' as string]: `${part * 360}deg` }} aria-hidden="true"><i /></span>
-                                            <span className="flex-1 min-w-0">
-                                                <span dir="rtl" lang="ar" className="block quran-text text-[1.75rem] sm:text-[2rem] leading-[1.7] truncate" style={{ color: 'var(--text-primary)' }}>{z.arabic}</span>
-                                                <span className="flex items-baseline justify-between gap-3 mt-1">
-                                                    <span className="font-display text-[1.2rem] leading-tight" style={{ color: 'var(--gold)' }}>{z.reading}</span>
-                                                    <span className="tabular text-[0.85rem] flex-shrink-0" style={{ color: today > 0 ? 'var(--gold)' : 'var(--text-muted)' }} aria-label={t('Бүгүн: {0}', today)}>{today}<span style={{ color: 'var(--text-muted)' }}> / {target > 0 ? target : '∞'}</span></span>
-                                                </span>
-                                                <span className="block text-[0.85rem] italic mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>{z.meaning}</span>
-                                            </span>
-                                        </button>
-                                    </li>
-                                );
-                            })}
-                        </ul>
+                        <ul className="bead-list">{rest.map(z => <BeadRow key={z.id} z={z} store={store} />)}</ul>
+                    </Section>
+                    <Section eyebrow={t('Өз зикирлерим')}>
+                        {own.length > 0 && <ul className="bead-list">{own.map(z => <BeadRow key={z.id} z={z} store={store} />)}</ul>}
+                        <NewZikr onAdd={c => update(s => addCustom(s, c))} />
                     </Section>
                 </div>
                 <div className="lg:sticky lg:top-20">
@@ -274,6 +362,7 @@ export const ZikrPage: React.FC<{ arg: string | null; theme: Theme; onToggleThem
                             ))}
                         </div>
                     </Section>
+                    <WeekGoal store={store} update={update} />
                     <Section eyebrow={t('Менин аптам')}>
                         <MyWeek totals={totals} synced={synced} />
                     </Section>

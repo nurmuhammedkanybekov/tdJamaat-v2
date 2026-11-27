@@ -1697,3 +1697,13 @@ button.help-where:hover { border-bottom-color: var(--gold); }
 .cal-next-mark.is-eid, .cal-next-mark.is-month { background: var(--gold); }
 .cal-next-mark.is-fast { border-color: var(--success); }
 @media (max-width: 480px) { .cal-ram { grid-template-columns: repeat(6, minmax(0, 1fr)); } .cal-day { height: 3.2rem; } .cal-qaza, .cal-offset { flex-direction: column; align-items: flex-start; } }
+
+/* ---------------------------------------------------------------- zikr: favourites, own, goal */
+.z-fav { display: inline-flex; align-items: center; gap: .4rem; padding: .25rem 0; font-size: .66rem; letter-spacing: .18em; text-transform: uppercase; color: var(--text-muted); transition: color .15s; }
+.z-fav:hover, .z-fav[data-on] { color: var(--gold); }
+.z-new { display: inline-flex; align-items: center; gap: .5rem; margin-top: 1rem; padding: .5rem 0; font-size: .72rem; letter-spacing: .2em; text-transform: uppercase; color: var(--gold); }
+.z-form { margin-top: 1rem; padding: 1rem 0 1.2rem 1.1rem; border-left: 2px solid var(--gold); }
+.z-input { display: block; width: 100%; margin-top: .3rem; padding: .5rem 0; background: transparent; border: 0; border-bottom: 1px solid var(--border-strong); color: var(--text-primary); font-size: 1.02rem; outline: none; }
+.z-input:focus { border-bottom-color: var(--gold); }
+.z-goal { height: 4px; background: var(--border); position: relative; }
+.z-goal > i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--gold); transition: width .4s; }
