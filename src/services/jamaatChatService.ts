@@ -49,21 +49,64 @@ export interface RoomMessage {
     createdAt: string;
     /** Accounts that said "Аамин". */
     reactions: Reaction[];
+    /** A poll: the text is its question (supabase/polls-dm-2026-11.sql). */
+    poll: Poll | null;
 }
 
-type Row = { id: number; room: Room; user_id: string; author_role: string; member_id: string | null; author_name: string | null; house_name: string | null; body: string; created_at: string; jamaat_message_amins?: Array<{ user_id: string; emoji?: string }> };
+export interface Poll { options: string[]; multi: boolean; closed: boolean; votes: Array<{ who: string; option: number }> }
+
+type Row = { id: number; room: Room; user_id: string; author_role: string; member_id: string | null; author_name: string | null; house_name: string | null; body: string; created_at: string; poll?: { options?: unknown; multi?: boolean; closed?: boolean } | null; jamaat_message_amins?: Array<{ user_id: string; emoji?: string }> };
+const toPoll = (p: Row['poll']): Poll | null => (p && Array.isArray(p.options) ? { options: p.options.map(String), multi: !!p.multi, closed: !!p.closed, votes: [] } : null);
 const toMessage = (r: Row): RoomMessage => ({
     id: r.id, room: r.room, userId: r.user_id, authorRole: r.author_role, memberId: r.member_id, authorName: r.author_name, houseName: r.house_name,
-    body: r.body, createdAt: r.created_at, reactions: toReactions(r.jamaat_message_amins, 'user_id')
+    body: r.body, createdAt: r.created_at, reactions: toReactions(r.jamaat_message_amins, 'user_id'), poll: toPoll(r.poll)
 });
+
+// Polls exist once supabase/polls-dm-2026-11.sql has run.
+let hasPolls: boolean | null = null;
 
 /** The latest messages, oldest first (null: not set up yet, or no access). */
 export const fetchRoom = async (room: Room, limit = 200): Promise<RoomMessage[] | null> => {
-    const { data, error } = await selectWithReactions(withEmoji => supabase.from('jamaat_messages')
-        .select(`id, room, user_id, author_role, member_id, author_name, house_name, body, created_at, jamaat_message_amins(user_id${withEmoji ? ', emoji' : ''})`)
+    const run = (polls: boolean) => selectWithReactions(withEmoji => supabase.from('jamaat_messages')
+        .select(`id, room, user_id, author_role, member_id, author_name, house_name, body, created_at${polls ? ', poll' : ''}, jamaat_message_amins(user_id${withEmoji ? ', emoji' : ''})`)
         .eq('room', room).order('created_at', { ascending: false }).limit(limit));
+    let res = await run(hasPolls !== false);
+    if (res.error && hasPolls !== false && (res.error.code === '42703' || /poll/i.test(res.error.message ?? ''))) { hasPolls = false; res = await run(false); }
+    else if (!res.error && hasPolls === null) hasPolls = true;
+    const { data, error } = res;
     if (error) { if (!isMissingSchema(error)) console.warn('[tdJamaat] room:', error.message); return null; }
-    return ((data ?? []) as Row[]).map(toMessage).reverse();
+    const list = ((data ?? []) as unknown as Row[]).map(toMessage).reverse();
+    const polls = list.filter(m => m.poll);
+    if (polls.length) {
+        const { data: votes } = await supabase.from('jamaat_poll_votes').select('message_id, user_id, option').in('message_id', polls.map(m => m.id));
+        for (const v of (votes ?? []) as Array<{ message_id: number; user_id: string; option: number }>) polls.find(m => m.id === v.message_id)?.poll?.votes.push({ who: v.user_id, option: v.option });
+    }
+    return list;
+};
+
+/** Whether polls can be made here (the SQL has run). */
+export const pollsReady = () => hasPolls === true;
+
+export const sendPoll = async (room: Room, question: string, options: string[], multi: boolean, memberId: string | null) => {
+    const clean = options.map(o => o.trim().slice(0, 80)).filter(Boolean).slice(0, 8);
+    const { error } = await supabase.from('jamaat_messages').insert({ room, body: question.trim(), member_id: memberId, poll: { options: clean, multi } });
+    if (error) throw error;
+};
+
+/** Choose (or take back) an option. In a one-choice poll the database drops the earlier choice. */
+export const votePoll = async (messageId: number, option: number, on: boolean, me: string) => {
+    if (on) {
+        const { error } = await supabase.from('jamaat_poll_votes').insert({ message_id: messageId, option });
+        if (error && !/duplicate key/i.test(error.message)) throw error;
+    } else {
+        const { error } = await supabase.from('jamaat_poll_votes').delete().eq('message_id', messageId).eq('user_id', me).eq('option', option);
+        if (error) throw error;
+    }
+};
+
+export const closePoll = async (messageId: number) => {
+    const { error } = await supabase.rpc('close_poll', { m: messageId });
+    if (error) throw error;
 };
 
 /** `memberId`: a captain may sign as the person of their house they chose. */
@@ -86,6 +129,7 @@ export const watchRoom = (room: Room, onChange: () => void): (() => void) => {
         channel = supabase.channel(`room-${room}`)
             .on('postgres_changes', { event: '*', schema: 'public', table: 'jamaat_messages', filter: `room=eq.${room}` }, onChange)
             .on('postgres_changes', { event: '*', schema: 'public', table: 'jamaat_message_amins' }, onChange)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'jamaat_poll_votes' }, onChange)
             .subscribe();
     } catch { channel = null; }
     const timer = window.setInterval(() => { if (document.visibilityState === 'visible') onChange(); }, 8000);

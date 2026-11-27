@@ -1707,3 +1707,26 @@ button.help-where:hover { border-bottom-color: var(--gold); }
 .z-input:focus { border-bottom-color: var(--gold); }
 .z-goal { height: 4px; background: var(--border); position: relative; }
 .z-goal > i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--gold); transition: width .4s; }
+
+/* ---------------------------------------------------------------- polls, private messages */
+.chat-bubble.is-poll { padding: .9rem 1rem 1rem; min-width: min(20rem, 72vw); }
+.poll-kind { display: inline-flex; align-items: center; gap: .35rem; font-size: .62rem; letter-spacing: .18em; text-transform: uppercase; color: var(--gold); }
+.poll-q { font-size: 1.2rem; line-height: 1.25; margin-top: .3rem; color: var(--text-primary); }
+.poll-opts { margin-top: .7rem; display: flex; flex-direction: column; gap: .35rem; }
+.poll-opt { position: relative; width: 100%; display: flex; align-items: center; gap: .6rem; padding: .55rem .2rem .7rem; text-align: left; color: var(--text-primary); }
+.poll-opt:disabled { cursor: default; }
+.poll-mark { width: 16px; height: 16px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--border-strong); border-radius: 50%; }
+.poll-mark.is-box { border-radius: 2px; }
+.poll-opt[data-on] .poll-mark { background: var(--gold); border-color: var(--gold); color: var(--page-plane); }
+.poll-text { flex: 1; min-width: 0; font-size: .95rem; }
+.poll-n { font-size: .85rem; color: var(--text-muted); }
+.poll-opt[data-lead] .poll-n { color: var(--gold); }
+.poll-bar { position: absolute; left: 0; bottom: 2px; height: 3px; background: var(--gold-dim); transition: width .35s; }
+.poll-opt[data-lead] .poll-bar { background: var(--gold); }
+.poll-foot { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: .5rem; font-size: .78rem; color: var(--text-muted); }
+.poll-foot button { font-size: .66rem; letter-spacing: .16em; text-transform: uppercase; color: var(--text-muted); }
+.poll-foot button:hover { color: var(--danger); }
+.poll-form { padding: .2rem 0 .3rem; max-height: 70vh; overflow-y: auto; }
+.dm-new { display: inline-flex; align-items: center; gap: .4rem; font-size: .7rem; letter-spacing: .18em; text-transform: uppercase; color: var(--gold); }
+.dm-pick { padding: .6rem 0 .8rem 1rem; border-left: 2px solid var(--gold); margin-top: .8rem; }
+.dm-unread { min-width: 1.4rem; height: 1.4rem; padding: 0 .35rem; display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; font-size: .72rem; background: var(--gold); color: var(--page-plane); flex-shrink: 0; }

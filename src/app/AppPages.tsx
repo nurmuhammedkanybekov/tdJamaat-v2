@@ -82,7 +82,7 @@ export const AppPages: React.FC<{ route: AppRoute; theme: Theme; onToggleTheme: 
                                 : route.page === 'news' ? <NewsPage {...props} />
                                 : route.page === 'kiruu' ? <SignInCheck {...props} />
                                 : route.page === 'qibla' ? <QiblaPage {...props} />
-                                : route.page === 'chat' ? <ChatsPage arg={route.arg} {...props} />
+                                : route.page === 'chat' ? <ChatsPage arg={route.arg} sub={route.sub} {...props} />
                                 : route.page === 'namaz' ? <NamazPage {...props} />
                                 : route.page === 'help' ? <HelpPage {...props} />
                                 : route.page === 'jamaat' ? <JamaatPage {...props} />

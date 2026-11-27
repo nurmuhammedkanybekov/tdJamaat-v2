@@ -138,6 +138,15 @@ In the Supabase dashboard, open **SQL Editor** and run, in order:
     nothing. People can delete their own account from Меню → Менин
     аккаунтум; captain, CL and admin logins can't. Needs 4b and the members
     file. Safe to re-run.
+27. `supabase/polls-dm-2026-11.sql` — polls and private messages. In any
+    jamaat chat the chart button makes a poll (2–8 answers, one or several
+    choices); the author or the admin closes it. Private messages are text
+    only and seen by the two people alone (not the admin):
+    - a member can write to their own house, their captain and the admin;
+    - a captain can write to their house, the other captains, CL and the admin;
+    - CL can write to the captains and the admin;
+    - the admin can write to everyone.
+    Guests have none. Needs the jamaat-chat file. Safe to re-run.
 
 Notifications: in Үйдүн чаты or Жамааттан кабар, "Билдирмелерди
 күйгүзүү". They arrive while the app is open or in the background (not

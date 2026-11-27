@@ -4,7 +4,7 @@
 // and each house's own conversation (Үйдүн сөзү, under Үйүм).
 // The database says who wrote what (supabase/jamaat-chat-2026-11.sql).
 import React, { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { ArrowDown, ArrowUp, ChevronRight, Loader2, MessageCircle, Pencil, Plus, Shield, Trash2, Users } from 'lucide-react';
+import { ArrowDown, ArrowUp, ChartNoAxesColumn, ChevronRight, Loader2, MessageCircle, Pencil, Plus, Shield, Trash2, Users } from 'lucide-react';
 import type { Theme } from '../theme';
 import { isEnglish, t } from '../i18n';
 import { AppFrame, Waiting } from './AppFrame';
@@ -17,7 +17,9 @@ import { Avatar } from '../components/Avatar';
 import { HornBand } from '../components/motion';
 import { Mark } from '../components/Ornament';
 import type { Audience, ChatRoom, RoomMessage } from '../services/jamaatChatService';
-import { countRoomUnread, createRoom, deleteRoom, deleteRoomMessage, fetchRoom, fetchRooms, markRoomSeen, myUserId, sendToRoom, reactRoom, updateRoom, watchRoom } from '../services/jamaatChatService';
+import { closePoll, countRoomUnread, createRoom, deleteRoom, deleteRoomMessage, fetchRoom, fetchRooms, markRoomSeen, myUserId, pollsReady, sendPoll, sendToRoom, reactRoom, updateRoom, votePoll, watchRoom } from '../services/jamaatChatService';
+import { PollCard, PollForm } from './PollCard';
+import { DmChat, DmSection } from './DirectMessages';
 import { NotifyToggle } from './Community';
 import { countUnread } from '../services/chatService';
 import { signInWithGoogle } from '../services/memberService';
@@ -59,12 +61,13 @@ const Seal: React.FC<{ kind: 'admin' | 'cl' }> = ({ kind }) => (
         : <span className="chat-cl-seal" aria-hidden="true">CL</span>
 );
 
-export const ChatsPage: React.FC<{ arg?: string | null; theme: Theme; onToggleTheme: () => void }> = ({ arg, theme, onToggleTheme }) => {
+export const ChatsPage: React.FC<{ arg?: string | null; sub?: string | null; theme: Theme; onToggleTheme: () => void }> = ({ arg, sub, theme, onToggleTheme }) => {
     const access = useAccess();
     const [rooms, setRooms] = useState<ChatRoom[] | null>(null);
     const reload = useCallback(() => { if (access.all) fetchRooms(access.staff).then(setRooms).catch(() => setRooms([])); }, [access.all, access.staff]);
     useEffect(() => { reload(); }, [reload]);
     const room = arg && rooms ? rooms.find(r => r.id === arg) : undefined;
+    if (arg === 'dm' && sub && access.all) return <DmChat key={sub} peer={sub} theme={theme} onToggleTheme={onToggleTheme} />;
     if (room) return <RoomChat key={room.id} room={room} theme={theme} onToggleTheme={onToggleTheme} />;
     return (
         <AppFrame page="today" title={t('Чаттар')} kicker={t('Чат')} theme={theme} onToggleTheme={onToggleTheme}>
@@ -130,6 +133,7 @@ const ChatList: React.FC<{ rooms: ChatRoom[]; onChanged: () => void }> = ({ room
                     );
                 })}
             </ul>
+            <DmSection />
         </div>
     );
 };
@@ -185,6 +189,7 @@ const RoomChat: React.FC<{ room: ChatRoom; theme: Theme; onToggleTheme: () => vo
     const [text, setText] = useState('');
     const [sending, setSending] = useState(false);
     const [error, setError] = useState('');
+    const [polling, setPolling] = useState(false);
     const input = useRef<HTMLTextAreaElement>(null);
     const stick = useRef(true);
     useEffect(() => { myUserId().then(setMe).catch(() => undefined); }, []);
@@ -238,6 +243,24 @@ const RoomChat: React.FC<{ room: ChatRoom; theme: Theme; onToggleTheme: () => vo
         try { await reactRoom(m.id, me, emoji); } catch { /* the reload shows what is stored */ }
         finally { pending.current--; if (!pending.current) load(); }
     };
+    const vote = async (m: RoomMessage, option: number, on: boolean) => {
+        if (!me || !m.poll) return;
+        // At once on the screen; the database has the last word.
+        setMessages(cur => cur?.map(x => {
+            if (x.id !== m.id || !x.poll) return x;
+            let votes = x.poll.votes.filter(v => !(v.who === me && (v.option === option || (!x.poll!.multi && on))));
+            if (on) votes = [...votes, { who: me, option }];
+            return { ...x, poll: { ...x.poll, votes } };
+        }));
+        pending.current++;
+        try { await votePoll(m.id, option, on, me); } catch (e) { setError((e as Error)?.message ?? ''); }
+        finally { pending.current--; if (!pending.current) load(); }
+    };
+    const sendAPoll = async (q: string, options: string[], multi: boolean) => {
+        setError('');
+        try { await sendPoll(room, q, options, multi, access.role === 'leader' && self?.via === 'staff' ? self.memberId : null); setPolling(false); stick.current = true; load(); }
+        catch (e) { setError((e as Error)?.message ?? t('Жөнөтүлгөн жок')); }
+    };
     const remove = async (m: RoomMessage) => {
         if (!window.confirm(t('Бул билдирүүнү өчүрөсүзбү?'))) return;
         try { await deleteRoomMessage(m.id); load(); } catch (e) { setError((e as Error)?.message ?? ''); }
@@ -279,7 +302,9 @@ const RoomChat: React.FC<{ room: ChatRoom; theme: Theme; onToggleTheme: () => vo
                                     {!sameRun && (
                                         <div className={`chat-name ${who.seal === 'admin' ? 'is-admin' : ''} ${mine ? 'justify-end' : ''}`}>{mine ? t('Сиз') : who.name}{!mine && who.tag && <span className="chat-tag">{who.tag}</span>}</div>
                                     )}
-                                    <div className="chat-bubble" onDoubleClick={() => { if (me && !m.reactions.some(r => r.who === me && r.emoji === DEFAULT_REACTION)) react(m, DEFAULT_REACTION); }}>{m.body}</div>
+                                    {m.poll
+                                        ? <div className="chat-bubble is-poll"><PollCard question={m.body} poll={m.poll} me={me} canClose={mine || access.isAdmin} onVote={(o, on) => vote(m, o, on)} onClose={() => { closePoll(m.id).then(load).catch(e => setError((e as Error)?.message ?? '')); }} /></div>
+                                        : <div className="chat-bubble" onDoubleClick={() => { if (me && !m.reactions.some(r => r.who === me && r.emoji === DEFAULT_REACTION)) react(m, DEFAULT_REACTION); }}>{m.body}</div>}
                                     <Reactions list={m.reactions} me={me} disabled={!me} onPick={e => react(m, e)} align={mine ? 'end' : 'start'} />
                                     <div className="chat-meta">
                                         <span className="tabular">{hm(at)}</span>
@@ -302,7 +327,9 @@ const RoomChat: React.FC<{ room: ChatRoom; theme: Theme; onToggleTheme: () => vo
                         </button>
                     )}
                     {error && <p className="max-w-[42rem] mx-auto text-[0.82rem] mb-2" style={{ color: 'var(--danger)' }}>{error}</p>}
+                    {polling ? <PollForm onSend={sendAPoll} onCancel={() => setPolling(false)} /> : (
                     <form className="max-w-[42rem] mx-auto flex items-end gap-2" onSubmit={e => { e.preventDefault(); send(); }}>
+                        {pollsReady() && <button type="button" onClick={() => setPolling(true)} aria-label={t('Сурамжылоо')} title={t('Сурамжылоо')} className="w-11 h-12 inline-flex items-center justify-center flex-shrink-0 transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}><ChartNoAxesColumn className="w-5 h-5" /></button>}
                         <textarea
                             ref={input} rows={1} value={text} maxLength={2000}
                             onChange={e => setText(e.target.value)}
@@ -315,6 +342,7 @@ const RoomChat: React.FC<{ room: ChatRoom; theme: Theme; onToggleTheme: () => vo
                             {sending ? <Loader2 className="w-5 h-5 animate-spin" /> : <ArrowUp className="w-5 h-5" />}
                         </button>
                     </form>
+                    )}
                 </div>
             )}
         </AppFrame>
