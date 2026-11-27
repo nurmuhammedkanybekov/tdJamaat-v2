@@ -22,6 +22,7 @@ const NamazPage = lazy(withReload(() => import('./NamazPage').then(m => ({ defau
 const QiblaPage = lazy(withReload(() => import('./QiblaPage').then(m => ({ default: m.QiblaPage }))));
 const SignInCheck = lazy(withReload(() => import('./SignInCheck').then(m => ({ default: m.SignInCheck }))));
 const AccountPage = lazy(withReload(() => import('./AccountPage').then(m => ({ default: m.AccountPage }))));
+const CalendarPage = lazy(withReload(() => import('./CalendarPage').then(m => ({ default: m.CalendarPage }))));
 const ZikrPage = lazy(withReload(() => import('./ZikrPage').then(m => ({ default: m.ZikrPage }))));
 
 const Waiting: React.FC = () => (
@@ -61,7 +62,7 @@ const CaptainIsSelf: React.FC<{ houseId: string }> = ({ houseId }) => {
 };
 
 const TITLES: Record<AppRoute['page'], () => string> = {
-    today: () => t('Менин күнүм'), house: () => t('Үйүм'), news: () => t('Жамааттан кабар'), quran: () => t('Куран'), tasbihat: () => t('Тасбихат'), zikr: () => t('Зикир'), kiruu: () => t('Кирүүнү текшерүү'), qibla: () => t('Кыбла'), chat: () => t('Чаттар'), namaz: () => t('Намаз убактылары'), jamaat: () => t('Жамаат'), help: () => t('Жардам'), account: () => t('Менин аккаунтум')
+    today: () => t('Менин күнүм'), house: () => t('Үйүм'), news: () => t('Жамааттан кабар'), quran: () => t('Куран'), tasbihat: () => t('Тасбихат'), zikr: () => t('Зикир'), kiruu: () => t('Кирүүнү текшерүү'), qibla: () => t('Кыбла'), chat: () => t('Чаттар'), namaz: () => t('Намаз убактылары'), jamaat: () => t('Жамаат'), help: () => t('Жардам'), account: () => t('Менин аккаунтум'), calendar: () => t('Календарь')
 };
 
 export const AppPages: React.FC<{ route: AppRoute; theme: Theme; onToggleTheme: () => void; ctx: AppCtx }> = ({ route, theme, onToggleTheme, ctx }) => {
@@ -86,6 +87,7 @@ export const AppPages: React.FC<{ route: AppRoute; theme: Theme; onToggleTheme: 
                                 : route.page === 'help' ? <HelpPage {...props} />
                                 : route.page === 'jamaat' ? <JamaatPage {...props} />
                                 : route.page === 'account' ? <AccountPage {...props} />
+                                : route.page === 'calendar' ? <CalendarPage {...props} />
                             : <TodayPage {...props} />}
             </Suspense>
         </AppContext.Provider>

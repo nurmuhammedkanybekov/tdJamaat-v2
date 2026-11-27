@@ -3,7 +3,7 @@
 // words (what it is, not just its title), grouped the way people think about
 // them: my day, my results, the jamaat, and the account itself.
 import React, { useContext, useEffect, useState } from 'react';
-import { BookOpen, BookOpenCheck, ChartNoAxesColumn, CircleDot, CircleHelp, Clock3, Compass, Home, LogIn, LogOut, MessageCircle, ScrollText, Settings2, Sparkles, SunMedium, Trophy, UserRound, Users, X } from 'lucide-react';
+import { BookOpen, BookOpenCheck, ChartNoAxesColumn, CircleDot, CircleHelp, Clock3, Compass, Home, LogIn, LogOut, MessageCircle, ScrollText, Settings2, Sparkles, CalendarDays, SunMedium, Trophy, UserRound, Users, X } from 'lucide-react';
 import { t } from '../i18n';
 import { Mark } from '../components/Ornament';
 import { useModal } from '../hooks/useModal';
@@ -97,6 +97,7 @@ export const AccountSheet: React.FC<{ onClose: () => void }> = ({ onClose }) => 
                 { key: 'quran', icon: BookOpen, label: t('Куран'), sub: t('Сүрөлөр, мусхаф, кыргызча мааниси'), to: '#/quran' },
                 { key: 'tasbihat', icon: ScrollText, label: t('Тасбихат'), sub: t('Ар бир намаздан кийинки зикирлер'), to: '#/tasbihat' },
                 { key: 'zikr', icon: CircleDot, label: t('Зикир'), sub: t('Санагыч: басып эле санай бериңиз'), to: '#/zikr' },
+                { key: 'calendar', icon: CalendarDays, label: t('Календарь'), sub: t('Хижрий жыл, орозо, майрамдар'), to: '#/calendar' },
                 { key: 'qibla', icon: Compass, label: t('Кыбла'), sub: t('Телефондун компасы менен'), to: '#/qibla' }
             ]
         },

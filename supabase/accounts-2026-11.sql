@@ -17,11 +17,16 @@
 -- ---------------------------------------------------------------- the store
 create table if not exists user_store (
   user_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
-  key text not null check (key in ('zikr', 'practice', 'quran', 'tasbihat', 'city')),
+  key text not null,
   value jsonb not null check (pg_column_size(value) <= 262144),
   updated_at timestamptz not null default now(),
   primary key (user_id, key)
 );
+
+-- What may be kept (one row each): the app's own stores.
+alter table user_store drop constraint if exists user_store_key_check;
+alter table user_store add constraint user_store_key_check
+  check (key in ('zikr', 'practice', 'quran', 'tasbihat', 'city', 'calendar'));
 
 create or replace function touch_user_store() returns trigger
 language plpgsql as $$

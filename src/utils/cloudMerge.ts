@@ -4,8 +4,8 @@
 // wins over the saved one. Pure functions; src/services/cloudStore.ts does
 // the reading and writing.
 
-export type CloudKey = 'zikr' | 'practice' | 'quran' | 'tasbihat' | 'city';
-export const CLOUD_KEYS: CloudKey[] = ['zikr', 'practice', 'quran', 'tasbihat', 'city'];
+export type CloudKey = 'zikr' | 'practice' | 'quran' | 'tasbihat' | 'city' | 'calendar';
+export const CLOUD_KEYS: CloudKey[] = ['zikr', 'practice', 'quran', 'tasbihat', 'city', 'calendar'];
 
 type Obj = Record<string, unknown>;
 const isObj = (v: unknown): v is Obj => !!v && typeof v === 'object' && !Array.isArray(v);
@@ -66,6 +66,12 @@ export const mergeQuran = (local: unknown, saved: unknown) => {
     return out;
 };
 
+/** Fasts and day plans: both kept, this device's word on the same day. */
+export const mergeCalendar = (local: unknown, saved: unknown) => {
+    const l = obj(local), s = obj(saved);
+    return { ...s, ...l, fasts: { ...obj(s.fasts), ...obj(l.fasts) }, notes: { ...obj(s.notes), ...obj(l.notes) } };
+};
+
 /** Settings: this device's choice, else the saved one. */
 export const mergeSettings = (local: unknown, saved: unknown) => ({ ...obj(saved), ...obj(local) });
 
@@ -74,5 +80,6 @@ export const MERGE: Record<CloudKey, (local: unknown, saved: unknown) => unknown
     practice: mergePractice,
     quran: mergeQuran,
     tasbihat: mergeSettings,
-    city: (local, saved) => local ?? saved
+    city: (local, saved) => local ?? saved,
+    calendar: mergeCalendar
 };

@@ -10,7 +10,9 @@ import { useNow } from '../hooks/useNow';
 import { loadCity } from '../utils/city';
 import type { City, PrayerKey } from '../utils/prayer';
 import { PRAYER_NAMES, PRAYER_ORDER, clock, nextPrayer, prayerNow, prayerTimes } from '../utils/prayer';
-import { formatHijri, isRamadan, toHijri } from '../utils/hijri';
+import { formatHijri, isRamadan } from '../utils/hijri';
+import { hijriOf, holyDaysOf, sunnahFast } from '../utils/islamicCalendar';
+import { loadCalendar } from './fasting';
 import { loadZikr, todayTotal } from '../utils/zikr';
 import { calculateHouseRating } from '../utils/scoring';
 import { weekComplete } from '../utils/insights';
@@ -186,7 +188,9 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
     const next = nextPrayer(city, now);
     // While a prayer's time is running, the page shows that prayer and when
     // its time ends; between sunrise and Dhuhr, the next one and how long.
-    const hijri = toHijri(now);
+    const hijri = hijriOf(now, loadCalendar().offset);
+    const holy = holyDaysOf(hijri)[0];
+    const sunnah = sunnahFast(now, hijri);
     const ramadan = isRamadan(hijri);
     const hour = prayerNow(city, now);
     const shown = hour.active ?? null;
@@ -221,7 +225,8 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
             <Crown className="draw-in h-auto w-[min(12rem,52%)]" style={{ color: 'var(--gold)' }} />
             <div className="eyebrow mt-4 inline-flex items-center gap-2.5" style={{ color: 'var(--gold)' }}><span className="greet-horn" aria-hidden="true"><Horn size={18} strokeWidth={4} /></span>{linked ? t('Ассалому алейкум, {0}', linked.name) : `${weekday(now)} · ${dayMonth(now)}`}<span className="greet-horn" aria-hidden="true"><Horn size={18} strokeWidth={4} /></span></div>
             <div className="text-[0.85rem] italic mt-1.5" style={{ color: 'var(--text-muted)' }}>
-                {linked && `${weekday(now)}, ${dayMonth(now)} · `}{hijri ? formatHijri(hijri) : ''}{ramadan && <span style={{ color: 'var(--gold)' }}> · {t('Рамазан мубарак')}</span>}
+                {linked && `${weekday(now)}, ${dayMonth(now)} · `}<button onClick={() => go('#/calendar')} className="hijri-link">{hijri ? formatHijri(hijri) : t('Календарь')}</button>{ramadan && <span style={{ color: 'var(--gold)' }}> · {t('Рамазан мубарак')}</span>}
+                {!ramadan && (holy || sunnah) && <button onClick={() => go('#/calendar')} className="hijri-link" style={{ color: 'var(--gold)' }}> · {holy ? holy.name() : t('сүннөт орозо күнү')}</button>}
             </div>
             {/* The hour as a dial: the шырдак medallion turning behind it, a gold
                 ring that fills as the prayer's time passes, the prayer inside. */}

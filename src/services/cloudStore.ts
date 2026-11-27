@@ -15,7 +15,8 @@ const LOCAL: Record<CloudKey, string> = {
     practice: 'tdjamaat-practice-v1',
     quran: 'tdjamaat-quran-v1',
     tasbihat: 'tdjamaat-tasbihat-v1',
-    city: 'tdjamaat-city'
+    city: 'tdjamaat-city',
+    calendar: 'tdjamaat-calendar-v1'
 };
 // The city is kept as a bare id, everything else as JSON.
 const RAW = new Set<CloudKey>(['city']);
