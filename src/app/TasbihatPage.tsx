@@ -84,6 +84,13 @@ const List: React.FC<{ theme: Theme; onToggleTheme: () => void }> = ({ theme, on
     const current = currentPrayer(city, now);
     const practice = loadPractice();
     const doneNow = tasbihatDone(practice, current, now);
+    const readToday = TASBIHAT_ORDER.filter(id => tasbihatDone(practice, id, now)).length;
+    // Days in a row with all five read (today counts once it is full).
+    let full = 0;
+    for (let i = readToday === TASBIHAT_ORDER.length ? 0 : 1; i < 400; i++) {
+        const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+        if (TASBIHAT_ORDER.every(id => (practice.tasbihat[dayKey(d)] ?? []).includes(id))) full++; else break;
+    }
     return (
         <AppFrame page="tasbihat" title={t('Тасбихат')} kicker={t('Намаздан кийин')} theme={theme} onToggleTheme={onToggleTheme}>
             <div className="max-w-[46rem] mx-auto">
@@ -91,6 +98,21 @@ const List: React.FC<{ theme: Theme; onToggleTheme: () => void }> = ({ theme, on
                 <button onClick={() => go(`#/tasbihat/${current}`)} className="t-now">
                     <span className="eyebrow block" style={{ color: 'var(--gold)' }}>{doneNow ? t('Азыр · окулду') : t('Азыр')}</span>
                     <span className="block font-display text-[3rem] sm:text-[3.6rem] leading-none mt-3" style={{ color: 'var(--text-primary)' }}>{PRAYER_NAMES[current]}</span>
+                    {/* Today's five, as a row of diamonds: filled when read. */}
+                    <span className="t-five" aria-label={t('Бүгүн {0} / 5 окулду', readToday)}>
+                        {TASBIHAT_ORDER.map(id => {
+                            const done = tasbihatDone(practice, id, now);
+                            return (
+                                <span key={id} className="t-five-d" data-done={done || undefined} data-now={id === current || undefined}>
+                                    <i aria-hidden="true">{done && <Check className="w-3 h-3" strokeWidth={2.6} />}</i>
+                                    <small>{PRAYER_NAMES[id]}</small>
+                                </span>
+                            );
+                        })}
+                    </span>
+                    <span className="block text-[0.85rem] mt-3" style={{ color: 'var(--text-muted)' }}>
+                        {t('Бүгүн {0} / 5', readToday)}{full > 1 ? ` · ${t('катары менен {0} күн толук', full)}` : ''}
+                    </span>
                     <span className="inline-flex items-center gap-2 mt-4 text-[0.72rem] tracking-[0.2em] uppercase" style={{ color: 'var(--gold)' }}>{t('Баштоо')}<ChevronRight className="w-3.5 h-3.5" /></span>
                 </button>
                 <Section eyebrow={t('Беш убак')}>
@@ -104,6 +126,7 @@ const List: React.FC<{ theme: Theme; onToggleTheme: () => void }> = ({ theme, on
                                             {done ? <Check className="w-3.5 h-3.5 -rotate-45" style={{ color: 'var(--page-plane)' }} /> : null}
                                         </span>
                                         <span className="flex-1 min-w-0 font-display text-[1.4rem] leading-tight" style={{ color: id === current ? 'var(--gold)' : 'var(--text-primary)' }}>{PRAYER_NAMES[id]}</span>
+                                        {!done && times[id].getTime() < now.getTime() && id !== current && <span className="t-missed">{t('окула элек')}</span>}
                                         <span className="font-display text-[1.2rem] tabular" style={{ color: 'var(--text-muted)' }}>{clock(times[id], city.tz)}</span>
                                     </button>
                                 </li>

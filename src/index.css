@@ -1730,3 +1730,14 @@ button.help-where:hover { border-bottom-color: var(--gold); }
 .dm-new { display: inline-flex; align-items: center; gap: .4rem; font-size: .7rem; letter-spacing: .18em; text-transform: uppercase; color: var(--gold); }
 .dm-pick { padding: .6rem 0 .8rem 1rem; border-left: 2px solid var(--gold); margin-top: .8rem; }
 .dm-unread { min-width: 1.4rem; height: 1.4rem; padding: 0 .35rem; display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; font-size: .72rem; background: var(--gold); color: var(--page-plane); flex-shrink: 0; }
+
+/* ---------------------------------------------------------------- tasbihat: today's five */
+.t-five { display: flex; justify-content: center; gap: clamp(.9rem, 4vw, 1.8rem); margin-top: 1.6rem; }
+.t-five-d { display: flex; flex-direction: column; align-items: center; gap: .55rem; }
+.t-five-d > i { width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; transform: rotate(45deg); border: 1px solid var(--gold-dim); color: var(--page-plane); transition: background-color .3s; }
+.t-five-d > i > svg { transform: rotate(-45deg); }
+.t-five-d[data-done] > i { background: var(--gold); border-color: var(--gold); }
+.t-five-d[data-now] > i { border-color: var(--gold); box-shadow: 0 0 0 4px color-mix(in oklab, var(--gold) 16%, transparent); }
+.t-five-d > small { font-size: .62rem; letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted); }
+.t-five-d[data-now] > small { color: var(--gold); }
+.t-missed { font-size: .66rem; letter-spacing: .14em; text-transform: uppercase; color: var(--gold); white-space: nowrap; }

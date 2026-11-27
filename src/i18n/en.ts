@@ -1514,5 +1514,8 @@ export const EN: Record<string, string> = {
     "{0}-жооп": "Answer {0}",
     "Жооп кошуу": "Add an answer",
     "Бир нече жооп тандаса болот": "Allow several answers",
-    "Жиберүү": "Send"
+    "Жиберүү": "Send",
+    "Бүгүн {0} / 5 окулду": "{0} of 5 read today",
+    "катары менен {0} күн толук": "{0} full days in a row",
+    "окула элек": "not read yet"
 };
