@@ -24,7 +24,7 @@ describe('Russian texts', () => {
     });
 
     it('fills Russian plurals', () => {
-        __setLangForTests('ru');
+        __setLangForTests('ru', RU);
         expect(t('{0} апта', 1)).toBe('1 неделя');
         expect(t('{0} апта', 3)).toBe('3 недели');
         expect(t('{0} апта', 5)).toBe('5 недель');

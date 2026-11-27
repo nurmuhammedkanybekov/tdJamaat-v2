@@ -12,8 +12,10 @@
 // Switching reloads the page once (setLang), so every label — including the
 // ones built when the code loads — comes out in the new language. The choice
 // is remembered per device.
-import { EN } from './en';
-import { RU } from './ru';
+//
+// Only the chosen language's texts are downloaded: Kyrgyz needs none, and the
+// English or Russian file is loaded here, before any other code that uses
+// t() runs (a top-level await: every importer waits for it).
 
 export type Lang = 'ky' | 'en' | 'ru';
 export const LANGS: Array<{ id: Lang; short: string; name: string }> = [
@@ -26,6 +28,9 @@ const read = (): Lang => {
 };
 
 let current: Lang = typeof window === 'undefined' ? 'ky' : read();
+let dict: Record<string, string> = {};
+if (current === 'en') dict = await import('./en').then(m => m.EN, () => ({}));
+else if (current === 'ru') dict = await import('./ru').then(m => m.RU, () => ({}));
 if (typeof document !== 'undefined') document.documentElement.lang = current;
 
 export const getLang = (): Lang => current;
@@ -67,10 +72,10 @@ const fill = (s: string, args: Arg[]) =>
     }) : s;
 
 export const t = (ky: string, ...args: Arg[]): string =>
-    fill(current === 'en' ? EN[ky] ?? ky : current === 'ru' ? RU[ky] ?? ky : ky, args);
+    fill(current === 'ky' ? ky : dict[ky] ?? ky, args);
 
 /** What follows a big place number: "-орун" in Kyrgyz, "rd" (3rd) in English. */
 export const placeSuffix = (n: number): string => (current === 'en' ? ordinalSuffix(n) : current === 'ru' ? '-е место' : '-орун');
 
 /** For tests: switch without reloading. */
-export const __setLangForTests = (lang: Lang) => { current = lang; };
+export const __setLangForTests = (lang: Lang, texts: Record<string, string> = {}) => { current = lang; dict = texts; };

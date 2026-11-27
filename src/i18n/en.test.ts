@@ -60,7 +60,7 @@ describe('English texts', () => {
     });
 
     it('fills placeholders, ordinals and plurals', () => {
-        __setLangForTests('en');
+        __setLangForTests('en', EN);
         expect(t('{0}-апта', 6)).toBe('Week 6');
         expect(t('{0}-орун', 1)).toBe('1st place');
         expect(t('{0}-орун', 12)).toBe('12th place');
