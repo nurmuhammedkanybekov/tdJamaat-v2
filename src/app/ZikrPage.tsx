@@ -6,7 +6,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Check, ChevronDown, ChevronRight, Minus, RotateCcw } from 'lucide-react';
 import type { Theme } from '../theme';
 import type { Zikr, ZikrStore } from '../utils/zikr';
-import { AFTER_PRAYER, ZIKRS, addCount, allTime, lastDays, loadZikr, resetCurrent, saveZikr, setTarget, streak, targetOf, todayOf, todayTotal } from '../utils/zikr';
+import { AFTER_PRAYER, ZIKRS, addCount, allTime, dayKey, lastDays, loadZikr, resetCurrent, saveZikr, setTarget, streak, targetOf, todayOf, todayTotal } from '../utils/zikr';
 import { t } from '../i18n';
 import { AppFrame, Section } from './AppFrame';
 import { go } from './route';
@@ -163,11 +163,13 @@ export const ZikrPage: React.FC<{ arg: string | null; theme: Theme; onToggleThem
         window.dispatchEvent(new Event('tdjamaat-practice'));
         return next;
     }, []);
-    const week = useMemo(() => lastDays(store, 7), [store]);
+    // This jamaat week, Thursday → Wednesday (days still ahead stay empty).
+    const week = useMemo(() => { const now = new Date(); const back = (now.getDay() + 3) % 7; const wed = new Date(now.getFullYear(), now.getMonth(), now.getDate() - back + 6); return lastDays(store, 7, wed); }, [store]);
     const totals = useWeekTotals();
     const { self } = useSelf();
     const synced = !!self;
     const weekMax = Math.max(1, ...week.map(d => d.total));
+    const todayKey = dayKey(new Date());
 
     // The after-prayer set: three counters in a row.
     const [step, setStep] = useState(0);
@@ -255,7 +257,7 @@ export const ZikrPage: React.FC<{ arg: string | null; theme: Theme; onToggleThem
                     </Section>
                 </div>
                 <div className="lg:sticky lg:top-20">
-                    <Section eyebrow={t('Акыркы 7 күн')}>
+                    <Section eyebrow={t('Бул апта')}>
                         <div className="flex items-end justify-between gap-4 pt-4">
                             <div>
                                 <div className="font-display text-[3rem] leading-none tabular" style={{ color: 'var(--gold)' }}>{todayTotal(store)}</div>
@@ -263,11 +265,11 @@ export const ZikrPage: React.FC<{ arg: string | null; theme: Theme; onToggleThem
                             </div>
                             <div className="text-right text-[0.85rem]" style={{ color: 'var(--text-muted)' }}>{t('Жалпы: {0}', allTime(store))}</div>
                         </div>
-                        <div className="grid grid-cols-7 gap-2 mt-5 items-end h-16" aria-label={t('Акыркы 7 күн')}>
-                            {week.map((d, i) => (
+                        <div className="grid grid-cols-7 gap-2 mt-5 items-end h-16" aria-label={t('Бул апта')}>
+                            {week.map(d => (
                                 <div key={d.key} className="flex flex-col items-center justify-end h-full gap-1" title={`${d.total}`}>
-                                    <span className="w-full" style={{ height: `${Math.max(d.total > 0 ? 8 : 2, (d.total / weekMax) * 100)}%`, backgroundColor: i === 6 ? 'var(--gold)' : d.total > 0 ? 'var(--gold-dim)' : 'var(--border-strong)', opacity: i === 6 || d.total === 0 ? 1 : 0.6 }} />
-                                    <span className="text-[0.62rem]" style={{ color: i === 6 ? 'var(--gold)' : 'var(--text-muted)' }}>{WEEKDAY[d.date.getDay()]}</span>
+                                    <span className="w-full" style={{ height: `${Math.max(d.total > 0 ? 8 : 2, (d.total / weekMax) * 100)}%`, backgroundColor: d.key === todayKey ? 'var(--gold)' : d.total > 0 ? 'var(--gold-dim)' : 'var(--border-strong)', opacity: d.key === todayKey || d.total === 0 ? 1 : 0.6 }} />
+                                    <span className="text-[0.62rem]" style={{ color: d.key === todayKey ? 'var(--gold)' : 'var(--text-muted)' }}>{WEEKDAY[d.date.getDay()]}</span>
                                 </div>
                             ))}
                         </div>

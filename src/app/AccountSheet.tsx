@@ -72,7 +72,7 @@ export const AccountSheet: React.FC<{ onClose: () => void }> = ({ onClose }) => 
             title: t('Мен'), items: [
                 { key: 'me', icon: ChartNoAxesColumn, label: t('Менин жыйынтыгым'), sub: t('Апта, сезон, сыйлыктар'), to: '#/house/me' },
                 { key: 'jattoo', icon: BookOpenCheck, label: t('Жаттоо'), sub: t('Жаттаганым жана пландарым'), to: '#/house/me?jattoo' },
-                { key: 'house', icon: Home, label: person.houseName, sub: t('Үйүмдүн адамдары жана сөзү'), to: '#/house' }
+                { key: 'house', icon: Home, label: person.houseName, sub: t('Үйүмдүн адамдары жана чаты'), to: '#/house' }
             ]
         }] : []),
         ...(ctx.signedIn || linked ? [{
@@ -80,8 +80,8 @@ export const AccountSheet: React.FC<{ onClose: () => void }> = ({ onClose }) => 
                 ...(staff ? [{ key: 'results', icon: Trophy, label: t('Жыйынтыктар'), sub: ctx.role === 'admin' ? t('Апта, үйлөр, сезон, админ куралдары') : t('Апта, үйлөр, сезон; сандарды ушул жерден киргизесиз'), to: '#/overview' }] : []),
                 ...(role === 'inspector' ? [{ key: 'tazalyk', icon: Sparkles, label: t('Тазалык'), sub: t('Үйлөрдү баалоо'), to: '#/overview' }] : []),
                 ...(role !== 'inspector' ? [{ key: 'jamaat', icon: Users, label: t('Жамааттын жыйынтыгы'), sub: t('Үйлөрдүн жарышы жана бирге окулган Куран'), to: '#/jamaat' }] : []),
-                ...(role === 'admin' ? [{ key: 'houses', icon: Home, label: t('Бардык үйлөр'), sub: t('Ар бир үй жана анын сөзү'), to: '#/house' }] : []),
-                { key: 'talk', icon: MessageCircle, label: t('Баарлашуу'), sub: t('Жамааттын, капитандардын жана үйдүн сөзү'), to: '#/chat' }
+                ...(role === 'admin' ? [{ key: 'houses', icon: Home, label: t('Бардык үйлөр'), sub: t('Ар бир үй жана анын чаты'), to: '#/house' }] : []),
+                { key: 'talk', icon: MessageCircle, label: t('Чаттар'), sub: t('Жамааттын, капитандардын жана үйдүн чаты'), to: '#/chat' }
             ]
         }] : []),
         {

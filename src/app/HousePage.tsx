@@ -101,7 +101,7 @@ const ChatEntry: React.FC<{ self: Self; to: string }> = ({ self, to }) => {
                 {unread > 0 && <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full text-[0.7rem] font-semibold inline-flex items-center justify-center" style={{ backgroundColor: 'var(--gold)', color: 'var(--page-plane)' }}>{unread > 99 ? '99+' : unread}</span>}
             </span>
             <span className="flex-1 min-w-0">
-                <span className="block font-display text-[1.4rem] leading-tight" style={{ color: 'var(--text-primary)' }}>{t('Үйдүн сөзү')}</span>
+                <span className="block font-display text-[1.4rem] leading-tight" style={{ color: 'var(--text-primary)' }}>{t('Үйдүн чаты')}</span>
                 <span className="block text-[0.85rem]" style={{ color: unread ? 'var(--gold)' : 'var(--text-muted)' }}>{unread ? t('{0} жаңы билдирүү', unread) : t('Үйдүн адамдары менен баарлашуу, дуба, эскертүү')}</span>
             </span>
             <ChevronRight className="w-4 h-4" style={{ color: 'var(--gold)' }} />
@@ -116,11 +116,11 @@ const AdminHouses: React.FC<{ data: DataFile }> = ({ data }) => {
     const teams = [...(latest?.teams ?? [])].map(tm => ({ tm, rating: tm.submitted ? calculateHouseRating(tm) : null })).sort((a, b) => (b.rating ?? -1) - (a.rating ?? -1));
     return (
         <div className="max-w-[44rem] mx-auto">
-            <p className="text-center text-[0.95rem] leading-relaxed pt-6" style={{ color: 'var(--text-secondary)' }}>{t('Админ катары бардык үйлөрдү көрөсүз жана ар биринин сөзүнө «Админ» болуп жаза аласыз.')}</p>
+            <p className="text-center text-[0.95rem] leading-relaxed pt-6" style={{ color: 'var(--text-secondary)' }}>{t('Админ катары бардык үйлөрдү көрөсүз жана ар биринин чатына «Админ» болуп жаза аласыз.')}</p>
             <div className="grid grid-cols-2 gap-3 mt-6">
                 <button onClick={() => go('#/chat/all')} className="row-link text-left p-4 flex items-center gap-3" style={{ border: '1px solid var(--gold-dim)' }}>
                     <Users className="w-5 h-5 flex-shrink-0" strokeWidth={1.5} style={{ color: 'var(--gold)' }} />
-                    <span className="font-display text-[1.1rem] leading-tight" style={{ color: 'var(--text-primary)' }}>{t('Жамааттын сөзү')}</span>
+                    <span className="font-display text-[1.1rem] leading-tight" style={{ color: 'var(--text-primary)' }}>{t('Жамааттын чаты')}</span>
                 </button>
                 <button onClick={() => go('#/chat/staff')} className="row-link text-left p-4 flex items-center gap-3" style={{ border: '1px solid var(--gold-dim)' }}>
                     <Shield className="w-5 h-5 flex-shrink-0" strokeWidth={1.5} style={{ color: 'var(--gold)' }} />
@@ -151,7 +151,7 @@ const AdminChatLink: React.FC<{ houseId: string; name: string }> = ({ houseId, n
     const [unread, setUnread] = useState(0);
     useEffect(() => { countUnread(houseId, '').then(setUnread).catch(() => undefined); }, [houseId]);
     return (
-        <button onClick={() => go(`#/house/chat/${houseId}`)} aria-label={t('{0}: үйдүн сөзү', name)} className="w-11 h-11 rounded-full inline-flex items-center justify-center flex-shrink-0 relative mr-1 transition-colors hover:bg-[var(--gold-soft)]" style={{ border: '1px solid var(--gold)', color: 'var(--gold)' }}>
+        <button onClick={() => go(`#/house/chat/${houseId}`)} aria-label={t('{0}: үйдүн чаты', name)} className="w-11 h-11 rounded-full inline-flex items-center justify-center flex-shrink-0 relative mr-1 transition-colors hover:bg-[var(--gold-soft)]" style={{ border: '1px solid var(--gold)', color: 'var(--gold)' }}>
             <MessageCircle className="w-[1.1rem] h-[1.1rem]" strokeWidth={1.5} />
             {unread > 0 && <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full text-[0.7rem] font-semibold inline-flex items-center justify-center" style={{ backgroundColor: 'var(--gold)', color: 'var(--page-plane)' }}>{unread > 99 ? '99+' : unread}</span>}
         </button>
@@ -180,7 +180,7 @@ export const HousePage: React.FC<{ arg?: string | null; sub?: string | null; the
                     <p className="text-[1rem] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{t('CL ар бир үйдүн тазалыгын баалайт.')}</p>
                     <div className="flex flex-wrap justify-center gap-3 mt-6">
                         <button className="btn btn-primary" onClick={() => go('#/overview')}>{t('Тазалык')}</button>
-                        <button className="btn btn-ghost" onClick={() => go('#/chat')}>{t('Баарлашуу')}</button>
+                        <button className="btn btn-ghost" onClick={() => go('#/chat')}>{t('Чаттар')}</button>
                     </div>
                 </div>
             </AppFrame>
@@ -193,7 +193,7 @@ export const HousePage: React.FC<{ arg?: string | null; sub?: string | null; the
         // #/house/chat/<id> — its conversation, written as "Админ".
         const teams = data?.weeks[data.weeks.length - 1]?.teams ?? [];
         const house = sub ? teams.find(tm => tm.id === sub) : undefined;
-        if (arg === 'chat' && house) return <HouseChat key={house.id} self={{ memberId: '', name: t('Админ'), houseId: house.id, houseName: house.name, via: 'staff' }} canModerate back={`#/house/h/${house.id}`} theme={theme} onToggleTheme={onToggleTheme} />;
+        if (arg === 'chat' && house) return <HouseChat key={house.id} self={{ memberId: '', name: t('Админ'), houseId: house.id, houseName: house.name, via: 'staff' }} canModerate back="#/chat" theme={theme} onToggleTheme={onToggleTheme} />;
         if (!(arg === 'h' && house)) {
             return (
                 <AppFrame page="house" title={t('Үйлөр')} kicker={t('Админ')} theme={theme} onToggleTheme={onToggleTheme}>
@@ -291,7 +291,7 @@ export const HousePage: React.FC<{ arg?: string | null; sub?: string | null; the
                         {!adminView && (
                             <button onClick={() => go('#/chat')} className="row-link w-full text-left py-3.5 flex items-center gap-3" style={{ borderBottom: '1px solid var(--border)' }}>
                                 <Users className="w-4 h-4 flex-shrink-0" strokeWidth={1.5} style={{ color: 'var(--gold)' }} />
-                                <span className="flex-1 text-[0.95rem]" style={{ color: 'var(--text-secondary)' }}>{ctx.signedIn && ctx.role === 'leader' ? t('Жамааттын сөзү жана капитандар') : t('Жамааттын сөзү')}</span>
+                                <span className="flex-1 text-[0.95rem]" style={{ color: 'var(--text-secondary)' }}>{ctx.signedIn && ctx.role === 'leader' ? t('Жамааттын чаты жана капитандар') : t('Жамааттын чаты')}</span>
                                 <ChevronRight className="w-4 h-4" style={{ color: 'var(--gold)' }} />
                             </button>
                         )}

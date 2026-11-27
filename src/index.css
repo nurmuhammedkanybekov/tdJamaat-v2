@@ -1500,3 +1500,29 @@ button.help-where:hover { border-bottom-color: var(--gold); }
 .dial-quarter { fill: var(--page-plane); stroke: var(--gold); stroke-width: .7; }
 .dial-dot { fill: var(--gold-dim); }
 .day-end { margin-top: 1rem; }
+
+/* ---------------------------------------------------------------- chat reactions */
+.reacts { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: .3rem; margin-top: .3rem; }
+.reacts.is-end { justify-content: flex-end; }
+.react-chip { display: inline-flex; align-items: center; gap: .25rem; height: 1.7rem; padding: 0 .5rem; border-radius: 999px; font-size: .78rem; color: var(--text-secondary); background: color-mix(in oklab, var(--gold) 8%, var(--surface)); border: 1px solid var(--border); transition: border-color .15s, background .15s; }
+.react-chip.is-mine { border-color: var(--gold); background: color-mix(in oklab, var(--gold) 18%, var(--surface)); color: var(--text-primary); }
+.react-e { font-size: .95rem; line-height: 1; }
+.react-add { width: 1.7rem; height: 1.7rem; display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; color: var(--text-muted); opacity: .7; transition: opacity .15s, color .15s; }
+.react-add:hover, .react-add[aria-expanded="true"] { opacity: 1; color: var(--gold); }
+.react-pick { position: absolute; bottom: calc(100% + .35rem); left: 0; z-index: 20; display: grid; grid-template-columns: repeat(9, 2.2rem); padding: .3rem; border-radius: 999px; background: var(--surface); border: 1px solid var(--border-strong); box-shadow: var(--shadow-lift); }
+.reacts.is-end .react-pick { left: auto; right: 0; }
+.react-pick button { width: 2.2rem; height: 2.2rem; font-size: 1.25rem; border-radius: 999px; transition: transform .12s, background .12s; }
+.react-pick button:hover { transform: scale(1.22); }
+.react-pick button.is-mine { background: color-mix(in oklab, var(--gold) 22%, transparent); }
+@media (max-width: 420px) { .react-pick { grid-template-columns: repeat(5, 2.3rem); border-radius: 14px; } }
+.cd-unit { font-size: .3em; letter-spacing: .08em; margin-left: .12em; color: var(--text-muted); -webkit-text-fill-color: var(--text-muted); font-family: var(--font-serif); }
+
+/* Quran: "I read this page" in the reading bar. */
+.page-mark { display: inline-flex; align-items: center; gap: .4rem; height: 2rem; padding: 0 .65rem 0 .5rem; margin-right: .3rem; border: 1px solid var(--gold-dim); border-radius: 999px; font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; color: var(--text-secondary); white-space: nowrap; transition: border-color .15s, background .15s; }
+.page-mark:hover { border-color: var(--gold); }
+.page-mark.is-done { border-color: var(--gold); color: var(--gold); background: color-mix(in oklab, var(--gold) 10%, transparent); }
+.page-mark-gem { width: 13px; height: 13px; transform: rotate(45deg); border: 1px solid var(--gold); display: inline-flex; align-items: center; justify-content: center; color: var(--page-plane); }
+.page-mark-gem > svg { transform: rotate(-45deg); }
+.page-mark.is-done .page-mark-gem { background: var(--gold); }
+.page-mark-n { min-width: 1.2rem; height: 1.2rem; padding: 0 .3rem; border-radius: 999px; background: var(--gold); color: var(--page-plane); font-size: .66rem; letter-spacing: 0; display: inline-flex; align-items: center; justify-content: center; }
+@media (max-width: 420px) { .page-mark > span:nth-child(2) { display: none; } .page-mark { padding: 0 .5rem; } }

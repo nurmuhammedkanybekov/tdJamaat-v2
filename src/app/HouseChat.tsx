@@ -10,7 +10,9 @@ import { Avatar } from '../components/Avatar';
 import { HornBand } from '../components/motion';
 import { Mark } from '../components/Ornament';
 import type { ChatMessage } from '../services/chatService';
-import { deleteMessage, fetchMessages, markSeen, sendMessage, setAmin, watchHouse } from '../services/chatService';
+import { deleteMessage, fetchMessages, markSeen, reactHouse, sendMessage, watchHouse } from '../services/chatService';
+import { Reactions } from './Reactions';
+import { DEFAULT_REACTION } from '../services/reactions';
 import type { Self } from './self';
 import { useMemberData } from './memberData';
 import { GoalBanner, NotifyToggle } from './Community';
@@ -55,16 +57,26 @@ export const HouseChat: React.FC<{ self: Self; canModerate: boolean; theme: Them
     const stick = useRef(true);
 
     // Names and photos of the house's people (and anyone who wrote before moving).
+    // The last known list is kept on the phone, so faces show at once on the
+    // next visit instead of after the whole results file has loaded.
+    type Person = { name: string; photoUrl: string | null; role: 'imam' | 'zam' | 'member' };
+    const peopleKey = `tdjamaat-chat-people-${self.houseId}`;
     const people = useMemo(() => {
-        const map = new Map<string, { name: string; photoUrl: string | null; role: 'imam' | 'zam' | 'member' }>();
-        for (const w of data?.weeks ?? []) for (const tm of w.teams) for (const m of tm.members) map.set(m.id, { name: m.name, photoUrl: m.photoUrl, role: m.role });
+        const map = new Map<string, Person>();
+        if (!data) {
+            try { for (const [id, p] of JSON.parse(localStorage.getItem(peopleKey) ?? '[]') as Array<[string, Person]>) map.set(id, p); } catch { /* none kept */ }
+            return map;
+        }
+        for (const w of data.weeks) for (const tm of w.teams) for (const m of tm.members) map.set(m.id, { name: m.name, photoUrl: m.photoUrl, role: m.role });
+        try { localStorage.setItem(peopleKey, JSON.stringify([...map])); } catch { /* not critical */ }
         return map;
-    }, [data]);
+    }, [data, peopleKey]);
 
     const load = useCallback(() => {
         fetchMessages(self.houseId).then(m => { setMessages(m); markSeen(self.houseId); }).catch(() => setMessages(null));
     }, [self.houseId]);
-    useEffect(() => { load(); return watchHouse(self.houseId, load); }, [load, self.houseId]);
+    const pending = useRef(0);
+    useEffect(() => { load(); return watchHouse(self.houseId, () => { if (!pending.current) load(); }); }, [load, self.houseId]);
 
     // Follow the newest message — unless the reader has scrolled up to read.
     // Scrolled up, a button brings the reader back down and counts what came meanwhile.
@@ -96,13 +108,13 @@ export const HouseChat: React.FC<{ self: Self; canModerate: boolean; theme: Them
         catch (e) { const msg = (e as Error)?.message ?? ''; setError(asAdmin && /row-level security|violates|null value/i.test(msg) ? t('«Админ» катары жазуу үчүн supabase/admin-chat-2026-11.sql файлын иштетүү керек.') : msg || t('Жөнөтүлгөн жок')); }
         finally { setSending(false); }
     };
-    const amin = async (m: ChatMessage) => {
-        // "Аамин" is a person's word; the admin's account only sees the count.
+    // One reaction per person: at once on screen, the database a moment later.
+    const react = async (m: ChatMessage, emoji: string | null) => {
         if (asAdmin) return;
-        const on = !m.amins.includes(self.memberId);
-        // At once on screen; the database confirms a moment later.
-        setMessages(cur => cur?.map(x => (x.id === m.id ? { ...x, amins: on ? [...x.amins, self.memberId] : x.amins.filter(a => a !== self.memberId) } : x)));
-        try { await setAmin(m.id, self.memberId, on); } catch { load(); }
+        setMessages(cur => cur?.map(x => (x.id === m.id ? { ...x, reactions: [...x.reactions.filter(r => r.who !== self.memberId), ...(emoji ? [{ who: self.memberId, emoji }] : [])] } : x)));
+        pending.current++;
+        try { await reactHouse(m.id, self.memberId, emoji); } catch { /* the reload below shows what is stored */ }
+        finally { pending.current--; if (!pending.current) load(); }
     };
     const remove = async (m: ChatMessage) => {
         if (!window.confirm(t('Бул билдирүүнү өчүрөсүзбү?'))) return;
@@ -119,11 +131,11 @@ export const HouseChat: React.FC<{ self: Self; canModerate: boolean; theme: Them
     }, [text]);
 
     return (
-        <AppFrame page="house" title={t('Үйдүн сөзү')} back={back} theme={theme} onToggleTheme={onToggleTheme} ownBar>
+        <AppFrame page="house" title={self.memberId ? t('Үйдүн чаты') : self.houseName} back={back} theme={theme} onToggleTheme={onToggleTheme} ownBar>
             <div ref={list} className="max-w-[42rem] mx-auto pt-2 pb-6">
                 <header className="text-center pt-4 pb-2">
                     <Mark size={44} className="mx-auto" style={{ color: 'var(--gold)' }} />
-                    <div className="eyebrow mt-3" style={{ color: 'var(--gold)' }}>{t('Үйдүн сөзү')}</div>
+                    <div className="eyebrow mt-3" style={{ color: 'var(--gold)' }}>{t('Үйдүн чаты')}</div>
                     <h1 className="font-display text-[2rem] leading-tight mt-1" style={{ color: 'var(--text-primary)' }}>{self.houseName}</h1>
                     <p className="text-[0.8rem] mt-1" style={{ color: 'var(--text-muted)' }}>{asAdmin ? t('Бул жерде «Админ» болуп жазасыз. Билдирүүлөрдү өчүрө аласыз.') : t('Үйдүн адамдары, капитан жана админ гана көрөт.')}</p>
                     <div className="mt-2"><NotifyToggle /></div>
@@ -133,11 +145,11 @@ export const HouseChat: React.FC<{ self: Self; canModerate: boolean; theme: Them
 
                 {messages === undefined && <Waiting />}
                 {messages === null && (
-                    <p className="mt-8 px-4 py-3 text-[0.9rem]" style={{ borderLeft: '2px solid var(--gold)', color: 'var(--text-secondary)' }}>{t('Үйдүн сөзү азырынча ачыла элек. Админ supabase/house-chat-2026-11.sql файлын иштетиши керек.')}</p>
+                    <p className="mt-8 px-4 py-3 text-[0.9rem]" style={{ borderLeft: '2px solid var(--gold)', color: 'var(--text-secondary)' }}>{t('Үйдүн чаты азырынча ачыла элек. Админ supabase/house-chat-2026-11.sql файлын иштетиши керек.')}</p>
                 )}
                 {messages && messages.length === 0 && (
                     <div className="text-center pt-10">
-                        <p className="font-display text-[1.4rem]" style={{ color: 'var(--text-primary)' }}>{t('Биринчи сөз сизден болсун')}</p>
+                        <p className="font-display text-[1.4rem]" style={{ color: 'var(--text-primary)' }}>{t('Биринчи билдирүү сизден болсун')}</p>
                         <div className="flex flex-wrap justify-center gap-2 mt-5">
                             {STARTERS.map((s, i) => <button key={i} onClick={() => send(s())} className="px-3 py-2 text-[0.88rem] transition-colors hover:text-[var(--gold)]" style={{ border: '1px solid var(--border-strong)', color: 'var(--text-secondary)' }}>{s()}</button>)}
                         </div>
@@ -153,7 +165,6 @@ export const HouseChat: React.FC<{ self: Self; canModerate: boolean; theme: Them
                     const sameRun = !newDay && prev && prev.memberId === m.memberId && (prev.authorRole === 'admin') === byAdmin && at.getTime() - new Date(prev.createdAt).getTime() < 5 * 60000;
                     const mine = asAdmin ? byAdmin : m.memberId === self.memberId && !byAdmin;
                     const who = byAdmin || !m.memberId ? null : people.get(m.memberId);
-                    const said = m.amins.includes(self.memberId);
                     return (
                         <React.Fragment key={m.id}>
                             {newDay && <div className="chat-day"><span>{dayLabel(at)}</span></div>}
@@ -166,12 +177,10 @@ export const HouseChat: React.FC<{ self: Self; canModerate: boolean; theme: Them
                                             : <div className="chat-name">{who?.name ?? t('Мүчө')}{m.authorRole === 'leader' && <span className="chat-tag">{t('капитан')}</span>}</div>
                                     )}
                                     {mine && byAdmin && !sameRun && <div className="chat-name is-admin justify-end">{t('Админ')}</div>}
-                                    <div className="chat-bubble">{m.body}</div>
+                                    <div className="chat-bubble" onDoubleClick={() => { if (!asAdmin && !m.reactions.some(r => r.who === self.memberId && r.emoji === DEFAULT_REACTION)) react(m, DEFAULT_REACTION); }}>{m.body}</div>
+                                    <Reactions list={m.reactions} me={asAdmin ? null : self.memberId} disabled={asAdmin} onPick={e => react(m, e)} align={mine ? 'end' : 'start'} />
                                     <div className="chat-meta">
                                         <span className="tabular">{hm(at)}</span>
-                                        <button onClick={() => amin(m)} disabled={asAdmin} aria-pressed={said} className={`chat-amin ${said ? 'is-on' : ''}`} aria-label={t('Аамин')}>
-                                            {t('Аамин')}{m.amins.length > 0 && <span className="tabular"> · {m.amins.length}</span>}
-                                        </button>
                                         {(mine || canModerate) && <button onClick={() => remove(m)} aria-label={t('Өчүрүү')} className="chat-delete"><Trash2 className="w-3.5 h-3.5" /></button>}
                                     </div>
                                 </div>

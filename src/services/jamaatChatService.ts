@@ -4,6 +4,7 @@
 // with it, since a member can read only their own house's people.
 import { supabase } from '../lib/supabase';
 import { isMissingSchema } from './dataService';
+import { selectWithReactions, setReaction, toReactions, type Reaction } from './reactions';
 
 /** A conversation's id: 'all', 'staff', or one the admin opened. */
 export type Room = string;
@@ -47,20 +48,20 @@ export interface RoomMessage {
     body: string;
     createdAt: string;
     /** Accounts that said "Аамин". */
-    amins: string[];
+    reactions: Reaction[];
 }
 
-type Row = { id: number; room: Room; user_id: string; author_role: string; member_id: string | null; author_name: string | null; house_name: string | null; body: string; created_at: string; jamaat_message_amins?: Array<{ user_id: string }> };
+type Row = { id: number; room: Room; user_id: string; author_role: string; member_id: string | null; author_name: string | null; house_name: string | null; body: string; created_at: string; jamaat_message_amins?: Array<{ user_id: string; emoji?: string }> };
 const toMessage = (r: Row): RoomMessage => ({
     id: r.id, room: r.room, userId: r.user_id, authorRole: r.author_role, memberId: r.member_id, authorName: r.author_name, houseName: r.house_name,
-    body: r.body, createdAt: r.created_at, amins: (r.jamaat_message_amins ?? []).map(a => a.user_id)
+    body: r.body, createdAt: r.created_at, reactions: toReactions(r.jamaat_message_amins, 'user_id')
 });
 
 /** The latest messages, oldest first (null: not set up yet, or no access). */
 export const fetchRoom = async (room: Room, limit = 200): Promise<RoomMessage[] | null> => {
-    const { data, error } = await supabase.from('jamaat_messages')
-        .select('id, room, user_id, author_role, member_id, author_name, house_name, body, created_at, jamaat_message_amins(user_id)')
-        .eq('room', room).order('created_at', { ascending: false }).limit(limit);
+    const { data, error } = await selectWithReactions(withEmoji => supabase.from('jamaat_messages')
+        .select(`id, room, user_id, author_role, member_id, author_name, house_name, body, created_at, jamaat_message_amins(user_id${withEmoji ? ', emoji' : ''})`)
+        .eq('room', room).order('created_at', { ascending: false }).limit(limit));
     if (error) { if (!isMissingSchema(error)) console.warn('[tdJamaat] room:', error.message); return null; }
     return ((data ?? []) as Row[]).map(toMessage).reverse();
 };
@@ -76,12 +77,7 @@ export const deleteRoomMessage = async (id: number) => {
     if (error) throw error;
 };
 
-export const setRoomAmin = async (messageId: number, userId: string, on: boolean) => {
-    const { error } = on
-        ? await supabase.from('jamaat_message_amins').insert({ message_id: messageId })
-        : await supabase.from('jamaat_message_amins').delete().eq('message_id', messageId).eq('user_id', userId);
-    if (error) throw error;
-};
+export const reactRoom = (messageId: number, userId: string, emoji: string | null) => setReaction('jamaat_message_amins', messageId, 'user_id', userId, emoji);
 
 /** Calls `onChange` whenever the conversation changes. Returns the way to stop. */
 export const watchRoom = (room: Room, onChange: () => void): (() => void) => {

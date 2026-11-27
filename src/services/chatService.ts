@@ -3,18 +3,19 @@
 // new messages at once (Supabase Realtime) — or within seconds, by asking
 // again, where Realtime is not available.
 import { supabase } from '../lib/supabase';
+import { selectWithReactions, setReaction, toReactions, type Reaction } from './reactions';
 import { isMissingSchema } from './dataService';
 
-export interface ChatMessage { id: number; houseId: string; /** Null for the admin, who is nobody's person. */ memberId: string | null; body: string; createdAt: string; authorRole: string | null; amins: string[] }
+export interface ChatMessage { id: number; houseId: string; /** Null for the admin, who is nobody's person. */ memberId: string | null; body: string; createdAt: string; authorRole: string | null; reactions: Reaction[] }
 
-type Row = { id: number; house_id: string; member_id: string | null; body: string; created_at: string; author_role: string | null; house_message_amins?: Array<{ member_id: string }> };
-const toMessage = (r: Row): ChatMessage => ({ id: r.id, houseId: r.house_id, memberId: r.member_id, body: r.body, createdAt: r.created_at, authorRole: r.author_role, amins: (r.house_message_amins ?? []).map(a => a.member_id) });
+type Row = { id: number; house_id: string; member_id: string | null; body: string; created_at: string; author_role: string | null; house_message_amins?: Array<{ member_id: string; emoji?: string }> };
+const toMessage = (r: Row): ChatMessage => ({ id: r.id, houseId: r.house_id, memberId: r.member_id, body: r.body, createdAt: r.created_at, authorRole: r.author_role, reactions: toReactions(r.house_message_amins, 'member_id') });
 
 /** The latest `limit` messages, oldest first (null: the chat is not set up yet). */
 export const fetchMessages = async (houseId: string, limit = 150): Promise<ChatMessage[] | null> => {
-    const { data, error } = await supabase.from('house_messages')
-        .select('id, house_id, member_id, body, created_at, author_role, house_message_amins(member_id)')
-        .eq('house_id', houseId).order('created_at', { ascending: false }).limit(limit);
+    const { data, error } = await selectWithReactions(withEmoji => supabase.from('house_messages')
+        .select(`id, house_id, member_id, body, created_at, author_role, house_message_amins(member_id${withEmoji ? ', emoji' : ''})`)
+        .eq('house_id', houseId).order('created_at', { ascending: false }).limit(limit));
     if (error) { if (!isMissingSchema(error)) console.warn('[tdJamaat] chat:', error.message); return null; }
     return ((data ?? []) as Row[]).map(toMessage).reverse();
 };
@@ -29,12 +30,7 @@ export const deleteMessage = async (id: number) => {
     if (error) throw error;
 };
 
-export const setAmin = async (messageId: number, memberId: string, on: boolean) => {
-    const { error } = on
-        ? await supabase.from('house_message_amins').insert({ message_id: messageId, member_id: memberId })
-        : await supabase.from('house_message_amins').delete().eq('message_id', messageId).eq('member_id', memberId);
-    if (error) throw error;
-};
+export const reactHouse = (messageId: number, memberId: string, emoji: string | null) => setReaction('house_message_amins', messageId, 'member_id', memberId, emoji);
 
 /** Calls `onChange` whenever the house's conversation changes. Returns the way to stop. */
 export const watchHouse = (houseId: string, onChange: () => void): (() => void) => {

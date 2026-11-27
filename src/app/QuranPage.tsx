@@ -16,7 +16,7 @@ import { QuranGoTo } from './QuranGoTo';
 import { basmalaOf, cachedIndex, cachedSurah, loadIndex, loadJuz, loadSurah, loadTranslation, sourceNote, translationLang, withoutNumber } from './quranData';
 import type { ReadMode } from './quranStore';
 import { isMarked, loadLastRead, loadMarks, loadMode, loadSize, parseRef, saveLastRead, saveMode, saveSize, searchKey, toggleMark } from './quranStore';
-import { addPages, loadPractice, savePractice } from './practice';
+import { addPages, loadPractice, pageReadToday, pagesOn, removePage, savePractice } from './practice';
 
 const useIndex = () => {
     const [index, setIndex] = useState<Surah[] | null>(cachedIndex());
@@ -58,7 +58,7 @@ const Contents: React.FC<{ theme: Theme; onToggleTheme: () => void }> = ({ theme
     const total = index?.length ?? 114;
 
     return (
-        <AppFrame page="quran" title={t('Куран')} kicker={t('Курани Карим')} sub={t('{0} сүрө · 30 жүз · {1} бет', total, 604)} theme={theme} onToggleTheme={onToggleTheme}>
+        <AppFrame page="quran" title={t('Куран')} kicker={t('Курани Карим')} sub={t('{0} сүрө · 30 пара · {1} бет', total, 604)} theme={theme} onToggleTheme={onToggleTheme}>
             <div className="max-w-[46rem] mx-auto">
                 {/* Where I stopped: a bookmark ribbon, the surah's own name in Arabic,
                     and how far through the 604 pages of the mushaf that is. */}
@@ -68,7 +68,7 @@ const Contents: React.FC<{ theme: Theme; onToggleTheme: () => void }> = ({ theme
                         <span className="eyebrow" style={{ color: 'var(--gold)' }}>{last ? t('Улантуу') : t('Баштоо')}</span>
                         {index && <span dir="rtl" lang="ar" className="quran-text q-mark-ar">{index[(last?.surah ?? 1) - 1]?.ar}</span>}
                         <span className="font-display q-mark-name">{last?.name ?? index?.[0]?.name ?? ''}</span>
-                        <span className="text-[0.85rem]" style={{ color: 'var(--text-muted)' }}>{last ? t('{0}-сүрө, {1}-аят', last.surah, last.ayah) : t('{0} сүрө · 30 жүз · {1} бет', total, 604)}</span>
+                        <span className="text-[0.85rem]" style={{ color: 'var(--text-muted)' }}>{last ? t('{0}-сүрө, {1}-аят', last.surah, last.ayah) : t('{0} сүрө · 30 пара · {1} бет', total, 604)}</span>
                     </button>
                     {last?.page && (
                         <div className="q-progress" aria-label={t('{0}-бет, 604 беттен', last.page)}>
@@ -94,7 +94,7 @@ const Contents: React.FC<{ theme: Theme; onToggleTheme: () => void }> = ({ theme
 
                 {!q && (
                     <div className="jattoo-kinds mt-6" role="tablist">
-                        {([['surah', t('Сүрөлөр')], ['juz', t('Жүздөр')], ['saved', t('Сакталгандар')]] as const).map(([k, label]) => (
+                        {([['surah', t('Сүрөлөр')], ['juz', t('Паралар')], ['saved', t('Сакталгандар')]] as const).map(([k, label]) => (
                             <button key={k} role="tab" aria-selected={tab === k} data-on={tab === k || undefined} onClick={() => setTab(k)}>{label}{k === 'saved' && marks.length > 0 ? ` · ${marks.length}` : ''}</button>
                         ))}
                     </div>
@@ -129,7 +129,7 @@ const Contents: React.FC<{ theme: Theme; onToggleTheme: () => void }> = ({ theme
                                     <button onClick={() => go(`#/quran/${s}:${a}`)} className="row-link w-full text-left py-3.5 px-1 flex items-center gap-4">
                                         <Diamond n={i + 1} />
                                         <span className="flex-1 min-w-0 pl-1">
-                                            <span className="block font-display text-[1.25rem] leading-tight" style={{ color: 'var(--text-primary)' }}>{t('{0}-жүз', i + 1)}</span>
+                                            <span className="block font-display text-[1.25rem] leading-tight" style={{ color: 'var(--text-primary)' }}>{t('{0}-пара', i + 1)}</span>
                                             <span className="block text-[0.78rem] mt-0.5" style={{ color: 'var(--text-muted)' }}>{t('{0}, {1}-аяттан', index[s - 1].name, a)}</span>
                                         </span>
                                         <ChevronRight className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
@@ -203,12 +203,13 @@ const Footnote: React.FC<{ text: string }> = ({ text }) => {
 };
 
 /** The three ways of reading, at the top of every reading page. */
-const ModeBar: React.FC<{ mode: ReadMode; onMode: (m: ReadMode) => void; label: React.ReactNode; onGoTo?: () => void }> = ({ mode, onMode, label, onGoTo }) => (
+const ModeBar: React.FC<{ mode: ReadMode; onMode: (m: ReadMode) => void; label: React.ReactNode; onGoTo?: () => void; page?: number }> = ({ mode, onMode, label, onGoTo, page }) => (
     <div className="sticky top-0 z-30 quran-modebar">
         <div className="mx-auto max-w-[46rem] flex items-center gap-2 h-12">
             {onGoTo
                 ? <button onClick={onGoTo} className="hit flex-1 min-w-0 text-left inline-flex items-center gap-1.5 text-[0.8rem] transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }} aria-label={t('Өтүү')}><span className="truncate">{label}</span><ChevronDown className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--gold)' }} /></button>
                 : <span className="flex-1 min-w-0 truncate text-[0.8rem]" style={{ color: 'var(--text-muted)' }}>{label}</span>}
+            {page ? <PageMark page={page} /> : null}
             <div className="flex items-center" role="group" aria-label={t('Окуу түрү')}>
                 {([['translation', t('Мааниси')], ['mushaf', t('Мусхаф')], ['pages', t('Барак')]] as const).map(([m, l]) => (
                     <button key={m} className={`chip ${mode === m ? 'is-active' : ''}`} aria-pressed={mode === m} onClick={() => onMode(m)} style={{ marginRight: m === 'pages' ? 0 : undefined }}>{l}</button>
@@ -296,10 +297,24 @@ const useFollowVoice = (surahOf: (el: HTMLElement) => number) => {
     }, [rec.surah, rec.ayah, rec.playing, surahOf]);
 };
 
-const countPage = (page: number) => {
-    const p = loadPractice();
-    const next = addPages(p, [page]);
-    if (next !== p) savePractice(next);
+/** "I read this page": pages count only when the reader says so, not by
+ *  scrolling past them. A tap again takes it back. */
+const PageMark: React.FC<{ page: number }> = ({ page }) => {
+    const [, bump] = useState(0);
+    const done = pageReadToday(loadPractice(), page);
+    const today = pagesOn(loadPractice());
+    const toggle = () => {
+        const p = loadPractice();
+        savePractice(done ? removePage(p, page) : addPages(p, [page]));
+        bump(n => n + 1);
+    };
+    return (
+        <button onClick={toggle} aria-pressed={done} title={t('Бүгүн окулган беттер: {0}', today)} className={`page-mark ${done ? 'is-done' : ''}`}>
+            <span className="page-mark-gem" aria-hidden="true">{done && <Check className="w-3 h-3" strokeWidth={2.4} />}</span>
+            <span>{done ? t('Окулду') : t('Окудум')}</span>
+            {today > 0 && <span className="page-mark-n tabular">{today}</span>}
+        </button>
+    );
 };
 
 const Reader: React.FC<{ n: number; at: number | null; theme: Theme; onToggleTheme: () => void }> = ({ n, at, theme, onToggleTheme }) => {
@@ -355,7 +370,6 @@ const Reader: React.FC<{ n: number; at: number | null; theme: Theme; onToggleThe
                 const ayah = Number(top.dataset.ayah), page = Number(top.dataset.page);
                 setWhere({ ayah, page, juz: ayahs![ayah - 1]?.[2] ?? 0 });
                 saveLastRead({ surah: n, ayah, name: surah!.name });
-                if (page) countPage(page);
             }, 300);
         };
         const first = ayahs![(resume ?? 1) - 1];
@@ -383,7 +397,7 @@ const Reader: React.FC<{ n: number; at: number | null; theme: Theme; onToggleThe
     return (
         <AppFrame page="quran" title={title} back="#/quran" theme={theme} onToggleTheme={onToggleTheme} ownBar>
             {goto && index && <QuranGoTo index={index} pagesMode={false} page={where.page} onClose={() => setGoto(false)} />}
-            <ModeBar mode={mode} onMode={switchMode} onGoTo={() => setGoto(true)} label={surah ? <>{surah.name} · <span className="tabular">{surah.n}:{where.ayah}</span>{where.juz ? ` · ${t('{0}-жүз', where.juz)}` : ''}{where.page ? ` · ${t('{0}-бет', where.page)}` : ''}</> : ''} />
+            <ModeBar mode={mode} onMode={switchMode} onGoTo={() => setGoto(true)} page={where.page || undefined} label={surah ? <>{surah.name} · <span className="tabular">{surah.n}:{where.ayah}</span>{where.juz ? ` · ${t('{0}-пара', where.juz)}` : ''}{where.page ? ` · ${t('{0}-бет', where.page)}` : ''}</> : ''} />
             <div className="quran-progress" style={{ transform: `scaleX(${progress / 100})` }} aria-hidden="true" />
             {failed && <Problem onRetry={() => setAttempt(a => a + 1)} />}
             {!ayahs && !failed && <Waiting />}
@@ -399,7 +413,7 @@ const Reader: React.FC<{ n: number; at: number | null; theme: Theme; onToggleThe
                                 const m = meaning?.[i];
                                 return (
                                     <li key={i} id={`a${i + 1}`} data-ayah={i + 1} data-page={page} className="ayah-row">
-                                        {newPage && <div className="quran-page" dir="ltr">{newJuz ? t('{0}-жүз', juz) + ' · ' : ''}{t('{0}-бет', page)}</div>}
+                                        {newPage && <div className="quran-page" dir="ltr">{newJuz ? t('{0}-пара', juz) + ' · ' : ''}{t('{0}-бет', page)}</div>}
                                         <div className="py-5" style={{ borderBottom: '1px solid var(--border)' }}>
                                             <div className="flex items-start gap-3">
                                                 <button onClick={() => pick(i)} aria-label={t('{0}-аят: угуу, сактоо, көчүрүү', i + 1)} aria-expanded={picked === i} className="mt-1"><Diamond n={i + 1} size={28} /></button>
@@ -421,7 +435,7 @@ const Reader: React.FC<{ n: number; at: number | null; theme: Theme; onToggleThe
                         <p dir="rtl" lang="ar" className="quran-text quran-body" style={{ fontSize: `${size}rem`, color: 'var(--text-primary)' }}>
                             {ayahs.map(([text, page, juz], i) => (
                                 <React.Fragment key={i}>
-                                    {i > 0 && ayahs[i - 1][1] !== page && <span className="quran-page" dir="ltr" lang="ky">{i > 0 && ayahs[i - 1][2] !== juz ? t('{0}-жүз', juz) + ' · ' : ''}{t('{0}-бет', page)}</span>}
+                                    {i > 0 && ayahs[i - 1][1] !== page && <span className="quran-page" dir="ltr" lang="ky">{i > 0 && ayahs[i - 1][2] !== juz ? t('{0}-пара', juz) + ' · ' : ''}{t('{0}-бет', page)}</span>}
                                     <span id={`a${i + 1}`} data-ayah={i + 1} data-page={page} onClick={() => pick(i)} className={`mushaf-ayah ${picked === i ? 'is-picked' : ''}`}>{text} </span>
                                 </React.Fragment>
                             ))}
@@ -499,7 +513,7 @@ const MushafPage: React.FC<{ p: number; lines: PageLine[]; index: Surah[]; basma
         <section className="mushaf-sheet" data-sheet={p} aria-label={t('{0}-бет', p)}>
             <div className="flex items-center justify-between text-[0.72rem] pb-2 mb-3" style={{ color: 'var(--text-muted)', borderBottom: '1px solid var(--gold-dim)' }}>
                 <span>{first ? index[first.surah - 1].name : ''}</span>
-                <span>{first ? t('{0}-жүз', first.juz) : ''}</span>
+                <span>{first ? t('{0}-пара', first.juz) : ''}</span>
             </div>
             <div dir="rtl" lang="ar" className="quran-text quran-body" style={{ fontSize: `${size}rem`, color: 'var(--text-primary)' }}>
                 {lines.map(l => (
@@ -562,7 +576,6 @@ const PagesReader: React.FC<{ start: number; theme: Theme; onToggleTheme: () => 
                 const p = Number(top.dataset.page), surah = Number(top.dataset.surah), ayah = Number(top.dataset.ayah);
                 setWhere({ p, surah, ayah });
                 saveLastRead({ surah, ayah, name: index[surah - 1].name, page: p });
-                countPage(p);
                 if (window.location.hash !== `#/quran/p/${p}`) window.history.replaceState(null, '', `#/quran/p/${p}`);
             }, 300);
         };
@@ -578,7 +591,7 @@ const PagesReader: React.FC<{ start: number; theme: Theme; onToggleTheme: () => 
     return (
         <AppFrame page="quran" title={t('{0}-бет', where.p)} back="#/quran" theme={theme} onToggleTheme={onToggleTheme} ownBar>
             {goto && index && <QuranGoTo index={index} pagesMode page={where.p} onClose={() => setGoto(false)} />}
-            <ModeBar mode="pages" onMode={switchMode} onGoTo={() => setGoto(true)} label={index ? <>{index[where.surah - 1]?.name} · <span className="tabular">{t('{0}-бет', where.p)}</span> / 604</> : ''} />
+            <ModeBar mode="pages" onMode={switchMode} onGoTo={() => setGoto(true)} page={where.p} label={index ? <>{index[where.surah - 1]?.name} · <span className="tabular">{t('{0}-бет', where.p)}</span> / 604</> : ''} />
             <div className="quran-progress" style={{ transform: `scaleX(${where.p / 604})` }} aria-hidden="true" />
             {failed && <Problem onRetry={() => { setFailed(false); add(last + 1); }} />}
             {!sheets.length && !failed && <Waiting />}

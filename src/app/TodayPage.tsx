@@ -40,6 +40,12 @@ const KY_MONTHS = ['январь', 'февраль', 'март', 'апрель',
 const weekday = (d: Date) => (isEnglish() ? d.toLocaleDateString('en-GB', { weekday: 'long' }) : KY_DAYS[d.getDay()]);
 const dayMonth = (d: Date) => (isEnglish() ? d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' }) : `${d.getDate()}-${KY_MONTHS[d.getMonth()]}`);
 
+/** Time left, written so it can't be read as a clock: «11 с 34 мүн», «44 мүн». */
+const Countdown: React.FC<{ ms: number }> = ({ ms }) => {
+    const m = Math.max(0, Math.ceil(ms / 60000)), h = Math.floor(m / 60);
+    return <>{h > 0 && <>{h}<small className="cd-unit">{t('с')}</small> </>}{m % 60}<small className="cd-unit">{t('мүн')}</small></>;
+};
+
 const RowLink: React.FC<{ onClick: () => void; eyebrow?: string; title: React.ReactNode; sub?: React.ReactNode; mark?: React.ReactNode }> = ({ onClick, eyebrow, title, sub, mark }) => (
     <button onClick={onClick} className="row-link w-full text-left py-4 px-1 flex items-center gap-4" style={{ borderBottom: '1px solid var(--border)' }}>
         {mark}
@@ -187,14 +193,20 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
     const next = nextPrayer(city, now);
     // While a prayer's time is running, the page shows that prayer and when
     // its time ends; between sunrise and Dhuhr, the next one and how long.
+    const hijri = toHijri(now);
+    const ramadan = isRamadan(hijri);
     const hour = prayerNow(city, now);
     const shown = hour.active ?? null;
     // How much of the current stretch has passed: the running prayer's time,
     // or (between sunrise and Dhuhr) the wait for Dhuhr.
     const span = shown ? [shown.at.getTime(), shown.endsAt.getTime()] : [times.sunrise.getTime(), next.at.getTime()];
+    // The next moment that matters: the end of the running prayer's time (the
+    // next prayer, or sunrise after Fajr), or the next prayer if none runs.
+    const goal = shown ? { key: shown.endsKey, at: shown.endsAt } : next;
+    const goalLabel = goal.key === 'sunrise' ? t('Күн чыкканга чейин')
+        : ramadan && goal.key === 'maghrib' ? t('Ифтарга чейин')
+            : t('{0} намазына чейин', PRAYER_NAMES[goal.key]);
     const elapsed = Math.min(1, Math.max(0, (now.getTime() - span[0]) / Math.max(1, span[1] - span[0])));
-    const hijri = toHijri(now);
-    const ramadan = isRamadan(hijri);
     const prayer = currentPrayer(city, now);
     const practice = loadPractice();
     const zikr = loadZikr();
@@ -216,7 +228,7 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
             </div>
             {/* The hour as a dial: the шырдак medallion turning behind it, a gold
                 ring that fills as the prayer's time passes, the prayer inside. */}
-            <div className="dial mt-5" role="timer" aria-label={`${shown ? PRAYER_NAMES[shown.key] : PRAYER_NAMES[next.key]} ${clock(shown ? shown.at : next.at, city.tz)}`}>
+            <div className="dial mt-5" role="timer">
                 <span className="dial-medallion" aria-hidden="true"><Medallion size={430} className="spin-slow" /></span>
                 <span className="hero-glow" aria-hidden="true" />
                 <svg viewBox="0 0 200 200" className="dial-ring" aria-hidden="true">
@@ -228,13 +240,15 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
                     <g transform={`rotate(${elapsed * 360} 100 100)`}><rect x="95.5" y="1.5" width="9" height="9" transform="rotate(45 100 6)" className="dial-gem" /></g>
                 </svg>
                 <div className="dial-in">
-                    <div className="eyebrow" style={{ color: 'var(--gold)' }}>{shown ? t('Азыр') : t('Кийинки намаз')}</div>
-                    <h1 className="font-display leading-none mt-1.5 text-[2rem] sm:text-[2.6rem] animate-view-in" style={{ color: 'var(--text-primary)' }}>{shown ? PRAYER_NAMES[shown.key] : ramadan && next.key === 'maghrib' ? t('Ифтар') : PRAYER_NAMES[next.key]}</h1>
-                    <div className="font-display tabular leading-[0.9] text-[4.3rem] sm:text-[5.6rem] gold-sheen">{clock(shown ? shown.at : next.at, city.tz)}</div>
-                    <div className="mt-2 text-[0.82rem] sm:text-[0.9rem]" style={{ color: 'var(--text-muted)' }}>
-                        {shown
-                            ? <>{ramadan && shown.endsKey === 'maghrib' ? t('Ифтар') : PRAYER_NAMES[shown.endsKey]} <span className="tabular" style={{ color: 'var(--gold)' }}>{clock(shown.endsAt, city.tz)}</span><br />{t('{0} калды', untilText(shown.endsAt.getTime() - now.getTime()))}</>
-                            : t('{0} калды', untilText(next.at.getTime() - now.getTime()))}
+                    {/* What runs now (and since when), then the one number that
+                        changes with the clock: how long until the next prayer. */}
+                    <div className="eyebrow" style={{ color: 'var(--gold)' }}>
+                        {shown ? <>{t('Азыр')} · {PRAYER_NAMES[shown.key]} <span className="tabular">{clock(shown.at, city.tz)}</span></> : t('Кийинки намаз')}
+                    </div>
+                    <div className="font-display tabular leading-[0.9] mt-2 text-[4.6rem] sm:text-[6rem] gold-sheen" aria-hidden="true"><Countdown ms={goal.at.getTime() - now.getTime()} /></div>
+                    <h1 className="font-display leading-tight mt-2 text-[1.25rem] sm:text-[1.5rem] animate-view-in" style={{ color: 'var(--text-primary)' }} aria-label={`${goalLabel}: ${untilText(goal.at.getTime() - now.getTime())}`}>{goalLabel}</h1>
+                    <div className="mt-1 text-[0.82rem] sm:text-[0.9rem]" style={{ color: 'var(--text-muted)' }}>
+                        {PRAYER_NAMES[goal.key]} <span className="tabular" style={{ color: 'var(--gold)' }}>{clock(goal.at, city.tz)}</span>
                     </div>
                 </div>
             </div>
@@ -333,7 +347,7 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
                     <nav className="almanac day-end" aria-label={t('Бөлүмдөр')}>
                         {linked && <button onClick={() => go('#/house/me')}><span>{t('Менин жыйынтыгым')}</span></button>}
                         <button onClick={() => go('#/jamaat')}><span>{t('Жамаат')}</span></button>
-                        <button onClick={() => go('#/chat')}><span>{t('Баарлашуу')}</span></button>
+                        <button onClick={() => go('#/chat')}><span>{t('Чаттар')}</span></button>
                     </nav>
                 )}
             </div>

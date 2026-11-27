@@ -57,6 +57,15 @@ export const addPages = (s: PracticeStore, pages: number[], now = new Date()): P
     return { ...s, pages: { ...s.pages, [key]: [...have].sort((a, b) => a - b) } };
 };
 
+/** Takes a page back (marked by mistake). */
+export const removePage = (s: PracticeStore, page: number, now = new Date()): PracticeStore => {
+    const key = dayKey(now);
+    const have = (s.pages[key] ?? []).filter(p => p !== page);
+    return { ...s, pages: { ...s.pages, [key]: have } };
+};
+
+export const pageReadToday = (s: PracticeStore, page: number, now = new Date()) => (s.pages[dayKey(now)] ?? []).includes(page);
+
 export const pagesOn = (s: PracticeStore, now = new Date()) => (s.pages[dayKey(now)] ?? []).length;
 
 /** The zikr ids counted as salawat (СВТ); every other zikr is ИСТГ. */

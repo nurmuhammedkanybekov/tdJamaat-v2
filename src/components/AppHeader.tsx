@@ -14,6 +14,8 @@ import { PRAYER_NAMES, clock, nextPrayer, prayerTimes } from '../utils/prayer';
 import { CountUp, HornBand, SkyLayer, Sparks, StarField } from './motion';
 import { skyAt } from '../utils/sky';
 import { isEnglish, setLang, t } from '../i18n';
+import { readStaff } from '../app/self';
+import { useMyPhoto } from '../app/myPhoto';
 
 interface AppHeaderProps {
     authUser: AuthUser | null;
@@ -113,6 +115,21 @@ const Dropdown: React.FC<{ button: (open: boolean, toggle: () => void) => React.
     );
 };
 
+/** Who is signed in, as on the everyday pages: the admin's seal, CL, or the
+ *  captain's own face (the person of the house they are). */
+const WhoMark: React.FC<{ role?: string; houseId: string | null; houseName?: string | null }> = ({ role, houseId, houseName }) => {
+    const staff = readStaff();
+    const self = role === 'leader' && staff && staff.houseId === houseId ? { ...staff, via: 'staff' as const } : null;
+    const photo = useMyPhoto(self);
+    if (role === 'admin') return <span className="chat-admin-seal" style={{ width: 30, height: 30 }}><Mark size={16} /></span>;
+    if (role === 'inspector') return <span className="chat-cl-seal" style={{ width: 30, height: 30, fontSize: '0.62rem' }}>CL</span>;
+    const letter = self?.name ?? houseName ?? '';
+    if (!letter) return null;
+    return photo
+        ? <img src={photo} alt="" className="rounded-full object-cover" style={{ width: 30, height: 30, boxShadow: '0 0 0 1px var(--gold)' }} />
+        : <span className="rounded-full inline-flex items-center justify-center font-display" style={{ width: 30, height: 30, fontSize: 14, color: 'var(--gold)', border: '1px solid var(--gold)' }}>{letter.slice(0, 1)}</span>;
+};
+
 const IconButton: React.FC<{ label: string; onClick: () => void; children: React.ReactNode; expanded?: boolean }> = ({ label, onClick, children, expanded }) => (
     <button onClick={onClick} aria-label={label} title={label} aria-expanded={expanded} className="w-10 h-10 inline-flex items-center justify-center transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-secondary)' }}>
         {children}
@@ -139,7 +156,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         { key: 'today', group: DAY, label: t('Менин күнүм'), icon: SunMedium, onClick: () => { window.location.hash = '#/today'; } },
         ...(authUser && authUser.role !== 'inspector' && !isAdmin ? [{ key: 'house', group: DAY, label: t('Менин үйүм'), icon: HomeIcon, onClick: () => { window.location.hash = '#/house'; } }] : []),
         ...(authUser ? [{ key: 'news', group: DAY, label: t('Жамааттан кабар'), icon: Megaphone, onClick: () => { window.location.hash = '#/news'; } }] : []),
-        ...(authUser ? [{ key: 'talk', group: DAY, label: t('Баарлашуу'), icon: MessageCircle, onClick: () => { window.location.hash = '#/chat'; } }] : []),
+        ...(authUser ? [{ key: 'talk', group: DAY, label: t('Чаттар'), icon: MessageCircle, onClick: () => { window.location.hash = '#/chat'; } }] : []),
         { key: 'quran', group: DAY, label: t('Куран'), icon: BookOpen, onClick: () => { window.location.hash = '#/quran'; } },
         { key: 'tasbihat', group: DAY, label: t('Тасбихат'), icon: ScrollText, onClick: () => { window.location.hash = '#/tasbihat'; } },
         { key: 'zikr', group: DAY, label: t('Зикир'), icon: CircleDot, onClick: () => { window.location.hash = '#/zikr'; } },
@@ -210,7 +227,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                             items={items}
                             header={authUser ? <div className="text-[0.8rem]" style={{ color: 'var(--text-muted)' }}>{t('Кирген:')} <span style={{ color: 'var(--gold)' }}>{who}</span></div> : undefined}
                             button={(open, toggle) => (
-                                <button onClick={toggle} aria-label={t('Меню')} title={t('Меню')} aria-expanded={open} className="menu-pill ml-1"><span className="menu-lines" aria-hidden="true"><i /><i /><i /></span></button>
+                                <button onClick={toggle} aria-label={t('Меню')} title={t('Меню')} aria-expanded={open} className="menu-pill ml-1"><span className="menu-lines" aria-hidden="true"><i /><i /><i /></span><WhoMark role={authUser?.role} houseId={authUser?.houseId ?? null} houseName={houseName} /></button>
                             )}
                         />
                     </div>

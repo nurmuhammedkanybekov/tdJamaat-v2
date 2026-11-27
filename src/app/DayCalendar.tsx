@@ -7,14 +7,15 @@ import { loadZikr } from '../utils/zikr';
 import { loadPractice } from './practice';
 import { bestRun, currentRun, lastMarks } from './consistency';
 
-const WEEKDAYS_KY = ['Дш', 'Шш', 'Шр', 'Бш', 'Жм', 'Иш', 'Жк'];
-const WEEKDAYS_EN = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+// The jamaat week runs Thursday → Wednesday, so the columns do too.
+const WEEKDAYS_KY = ['Бш', 'Жм', 'Иш', 'Жк', 'Дш', 'Шш', 'Шр'];
+const WEEKDAYS_EN = ['Th', 'Fr', 'Sa', 'Su', 'Mo', 'Tu', 'We'];
 
 export const DayCalendar: React.FC<{ now: Date }> = ({ now }) => {
     const { marks, run, best } = useMemo(() => {
         const zikr = loadZikr(), practice = loadPractice();
-        // 4 full weeks, Monday-first, ending with the week of today.
-        const offset = (now.getDay() + 6) % 7; // 0 = Monday
+        // 4 jamaat weeks, Thursday-first, ending with the week of today.
+        const offset = (now.getDay() + 3) % 7; // 0 = Thursday
         const n = 21 + offset + 1;
         return { marks: lastMarks(zikr, practice, n, now), run: currentRun(zikr, practice, now), best: bestRun(zikr, practice) };
     }, [now]);

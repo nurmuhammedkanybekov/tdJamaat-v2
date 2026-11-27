@@ -71,7 +71,7 @@ export const useNotifier = () => {
                 const reading = window.location.hash.startsWith('#/house/chat') && document.visibilityState === 'visible';
                 if (reading) return;
                 setBadge(badge + 1);
-                show(t('Үйдүн сөзү · {0}', self.houseName), `${row.author_role === 'admin' ? `${t('Админ')}: ` : ''}${row.body ?? ''}`.slice(0, 160), '/#/house/chat', 'house-chat');
+                show(t('Үйдүн чаты · {0}', self.houseName), `${row.author_role === 'admin' ? `${t('Админ')}: ` : ''}${row.body ?? ''}`.slice(0, 160), '/#/house/chat', 'house-chat');
             });
         }
         // The shared conversations (Жамааттын сөзү, Капитандар, the admin's own):
@@ -86,7 +86,7 @@ export const useNotifier = () => {
             const reading = window.location.hash === `#/chat/${row.room}` && document.visibilityState === 'visible';
             if (reading) return;
             const who = row.author_role === 'admin' ? t('Админ') : row.author_role === 'inspector' ? 'CL' : row.author_name || row.house_name || '';
-            const room = names.get(row.room) ?? (row.room === 'staff' ? t('Капитандар') : t('Жамааттын сөзү'));
+            const room = names.get(row.room) ?? (row.room === 'staff' ? t('Капитандар') : t('Жамааттын чаты'));
             setBadge(badge + 1);
             show(room, `${who ? `${who}: ` : ''}${row.body ?? ''}`.slice(0, 160), `/#/chat/${row.room}`, `room-${row.room}`);
         });

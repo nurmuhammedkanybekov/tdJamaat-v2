@@ -3,7 +3,7 @@
 //   #/chat/staff — Капитандар: the captains, CL and the admin;
 // and each house's own conversation (Үйдүн сөзү, under Үйүм).
 // The database says who wrote what (supabase/jamaat-chat-2026-11.sql).
-import React, { useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ArrowDown, ArrowUp, ChevronRight, Loader2, MessageCircle, Pencil, Plus, Shield, Trash2, Users } from 'lucide-react';
 import type { Theme } from '../theme';
 import { isEnglish, t } from '../i18n';
@@ -11,11 +11,13 @@ import { AppFrame, Waiting } from './AppFrame';
 import { AppContext } from './context';
 import { useSelf } from './self';
 import { go } from './route';
+import { Reactions } from './Reactions';
+import { DEFAULT_REACTION } from '../services/reactions';
 import { Avatar } from '../components/Avatar';
 import { HornBand } from '../components/motion';
 import { Mark } from '../components/Ornament';
 import type { Audience, ChatRoom, RoomMessage } from '../services/jamaatChatService';
-import { countRoomUnread, createRoom, deleteRoom, deleteRoomMessage, fetchRoom, fetchRooms, markRoomSeen, myUserId, sendToRoom, setRoomAmin, updateRoom, watchRoom } from '../services/jamaatChatService';
+import { countRoomUnread, createRoom, deleteRoom, deleteRoomMessage, fetchRoom, fetchRooms, markRoomSeen, myUserId, sendToRoom, reactRoom, updateRoom, watchRoom } from '../services/jamaatChatService';
 import { NotifyToggle } from './Community';
 import { countUnread } from '../services/chatService';
 import { signInWithGoogle } from '../services/memberService';
@@ -65,10 +67,10 @@ export const ChatsPage: React.FC<{ arg?: string | null; theme: Theme; onToggleTh
     const room = arg && rooms ? rooms.find(r => r.id === arg) : undefined;
     if (room) return <RoomChat key={room.id} room={room} theme={theme} onToggleTheme={onToggleTheme} />;
     return (
-        <AppFrame page="today" title={t('Баарлашуу')} kicker={t('Сөз')} theme={theme} onToggleTheme={onToggleTheme}>
+        <AppFrame page="today" title={t('Чаттар')} kicker={t('Чат')} theme={theme} onToggleTheme={onToggleTheme}>
             {!access.all ? (
                 <div className="max-w-[36rem] mx-auto text-center pt-8">
-                    <p className="text-[1rem] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{t('Жамааттын сөзүнө кирүү үчүн Google аккаунтуңуз менен кириңиз. Капитаныңыз Gmail дарегиңизди жазып койгон болушу керек.')}</p>
+                    <p className="text-[1rem] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{t('Жамааттын чатына кирүү үчүн Google аккаунтуңуз менен кириңиз. Капитаныңыз Gmail дарегиңизди жазып койгон болушу керек.')}</p>
                     <button className="btn btn-primary mt-6" onClick={() => { signInWithGoogle('#/chat').catch(() => undefined); }}>{t('Google менен кирүү')}</button>
                 </div>
             ) : rooms ? <ChatList rooms={rooms} onChanged={reload} /> : <Waiting />}
@@ -81,6 +83,8 @@ export const ChatsPage: React.FC<{ arg?: string | null; theme: Theme; onToggleTh
 const ChatList: React.FC<{ rooms: ChatRoom[]; onChanged: () => void }> = ({ rooms, onChanged }) => {
     const access = useAccess();
     const { self } = useSelf();
+    const ctx = useContext(AppContext);
+    const houses = useMemo(() => { const w = ctx.data?.weeks[ctx.data.weeks.length - 1]; return (w?.teams ?? []).map(tm => ({ id: tm.id, name: tm.name })); }, [ctx.data]);
     const [unread, setUnread] = useState<Record<string, number>>({});
     const [editing, setEditing] = useState<ChatRoom | 'new' | null>(null);
     useEffect(() => {
@@ -89,14 +93,15 @@ const ChatList: React.FC<{ rooms: ChatRoom[]; onChanged: () => void }> = ({ room
     }, [rooms, self]);
     const rows: Array<{ key: string; to: string; title: string; sub: string; icon: React.ReactNode; tag: string; room?: ChatRoom }> = [
         ...rooms.map(r => ({ key: r.id, to: `#/chat/${r.id}`, title: r.name, sub: r.about || (r.audience === 'staff' ? t('Капитандар, CL жана админ') : t('Бүт жамаат бир жерде')), icon: r.audience === 'staff' ? <Shield className="w-5 h-5" strokeWidth={1.5} /> : <Users className="w-5 h-5" strokeWidth={1.5} />, tag: r.audience === 'staff' ? t('Капитандарга') : t('Баарына'), room: r })),
-        ...(self ? [{ key: 'house:', to: '#/house/chat', title: t('Үйдүн сөзү'), sub: self.houseName, icon: <MessageCircle className="w-5 h-5" strokeWidth={1.5} />, tag: t('Үйгө') }] : []),
-        ...(access.isAdmin ? [{ key: 'houses:', to: '#/house', title: t('Үйлөрдүн сөзү'), sub: t('Ар бир үйгө «Админ» катары'), icon: <MessageCircle className="w-5 h-5" strokeWidth={1.5} />, tag: t('Ар бир үйгө') }] : [])
+        ...(self ? [{ key: 'house:', to: '#/house/chat', title: t('Үйдүн чаты'), sub: self.houseName, icon: <MessageCircle className="w-5 h-5" strokeWidth={1.5} />, tag: t('Үйгө') }] : []),
+        // The admin: every house's chat right here, one tap each (written as «Админ»).
+        ...(access.isAdmin ? houses.map(h => ({ key: `house:${h.id}`, to: `#/house/chat/${h.id}`, title: h.name, sub: t('Үйдүн чаты'), icon: <MessageCircle className="w-5 h-5" strokeWidth={1.5} />, tag: t('Үй') })) : [])
     ];
     return (
         <div className="max-w-[40rem] mx-auto mt-6">
             <div className="flex items-center justify-between gap-3 pb-3" style={{ borderBottom: '1px solid var(--gold-dim)' }}>
                 <NotifyToggle />
-                {access.isAdmin && <button className="btn btn-ghost" style={{ minHeight: '2.4rem' }} onClick={() => setEditing('new')}><Plus className="w-4 h-4" />{t('Жаңы сөз')}</button>}
+                {access.isAdmin && <button className="btn btn-ghost" style={{ minHeight: '2.4rem' }} onClick={() => setEditing('new')}><Plus className="w-4 h-4" />{t('Жаңы чат')}</button>}
             </div>
             {editing === 'new' && <RoomEditor onDone={() => { setEditing(null); onChanged(); }} />}
             <ul>
@@ -142,7 +147,7 @@ const RoomEditor: React.FC<{ room?: ChatRoom; onDone: () => void }> = ({ room, o
         setBusy(true); setError('');
         const patch = { name: name.trim(), about: about.trim() || null, audience };
         try { if (room) await updateRoom(room.id, patch); else await createRoom(patch); onDone(); }
-        catch (e) { setError(/relation|schema cache|does not exist/i.test(String((e as Error)?.message)) ? t('Жаңы сөз ачуу үчүн supabase/jamaat-chat-2026-11.sql файлын кайра иштетүү керек.') : (e as Error)?.message ?? ''); }
+        catch (e) { setError(/relation|schema cache|does not exist/i.test(String((e as Error)?.message)) ? t('Жаңы чат ачуу үчүн supabase/jamaat-chat-2026-11.sql файлын кайра иштетүү керек.') : (e as Error)?.message ?? ''); }
         finally { setBusy(false); }
     };
     const remove = async () => {
@@ -152,7 +157,7 @@ const RoomEditor: React.FC<{ room?: ChatRoom; onDone: () => void }> = ({ room, o
     };
     return (
         <div className="room-editor pop-in">
-            <div className="eyebrow" style={{ color: 'var(--gold)' }}>{room ? t('Сөздү өзгөртүү') : t('Жаңы сөз')}</div>
+            <div className="eyebrow" style={{ color: 'var(--gold)' }}>{room ? t('Чатты өзгөртүү') : t('Жаңы чат')}</div>
             <input value={name} onChange={e => setName(e.target.value)} maxLength={60} placeholder={t('Аталышы, мисалы: Рамазан')} aria-label={t('Аталышы')} className="room-editor-input font-display text-[1.3rem]" />
             <input value={about} onChange={e => setAbout(e.target.value)} maxLength={200} placeholder={t('Кыскача: эмне жөнүндө (милдеттүү эмес)')} aria-label={t('Кыскача')} className="room-editor-input text-[0.95rem]" />
             <div className="chip-row mt-3" role="radiogroup" aria-label={t('Ким көрөт')}>
@@ -164,7 +169,7 @@ const RoomEditor: React.FC<{ room?: ChatRoom; onDone: () => void }> = ({ room, o
             <div className="flex flex-wrap items-center gap-3 mt-4">
                 <button className="btn btn-primary" disabled={busy || !name.trim()} onClick={save}>{busy ? <Loader2 className="w-4 h-4 animate-spin" /> : null}{room ? t('Сактоо') : t('Ачуу')}</button>
                 <button className="btn btn-ghost" disabled={busy} onClick={onDone}>{t('Жокко чыгаруу')}</button>
-                {room && !fixed && <button className="ml-auto text-[0.75rem] tracking-[0.14em] uppercase inline-flex items-center gap-1.5" disabled={busy} onClick={remove} style={{ color: 'var(--danger)' }}><Trash2 className="w-3.5 h-3.5" />{t('Сөздү жабуу')}</button>}
+                {room && !fixed && <button className="ml-auto text-[0.75rem] tracking-[0.14em] uppercase inline-flex items-center gap-1.5" disabled={busy} onClick={remove} style={{ color: 'var(--danger)' }}><Trash2 className="w-3.5 h-3.5" />{t('Чатты жабуу')}</button>}
             </div>
         </div>
     );
@@ -187,7 +192,8 @@ const RoomChat: React.FC<{ room: ChatRoom; theme: Theme; onToggleTheme: () => vo
     const load = useCallback(() => {
         fetchRoom(room).then(m => { setMessages(m); markRoomSeen(room); }).catch(() => setMessages(null));
     }, [room]);
-    useEffect(() => { load(); return watchRoom(room, load); }, [load, room]);
+    const pending = useRef(0);
+    useEffect(() => { load(); return watchRoom(room, () => { if (!pending.current) load(); }); }, [load, room]);
 
     // Follow the newest message unless the reader scrolled up; then a button
     // brings them back and counts what came meanwhile.
@@ -222,14 +228,15 @@ const RoomChat: React.FC<{ room: ChatRoom; theme: Theme; onToggleTheme: () => vo
         setSending(true); setError('');
         // A captain signs as the person of their house they chose ("Мен").
         try { await sendToRoom(room, clean, access.role === 'leader' && self?.via === 'staff' ? self.memberId : null); setText(''); stick.current = true; load(); input.current?.focus(); }
-        catch (e) { const msg = (e as Error)?.message ?? ''; setError(/relation|does not exist|schema cache|row-level security/i.test(msg) ? t('Бул сөз азырынча ачыла элек. Админ supabase/jamaat-chat-2026-11.sql файлын иштетиши керек.') : msg || t('Жөнөтүлгөн жок')); }
+        catch (e) { const msg = (e as Error)?.message ?? ''; setError(/relation|does not exist|schema cache|row-level security/i.test(msg) ? t('Бул чат азырынча ачыла элек. Админ supabase/jamaat-chat-2026-11.sql файлын иштетиши керек.') : msg || t('Жөнөтүлгөн жок')); }
         finally { setSending(false); }
     };
-    const amin = async (m: RoomMessage) => {
+    const react = async (m: RoomMessage, emoji: string | null) => {
         if (!me) return;
-        const on = !m.amins.includes(me);
-        setMessages(cur => cur?.map(x => (x.id === m.id ? { ...x, amins: on ? [...x.amins, me] : x.amins.filter(a => a !== me) } : x)));
-        try { await setRoomAmin(m.id, me, on); } catch { load(); }
+        setMessages(cur => cur?.map(x => (x.id === m.id ? { ...x, reactions: [...x.reactions.filter(r => r.who !== me), ...(emoji ? [{ who: me, emoji }] : [])] } : x)));
+        pending.current++;
+        try { await reactRoom(m.id, me, emoji); } catch { /* the reload shows what is stored */ }
+        finally { pending.current--; if (!pending.current) load(); }
     };
     const remove = async (m: RoomMessage) => {
         if (!window.confirm(t('Бул билдирүүнү өчүрөсүзбү?'))) return;
@@ -241,7 +248,7 @@ const RoomChat: React.FC<{ room: ChatRoom; theme: Theme; onToggleTheme: () => vo
             <div className="max-w-[42rem] mx-auto pt-2 pb-6">
                 <header className="text-center pt-4 pb-2">
                     <Mark size={44} className="mx-auto" style={{ color: 'var(--gold)' }} />
-                    <div className="eyebrow mt-3" style={{ color: 'var(--gold)' }}>{info.audience === 'staff' ? t('Жабык сөз') : t('Жалпы сөз')}</div>
+                    <div className="eyebrow mt-3" style={{ color: 'var(--gold)' }}>{info.audience === 'staff' ? t('Жабык чат') : t('Жалпы чат')}</div>
                     <h1 className="font-display text-[2rem] leading-tight mt-1" style={{ color: 'var(--text-primary)' }}>{info.name}</h1>
                     <p className="text-[0.8rem] mt-1" style={{ color: 'var(--text-muted)' }}>{info.about || AUDIENCE[info.audience]()}</p>
                     <div className="mt-2"><NotifyToggle /></div>
@@ -250,10 +257,10 @@ const RoomChat: React.FC<{ room: ChatRoom; theme: Theme; onToggleTheme: () => vo
 
                 {messages === undefined && <Waiting />}
                 {messages === null && (
-                    <p className="mt-8 px-4 py-3 text-[0.9rem]" style={{ borderLeft: '2px solid var(--gold)', color: 'var(--text-secondary)' }}>{t('Бул сөз азырынча ачыла элек. Админ supabase/jamaat-chat-2026-11.sql файлын иштетиши керек.')}</p>
+                    <p className="mt-8 px-4 py-3 text-[0.9rem]" style={{ borderLeft: '2px solid var(--gold)', color: 'var(--text-secondary)' }}>{t('Бул чат азырынча ачыла элек. Админ supabase/jamaat-chat-2026-11.sql файлын иштетиши керек.')}</p>
                 )}
                 {messages && messages.length === 0 && (
-                    <p className="text-center font-display text-[1.4rem] pt-10" style={{ color: 'var(--text-primary)' }}>{t('Биринчи сөз сизден болсун')}</p>
+                    <p className="text-center font-display text-[1.4rem] pt-10" style={{ color: 'var(--text-primary)' }}>{t('Биринчи билдирүү сизден болсун')}</p>
                 )}
 
                 {messages && messages.map((m, i) => {
@@ -263,7 +270,6 @@ const RoomChat: React.FC<{ room: ChatRoom; theme: Theme; onToggleTheme: () => vo
                     const sameRun = !newDay && prev && prev.userId === m.userId && prev.memberId === m.memberId && at.getTime() - new Date(prev.createdAt).getTime() < 5 * 60000;
                     const mine = !!me && m.userId === me;
                     const who = authorOf(m);
-                    const said = !!me && m.amins.includes(me);
                     return (
                         <React.Fragment key={m.id}>
                             {newDay && <div className="chat-day"><span>{dayLabel(at)}</span></div>}
@@ -273,12 +279,10 @@ const RoomChat: React.FC<{ room: ChatRoom; theme: Theme; onToggleTheme: () => vo
                                     {!sameRun && (
                                         <div className={`chat-name ${who.seal === 'admin' ? 'is-admin' : ''} ${mine ? 'justify-end' : ''}`}>{mine ? t('Сиз') : who.name}{!mine && who.tag && <span className="chat-tag">{who.tag}</span>}</div>
                                     )}
-                                    <div className="chat-bubble">{m.body}</div>
+                                    <div className="chat-bubble" onDoubleClick={() => { if (me && !m.reactions.some(r => r.who === me && r.emoji === DEFAULT_REACTION)) react(m, DEFAULT_REACTION); }}>{m.body}</div>
+                                    <Reactions list={m.reactions} me={me} disabled={!me} onPick={e => react(m, e)} align={mine ? 'end' : 'start'} />
                                     <div className="chat-meta">
                                         <span className="tabular">{hm(at)}</span>
-                                        <button onClick={() => amin(m)} aria-pressed={said} className={`chat-amin ${said ? 'is-on' : ''}`} aria-label={t('Аамин')}>
-                                            {t('Аамин')}{m.amins.length > 0 && <span className="tabular"> · {m.amins.length}</span>}
-                                        </button>
                                         {(mine || access.isAdmin) && <button onClick={() => remove(m)} aria-label={t('Өчүрүү')} className="chat-delete"><Trash2 className="w-3.5 h-3.5" /></button>}
                                     </div>
                                 </div>

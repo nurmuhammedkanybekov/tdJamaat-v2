@@ -32,7 +32,7 @@ create table if not exists chat_rooms (
   created_at timestamptz not null default now()
 );
 insert into chat_rooms (id, name, about, audience, sort) values
-  ('all', 'Жамааттын сөзү', 'Бүт жамаат: мүчөлөр, капитандар, CL жана админ.', 'all', 0),
+  ('all', 'Жамааттын чаты', 'Бүт жамаат: мүчөлөр, капитандар, CL жана админ.', 'all', 0),
   ('staff', 'Капитандар', 'Капитандар, CL жана админ гана көрөт.', 'staff', 1)
 on conflict (id) do nothing;
 

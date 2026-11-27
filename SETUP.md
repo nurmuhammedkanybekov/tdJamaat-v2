@@ -119,7 +119,12 @@ In the Supabase dashboard, open **SQL Editor** and run, in order:
     houses. Other houses' people come without names or photos. Needs 16.
     Safe to re-run.
 
-Notifications: in Үйдүн сөзү or Жамааттан кабар, "Билдирмелерди
+24. `supabase/reactions-2026-11.sql` — reactions in the chats (❤️ 🤲 🤝 👍
+    🙏 😊 🔥 😁 😂, one per person per message) and the general chat's new
+    name. Earlier "Аамин"s become 🤲. Needs 22. Safe to re-run. Until it
+    runs, the chats still work with 🤲 only.
+
+Notifications: in Үйдүн чаты or Жамааттан кабар, "Билдирмелерди
 күйгүзүү". They arrive while the app is open or in the background (not
 when it is fully closed — that would need a push server). On an iPhone
 they work in the app added to the Home Screen from Safari (iOS 16.4+).

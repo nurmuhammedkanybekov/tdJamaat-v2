@@ -12,7 +12,8 @@ export interface City { id: string; name: string; lat: number; lng: number; tz: 
 
 export const CITIES: City[] = [
     { id: 'budapest', name: t('Будапешт'), lat: 47.4979, lng: 19.0402, tz: 'Europe/Budapest' },
-    { id: 'debrecen', name: t('Дебрецен'), lat: 47.5316, lng: 21.6273, tz: 'Europe/Budapest' }
+    { id: 'debrecen', name: t('Дебрецен'), lat: 47.5316, lng: 21.6273, tz: 'Europe/Budapest' },
+    { id: 'bishkek', name: t('Бишкек'), lat: 42.8746, lng: 74.5698, tz: 'Asia/Bishkek' }
 ];
 
 const ADJUST = { fajr: 0, sunrise: 0, dhuhr: 0, asr: 0, maghrib: 0, isha: 0 };

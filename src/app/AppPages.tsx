@@ -60,7 +60,7 @@ const CaptainIsSelf: React.FC<{ houseId: string }> = ({ houseId }) => {
 };
 
 const TITLES: Record<AppRoute['page'], () => string> = {
-    today: () => t('Менин күнүм'), house: () => t('Үйүм'), news: () => t('Жамааттан кабар'), quran: () => t('Куран'), tasbihat: () => t('Тасбихат'), zikr: () => t('Зикир'), kiruu: () => t('Кирүүнү текшерүү'), qibla: () => t('Кыбла'), chat: () => t('Баарлашуу'), namaz: () => t('Намаз убактылары'), jamaat: () => t('Жамаат'), help: () => t('Жардам')
+    today: () => t('Менин күнүм'), house: () => t('Үйүм'), news: () => t('Жамааттан кабар'), quran: () => t('Куран'), tasbihat: () => t('Тасбихат'), zikr: () => t('Зикир'), kiruu: () => t('Кирүүнү текшерүү'), qibla: () => t('Кыбла'), chat: () => t('Чаттар'), namaz: () => t('Намаз убактылары'), jamaat: () => t('Жамаат'), help: () => t('Жардам')
 };
 
 export const AppPages: React.FC<{ route: AppRoute; theme: Theme; onToggleTheme: () => void; ctx: AppCtx }> = ({ route, theme, onToggleTheme, ctx }) => {

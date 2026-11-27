@@ -102,11 +102,11 @@ export const QuranGoTo: React.FC<{ index: Surah[]; pagesMode: boolean; page: num
 
                 {/* A juz */}
                 <section className="pt-7">
-                    <div className="eyebrow">{t('Жүз')}</div>
+                    <div className="eyebrow">{t('Пара')}</div>
                     <div className="goto-juz mt-3">
                         {Array.from({ length: 30 }, (_, i) => i + 1).map(j => {
                             return (
-                                <button key={j} disabled={!juz || busy} onClick={() => { const at = juz?.[j - 1]; if (at) toAyah(at[0], at[1]); }} className="goto-juz-cell font-display tabular" aria-label={t('{0}-жүз', j)}>{j}</button>
+                                <button key={j} disabled={!juz || busy} onClick={() => { const at = juz?.[j - 1]; if (at) toAyah(at[0], at[1]); }} className="goto-juz-cell font-display tabular" aria-label={t('{0}-пара', j)}>{j}</button>
                             );
                         })}
                     </div>

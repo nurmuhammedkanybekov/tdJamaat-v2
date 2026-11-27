@@ -9,7 +9,13 @@ export const PHOTO_BUCKET = 'member-photos';
 const LIFETIME = 24 * 3600;            // seconds a signed link is valid
 const REUSE_FOR = 12 * 3600_000;       // ms we keep handing out the same link
 
-const cache = new Map<string, { url: string; until: number }>();
+// Kept in localStorage too: the same signed link on the next visit means the
+// browser shows the photo from its own cache at once instead of downloading it.
+const STORE = 'tdjamaat-photo-links-v1';
+const cache = new Map<string, { url: string; until: number }>((() => {
+    try { const raw = JSON.parse(localStorage.getItem(STORE) ?? '[]') as Array<[string, { url: string; until: number }]>; return raw.filter(([, v]) => v.until > Date.now()); } catch { return []; }
+})());
+const persist = () => { try { localStorage.setItem(STORE, JSON.stringify([...cache].slice(-400))); } catch { /* not critical */ } };
 
 /** "<house>/<member>.<ext>" from a stored photo URL (null if it isn't one of ours). */
 export const photoPath = (stored: string): string | null => {
@@ -40,10 +46,11 @@ export const signPhotoUrls = async (stored: Array<string | null>, now = Date.now
                 const url = byPath.get(path);
                 if (url) cache.set(s, { url, until: now + REUSE_FOR });
             }
+            persist();
         } catch { /* offline or not allowed: fall back below */ }
     }
     return stored.map(s => (s ? cache.get(s)?.url ?? s : null));
 };
 
 /** For tests. */
-export const __clearPhotoCache = () => cache.clear();
+export const __clearPhotoCache = () => { cache.clear(); try { localStorage.removeItem(STORE); } catch { /* none */ } };
