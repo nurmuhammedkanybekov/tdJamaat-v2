@@ -8,10 +8,26 @@ reading, salawat, fasting, night prayer and a few other practices. The app
 turns that into a weekly race between the houses, personal results and a
 season-long record. It also has the things people open every day: prayer
 times, the Quran with a Kyrgyz translation, tasbihat after each prayer, a
-zikr counter and the Qibla. Those open without an account, so the site
-starts on the day itself; signing in is one tap away.
+zikr counter, the Qibla and an Islamic calendar with a fasting tracker.
+Those open without an account, so the site starts on the day itself.
+Anyone can sign in with Google to keep their own counts on every device.
 
-The interface is in Kyrgyz, with an English version.
+The interface is in Kyrgyz, with Russian and English versions.
+
+What the everyday part does:
+
+- **My Day**: the prayer whose time it is, the day's prayer path, today's
+  tasbihat, zikr and Quran, the ayah of the day.
+- **Quran**: the Madinah mushaf, the Kyrgyz meaning, audio, bookmarks;
+  pages count only when the reader marks them, by page range, juz or surah.
+- **Tasbihat** after each prayer, with today's five at a glance.
+- **Zikr**: a counter, favourites, one's own zikrs, a weekly goal.
+- **Calendar**: hijri months, holy days, sunnah fasting days, fasts kept
+  (Ramadan, sunnah, nafl, make-up) and a line of plan for any day.
+- **Plans**: memorization, Quran reading and books, with due dates and
+  history; captains and the admin see who needs attention.
+- **Chats**: the house, the captains, the whole jamaat; polls; private
+  messages between people who belong together.
 
 <p align="center">
   <img src="docs/desktop-night.jpg" alt="The week in the night theme: the leading house and its rating" width="100%">
@@ -33,7 +49,8 @@ The interface is in Kyrgyz, with an English version.
 | Captain | house password | every house's results | own house's weekly numbers, members' Gmail addresses |
 | CL (cleanliness) | password | houses and weeks, no results | cleanliness ratings |
 | Admin | password | everything | roster, weeks, seasons, plans, chats |
-| Visitor | nothing | the everyday pages: prayer times, Quran, tasbihat, zikr, Qibla | nothing (counts stay on the phone) |
+| Personal account | Google (not on the roster) | the everyday pages, its own saved counts | its own counts; can delete itself |
+| Visitor | nothing | the everyday pages: prayer times, Quran, tasbihat, zikr, Qibla, calendar | nothing (counts stay on the phone) |
 
 ## How it is built
 
