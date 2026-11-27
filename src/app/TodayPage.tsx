@@ -9,7 +9,7 @@ import type { Theme } from '../theme';
 import { useNow } from '../hooks/useNow';
 import { loadCity } from '../utils/city';
 import type { City, PrayerKey } from '../utils/prayer';
-import { PRAYER_NAMES, PRAYER_ORDER, clock, nextPrayer, prayerNow, prayerTimes, untilText } from '../utils/prayer';
+import { PRAYER_NAMES, PRAYER_ORDER, clock, nextPrayer, prayerNow, prayerTimes } from '../utils/prayer';
 import { formatHijri, isRamadan, toHijri } from '../utils/hijri';
 import { loadZikr, todayTotal } from '../utils/zikr';
 import { calculateHouseRating } from '../utils/scoring';
@@ -40,10 +40,10 @@ const KY_MONTHS = ['январь', 'февраль', 'март', 'апрель',
 const weekday = (d: Date) => (isEnglish() ? d.toLocaleDateString('en-GB', { weekday: 'long' }) : KY_DAYS[d.getDay()]);
 const dayMonth = (d: Date) => (isEnglish() ? d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' }) : `${d.getDate()}-${KY_MONTHS[d.getMonth()]}`);
 
-/** Time left, written so it can't be read as a clock: «11 с 34 мүн», «44 мүн». */
+/** Time left, in words so it can't be read as a clock: «1 саат 20 мүн», «44 мүн». */
 const Countdown: React.FC<{ ms: number }> = ({ ms }) => {
     const m = Math.max(0, Math.ceil(ms / 60000)), h = Math.floor(m / 60);
-    return <>{h > 0 && <>{h}<small className="cd-unit">{t('с')}</small> </>}{m % 60}<small className="cd-unit">{t('мүн')}</small></>;
+    return <span className="tabular">{h > 0 ? `${h} ${t('саат')} ` : ''}{m % 60} {t('мүн')}</span>;
 };
 
 const RowLink: React.FC<{ onClick: () => void; eyebrow?: string; title: React.ReactNode; sub?: React.ReactNode; mark?: React.ReactNode }> = ({ onClick, eyebrow, title, sub, mark }) => (
@@ -206,6 +206,10 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
     const goalLabel = goal.key === 'sunrise' ? t('Күн чыкканга чейин')
         : ramadan && goal.key === 'maghrib' ? t('Ифтарга чейин')
             : t('{0} намазына чейин', PRAYER_NAMES[goal.key]);
+    const focus = shown ?? next;
+    const left = goal.at.getTime() - now.getTime();
+    // The minutes left count only near the end: within two hours.
+    const soon = left <= 2 * 3600000;
     const elapsed = Math.min(1, Math.max(0, (now.getTime() - span[0]) / Math.max(1, span[1] - span[0])));
     const prayer = currentPrayer(city, now);
     const practice = loadPractice();
@@ -240,16 +244,15 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
                     <g transform={`rotate(${elapsed * 360} 100 100)`}><rect x="95.5" y="1.5" width="9" height="9" transform="rotate(45 100 6)" className="dial-gem" /></g>
                 </svg>
                 <div className="dial-in">
-                    {/* What runs now (and since when), then the one number that
-                        changes with the clock: how long until the next prayer. */}
-                    <div className="eyebrow" style={{ color: 'var(--gold)' }}>
-                        {shown ? <>{t('Азыр')} · {PRAYER_NAMES[shown.key]} <span className="tabular">{clock(shown.at, city.tz)}</span></> : t('Кийинки намаз')}
+                    {/* One thing, said plainly: the prayer whose time it is (or
+                        the next one), its time, and the minutes left only
+                        when they are few enough to matter. */}
+                    <div className="eyebrow" style={{ color: 'var(--gold)' }}>{shown ? t('Азыр') : t('Кийинки намаз')}</div>
+                    <h1 className="font-display leading-[0.95] mt-2 text-[3.4rem] sm:text-[4.6rem] gold-sheen animate-view-in">{PRAYER_NAMES[focus.key]}</h1>
+                    <div className="font-display tabular mt-2 text-[1.3rem] sm:text-[1.55rem]" style={{ color: 'var(--text-primary)' }}>
+                        {shown ? <>{clock(shown.at, city.tz)}<span style={{ color: 'var(--text-muted)' }}> – </span>{clock(shown.endsAt, city.tz)}</> : clock(next.at, city.tz)}
                     </div>
-                    <div className="font-display tabular leading-[0.9] mt-2 text-[4.6rem] sm:text-[6rem] gold-sheen" aria-hidden="true"><Countdown ms={goal.at.getTime() - now.getTime()} /></div>
-                    <h1 className="font-display leading-tight mt-2 text-[1.25rem] sm:text-[1.5rem] animate-view-in" style={{ color: 'var(--text-primary)' }} aria-label={`${goalLabel}: ${untilText(goal.at.getTime() - now.getTime())}`}>{goalLabel}</h1>
-                    <div className="mt-1 text-[0.82rem] sm:text-[0.9rem]" style={{ color: 'var(--text-muted)' }}>
-                        {PRAYER_NAMES[goal.key]} <span className="tabular" style={{ color: 'var(--gold)' }}>{clock(goal.at, city.tz)}</span>
-                    </div>
+                    {soon && <div className="mt-1 text-[0.82rem] sm:text-[0.9rem]" style={{ color: 'var(--text-muted)' }}>{goalLabel} · <Countdown ms={left} /></div>}
                 </div>
             </div>
             <DayPath times={times} now={now} tz={city.tz} next={shown ? shown.key : next.key} />
