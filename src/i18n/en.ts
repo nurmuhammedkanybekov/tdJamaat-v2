@@ -1516,5 +1516,16 @@ export const EN: Record<string, string> = {
     "Жиберүү": "Send",
     "Бүгүн {0} / 5 окулду": "{0} of 5 read today",
     "катары менен {0} күн толук": "{0} full days in a row",
-    "окула элек": "not read yet"
+    "окула элек": "not read yet",
+    "Үйдүн ар бир адамынын жаттоо, Куран жана китеп пландары. Көңүл керек болгондор биринчи турат. Мөөнөттү узартасыз, окуп бергенин «Угулду» деп белгилейсиз.": "Every person's memorization, Quran and book plans in your house. Those who need attention come first. You move due dates and mark recitations as heard.",
+    "Меню → Пландар": "Menu → Plans",
+    "Сурамжылоо жана жеке кат": "Polls and private messages",
+    "Чатта жазуунун жанындагы диаграмма баскычы сурамжылоо ачат. «Жеке каттар» бөлүмүндө үйүңүздүн адамдарына, капитандарга жана админге жеке жазасыз.": "In a chat, the chart button next to the message box starts a poll. Under \"Private messages\" you write privately to your house, the captains and the admin.",
+    "Жаттоо, Куран окуу жана китеп пландары. Жаттаганыңызды капитаныңызга окуп бергенде, ал «Угулду» деп белгилейт.": "Memorization, Quran reading and book plans. When you recite to your captain, they mark it as heard.",
+    "Календарь жана орозо": "Calendar and fasting",
+    "Хижрий күн, майрамдар жана сүннөт орозо күндөрү. Кармаган орозоңузду, каза орозолорду жана күнгө планды белгилейсиз.": "The hijri date, holy days and sunnah fasting days. Mark the fasts you keep, your make-up fasts and a plan for any day.",
+    "Меню → Календарь": "Menu → Calendar",
+    "Үйүңүздүн адамдарына, капитаныңызга же админге жеке жаза аласыз. Аны экөөңүз гана көрөсүз.": "Write privately to the people of your house, your captain or the admin. Only the two of you see it.",
+    "Чаттар → Жеке каттар": "Chats → Private messages",
+    "{0} жаңы жеке кат": "{0} new private messages"
 };

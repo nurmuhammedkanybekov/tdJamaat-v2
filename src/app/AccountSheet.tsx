@@ -11,6 +11,7 @@ import { useBackCloses } from '../hooks/useBackCloses';
 import { AppContext } from './context';
 import { useSelf } from './self';
 import { useMyPhoto } from './myPhoto';
+import { useDmUnread } from './dmUnread';
 import { go } from './route';
 import { signOutMember } from '../services/memberService';
 import { signOut } from '../services/authService';
@@ -42,8 +43,10 @@ export const AccountMark: React.FC<{ onClick: () => void }> = ({ onClick }) => {
     const role = ctx.signedIn ? ctx.role : ctx.member?.status === 'linked' ? 'member' : guest ? 'guest' : null;
     const name = self?.name ?? (ctx.member?.status === 'linked' ? ctx.member.link.name : guest?.name ?? '');
     const photo = own ?? guest?.photo ?? null;
+    const unread = useDmUnread(!!ctx.signedIn || ctx.member?.status === 'linked');
     return (
-        <button onClick={onClick} aria-label={t('Меню')} title={t('Меню')} className="menu-pill mr-1">
+        <button onClick={onClick} aria-label={unread ? `${t('Меню')} · ${t('{0} жаңы жеке кат', unread)}` : t('Меню')} title={t('Меню')} className="menu-pill mr-1 relative">
+            {unread > 0 && <i className="menu-dot" aria-hidden="true" />}
             <span className="menu-lines" aria-hidden="true"><i /><i /><i /></span>
             {role === 'admin' ? <span className="chat-admin-seal" style={{ width: 30, height: 30 }}><Mark size={16} /></span>
                 : role === 'inspector' && !self ? <span className="chat-cl-seal" style={{ width: 30, height: 30, fontSize: '0.62rem' }}>CL</span>
@@ -71,6 +74,7 @@ export const AccountSheet: React.FC<{ onClose: () => void }> = ({ onClose }) => 
     const here = window.location.hash.split('?')[0];
     const open = (hash: string) => { onClose(); go(hash); };
     const staff = ctx.signedIn && role !== 'inspector';
+    const unread = useDmUnread(!!ctx.signedIn || !!linked);
 
     const groups: Array<{ title: string; items: Item[] }> = [
         ...(person ? [{
@@ -87,7 +91,7 @@ export const AccountSheet: React.FC<{ onClose: () => void }> = ({ onClose }) => 
                 ...(role === 'inspector' ? [{ key: 'tazalyk', icon: Sparkles, label: t('Тазалык'), sub: t('Үйлөрдү баалоо'), to: '#/overview' }] : []),
                 ...(role !== 'inspector' ? [{ key: 'jamaat', icon: Users, label: t('Жамааттын жыйынтыгы'), sub: t('Үйлөрдүн жарышы жана бирге окулган Куран'), to: '#/jamaat' }] : []),
                 ...(role === 'admin' ? [{ key: 'houses', icon: Home, label: t('Бардык үйлөр'), sub: t('Ар бир үй жана анын чаты'), to: '#/house' }] : []),
-                { key: 'talk', icon: MessageCircle, label: t('Чаттар'), sub: t('Жамааттын, капитандардын жана үйдүн чаты'), to: '#/chat' }
+                { key: 'talk', icon: MessageCircle, label: t('Чаттар'), sub: unread > 0 ? t('{0} жаңы жеке кат', unread) : t('Жамааттын, капитандардын жана үйдүн чаты'), to: '#/chat', dot: unread > 0 }
             ]
         }] : []),
         {
@@ -162,7 +166,7 @@ export const AccountSheet: React.FC<{ onClose: () => void }> = ({ onClose }) => 
                                             <button onClick={() => open(it.to)} className={`nav-item ${current ? 'is-here' : ''}`} aria-current={current ? 'page' : undefined}>
                                                 <it.icon className="w-[1.15rem] h-[1.15rem] flex-shrink-0 mt-[0.2rem]" strokeWidth={1.3} />
                                                 <span className="min-w-0">
-                                                    <span className="nav-item-l">{it.label}</span>
+                                                    <span className="nav-item-l">{it.label}{it.dot && <i className="nav-dot" aria-hidden="true" />}</span>
                                                     <span className="nav-item-s">{it.sub}</span>
                                                 </span>
                                             </button>
