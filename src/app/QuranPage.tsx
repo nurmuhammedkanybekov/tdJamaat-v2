@@ -16,7 +16,9 @@ import { QuranGoTo } from './QuranGoTo';
 import { basmalaOf, cachedIndex, cachedSurah, loadIndex, loadJuz, loadSurah, loadTranslation, sourceNote, translationLang, withoutNumber } from './quranData';
 import type { ReadMode } from './quranStore';
 import { isMarked, loadLastRead, loadMarks, loadMode, loadSize, parseRef, saveLastRead, saveMode, saveSize, searchKey, toggleMark } from './quranStore';
-import { addPages, loadPractice, pageReadToday, pagesOn, removePage, savePractice } from './practice';
+import { loadPractice, pageReadToday, pagesOn } from './practice';
+import { ReadSheet } from './ReadSheet';
+import { createPortal } from 'react-dom';
 
 const useIndex = () => {
     const [index, setIndex] = useState<Surah[] | null>(cachedIndex());
@@ -79,6 +81,7 @@ const Contents: React.FC<{ theme: Theme; onToggleTheme: () => void }> = ({ theme
                     <button onClick={() => go(`#/quran/p/${last?.page ?? 1}`)} className="q-mushaf">
                         <span className="quran-text" aria-hidden="true">۞</span>{t('Мусхафты барак боюнча окуу')}<ChevronRight className="w-3.5 h-3.5" />
                     </button>
+                    <ReadToday page={last?.page ?? 0} />
                 </section>
 
                 <label className="relative block mt-6">
@@ -297,23 +300,50 @@ const useFollowVoice = (surahOf: (el: HTMLElement) => number) => {
     }, [rec.surah, rec.ayah, rec.playing, surahOf]);
 };
 
-/** "I read this page": pages count only when the reader says so, not by
- *  scrolling past them. A tap again takes it back. */
+/** "Окудум": pages count only when the reader says so, not by scrolling past
+ *  them. Shows whether the open page is marked and how many today; opens the
+ *  sheet to mark this page, a range, a juz or a surah. */
 const PageMark: React.FC<{ page: number }> = ({ page }) => {
     const [, bump] = useState(0);
+    const [open, setOpen] = useState(false);
+    useEffect(() => {
+        const on = () => bump(n => n + 1);
+        window.addEventListener('tdjamaat-practice', on);
+        return () => window.removeEventListener('tdjamaat-practice', on);
+    }, []);
     const done = pageReadToday(loadPractice(), page);
     const today = pagesOn(loadPractice());
-    const toggle = () => {
-        const p = loadPractice();
-        savePractice(done ? removePage(p, page) : addPages(p, [page]));
-        bump(n => n + 1);
-    };
     return (
-        <button onClick={toggle} aria-pressed={done} title={t('Бүгүн окулган беттер: {0}', today)} className={`page-mark ${done ? 'is-done' : ''}`}>
-            <span className="page-mark-gem" aria-hidden="true">{done && <Check className="w-3 h-3" strokeWidth={2.4} />}</span>
-            <span>{done ? t('Окулду') : t('Окудум')}</span>
-            {today > 0 && <span className="page-mark-n tabular">{today}</span>}
-        </button>
+        <>
+            <button onClick={() => setOpen(true)} aria-haspopup="dialog" title={t('Бүгүн окулган беттер: {0}', today)} className={`page-mark ${done ? 'is-done' : ''}`}>
+                <span className="page-mark-gem" aria-hidden="true">{done && <Check className="w-3 h-3" strokeWidth={2.4} />}</span>
+                <span>{done ? t('Окулду') : t('Окудум')}</span>
+                {today > 0 && <span className="page-mark-n tabular">{today}</span>}
+            </button>
+            {open && createPortal(<ReadSheet page={page} onClose={() => setOpen(false)} />, document.body)}
+        </>
+    );
+};
+
+/** On the Quran's first page: today's pages, and the way to mark what was
+ *  read (also from a paper mushaf). */
+const ReadToday: React.FC<{ page: number }> = ({ page }) => {
+    const [, bump] = useState(0);
+    const [open, setOpen] = useState(false);
+    useEffect(() => {
+        const on = () => bump(n => n + 1);
+        window.addEventListener('tdjamaat-practice', on);
+        return () => window.removeEventListener('tdjamaat-practice', on);
+    }, []);
+    const today = pagesOn(loadPractice());
+    return (
+        <>
+            <button onClick={() => setOpen(true)} className="q-mushaf q-read" aria-haspopup="dialog">
+                <span className="page-mark-gem" aria-hidden="true">{today > 0 && <Check className="w-3 h-3" strokeWidth={2.4} />}</span>
+                {today > 0 ? t('Бүгүн {0} бет окулду', today) : t('Окугандарымды белгилөө')}<ChevronRight className="w-3.5 h-3.5" />
+            </button>
+            {open && createPortal(<ReadSheet page={page} onClose={() => setOpen(false)} />, document.body)}
+        </>
     );
 };
 

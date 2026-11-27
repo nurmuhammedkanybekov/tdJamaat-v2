@@ -1607,3 +1607,41 @@ button.help-where:hover { border-bottom-color: var(--gold); }
   .acct-face { width: 68px; height: 68px; }
 }
 .welcome-p { max-width: 34rem; font-size: .98rem; line-height: 1.6; color: var(--text-secondary); }
+
+/* ---------------------------------------------------------------- "Окудум" sheet */
+.q-read { margin-top: .35rem; }
+.read-day { display: flex; align-items: center; gap: 1.2rem; padding-top: 1.2rem; }
+.read-day > button { position: relative; padding: .35rem 0; font-size: .72rem; letter-spacing: .2em; text-transform: uppercase; color: var(--text-muted); }
+.read-day > button[data-on] { color: var(--gold); }
+.read-day > button[data-on]::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: var(--gold); }
+.read-day-n { margin-left: auto; font-size: .85rem; color: var(--text-muted); }
+.read-this { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 1.2rem; padding: 1.1rem 0 1.1rem 1.1rem; border-left: 2px solid var(--gold); background: linear-gradient(90deg, color-mix(in oklab, var(--gold) 8%, transparent), transparent 80%); }
+.read-this .btn { min-height: 2.9rem; padding-inline: 1.4rem; }
+.read-this-done { display: inline-flex; align-items: center; gap: .45rem; font-size: .74rem; letter-spacing: .18em; text-transform: uppercase; color: var(--success); white-space: nowrap; }
+.read-undo { font-size: .66rem; letter-spacing: .12em; color: var(--text-muted); text-decoration: underline; text-underline-offset: 3px; margin-left: .25rem; }
+.read-range { display: flex; align-items: flex-end; gap: 1rem; }
+.read-range label { display: flex; flex-direction: column; gap: .2rem; }
+.read-dash { font-size: 1.6rem; color: var(--text-muted); padding-bottom: .5rem; }
+.read-quick { display: flex; flex-wrap: wrap; gap: .4rem 1.2rem; margin-top: 1rem; }
+.read-quick button { font-size: .7rem; letter-spacing: .18em; text-transform: uppercase; color: var(--gold); padding: .35rem 0; }
+.read-juz { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .3rem .5rem; }
+.read-juz-cell { position: relative; height: 3.1rem; font-size: 1.3rem; color: var(--text-primary); transition: color .15s; z-index: 0; }
+.read-juz-cell::after { content: ""; position: absolute; left: 12%; right: 12%; bottom: 4px; height: 1px; background: var(--border-strong); }
+.read-juz-cell > i { position: absolute; left: 12%; bottom: 3px; height: 3px; max-width: 76%; background: var(--success); z-index: 1; }
+.read-juz-cell:hover { color: var(--gold); }
+.read-juz-cell[data-here] { color: var(--gold); }
+.read-juz-cell[data-here]::before { content: ""; position: absolute; top: 3px; left: 50%; width: 5px; height: 5px; margin-left: -2.5px; transform: rotate(45deg); background: var(--gold); }
+.read-juz-cell[data-on] { color: var(--page-plane); }
+.read-juz-cell[data-on]::before { content: ""; position: absolute; top: 50%; left: 50%; width: 2.3rem; height: 2.3rem; margin: -1.3rem 0 0 -1.15rem; transform: rotate(45deg); background: var(--gold); z-index: -1; }
+.read-tick { width: 18px; height: 18px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--border-strong); transform: rotate(45deg); }
+.read-tick > svg { transform: rotate(-45deg); }
+.read-tick.is-on { background: var(--gold); border-color: var(--gold); color: var(--page-plane); }
+.read-go { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.read-go .btn { min-height: 3rem; padding-inline: 1.5rem; flex-shrink: 0; }
+.read-said { margin-top: .5rem; font-size: .85rem; color: var(--success); }
+.read-list { margin-top: .6rem; }
+.read-list li { display: flex; align-items: baseline; gap: .8rem; padding: .6rem 0; border-bottom: 1px solid var(--border); }
+.read-list li > span:nth-child(2) { flex: 1; }
+.read-x { width: 2rem; height: 2rem; display: inline-flex; align-items: center; justify-content: center; align-self: center; color: var(--text-muted); }
+.read-x:hover { color: var(--danger); }
+.read-this-not { font-size: .7rem; letter-spacing: .18em; text-transform: uppercase; color: var(--text-muted); white-space: nowrap; }

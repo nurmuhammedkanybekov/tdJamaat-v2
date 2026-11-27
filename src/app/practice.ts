@@ -66,6 +66,15 @@ export const removePage = (s: PracticeStore, page: number, now = new Date()): Pr
     return { ...s, pages: { ...s.pages, [key]: have } };
 };
 
+/** Takes pages back from a day. */
+export const removePages = (s: PracticeStore, pages: number[], now = new Date()): PracticeStore => {
+    const key = dayKey(now), drop = new Set(pages);
+    return { ...s, pages: { ...s.pages, [key]: (s.pages[key] ?? []).filter(p => !drop.has(p)) } };
+};
+
+/** The pages marked on a day. */
+export const pagesOfDay = (s: PracticeStore, now = new Date()) => s.pages[dayKey(now)] ?? [];
+
 export const pageReadToday = (s: PracticeStore, page: number, now = new Date()) => (s.pages[dayKey(now)] ?? []).includes(page);
 
 export const pagesOn = (s: PracticeStore, now = new Date()) => (s.pages[dayKey(now)] ?? []).length;
