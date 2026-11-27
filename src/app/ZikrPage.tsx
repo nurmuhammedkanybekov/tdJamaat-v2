@@ -135,7 +135,7 @@ const Counter: React.FC<{ zikr: Zikr; store: ZikrStore; update: (fn: (s: ZikrSto
                     <div className="pb-3 flex items-center justify-center gap-6">
                         <Virtue zikr={zikr} />
                         <button type="button" onClick={() => update(s => toggleFav(s, zikr.id))} aria-pressed={isFav(store, zikr.id)} className="z-fav" data-on={isFav(store, zikr.id) || undefined}>
-                            <Star className="w-3.5 h-3.5" fill={isFav(store, zikr.id) ? 'currentColor' : 'none'} />{isFav(store, zikr.id) ? t('Тандалган') : t('Тандоо')}
+                            <Star className="w-3.5 h-3.5" fill={isFav(store, zikr.id) ? 'currentColor' : 'none'} />{isFav(store, zikr.id) ? t('Тандалган') : t('Тандалгандарга кошуу')}
                         </button>
                         {zikr.id.startsWith('c-') && <button type="button" onClick={() => { if (window.confirm(t('Бул зикирди өчүрөсүзбү? Саналгандары калат.'))) { update(s => removeCustom(s, zikr.id)); go('#/zikr'); } }} className="z-fav" style={{ color: 'var(--danger)' }}><Trash2 className="w-3.5 h-3.5" />{t('Өчүрүү')}</button>}
                     </div>
@@ -234,7 +234,7 @@ const WeekGoal: React.FC<{ store: ZikrStore; update: (fn: (s: ZikrStore) => Zikr
                         <button onClick={() => setEdit(true)} className="z-fav">{t('Өзгөртүү')}</button>
                     </div>
                     <div className="z-goal mt-3"><i style={{ width: `${part * 100}%` }} /></div>
-                    <p className="mt-2 text-[0.85rem]" style={{ color: 'var(--text-muted)' }}>{part >= 1 ? t('Бул аптанын максаты орундалды. Аллах кабыл кылсын.') : t('Шаршембиге чейин дагы {0}.', goal - have)}</p>
+                    <p className="mt-2 text-[0.85rem]" style={{ color: 'var(--text-muted)' }}>{part >= 1 ? t('Бул аптанын максаты аткарылды. Аллах кабыл кылсын.') : t('Шаршембиге чейин дагы {0}.', goal - have)}</p>
                 </div>
             ) : (
                 <div className="pt-4">

@@ -66,7 +66,7 @@ export const PollForm: React.FC<{ onSend: (q: string, options: string[], multi: 
                 </label>
             </div>
             <div className="flex justify-end mt-3">
-                <button type="submit" disabled={!ok || busy} className="btn btn-primary">{busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}{t('Жиберүү')}</button>
+                <button type="submit" disabled={!ok || busy} className="btn btn-primary">{busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}{t('Жөнөтүү')}</button>
             </div>
         </form>
     );

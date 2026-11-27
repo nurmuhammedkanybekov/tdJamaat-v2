@@ -155,7 +155,7 @@ export const CalendarPage: React.FC<{ theme: Theme; onToggleTheme: () => void }>
                     <label className="block mt-7">
                         <span className="eyebrow">{t('Бул күнгө план')}</span>
                         <textarea value={note} onChange={e => setNoteText(e.target.value)} onBlur={() => save(s => setNote(s, picked, note))} rows={1} maxLength={500}
-                            placeholder={t('мис. Куптандан кийин 1 пара; ата-энеме телефон')} className="cal-plan" />
+                            placeholder={t('мис. куптандан кийин 1 пара; ата-энеме телефон чалуу')} className="cal-plan" />
                     </label>
                 </section>
 
