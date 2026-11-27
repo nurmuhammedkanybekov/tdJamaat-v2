@@ -4,7 +4,7 @@ import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { Bell, BellOff, Check, Pencil, Pin, Trash2, X } from 'lucide-react';
 import type { Theme } from '../theme';
 import { Mark } from '../components/Ornament';
-import { isEnglish, t } from '../i18n';
+import { t, dateLocale } from '../i18n';
 import { AppFrame, Waiting } from './AppFrame';
 import { AppContext } from './context';
 import { go } from './route';
@@ -14,7 +14,7 @@ import { disableNotify, enableNotify, notifySupported, useNotifyState } from './
 import { supabase } from '../lib/supabase';
 
 const KY_MONTHS = ['январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'];
-const dateOf = (iso: string) => { const d = new Date(iso); return isEnglish() ? d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' }) : `${d.getDate()}-${KY_MONTHS[d.getMonth()]}`; };
+const dateOf = (iso: string) => { const d = new Date(iso); return dateLocale() ? d.toLocaleDateString(dateLocale()!, { day: 'numeric', month: 'long' }) : `${d.getDate()}-${KY_MONTHS[d.getMonth()]}`; };
 
 /** Notifications on or off (where the phone allows them). */
 export const NotifyToggle: React.FC = () => {

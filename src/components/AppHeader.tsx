@@ -13,7 +13,8 @@ import { formatHijri, isRamadan, toHijri } from '../utils/hijri';
 import { PRAYER_NAMES, clock, nextPrayer, prayerTimes } from '../utils/prayer';
 import { CountUp, HornBand, SkyLayer, Sparks, StarField } from './motion';
 import { skyAt } from '../utils/sky';
-import { isEnglish, setLang, t } from '../i18n';
+import { t } from '../i18n';
+import { LangSwitch } from './LangSwitch';
 import { readStaff } from '../app/self';
 import { useMyPhoto } from '../app/myPhoto';
 
@@ -212,16 +213,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                             </button>
                         )}
                         {/* Language: each option is named in its own language, so it is never translated. */}
-                        <button
-                            onClick={() => setLang(isEnglish() ? 'ky' : 'en')}
-                            lang={isEnglish() ? 'ky' : 'en'}
-                            aria-label={isEnglish() ? 'Кыргызча' : 'English'}
-                            title={isEnglish() ? 'Кыргызча' : 'English'}
-                            className="h-10 min-w-10 px-1.5 inline-flex items-center justify-center text-[0.72rem] font-semibold tracking-[0.16em] transition-colors hover:text-[var(--gold)]"
-                            style={{ color: 'var(--text-secondary)' }}
-                        >
-                            {isEnglish() ? 'КЫР' : 'EN'}
-                        </button>
+                        <LangSwitch className={"h-10 min-w-10 px-1.5 inline-flex items-center justify-center text-[0.72rem] font-semibold tracking-[0.16em] transition-colors hover:text-[var(--gold)]"} style={{ color: 'var(--text-secondary)' }} />
                         <IconButton label={theme === 'dark' ? t('Жарык тема') : t('Караңгы тема')} onClick={onToggleTheme}><ThemeIcon className="w-[1.1rem] h-[1.1rem]" strokeWidth={1.5} /></IconButton>
                         <Dropdown
                             items={items}

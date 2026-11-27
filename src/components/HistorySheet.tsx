@@ -6,7 +6,7 @@ import type { AuditEntry } from '../services/dataService';
 import { fetchAuditLog } from '../services/dataService';
 import { Sheet } from './ui';
 import { weekLabel } from '../utils/seasons';
-import { isEnglish, t } from '../i18n';
+import { isEnglish, t, isRussian } from '../i18n';
 import { cardLabel, metricLabel } from '../utils/metrics';
 
 interface HistorySheetProps {
@@ -44,6 +44,7 @@ const MONTHS = [t('январь'), t('февраль'), t('март'), t('апр
 const WEEKDAYS = [t('жекшемби'), t('дүйшөмбү'), t('шейшемби'), t('шаршемби'), t('бейшемби'), t('жума'), t('ишемби')];
 const dayLabel = (iso: string) => {
     const d = new Date(iso);
+    if (isRussian()) return d.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
     return isEnglish() ? `${WEEKDAYS[d.getDay()]}, ${d.getDate()} ${MONTHS[d.getMonth()]}` : `${d.getDate()}-${MONTHS[d.getMonth()]}, ${WEEKDAYS[d.getDay()]}`;
 };
 const timeLabel = (iso: string) => {

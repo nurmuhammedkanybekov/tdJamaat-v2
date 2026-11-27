@@ -4,7 +4,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ChevronLeft, ChevronRight, Minus, Plus } from 'lucide-react';
 import type { Theme } from '../theme';
-import { t, isEnglish } from '../i18n';
+import { t, dateLocale } from '../i18n';
 import { AppFrame } from './AppFrame';
 import { OrnamentDivider } from '../components/Ornament';
 import { HIJRI_MONTHS, formatHijri } from '../utils/hijri';
@@ -14,8 +14,8 @@ import { fastOn, loadCalendar, qazaDone, saveCalendar, setFast, setNote } from '
 import { dayKey } from '../utils/zikr';
 
 const KY_MONTHS = ['январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'];
-const monthName = (d: Date) => (isEnglish() ? d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }) : `${d.getFullYear()}-жыл, ${KY_MONTHS[d.getMonth()]}`);
-const dayLabel = (d: Date) => (isEnglish() ? d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }) : `${d.getDate()}-${KY_MONTHS[d.getMonth()]}, ${[t('жекшемби'), t('дүйшөмбү'), t('шейшемби'), t('шаршемби'), t('бейшемби'), t('жума'), t('ишемби')][d.getDay()]}`);
+const monthName = (d: Date) => (dateLocale() ? d.toLocaleDateString(dateLocale()!, { month: 'long', year: 'numeric' }) : `${d.getFullYear()}-жыл, ${KY_MONTHS[d.getMonth()]}`);
+const dayLabel = (d: Date) => (dateLocale() ? d.toLocaleDateString(dateLocale()!, { weekday: 'long', day: 'numeric', month: 'long' }) : `${d.getDate()}-${KY_MONTHS[d.getMonth()]}, ${[t('жекшемби'), t('дүйшөмбү'), t('шейшемби'), t('шаршемби'), t('бейшемби'), t('жума'), t('ишемби')][d.getDay()]}`);
 const WEEK = () => [t('Дш'), t('Шш'), t('Шр'), t('Бш'), t('Жм'), t('Иш'), t('Жш')];
 
 const KINDS: Array<[FastKind, () => string]> = [['sunnah', () => t('Сүннөт')], ['nafl', () => t('Нафил')], ['qaza', () => t('Каза')], ['nazr', () => t('Назир')]];

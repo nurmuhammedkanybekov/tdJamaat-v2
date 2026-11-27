@@ -6,7 +6,8 @@ import { Mark } from './Ornament';
 import { HornBand } from './motion';
 import { TazalykPanel } from './TazalykPanel';
 import { signOut } from '../services/authService';
-import { isEnglish, setLang, t } from '../i18n';
+import { t } from '../i18n';
+import { LangSwitch } from './LangSwitch';
 import type { Theme } from '../theme';
 
 export const InspectorScreen: React.FC<{ theme: Theme; onToggleTheme: () => void }> = ({ theme, onToggleTheme }) => {
@@ -16,7 +17,7 @@ export const InspectorScreen: React.FC<{ theme: Theme; onToggleTheme: () => void
             <div className="mx-auto max-w-[40rem]">
                 <header className="flex items-center gap-2 h-16">
                     <span className="flex items-center gap-2.5 flex-1 min-w-0" style={{ color: 'var(--gold)' }}><Mark size={38} solid /><span className="font-display text-[1.35rem] leading-none">tdJamaat</span></span>
-                    <button onClick={() => setLang(isEnglish() ? 'ky' : 'en')} className={`${quiet} text-[0.72rem] font-semibold tracking-[0.16em]`} style={{ color: 'var(--text-secondary)' }}>{isEnglish() ? 'КЫР' : 'EN'}</button>
+                    <LangSwitch className={`${quiet} text-[0.72rem] font-semibold tracking-[0.16em]`} style={{ color: 'var(--text-secondary)' }} />
                     <button onClick={onToggleTheme} aria-label={theme === 'dark' ? t('Жарык тема') : t('Караңгы тема')} className={quiet} style={{ color: 'var(--text-secondary)' }}>
                         {theme === 'dark' ? <Sun className="w-[1.1rem] h-[1.1rem]" strokeWidth={1.5} /> : <Moon className="w-[1.1rem] h-[1.1rem]" strokeWidth={1.5} />}
                     </button>

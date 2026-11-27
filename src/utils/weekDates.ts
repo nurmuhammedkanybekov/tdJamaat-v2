@@ -1,7 +1,7 @@
 // The jamaat week runs Thursday → Wednesday. Week dates are
 // stored on each week (weeks.start_date / end_date); the admin sets the
 // Thursday the season's first week began and every week follows from it.
-import { isEnglish } from '../i18n';
+import { isEnglish, isRussian } from '../i18n';
 
 const DAY = 86400000;
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -26,13 +26,14 @@ export const thursdayOf = (d: Date) => {
 };
 
 const KY_MONTHS = ['январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'];
+const RU_MONTHS = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
 const EN_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 /** "20–26 ноябрь" / "27 ноябрь – 3 декабрь" (English: "20–26 Nov"). Empty if unknown. */
 export const formatWeekRange = (start: string | null, end: string | null): string => {
     if (!start || !end || !/^\d{4}-\d{2}-\d{2}$/.test(start) || !/^\d{4}-\d{2}-\d{2}$/.test(end)) return start || end || '';
     const a = parse(start), b = parse(end);
-    const months = isEnglish() ? EN_MONTHS : KY_MONTHS;
+    const months = isEnglish() ? EN_MONTHS : isRussian() ? RU_MONTHS : KY_MONTHS;
     const m = (d: Date) => months[d.getUTCMonth()];
     if (a.getUTCMonth() === b.getUTCMonth()) {
         return isEnglish() ? `${a.getUTCDate()}–${b.getUTCDate()} ${m(b)}` : `${a.getUTCDate()}–${b.getUTCDate()} ${m(b)}`;

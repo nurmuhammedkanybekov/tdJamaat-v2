@@ -9,7 +9,8 @@ import { signInWithGoogle } from '../services/memberService';
 import { SkyLayer, StarField } from './motion';
 import { skyAt } from '../utils/sky';
 import { loadCity } from '../utils/city';
-import { isEnglish, setLang, t } from '../i18n';
+import { t } from '../i18n';
+import { LangSwitch } from './LangSwitch';
 
 // The site is private: nothing is shown until a captain or the admin logs in.
 // The database enforces it too (supabase/private-site-2026-11.sql) — before
@@ -86,14 +87,7 @@ export const LoginScreen: React.FC<{ theme: Theme; onToggleTheme: () => void }> 
                 <a href="#/today" className="flex-1 inline-flex items-center gap-2 text-[0.7rem] tracking-[0.2em] uppercase transition-colors hover:text-[var(--gold)]">
                     <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />{t('Менин күнүм')}
                 </a>
-                <button
-                    onClick={() => setLang(isEnglish() ? 'ky' : 'en')}
-                    lang={isEnglish() ? 'ky' : 'en'}
-                    aria-label={isEnglish() ? 'Кыргызча' : 'English'}
-                    className={`${iconBtn} text-[0.72rem] font-semibold tracking-[0.16em]`}
-                >
-                    {isEnglish() ? 'КЫР' : 'EN'}
-                </button>
+                <LangSwitch className={`${iconBtn} text-[0.72rem] font-semibold tracking-[0.16em]`} />
                 <button onClick={onToggleTheme} aria-label={theme === 'dark' ? t('Жарык тема') : t('Караңгы тема')} className={iconBtn}>
                     {theme === 'dark' ? <Sun className="w-[1.1rem] h-[1.1rem]" strokeWidth={1.5} /> : <Moon className="w-[1.1rem] h-[1.1rem]" strokeWidth={1.5} />}
                 </button>

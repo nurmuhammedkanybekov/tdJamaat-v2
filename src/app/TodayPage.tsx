@@ -18,7 +18,7 @@ import { calculateHouseRating } from '../utils/scoring';
 import { weekComplete } from '../utils/insights';
 import { formatWeekRange } from '../utils/weekDates';
 import { withReload } from '../lazyLoad';
-import { isEnglish, t } from '../i18n';
+import { t, dateLocale } from '../i18n';
 import { AppFrame, Section } from './AppFrame';
 import { AppContext } from './context';
 import { useSelf } from './self';
@@ -39,8 +39,8 @@ const PrayerSheet = lazy(withReload(() => import('../components/PrayerSheet').th
 
 const KY_DAYS = ['Жекшемби', 'Дүйшөмбү', 'Шейшемби', 'Шаршемби', 'Бейшемби', 'Жума', 'Ишемби'];
 const KY_MONTHS = ['январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'];
-const weekday = (d: Date) => (isEnglish() ? d.toLocaleDateString('en-GB', { weekday: 'long' }) : KY_DAYS[d.getDay()]);
-const dayMonth = (d: Date) => (isEnglish() ? d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' }) : `${d.getDate()}-${KY_MONTHS[d.getMonth()]}`);
+const weekday = (d: Date) => (dateLocale() ? d.toLocaleDateString(dateLocale()!, { weekday: 'long' }) : KY_DAYS[d.getDay()]);
+const dayMonth = (d: Date) => (dateLocale() ? d.toLocaleDateString(dateLocale()!, { day: 'numeric', month: 'long' }) : `${d.getDate()}-${KY_MONTHS[d.getMonth()]}`);
 
 /** Time left, in words so it can't be read as a clock: «1 саат 20 мүн», «44 мүн». */
 const Countdown: React.FC<{ ms: number }> = ({ ms }) => {

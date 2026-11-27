@@ -6,7 +6,7 @@
 import React, { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ArrowDown, ArrowUp, ChartNoAxesColumn, ChevronRight, Loader2, MessageCircle, Pencil, Plus, Shield, Trash2, Users } from 'lucide-react';
 import type { Theme } from '../theme';
-import { isEnglish, t } from '../i18n';
+import { t, dateLocale } from '../i18n';
 import { AppFrame, Waiting } from './AppFrame';
 import { AppContext } from './context';
 import { useSelf } from './self';
@@ -30,7 +30,7 @@ const dayLabel = (d: Date, now = new Date()) => {
     const b = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
     if (a === b) return t('Бүгүн');
     if (b - a === 86400000) return t('Кечээ');
-    return isEnglish() ? d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' }) : `${d.getDate()}-${KY_MONTHS[d.getMonth()]}`;
+    return dateLocale() ? d.toLocaleDateString(dateLocale()!, { day: 'numeric', month: 'long' }) : `${d.getDate()}-${KY_MONTHS[d.getMonth()]}`;
 };
 const hm = (d: Date) => `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 

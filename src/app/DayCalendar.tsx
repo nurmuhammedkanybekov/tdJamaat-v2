@@ -2,7 +2,7 @@
 // kept that day (zikr/salawat, tasbihat, Quran pages), the fuller the gold.
 // The run of kept days and the best run sit beside it.
 import React, { useMemo } from 'react';
-import { isEnglish, t } from '../i18n';
+import { isEnglish, t, dateLocale, isRussian } from '../i18n';
 import { loadZikr } from '../utils/zikr';
 import { loadPractice } from './practice';
 import { bestRun, currentRun, lastMarks } from './consistency';
@@ -10,6 +10,7 @@ import { bestRun, currentRun, lastMarks } from './consistency';
 // The jamaat week runs Thursday → Wednesday, so the columns do too.
 const WEEKDAYS_KY = ['Бш', 'Жм', 'Иш', 'Жк', 'Дш', 'Шш', 'Шр'];
 const WEEKDAYS_EN = ['Th', 'Fr', 'Sa', 'Su', 'Mo', 'Tu', 'We'];
+const WEEKDAYS_RU = ['Чт', 'Пт', 'Сб', 'Вс', 'Пн', 'Вт', 'Ср'];
 
 export const DayCalendar: React.FC<{ now: Date }> = ({ now }) => {
     const { marks, run, best } = useMemo(() => {
@@ -20,7 +21,7 @@ export const DayCalendar: React.FC<{ now: Date }> = ({ now }) => {
         return { marks: lastMarks(zikr, practice, n, now), run: currentRun(zikr, practice, now), best: bestRun(zikr, practice) };
     }, [now]);
     const kept = marks.filter(m => m.level > 0).length;
-    const names = isEnglish() ? WEEKDAYS_EN : WEEKDAYS_KY;
+    const names = isEnglish() ? WEEKDAYS_EN : isRussian() ? WEEKDAYS_RU : WEEKDAYS_KY;
     const todayKey = marks[marks.length - 1]?.key;
     return (
         <div className="daycal">
@@ -38,7 +39,7 @@ export const DayCalendar: React.FC<{ now: Date }> = ({ now }) => {
                 {names.map(d => <span key={d} className="daycal-head">{d}</span>)}
                 {marks.map(m => (
                     <span key={m.key} className={`daycal-day lv-${m.level} ${m.key === todayKey ? 'is-today' : ''}`}
-                        title={`${m.date.toLocaleDateString(isEnglish() ? 'en-GB' : 'ru-RU', { day: 'numeric', month: 'short' })} · ${t('зикир {0} · тасбихат {1} · бет {2}', m.zikr, m.tasbihat, m.pages)}`}>
+                        title={`${m.date.toLocaleDateString(dateLocale() ?? 'ru-RU', { day: 'numeric', month: 'short' })} · ${t('зикир {0} · тасбихат {1} · бет {2}', m.zikr, m.tasbihat, m.pages)}`}>
                         <i />
                     </span>
                 ))}

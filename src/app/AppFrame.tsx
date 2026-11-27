@@ -9,7 +9,8 @@ import { HornBand, SkyLayer, StarField } from '../components/motion';
 import { useNow } from '../hooks/useNow';
 import { loadCity } from '../utils/city';
 import { skyAt } from '../utils/sky';
-import { isEnglish, setLang, t } from '../i18n';
+import { t } from '../i18n';
+import { LangSwitch } from '../components/LangSwitch';
 import type { Theme } from '../theme';
 import type { AppPage } from './route';
 import { go } from './route';
@@ -92,9 +93,7 @@ export const AppFrame: React.FC<{
                                 <UserRound className="w-4 h-4" strokeWidth={1.5} /><span>{t('Кирүү')}</span>
                             </button>
                         )}
-                        <button onClick={() => setLang(isEnglish() ? 'ky' : 'en')} lang={isEnglish() ? 'ky' : 'en'} aria-label={isEnglish() ? 'Кыргызча' : 'English'} className={`h-10 min-w-10 px-1.5 inline-flex items-center justify-center text-[0.72rem] font-semibold tracking-[0.16em] ${quiet}`} style={{ color: 'var(--text-secondary)' }}>
-                            {isEnglish() ? 'КЫР' : 'EN'}
-                        </button>
+                        <LangSwitch className={`h-10 min-w-10 px-1.5 inline-flex items-center justify-center text-[0.72rem] font-semibold tracking-[0.16em] ${quiet}`} style={{ color: 'var(--text-secondary)' }} />
                         <button onClick={onToggleTheme} aria-label={theme === 'dark' ? t('Жарык тема') : t('Караңгы тема')} className={`w-10 h-10 inline-flex items-center justify-center ${quiet}`} style={{ color: 'var(--text-secondary)' }}>
                             <ThemeIcon className="w-[1.1rem] h-[1.1rem]" strokeWidth={1.5} />
                         </button>

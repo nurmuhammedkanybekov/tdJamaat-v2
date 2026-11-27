@@ -4,7 +4,7 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ArrowUp, ChevronRight, Loader2, PenLine, Search, Trash2, X } from 'lucide-react';
 import type { Theme } from '../theme';
-import { isEnglish, t } from '../i18n';
+import { t, dateLocale } from '../i18n';
 import { AppFrame, Waiting } from './AppFrame';
 import { go } from './route';
 import { Mark } from '../components/Ornament';
@@ -17,7 +17,7 @@ const KY_MONTHS = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', '
 const when = (iso: string) => {
     const d = new Date(iso), now = new Date();
     if (d.toDateString() === now.toDateString()) return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-    return isEnglish() ? d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : `${d.getDate()} ${KY_MONTHS[d.getMonth()]}`;
+    return dateLocale() ? d.toLocaleDateString(dateLocale()!, { day: 'numeric', month: 'short' }) : `${d.getDate()} ${KY_MONTHS[d.getMonth()]}`;
 };
 const labels = () => ({ captain: t('Капитан'), admin: t('Жамааттын админи') });
 

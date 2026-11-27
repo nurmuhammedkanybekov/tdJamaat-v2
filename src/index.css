@@ -1741,3 +1741,11 @@ button.help-where:hover { border-bottom-color: var(--gold); }
 .t-five-d > small { font-size: .62rem; letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted); }
 .t-five-d[data-now] > small { color: var(--gold); }
 .t-missed { font-size: .66rem; letter-spacing: .14em; text-transform: uppercase; color: var(--gold); white-space: nowrap; }
+
+/* ---------------------------------------------------------------- language */
+.lang-switch { position: relative; display: inline-flex; }
+.lang-menu { position: absolute; top: calc(100% + 6px); right: 0; z-index: 60; min-width: 11rem; padding: .35rem 0; background: var(--page-plane); border: 1px solid var(--border-strong); box-shadow: var(--shadow-lift); display: flex; flex-direction: column; }
+.lang-menu > button { display: flex; align-items: center; gap: .8rem; padding: .65rem 1rem; text-align: left; font-size: .95rem; color: var(--text-primary); }
+.lang-menu > button > span { width: 2.2rem; font-size: .68rem; letter-spacing: .16em; color: var(--text-muted); }
+.lang-menu > button:hover, .lang-menu > button[data-on] { color: var(--gold); }
+.lang-menu > button[data-on] > span { color: var(--gold); }
