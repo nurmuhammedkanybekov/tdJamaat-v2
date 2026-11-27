@@ -129,6 +129,15 @@ In the Supabase dashboard, open **SQL Editor** and run, in order:
     memorization; it stays unconfirmed until a captain or the admin listens
     ("Угулду"). Needs the jattoo, members and private-site files first.
     Safe to re-run.
+26. `supabase/accounts-2026-11.sql` — personal accounts. Anyone may sign in
+    with Google; their zikr, tasbihat, Quran pages, bookmarks and city are
+    kept in `user_store` and are the same on every device. Someone who is not
+    on the roster sees no house, person, result or chat (those tables already
+    require a captain, the admin or a member tied by address). Only Google
+    accounts can use it, so a sign-up with an email address and password gets
+    nothing. People can delete their own account from Меню → Менин
+    аккаунтум; captain, CL and admin logins can't. Needs 4b and the members
+    file. Safe to re-run.
 
 Notifications: in Үйдүн чаты or Жамааттан кабар, "Билдирмелерди
 күйгүзүү". They arrive while the app is open or in the background (not
