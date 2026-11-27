@@ -39,14 +39,19 @@ export const signInWithGoogle = async (after = '#/today') => {
     if (error) throw error;
 };
 
-/** Whether this session is a Google account (no captain/admin role). */
-export const googleSession = async (): Promise<{ email: string } | null> => {
+export interface GoogleUser { email: string; name: string; photo: string | null }
+
+/** Whether this session is a Google account (no captain/admin role), and who. */
+export const googleSession = async (): Promise<GoogleUser | null> => {
     const { data } = await supabase.auth.getSession();
     const user = data.session?.user;
     if (!user) return null;
     const role = (user.app_metadata as { role?: string } | undefined)?.role;
     if (role) return null;
-    return { email: user.email ?? '' };
+    const meta = (user.user_metadata ?? {}) as { full_name?: string; name?: string; avatar_url?: string; picture?: string };
+    const email = user.email ?? '';
+    const photo = meta.avatar_url ?? meta.picture ?? null;
+    return { email, name: (meta.full_name ?? meta.name ?? email.split('@')[0]).trim(), photo: photo && /^https:\/\//.test(photo) ? photo : null };
 };
 
 /** Ties the signed-in Google account to its member (null: no member has this address). */
@@ -63,7 +68,7 @@ export const linkMember = async (): Promise<MemberLink | null> => {
     return link;
 };
 
-export const signOutMember = async () => { cacheLink(null); await supabase.auth.signOut(); };
+export const signOutMember = async () => { cacheLink(null); try { localStorage.removeItem('tdjamaat-cloud-v1'); } catch { /* not critical */ } await supabase.auth.signOut(); };
 
 /** The app's counts for the last `days` days, one row per day with anything in it. */
 export const practiceRows = (memberId: string, days = 10, now = new Date()) => {

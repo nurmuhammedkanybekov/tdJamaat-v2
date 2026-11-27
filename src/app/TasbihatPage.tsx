@@ -21,6 +21,7 @@ import { loadSurah } from './quranData';
 import { loadPractice, markTasbihat, savePractice, tasbihatDone } from './practice';
 import { dayKey } from '../utils/zikr';
 import ARABIC from './tasbihat/arabic.json';
+import { localChanged } from '../utils/localEvent';
 
 /** The verified Arabic for a paragraph (README in ./tasbihat), if there is one. */
 const arabicFor = (block: Block): { ar: string; src: string } | null => {
@@ -36,7 +37,7 @@ const KEY = 'tdjamaat-tasbihat-v1';
 interface Store { size?: number; naaria?: number; meanings?: boolean; script?: Script }
 type Script = 'cyr' | 'ar';
 const read = (): Store => { try { return JSON.parse(localStorage.getItem(KEY) ?? '{}') as Store; } catch { return {}; } };
-const write = (patch: Store) => { try { localStorage.setItem(KEY, JSON.stringify({ ...read(), ...patch })); } catch { /* not critical */ } };
+const write = (patch: Store) => { try { localStorage.setItem(KEY, JSON.stringify({ ...read(), ...patch })); } catch { /* not critical */ } localChanged(); };
 const buzz = (pattern: number | number[]) => { try { navigator.vibrate?.(pattern); } catch { /* no vibration on this device */ } };
 
 /** The Quran passage that closes each tasbihat (by the heading the source gives it). */

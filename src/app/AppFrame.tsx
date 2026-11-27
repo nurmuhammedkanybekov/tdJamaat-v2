@@ -52,11 +52,13 @@ export const AppFrame: React.FC<{
     const [account, setAccount] = useState(false);
     const unread = useUnread(self);
     const linked = member?.status === 'linked' ? member.link : null;
+    const someone = !!linked || member?.status === 'unlinked';
     // The last section follows who is here: the results (captain, admin), the
-    // member's own house, or the way in.
+    // member's own house, a personal account, or the way in.
     const sections = SECTIONS.map(x => (x.page !== 'results' ? x
         : signedIn ? x
             : linked ? { page: 'house' as const, label: () => t('Үйүм'), icon: HomeIcon }
+                : someone ? { page: 'account' as const, label: () => t('Аккаунт'), icon: UserRound }
                 : { page: 'results' as const, label: () => t('Кирүү'), icon: UserRound }));
     const ThemeIcon = theme === 'dark' ? Sun : Moon;
     const open = (p: AppPage | 'results') => go(p === 'results' ? '#/overview' : `#/${p}`);
@@ -85,7 +87,7 @@ export const AppFrame: React.FC<{
                             <span className="hidden md:inline-flex mr-1">
                                 <button onClick={() => open('results')} className="btn btn-ghost" style={{ minHeight: '2.5rem' }}><Trophy className="w-3.5 h-3.5" />{t('Жыйынтыктар')}</button>
                             </span>
-                        ) : !linked && (
+                        ) : !someone && (
                             <button onClick={() => go('#/overview')} className="signin-pill">
                                 <UserRound className="w-4 h-4" strokeWidth={1.5} /><span>{t('Кирүү')}</span>
                             </button>
@@ -97,7 +99,7 @@ export const AppFrame: React.FC<{
                             <ThemeIcon className="w-[1.1rem] h-[1.1rem]" strokeWidth={1.5} />
                         </button>
                         {/* The menu: three lines and the person's face. Every page, named plainly. */}
-                        {(signedIn || linked) && <AccountMark onClick={() => setAccount(true)} />}
+                        {(signedIn || someone) && <AccountMark onClick={() => setAccount(true)} />}
                     </div>
                     {back === undefined && hero}
                     {back === undefined && !hero && (

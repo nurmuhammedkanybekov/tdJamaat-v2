@@ -2,6 +2,7 @@
 // Nothing here is sent anywhere — it is a personal helper, separate from the
 // houses' results.
 import { t } from '../i18n';
+import { localChanged } from './localEvent';
 
 export interface Zikr {
     id: string;
@@ -77,7 +78,7 @@ export const loadZikr = (): ZikrStore => {
         return { days: s?.days ?? {}, current: s?.current ?? {}, targets: s?.targets ?? {} };
     } catch { return emptyStore(); }
 };
-export const saveZikr = (s: ZikrStore) => { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch { /* storage blocked: counts live for this visit only */ } };
+export const saveZikr = (s: ZikrStore) => { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch { /* storage blocked: counts live for this visit only */ } localChanged(); };
 
 /** Add `by` (may be negative: undo) to a zikr today. Never goes below zero.
  *  `slot` is the running counter it belongs to: the zikr's own, or one of the

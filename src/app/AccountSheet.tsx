@@ -3,7 +3,7 @@
 // words (what it is, not just its title), grouped the way people think about
 // them: my day, my results, the jamaat, and the account itself.
 import React, { useContext, useEffect, useState } from 'react';
-import { BookOpen, BookOpenCheck, ChartNoAxesColumn, CircleDot, CircleHelp, Clock3, Compass, Home, LogIn, LogOut, MessageCircle, ScrollText, Settings2, Sparkles, SunMedium, Trophy, Users, X } from 'lucide-react';
+import { BookOpen, BookOpenCheck, ChartNoAxesColumn, CircleDot, CircleHelp, Clock3, Compass, Home, LogIn, LogOut, MessageCircle, ScrollText, Settings2, Sparkles, SunMedium, Trophy, UserRound, Users, X } from 'lucide-react';
 import { t } from '../i18n';
 import { Mark } from '../components/Ornament';
 import { useModal } from '../hooks/useModal';
@@ -16,7 +16,7 @@ import { signOutMember } from '../services/memberService';
 import { signOut } from '../services/authService';
 
 const ROLE_NAME: Record<string, () => string> = {
-    admin: () => t('Жамааттын админи'), leader: () => t('Капитан'), inspector: () => t('CL · Тазалык'), member: () => t('Мүчө')
+    admin: () => t('Жамааттын админи'), leader: () => t('Капитан'), inspector: () => t('CL · Тазалык'), member: () => t('Мүчө'), guest: () => t('Жеке аккаунт')
 };
 
 // ---------------------------------------------------------------- my photo
@@ -25,7 +25,7 @@ const ROLE_NAME: Record<string, () => string> = {
 const Face: React.FC<{ name: string; url: string | null; size: number }> = ({ name, url, size }) => {
     const [bad, setBad] = useState(false);
     useEffect(() => setBad(false), [url]);
-    if (url && !bad) return <img src={url} alt="" onError={() => setBad(true)} className="rounded-full object-cover flex-shrink-0" style={{ width: size, height: size, boxShadow: '0 0 0 1px var(--gold), 0 0 0 3px var(--page-plane)' }} />;
+    if (url && !bad) return <img src={url} alt="" referrerPolicy="no-referrer" onError={() => setBad(true)} className="rounded-full object-cover flex-shrink-0" style={{ width: size, height: size, boxShadow: '0 0 0 1px var(--gold), 0 0 0 3px var(--page-plane)' }} />;
     return (
         <span aria-hidden="true" className="rounded-full inline-flex items-center justify-center font-display flex-shrink-0" style={{ width: size, height: size, fontSize: size * 0.46, color: 'var(--gold)', border: '1px solid var(--gold)' }}>
             {name ? name.slice(0, 1) : '·'}
@@ -37,9 +37,11 @@ const Face: React.FC<{ name: string; url: string | null; size: number }> = ({ na
 export const AccountMark: React.FC<{ onClick: () => void }> = ({ onClick }) => {
     const ctx = useContext(AppContext);
     const { self } = useSelf();
-    const photo = useMyPhoto(self);
-    const role = ctx.signedIn ? ctx.role : ctx.member?.status === 'linked' ? 'member' : null;
-    const name = self?.name ?? (ctx.member?.status === 'linked' ? ctx.member.link.name : '');
+    const own = useMyPhoto(self);
+    const guest = ctx.member?.status === 'unlinked' && !ctx.signedIn ? ctx.member : null;
+    const role = ctx.signedIn ? ctx.role : ctx.member?.status === 'linked' ? 'member' : guest ? 'guest' : null;
+    const name = self?.name ?? (ctx.member?.status === 'linked' ? ctx.member.link.name : guest?.name ?? '');
+    const photo = own ?? guest?.photo ?? null;
     return (
         <button onClick={onClick} aria-label={t('Меню')} title={t('Меню')} className="menu-pill mr-1">
             <span className="menu-lines" aria-hidden="true"><i /><i /><i /></span>
@@ -56,12 +58,15 @@ type Item = { key: string; icon: React.ComponentType<{ className?: string; strok
 export const AccountSheet: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const ctx = useContext(AppContext);
     const { self } = useSelf();
-    const photo = useMyPhoto(self);
+    const own = useMyPhoto(self);
     const [busy, setBusy] = useState(false);
     useModal(onClose);
     useBackCloses(onClose);
     const linked = ctx.member?.status === 'linked' ? ctx.member.link : null;
-    const role = ctx.signedIn ? ctx.role ?? 'member' : linked ? 'member' : null;
+    const guest = ctx.member?.status === 'unlinked' && !ctx.signedIn ? ctx.member : null;
+    const role = ctx.signedIn ? ctx.role ?? 'member' : linked ? 'member' : guest ? 'guest' : null;
+    const photo = own ?? guest?.photo ?? null;
+    const accountItem: Item = { key: 'account', icon: UserRound, label: t('Менин аккаунтум'), sub: t('Эмне сакталат; чыгуу же өчүрүү'), to: '#/account' };
     const person = self ?? (linked ? { ...linked, via: 'google' as const } : null);
     const here = window.location.hash.split('?')[0];
     const open = (hash: string) => { onClose(); go(hash); };
@@ -72,9 +77,10 @@ export const AccountSheet: React.FC<{ onClose: () => void }> = ({ onClose }) => 
             title: t('Мен'), items: [
                 { key: 'me', icon: ChartNoAxesColumn, label: t('Менин жыйынтыгым'), sub: t('Апта, сезон, сыйлыктар'), to: '#/house/me' },
                 { key: 'jattoo', icon: BookOpenCheck, label: t('Жаттоо'), sub: t('Жаттаганым жана пландарым'), to: '#/house/me?jattoo' },
-                { key: 'house', icon: Home, label: person.houseName, sub: t('Үйүмдүн адамдары жана чаты'), to: '#/house' }
+                { key: 'house', icon: Home, label: person.houseName, sub: t('Үйүмдүн адамдары жана чаты'), to: '#/house' },
+                ...(linked ? [accountItem] : [])
             ]
-        }] : []),
+        }] : guest ? [{ title: t('Мен'), items: [accountItem] }] : []),
         ...(ctx.signedIn || linked ? [{
             title: t('Жамаат'), items: [
                 ...(staff ? [{ key: 'results', icon: Trophy, label: t('Жыйынтыктар'), sub: ctx.role === 'admin' ? t('Апта, үйлөр, сезон, админ куралдары') : t('Апта, үйлөр, сезон; сандарды ушул жерден киргизесиз'), to: '#/overview' }] : []),
@@ -110,7 +116,7 @@ export const AccountSheet: React.FC<{ onClose: () => void }> = ({ onClose }) => 
         window.location.reload();
     };
 
-    const name = role === 'admin' ? t('Админ') : role === 'inspector' && !person ? 'CL' : person?.name ?? '';
+    const name = role === 'admin' ? t('Админ') : role === 'inspector' && !person ? 'CL' : person?.name ?? guest?.name ?? '';
     return (
         <div className="fixed inset-0 z-50 animate-fade-in" role="dialog" aria-modal="true" aria-label={t('Меню')}
             style={{ backgroundColor: 'color-mix(in oklab, #000 55%, transparent)', backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)' }}
@@ -130,13 +136,14 @@ export const AccountSheet: React.FC<{ onClose: () => void }> = ({ onClose }) => 
                         <div className="min-w-0">
                             <div className="font-display text-[1.75rem] leading-[1.05] truncate" style={{ color: 'var(--text-primary)' }}>{name}</div>
                             <div className="text-[0.82rem] mt-1" style={{ color: 'var(--text-muted)' }}>{ROLE_NAME[role]?.()}{person && role !== 'admin' ? ` · ${person.houseName}` : ''}</div>
+                            {guest && <div className="text-[0.82rem] truncate" style={{ color: 'var(--text-muted)' }}>{guest.email}</div>}
                         </div>
                     </div>
                 ) : (
                     <div className="nav-who">
                         <div className="min-w-0">
                             <div className="font-display text-[1.5rem] leading-tight" style={{ color: 'var(--text-primary)' }}>{t('Сиз кире элексиз')}</div>
-                            <div className="text-[0.85rem] mt-1" style={{ color: 'var(--text-muted)' }}>{t('Намаз, Куран, тасбихат жана зикир кирбей эле иштейт.')}</div>
+                            <div className="text-[0.85rem] mt-1" style={{ color: 'var(--text-muted)' }}>{t('Баары кирбей эле иштейт. Google менен кирсеңиз, санагандарыңыз ар бир түзмөгүңүздө сакталат.')}</div>
                             <button onClick={() => open('#/overview')} className="btn btn-primary mt-4"><LogIn className="w-4 h-4" />{t('Кирүү')}</button>
                         </div>
                     </div>

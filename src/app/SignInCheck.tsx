@@ -46,7 +46,7 @@ export const SignInCheck: React.FC<{ theme: Theme; onToggleTheme: () => void }> 
                     out.push({ label: t('Почта ырасталганбы'), state: user.email_confirmed_at ? 'ok' : 'bad', text: user.email_confirmed_at ? t('ооба') : t('жок'), fix: user.email_confirmed_at ? undefined : t('Google аккаунттун почтасы ырасталган болушу керек.') });
                     const { data: link, error: linkError } = await supabase.rpc('link_member_account');
                     if (linkError) out.push({ label: t('Мүчө менен байланыш'), state: 'bad', text: linkError.message, fix: t('supabase/members-2026-11.sql иштетилгенин текшериңиз.') });
-                    else if (!link) out.push({ label: t('Мүчө менен байланыш'), state: 'bad', text: t('«{0}» дареги эч бир мүчөгө жазылган эмес.', user.email ?? ''), fix: t('Капитан же админ: Меню → «Мүчөлөрдүн кирүүсү» → ушул адамга так ушул Gmail дарегин жазып, «Сактоо» басыңыз. Анан бул бетти жаңыртыңыз.') });
+                    else if (!link) out.push({ label: t('Мүчө менен байланыш'), state: 'none', text: t('Жеке аккаунт: «{0}» дареги эч бир мүчөгө жазылган эмес.', user.email ?? ''), fix: t('Капитан же админ: Меню → «Мүчөлөрдүн кирүүсү» → ушул адамга так ушул Gmail дарегин жазып, «Сактоо» басыңыз. Анан бул бетти жаңыртыңыз.') });
                     else {
                         const l = link as { name?: string; house_name?: string };
                         out.push({ label: t('Мүчө менен байланыш'), state: 'ok', text: `${l.name ?? ''} · ${l.house_name ?? ''}` });

@@ -7,6 +7,7 @@
 import { dayKey, loadZikr } from '../utils/zikr';
 import type { ZikrStore } from '../utils/zikr';
 import { thursdayOf } from '../utils/weekDates';
+import { localChanged } from '../utils/localEvent';
 
 const KEY = 'tdjamaat-practice-v1';
 const KEEP_DAYS = 400;
@@ -37,6 +38,7 @@ const trim = <T>(days: Record<string, T>): Record<string, T> => {
 export const savePractice = (s: PracticeStore) => {
     try { localStorage.setItem(KEY, JSON.stringify({ tasbihat: trim(s.tasbihat), pages: trim(s.pages) })); } catch { /* storage blocked */ }
     window.dispatchEvent(new Event('tdjamaat-practice'));
+    localChanged();
 };
 
 export const markTasbihat = (s: PracticeStore, prayer: string, done: boolean, now = new Date()): PracticeStore => {

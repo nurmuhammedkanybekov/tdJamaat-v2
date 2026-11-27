@@ -118,7 +118,7 @@ export const LoginScreen: React.FC<{ theme: Theme; onToggleTheme: () => void }> 
                     <form onSubmit={handleSubmit} noValidate className="relative mt-auto sm:mt-8 mb-0 card card-pad pb-10! space-y-5 login-card" style={{ boxShadow: 'var(--shadow-lift)' }}>
                         <Corners inset={6} size={22} />
                         <div className="flex justify-center" role="tablist" aria-label={t('Ким катары кирүү')}>
-                            <button type="button" role="tab" aria-selected={mode === 'member'} className={`chip ${mode === 'member' ? 'is-active' : ''}`} onClick={() => switchMode('member')}>{t('Мүчө')}</button>
+                            <button type="button" role="tab" aria-selected={mode === 'member'} className={`chip ${mode === 'member' ? 'is-active' : ''}`} onClick={() => switchMode('member')}>Google</button>
                             <button type="button" role="tab" aria-selected={mode === 'captain'} className={`chip ${mode === 'captain' ? 'is-active' : ''}`} onClick={() => switchMode('captain')}>{t('Капитан')}</button>
                             <button type="button" role="tab" aria-selected={mode === 'inspector'} className={`chip ${mode === 'inspector' ? 'is-active' : ''}`} onClick={() => switchMode('inspector')} title={t('Тазалык текшерүүчү')}>CL</button>
                             <button type="button" role="tab" aria-selected={mode === 'admin'} className={`chip ${mode === 'admin' ? 'is-active' : ''}`} onClick={() => switchMode('admin')} style={{ marginRight: 0 }}>{t('Админ')}</button>
@@ -141,7 +141,7 @@ export const LoginScreen: React.FC<{ theme: Theme; onToggleTheme: () => void }> 
                                 <button type="button" onClick={() => { setLoading(true); signInWithGoogle().catch(err => { setLoading(false); setError(t('Кирүү мүмкүн болгон жок: {0}', err instanceof Error ? err.message : String(err))); }); }} disabled={loading} className="btn btn-primary w-full" style={{ minHeight: '3rem' }}>
                                     {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <span className="font-semibold text-[1.05rem]" aria-hidden="true">G</span>}{t('Google менен кирүү')}
                                 </button>
-                                <p className="text-[0.8rem] mt-3" style={{ color: 'var(--text-muted)' }}>{t('Капитаныңыз Gmail дарегиңизди жазып койгон болушу керек.')}</p>
+                                <p className="text-[0.8rem] mt-3" style={{ color: 'var(--text-muted)' }}>{t('Зикир, тасбихат жана Куран аккаунтуңузда сакталат. Жамааттын мүчөсү болсоңуз, капитаныңыз Gmail дарегиңизди жазып коёт, анан үйүңүз да ушул жерде ачылат.')}</p>
                                 {error && <p id="login-error" role="alert" className="text-[0.88rem] px-3 py-2 mt-3 text-left" style={{ borderLeft: '2px solid var(--danger)', color: 'var(--danger)' }}>{error}</p>}
                             </div>
                         ) : (<>

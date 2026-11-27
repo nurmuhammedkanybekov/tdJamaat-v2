@@ -28,7 +28,7 @@ import { loadLastRead, loadMode } from './quranStore';
 import { loadPractice, pagesOn, tasbihatDone } from './practice';
 import { CopyWeek } from './MyWeek';
 import { MemberSummary } from './MemberResults';
-import { signInWithGoogle, signOutMember, takeAuthError } from '../services/memberService';
+import { signInWithGoogle, takeAuthError } from '../services/memberService';
 import { useWeekTotals } from './useWeekTotals';
 import { NewsTeaser } from './Community';
 import { DayCalendar } from './DayCalendar';
@@ -109,14 +109,7 @@ const Jamaat: React.FC = () => {
         }
         if (member?.status === 'unlinked') {
             return (
-                <div className="pt-4">
-                    <p className="text-[0.95rem] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{t('Бул Google аккаунту азырынча эч бир мүчөгө байланган эмес. Капитаныңызга ушул даректи айтыңыз:')}</p>
-                    <p className="font-display text-[1.3rem] mt-2 break-all" style={{ color: 'var(--gold)' }}>{member.email}</p>
-                    <div className="flex flex-wrap gap-3 mt-4">
-                        <button onClick={() => { signOutMember().catch(() => undefined); }} className="btn btn-ghost">{t('Чыгуу')}</button>
-                        <button onClick={() => go('#/kiruu')} className="btn btn-ghost">{t('Кирүүнү текшерүү')}</button>
-                    </div>
-                </div>
+                <RowLink onClick={() => go('#/account')} title={member.name} sub={t('Жеке аккаунт. Жамааттын мүчөсү болсоңуз, капитаныңызга {0} дарегин айтыңыз.', member.email)} />
             );
         }
         return null;
@@ -303,7 +296,8 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
                 {!linked && !signedIn && member?.status !== 'unlinked' && (
                     <section className="welcome">
                         <Mark size={44} />
-                        <h2 className="font-display">{t('Жамааттын апталык жыйынтыктары')}</h2>
+                        <h2 className="font-display">{t('Санагандарыңыз сакталып турсун')}</h2>
+                        <p className="welcome-p">{t('Google менен кирсеңиз, зикир, тасбихат жана Куран ар бир түзмөгүңүздө бирдей болот. Жамааттын мүчөлөрү ушул эле жол менен үйүнүн жыйынтыктарын көрүшөт.')}</p>
                         <button onClick={() => { signInWithGoogle().catch(() => undefined); }} className="btn btn-primary"><span className="font-semibold text-[1.05rem]" aria-hidden="true">G</span>{t('Google менен кирүү')}</button>
                         <button onClick={() => go('#/overview')} className="welcome-staff">{t('Капитан, CL же админ')}<ChevronRight className="w-3.5 h-3.5" /></button>
                     </section>
@@ -339,7 +333,7 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
                 </Section>
 
                 {(linked || signedIn || member?.status === 'unlinked') && (
-                    <Section eyebrow={linked ? t('Менин үйүм') : t('Жамаат')}>
+                    <Section eyebrow={linked ? t('Менин үйүм') : member?.status === 'unlinked' ? t('Аккаунт') : t('Жамаат')}>
                         <Jamaat />
                     </Section>
                 )}
