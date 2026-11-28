@@ -2000,3 +2000,22 @@ button.help-where:hover { border-bottom-color: var(--gold); }
 .chat-editing { display: flex; align-items: center; gap: .75rem; margin-bottom: .5rem; padding: .35rem 0 .45rem .8rem; border-left: 2px solid var(--gold); }
 .chat-editing-h { font-size: .66rem; letter-spacing: .18em; text-transform: uppercase; color: var(--gold); }
 .chat-editing-was { font-size: .88rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* city choice: the chosen city as a title, the list folding out beneath */
+.city-pick { display: flex; flex-direction: column; align-items: center; margin-top: .35rem; }
+.city-pick-now { display: inline-flex; align-items: center; gap: .5rem; color: var(--gold); padding: .2rem .4rem; }
+.city-pick-now .font-display { font-size: 1.6rem; color: var(--text-primary); }
+.city-pick-now:hover .font-display { color: var(--gold); }
+.city-pick-coords { font-size: .74rem; color: var(--text-muted); }
+.city-pick-list { width: 100%; margin-top: 1rem; padding: 1rem 0 .4rem; border-top: 1px solid var(--gold-dim); border-bottom: 1px solid var(--gold-dim); text-align: left; animation: fade-in .2s ease; }
+.city-pick-here { display: grid; grid-template-columns: auto 1fr; column-gap: .6rem; align-items: center; width: 100%; padding: .5rem 0 .9rem; color: var(--gold); border-bottom: 1px solid var(--border); }
+.city-pick-here span { font-family: var(--font-display); font-size: 1.15rem; color: var(--text-primary); }
+.city-pick-here small { grid-column: 2; font-size: .78rem; font-style: italic; color: var(--text-muted); }
+.city-pick-fail { font-size: .82rem; color: var(--danger); margin-top: .5rem; }
+.city-pick-group { margin-top: .9rem; }
+.city-pick-cities { display: flex; flex-wrap: wrap; gap: .1rem 1.1rem; margin-top: .3rem; }
+.city-pick-cities button { position: relative; padding: .35rem 0; font-size: 1rem; color: var(--text-secondary); transition: color .15s; }
+.city-pick-cities button:hover { color: var(--gold); }
+.city-pick-cities button[data-on] { color: var(--gold); }
+.city-pick-cities button[data-on]::after { content: ""; position: absolute; left: 50%; bottom: -1px; width: 5px; height: 5px; margin-left: -2.5px; transform: rotate(45deg); background: var(--gold); }
+.vol-row { padding: .9rem 0; border-bottom: 1px solid var(--border); }

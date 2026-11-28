@@ -1,11 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import type { City } from '../utils/prayer';
 import { SunArc } from '../app/SunArc';
-import { CITIES, PRAYER_NAMES, PRAYER_ORDER, clock, nextPrayer, prayerNow, prayerTimes, untilText } from '../utils/prayer';
+import { PRAYER_NAMES, PRAYER_ORDER, clock, nextPrayer, prayerNow, prayerTimes, untilText } from '../utils/prayer';
 import { formatHijri, isRamadan, toHijri } from '../utils/hijri';
 import { Sheet } from './ui';
 import { loadCity, saveCity } from '../utils/city';
 import { useNow } from '../hooks/useNow';
+import { CityPicker } from './CityPicker';
 import { t } from '../i18n';
 
 
@@ -38,14 +39,9 @@ export const PrayerTimetable: React.FC<{ onCityChange?: (c: City) => void; arc?:
 
     return (
             <div className="space-y-8">
-                <div className="flex flex-wrap items-baseline justify-between gap-3">
-                    <div>
-                        <div className="eyebrow">{hijri ? formatHijri(hijri) : ''}</div>
-                        <div className="font-display text-[1.5rem] mt-1" style={{ color: 'var(--text-primary)' }}>{city.name}</div>
-                    </div>
-                    <div className="flex" role="group" aria-label={t('Шаар')}>
-                        {CITIES.map(c => <button key={c.id} className={`chip ${c.id === city.id ? 'is-active' : ''}`} onClick={() => pick(c)}>{c.name}</button>)}
-                    </div>
+                <div className="text-center">
+                    <div className="eyebrow">{hijri ? formatHijri(hijri) : ''}</div>
+                    <CityPicker city={city} onPick={pick} />
                 </div>
 
                 {ramadan && (

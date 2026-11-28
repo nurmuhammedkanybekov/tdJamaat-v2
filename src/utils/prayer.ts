@@ -8,12 +8,36 @@
 import { CalculationMethod, Coordinates, HighLatitudeRule, Madhab, PrayerTimes } from 'adhan';
 import { t } from '../i18n';
 
-export interface City { id: string; name: string; lat: number; lng: number; tz: string }
+export interface City { id: string; name: string; lat: number; lng: number; tz: string; region?: 'hu' | 'kg' | 'world' | 'here' }
 
+const c = (id: string, name: string, lat: number, lng: number, tz: string, region: City['region']): City => ({ id, name, lat, lng, tz, region });
+/** The cities to choose from: where the jamaat lives, home, and where its people travel. */
 export const CITIES: City[] = [
-    { id: 'budapest', name: t('Будапешт'), lat: 47.4979, lng: 19.0402, tz: 'Europe/Budapest' },
-    { id: 'debrecen', name: t('Дебрецен'), lat: 47.5316, lng: 21.6273, tz: 'Europe/Budapest' },
-    { id: 'bishkek', name: t('Бишкек'), lat: 42.8746, lng: 74.5698, tz: 'Asia/Bishkek' }
+    c('budapest', t('Будапешт'), 47.4979, 19.0402, 'Europe/Budapest', 'hu'),
+    c('debrecen', t('Дебрецен'), 47.5316, 21.6273, 'Europe/Budapest', 'hu'),
+    c('szeged', t('Сегед'), 46.253, 20.1414, 'Europe/Budapest', 'hu'),
+    c('pecs', t('Печ'), 46.0727, 18.2323, 'Europe/Budapest', 'hu'),
+    c('gyor', t('Дьёр'), 47.6875, 17.6504, 'Europe/Budapest', 'hu'),
+    c('miskolc', t('Мишкольц'), 48.1035, 20.7784, 'Europe/Budapest', 'hu'),
+    c('bishkek', t('Бишкек'), 42.8746, 74.5698, 'Asia/Bishkek', 'kg'),
+    c('osh', t('Ош'), 40.5283, 72.7985, 'Asia/Bishkek', 'kg'),
+    c('jalalabad', t('Жалал-Абад'), 40.9333, 73.0, 'Asia/Bishkek', 'kg'),
+    c('karakol', t('Каракол'), 42.4907, 78.3936, 'Asia/Bishkek', 'kg'),
+    c('naryn', t('Нарын'), 41.4287, 75.9911, 'Asia/Bishkek', 'kg'),
+    c('talas', t('Талас'), 42.5228, 72.2427, 'Asia/Bishkek', 'kg'),
+    c('batken', t('Баткен'), 40.0563, 70.8194, 'Asia/Bishkek', 'kg'),
+    c('tokmok', t('Токмок'), 42.8419, 75.3015, 'Asia/Bishkek', 'kg'),
+    c('almaty', t('Алматы'), 43.2389, 76.8897, 'Asia/Almaty', 'world'),
+    c('tashkent', t('Ташкент'), 41.2995, 69.2401, 'Asia/Tashkent', 'world'),
+    c('moscow', t('Москва'), 55.7558, 37.6173, 'Europe/Moscow', 'world'),
+    c('istanbul', t('Стамбул'), 41.0082, 28.9784, 'Europe/Istanbul', 'world'),
+    c('vienna', t('Вена'), 48.2082, 16.3738, 'Europe/Vienna', 'world'),
+    c('prague', t('Прага'), 50.0755, 14.4378, 'Europe/Prague', 'world'),
+    c('warsaw', t('Варшава'), 52.2297, 21.0122, 'Europe/Warsaw', 'world'),
+    c('berlin', t('Берлин'), 52.52, 13.405, 'Europe/Berlin', 'world'),
+    c('london', t('Лондон'), 51.5074, -0.1278, 'Europe/London', 'world'),
+    c('seoul', t('Сеул'), 37.5665, 126.978, 'Asia/Seoul', 'world'),
+    c('dubai', t('Дубай'), 25.2048, 55.2708, 'Asia/Dubai', 'world')
 ];
 
 const ADJUST = { fajr: 0, sunrise: 0, dhuhr: 0, asr: 0, maghrib: 0, isha: 0 };
@@ -77,4 +101,20 @@ export const untilText = (ms: number) => {
     const m = Math.max(0, Math.round(ms / 60000));
     const h = Math.floor(m / 60);
     return h > 0 ? t('{0} саат {1} мүн', h, m % 60) : t('{0} мүн', m);
+};
+
+/** The voluntary prayers' times, from the day's own times:
+ *  · Тахажжуд: the last third of the night (from tonight's Maghrib to tomorrow's Fajr);
+ *  · Ишрак: about 20 minutes after sunrise, when the sun has risen;
+ *  · Духа: from Ишрак until about 10 minutes before Dhuhr (zawal). */
+export const voluntaryTimes = (city: City, date: Date) => {
+    const today = prayerTimes(city, date);
+    const tomorrow = prayerTimes(city, new Date(date.getTime() + 24 * 3600e3));
+    const night = tomorrow.fajr.getTime() - today.maghrib.getTime();
+    const min = 60000;
+    return {
+        tahajjud: { from: new Date(tomorrow.fajr.getTime() - night / 3), to: tomorrow.fajr, midnight: new Date(today.maghrib.getTime() + night / 2) },
+        ishraq: new Date(today.sunrise.getTime() + 20 * min),
+        duha: { from: new Date(today.sunrise.getTime() + 20 * min), to: new Date(today.dhuhr.getTime() - 10 * min) }
+    };
 };

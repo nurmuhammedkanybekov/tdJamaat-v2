@@ -257,7 +257,7 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
             {/* The almanac line: the day's times, the Qibla, the city, as one
                 engraved row rather than a pair of generic buttons. */}
             <nav className="almanac mt-7" aria-label={t('Намаз')}>
-                <button onClick={() => go('#/namaz')}><Clock3 className="w-[1.05rem] h-[1.05rem]" strokeWidth={1.4} /><span>{t('Бардык убактылар')}</span></button>
+                <button onClick={() => go('#/namaz')}><Clock3 className="w-[1.05rem] h-[1.05rem]" strokeWidth={1.4} /><span>{t('Намаз убактылары')}</span></button>
                 <button onClick={() => go('#/qibla')}><Compass className="w-[1.05rem] h-[1.05rem]" strokeWidth={1.4} /><span>{t('Кыбла')}</span></button>
                 <button onClick={() => setSheet(true)} title={t('шаарды алмаштыруу')}><MapPin className="w-[1.05rem] h-[1.05rem]" strokeWidth={1.4} /><span>{city.name}</span></button>
             </nav>
