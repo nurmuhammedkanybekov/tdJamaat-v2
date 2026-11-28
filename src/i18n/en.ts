@@ -1681,4 +1681,12 @@ export const EN: Record<string, string> = {
     "Жооп берүү": "Reply",
     "Бул билдирүү өчүрүлгөн": "This message was deleted",
     "Жооп: {0}": "Replying to {0}",
+    "Топтор": "Groups",
+    "«Жаңы топ»: атын жазып, адамдарын тандайсыз. Аны ошол адамдар гана көрөт. Кийин атын, адамдарын өзгөртүп же жаап коёсуз.": "New group: give it a name and choose its people. Only they see it. Later you can rename it, change who is in it, or close it.",
+    "Меню → Чаттар → Жаңы топ": "Menu → Chats → New group",
+    "Жооп берүү жана өзгөртүү": "Replying and editing",
+    "Билдирүүнү басыңыз: жооп берүү, көчүрүү, өзгөртүү (48 саат ичинде) же өчүрүү чыгат. Жооп берилген билдирүү үстүндө көрүнүп турат.": "Tap a message to reply, copy, edit it (within 48 hours) or delete it. A reply shows the message it answers above it.",
+    "Колдонмо катары": "As an app",
+    "Телефонго, планшетке же компьютерге колдонмо катары орнотсоңуз, бир басуу менен ачылат жана интернетсиз да иштейт.": "Install it as an app on your phone, tablet or computer: it opens with one tap and works offline too.",
+    "Меню → Колдонмону орнотуу": "Menu → Install the app",
 };
