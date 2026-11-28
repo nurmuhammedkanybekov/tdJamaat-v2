@@ -45,7 +45,7 @@ self.addEventListener('fetch', event => {
 
     event.respondWith(
         caches.match(req).then(hit => hit || fetch(req).then(res => {
-            if (res.ok && (url.pathname.startsWith('/assets/') || /\.(svg|png|woff2?|webmanifest)$/.test(url.pathname) || /^\/quran\/(?:(?:ky|en)\/)?(?:index|juz|\d+)\.json$/.test(url.pathname))) {
+            if (res.ok && (url.pathname.startsWith('/assets/') || /\.(svg|png|woff2?|webmanifest)$/.test(url.pathname) || /^\/quran\/(?:(?:ky|en|ru)\/)?(?:index|juz|\d+)\.json$/.test(url.pathname))) {
                 const copy = res.clone();
                 caches.open(CACHE).then(cache => cache.put(req, copy));
             }

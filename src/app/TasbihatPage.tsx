@@ -4,20 +4,21 @@
 // more than once, the meaning one tap away (or all at once), and — for the
 // Quran passage that closes each tasbihat — the ayahs themselves from the
 // mushaf. At the end, "read": it counts towards the week (ТСП).
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Check, ChevronDown, ChevronRight, Minus, Plus, RotateCcw } from 'lucide-react';
 import type { Theme } from '../theme';
 import { useNow } from '../hooks/useNow';
 import { loadCity } from '../utils/city';
 import { PRAYER_NAMES, clock, prayerTimes } from '../utils/prayer';
-import { t } from '../i18n';
+import { getLang, isEnglish, t } from '../i18n';
+import { local, toLatin } from './tasbihat/lang';
 import { AppFrame, Problem, Section, Waiting } from './AppFrame';
 import { go } from './route';
 import { useWakeLock } from './useWakeLock';
 import type { Block, Line, Part, Tasbihat, TasbihatId } from './tasbihat';
 import { NAARIA, TASBIHAT_ORDER, currentPrayer, isTasbihat, linesOf, loadTasbihat } from './tasbihat';
 import type { Ayah } from './quranData';
-import { loadSurah } from './quranData';
+import { loadSurah, loadTranslation, translationLang } from './quranData';
 import { loadPractice, markTasbihat, savePractice, tasbihatDone } from './practice';
 import { dayKey } from '../utils/zikr';
 import ARABIC from './tasbihat/arabic.json';
@@ -35,7 +36,9 @@ const titleCase = (v: string) => v.toLocaleLowerCase('ky').replace(/(^|«|")(\p{
 
 const KEY = 'tdjamaat-tasbihat-v1';
 interface Store { size?: number; naaria?: number; meanings?: boolean; script?: Script }
-type Script = 'cyr' | 'ar';
+type Script = 'cyr' | 'lat' | 'ar';
+/** How the words read aloud are written: the source's Cyrillic, the same in Latin letters, or Arabic. */
+const ScriptCtx = createContext<Script>('cyr');
 const read = (): Store => { try { return JSON.parse(localStorage.getItem(KEY) ?? '{}') as Store; } catch { return {}; } };
 const write = (patch: Store) => { try { localStorage.setItem(KEY, JSON.stringify({ ...read(), ...patch })); } catch { /* not critical */ } localChanged(); };
 const buzz = (pattern: number | number[]) => { try { navigator.vibrate?.(pattern); } catch { /* no vibration on this device */ } };
@@ -150,16 +153,20 @@ const List: React.FC<{ theme: Theme; onToggleTheme: () => void }> = ({ theme, on
     );
 };
 
-const Words: React.FC<{ parts: Part[] }> = ({ parts }) => (
-    <>
-        {parts.map(([kind, text], i) => (
-            kind === 1 ? <span key={i} className="tasbihat-note">{text}</span>
-                : kind === 3 ? <span key={i} style={{ color: 'var(--gold)' }}>{text}</span>
-                    : kind === 2 ? <strong key={i} className="font-semibold">{text}</strong>
-                        : <React.Fragment key={i}>{text}</React.Fragment>
-        ))}
-    </>
-);
+const Words: React.FC<{ parts: Part[] }> = ({ parts }) => {
+    const script = useContext(ScriptCtx);
+    const said = (text: string) => (script === 'lat' ? toLatin(text) : text);
+    return (
+        <>
+            {parts.map(([kind, text], i) => (
+                kind === 1 ? <span key={i} className="tasbihat-note">{local(text)}</span>
+                    : kind === 3 ? <span key={i} style={{ color: 'var(--gold)' }}>{said(text)}</span>
+                        : kind === 2 ? <strong key={i} className="font-semibold">{local(text)}</strong>
+                            : <React.Fragment key={i}>{said(text)}</React.Fragment>
+            ))}
+        </>
+    );
+};
 
 // A line read several times: the line itself is the button.
 const Repeated: React.FC<{ line: Line; centred: boolean }> = ({ line, centred }) => {
@@ -195,6 +202,7 @@ const Meaning: React.FC<{ block: Block; all: boolean }> = ({ block, all }) => {
             </button>
             {open && (
                 <div className="tasbihat-meaning animate-fade-up">
+                    {getLang() !== 'ky' && <p className="text-[0.78em] italic mb-2" style={{ color: 'var(--text-muted)' }}>{t('Дубанын мааниси булакта кыргызча гана берилген.')}</p>}
                     {block.ar?.map((a, i) => <p key={`a${i}`} dir="rtl" lang="ar" className="quran-text text-[1.5rem] leading-[2.1] mb-3" style={{ color: 'var(--text-primary)' }}>{a}</p>)}
                     {block.m?.map((m, i) => <p key={i} className={i > 0 ? 'mt-2' : ''}>{m}</p>)}
                 </div>
@@ -208,7 +216,9 @@ const Passage: React.FC<{ surah: number; from: number; to: number }> = ({ surah,
     const [open, setOpen] = useState(false);
     const [rows, setRows] = useState<Ayah[] | null>(null);
     const [failed, setFailed] = useState(false);
+    const [meaning, setMeaning] = useState<string[] | null>(null);
     useEffect(() => { if (open && !rows) loadSurah(surah).then(setRows).catch(() => setFailed(true)); }, [open, rows, surah]);
+    useEffect(() => { if (open && !meaning) loadTranslation(surah).then(r => setMeaning(r.slice(from - 1, to).map(x => x[0]))).catch(() => undefined); }, [open, meaning, surah, from, to]);
     return (
         <div className="mt-3 text-center">
             <button type="button" onClick={() => setOpen(v => !v)} aria-expanded={open} className="inline-flex items-center gap-1.5 py-2.5 text-[0.68rem] tracking-[0.18em] uppercase transition-colors hover:text-[var(--gold)]" style={{ color: open ? 'var(--gold)' : 'var(--text-muted)' }}>
@@ -218,6 +228,7 @@ const Passage: React.FC<{ surah: number; from: number; to: number }> = ({ surah,
                 <div className="mt-2 py-4 animate-fade-up" style={{ borderTop: '1px solid var(--gold-dim)', borderBottom: '1px solid var(--gold-dim)' }}>
                     {failed && <p className="text-[0.85rem]" style={{ color: 'var(--text-muted)' }}>{t('Жүктөлгөн жок. Интернетти текшериңиз.')}</p>}
                     {rows && <p dir="rtl" lang="ar" className="quran-text quran-body text-[1.6rem]" style={{ color: 'var(--text-primary)' }}>{rows.slice(from - 1, to).map(r => r[0]).join(' ')}</p>}
+                    {meaning && <p lang={translationLang()} className="mt-4 text-left text-[0.92em] leading-relaxed max-w-[38rem] mx-auto" style={{ color: 'var(--text-secondary)' }}>{meaning.map(m => m.replace(/\[\d+\]/g, '')).join(' ')}</p>}
                     <button type="button" onClick={() => go(`#/quran/${surah}:${from}`)} className="hit mt-3 text-[0.72rem] tracking-[0.16em] uppercase transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}>{t('Куранда ачуу')} · {surah}:{from}–{to}</button>
                 </div>
             )}
@@ -241,6 +252,13 @@ const Paragraph: React.FC<{ block: Block; all: boolean; script: Script }> = ({ b
             </div>
         );
     }
+    // A lead-in line is a direction, not words to read: translated, never respelled.
+    if (block.b) return (
+        <div className={`tasbihat-p is-lead ${centred ? 'text-center' : ''}`}>
+            <span className="block">{local((block.parts ?? []).map(p => p[1]).join(''))}</span>
+            {(block.m?.length || block.ar?.length) ? <Meaning block={block} all={all} /> : null}
+        </div>
+    );
     return (
         <div className={`tasbihat-p ${centred ? 'text-center' : ''} ${block.b ? 'is-lead' : ''}`}>
             {lines.map((line, i) => (
@@ -274,7 +292,7 @@ const Reader: React.FC<{ id: string; theme: Theme; onToggleTheme: () => void }> 
     const [failed, setFailed] = useState(false);
     const [size, setSize] = useState(() => read().size ?? 1.2);
     const [all, setAll] = useState(() => !!read().meanings);
-    const [script, setScript] = useState<Script>(() => read().script ?? 'cyr');
+    const [script, setScript] = useState<Script>(() => read().script ?? (isEnglish() ? 'lat' : 'cyr'));
     const [attempt, setAttempt] = useState(0);
     const [done, setDone] = useState(() => tasbihatDone(loadPractice(), id));
     useWakeLock();
@@ -323,6 +341,7 @@ const Reader: React.FC<{ id: string; theme: Theme; onToggleTheme: () => void }> 
     const chooseScript = (v: Script) => { setScript(v); write({ script: v }); };
 
     return (
+        <ScriptCtx.Provider value={script}>
         <AppFrame page="tasbihat" title={title} back="#/tasbihat" theme={theme} onToggleTheme={onToggleTheme} ownBar>
             <div ref={bar} className="tasbihat-progress" aria-hidden="true" />
             {failed && <Problem onRetry={() => { setFailed(false); setAttempt(n => n + 1); }} />}
@@ -336,7 +355,7 @@ const Reader: React.FC<{ id: string; theme: Theme; onToggleTheme: () => void }> 
                                 {heads.map(({ b, i }, k) => (
                                     <button key={i} data-chip={k + 1} role="tab" aria-selected={part === k + 1} onClick={() => document.getElementById(`s${i}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
                                         className="flex-shrink-0 px-3 h-8 text-[0.82rem] whitespace-nowrap transition-colors" style={{ color: part === k + 1 ? 'var(--gold)' : 'var(--text-muted)', borderBottom: `1px solid ${part === k + 1 ? 'var(--gold)' : 'transparent'}` }}>
-                                        <span className="font-display tabular mr-1.5">{k + 1}</span>{titleCase(b.v ?? '')}
+                                        <span className="font-display tabular mr-1.5">{k + 1}</span>{titleCase(local(b.v ?? ''))}
                                     </button>
                                 ))}
                             </div>
@@ -359,7 +378,7 @@ const Reader: React.FC<{ id: string; theme: Theme; onToggleTheme: () => void }> 
                                 <React.Fragment key={i}>
                                     <h2 id={`s${i}`} data-part={k} className="tasbihat-head">
                                         <span className="tasbihat-head-num"><span>{k}</span></span>
-                                        <span className="tasbihat-head-title">{titleCase(b.v ?? '')}</span>
+                                        <span className="tasbihat-head-title">{titleCase(local(b.v ?? ''))}</span>
                                     </h2>
                                     {passage && script !== 'ar' && <Passage {...passage} />}
                                 </React.Fragment>
@@ -387,6 +406,7 @@ const Reader: React.FC<{ id: string; theme: Theme; onToggleTheme: () => void }> 
                 <div className="mx-auto max-w-[42rem] flex items-center justify-between gap-1">
                     <div className="flex items-center" role="group" aria-label={t('Жазуу')}>
                         <button className={`chip ${script === 'cyr' ? 'is-active' : ''}`} aria-pressed={script === 'cyr'} onClick={() => chooseScript('cyr')}>{t('Кирилл')}</button>
+                        <button className={`chip ${script === 'lat' ? 'is-active' : ''}`} aria-pressed={script === 'lat'} onClick={() => chooseScript('lat')}>{t('Латын')}</button>
                         <button className={`chip ${script === 'ar' ? 'is-active' : ''}`} aria-pressed={script === 'ar'} onClick={() => chooseScript('ar')} style={{ fontFamily: 'var(--font-serif)' }}>{t('Арабча')}</button>
                     </div>
                     <button className={`chip ${all ? 'is-active' : ''}`} aria-pressed={all} onClick={toggleAll}>{t('Мааниси')}</button>
@@ -397,6 +417,7 @@ const Reader: React.FC<{ id: string; theme: Theme; onToggleTheme: () => void }> 
                 </div>
             </div>
         </AppFrame>
+        </ScriptCtx.Provider>
     );
 };
 

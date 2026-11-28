@@ -1492,7 +1492,7 @@ export const EN: Record<string, string> = {
     "Жаңы кат": "New message",
     "Кимге жазасыз?": "Who do you want to write to?",
     "Эч ким табылган жок.": "Nobody found.",
-    "Азырынча жеке кат жок. Үйүңүздүн адамдарына, капитаныңызга же админге жаза аласыз.": "No private messages yet. You can write to the people of your house, your captain or the admin.",
+    "Азырынча жеке кат жок. Жамааттагы каалаган адамга жаза аласыз: «Жаңы кат» басып, атын издеңиз.": "No private messages yet. You can write to anyone in the jamaat: press \"New message\" and search for their name.",
     "Жеке кат жазууга азырынча эч ким жок.": "There is nobody to write to yet.",
     "Мурунку маек": "Earlier conversation",
     "Жеке кат": "Private message",
@@ -1519,12 +1519,14 @@ export const EN: Record<string, string> = {
     "Үйдүн ар бир адамынын жаттоо, Куран жана китеп пландары. Көңүл керек болгондор биринчи турат. Мөөнөттү узартасыз, окуп бергенин «Угулду» деп белгилейсиз.": "Every person's memorization, Quran and book plans in your house. Those who need attention come first. You move due dates and mark recitations as heard.",
     "Меню → Пландар": "Menu → Plans",
     "Сурамжылоо жана жеке кат": "Polls and private messages",
-    "Чатта жазуунун жанындагы диаграмма баскычы сурамжылоо ачат. «Жеке каттар» бөлүмүндө үйүңүздүн адамдарына, капитандарга жана админге жеке жазасыз.": "In a chat, the chart button next to the message box starts a poll. Under \"Private messages\" you write privately to your house, the captains and the admin.",
+    "Чатта жазуунун жанындагы диаграмма баскычы сурамжылоо ачат. «Жеке каттар» бөлүмүндө жамааттагы каалаган адамга жеке жазасыз.": "In a chat, the chart button next to the message box starts a poll. Under \"Private messages\" you can write privately to anyone in the jamaat.",
     "Жаттоо, Куран окуу жана китеп пландары. Жаттаганыңызды капитаныңызга окуп бергенде, ал «Угулду» деп белгилейт.": "Memorization, Quran reading and book plans. When you recite to your captain, they mark it as heard.",
     "Календарь жана орозо": "Calendar and fasting",
     "Хижрий күн, майрамдар жана сүннөт орозо күндөрү. Кармаган орозоңузду, каза орозолорду жана күнгө планды белгилейсиз.": "The hijri date, holy days and sunnah fasting days. Mark the fasts you keep, your make-up fasts and a plan for any day.",
     "Меню → Календарь": "Menu → Calendar",
-    "Үйүңүздүн адамдарына, капитаныңызга же админге жеке жаза аласыз. Аны экөөңүз гана көрөсүз.": "Write privately to the people of your house, your captain or the admin. Only the two of you see it.",
+    "Жамааттагы каалаган адамга жеке жаза аласыз. Аны экөөңүз гана көрөсүз.": "Write privately to anyone in the jamaat. Only the two of you see it.",
     "Чаттар → Жеке каттар": "Chats → Private messages",
-    "{0} жаңы жеке кат": "{0} new private messages"
+    "{0} жаңы жеке кат": "{0} new private messages",
+    "Дубанын мааниси булакта кыргызча гана берилген.": "The source gives the meaning of the duas in Kyrgyz only.",
+    "Латын": "Latin"
 };

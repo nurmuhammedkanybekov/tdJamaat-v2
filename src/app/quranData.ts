@@ -2,7 +2,7 @@
 // public/quran/README.md): the Arabic exactly as the King Fahd Complex
 // publishes it, and the translations exactly as QuranEnc publishes them.
 // Nothing here edits or generates a word.
-import { isEnglish, t } from '../i18n';
+import { getLang, t } from '../i18n';
 
 export interface Surah { n: number; ar: string; name: string; ayahs: number; place: 'makkah' | 'madinah'; page: number; juz: number; basmala: boolean }
 /** [text, page, juz, sajda] */
@@ -34,8 +34,9 @@ export const loadSurah = async (n: number): Promise<Ayah[]> => {
     return rows;
 };
 
-/** The translation in the site's language (Kyrgyz: Sh. Hakimov; English: Saheeh International). */
-export const translationLang = (): 'ky' | 'en' => (isEnglish() ? 'en' : 'ky');
+/** The translation in the site's language (Kyrgyz: Sh. Hakimov; English:
+ *  Saheeh International; Russian: E. Kuliev). */
+export const translationLang = (): 'ky' | 'en' | 'ru' => getLang();
 const trCache = new Map<string, Rendering[]>();
 export const loadTranslation = async (n: number, lang = translationLang()): Promise<Rendering[]> => {
     const key = `${lang}/${n}`;
@@ -72,4 +73,6 @@ export const ayahOfDay = (date: Date): { surah: number; ayah: number } => {
 /** Where the text and its meaning come from (shown under the contents and each surah). */
 export const sourceNote = () => `${t('Текст: Мадина мусхафы (Хафс риваяты), Падыша Фахд комплексинин басылышы.')} ${translationLang() === 'en'
     ? t('Мааниси: Saheeh International (QuranEnc.com).')
-    : t('Мааниси: Шамсуддин Хакимов, «Руввад» котормо борборунун көзөмөлүндө (QuranEnc.com).')}`;
+    : translationLang() === 'ru'
+        ? 'Смысл: Эльмир Кулиев (Quran.com).'
+        : t('Мааниси: Шамсуддин Хакимов, «Руввад» котормо борборунун көзөмөлүндө (QuranEnc.com).')}`;

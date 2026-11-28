@@ -1,7 +1,7 @@
 // The zikr counter: what can be counted, and the counts kept on this device.
 // Nothing here is sent anywhere — it is a personal helper, separate from the
 // houses' results.
-import { t } from '../i18n';
+import { getLang, t } from '../i18n';
 import { localChanged } from './localEvent';
 
 export interface Zikr {
@@ -48,6 +48,25 @@ export const ZIKRS: Zikr[] = [
 ];
 
 for (const z of ZIKRS) Object.assign(z, V[z.id]);
+
+// How each is spelled for readers of Russian and English (the usual
+// spellings of these phrases; the Arabic above is the text itself).
+const READING: Record<string, { ru: string; en: string }> = {
+    subhanallah: { ru: 'Субханаллах', en: 'Subhanallah' },
+    alhamdulillah: { ru: 'Альхамдулиллях', en: 'Alhamdulillah' },
+    allahuakbar: { ru: 'Аллаху акбар', en: 'Allahu akbar' },
+    tahlil: { ru: 'Ля иляха илляллах', en: 'La ilaha illallah' },
+    istighfar: { ru: 'Астагфируллах', en: 'Astaghfirullah' },
+    salawat: { ru: 'Аллахумма салли аля Мухаммадин ва аля али Мухаммад', en: 'Allahumma salli ala Muhammadin wa ala ali Muhammad' },
+    bihamdihi: { ru: 'Субханаллахи ва бихамдихи', en: 'Subhanallahi wa bihamdihi' },
+    azim: { ru: 'Субханаллахиль-азым', en: 'Subhanallahil-azim' },
+    hawqala: { ru: 'Ля хауля ва ля куввата илля биллях', en: 'La hawla wa la quwwata illa billah' },
+    hasbunallah: { ru: 'Хасбуналлаху ва ни‘маль-вакиль', en: 'Hasbunallahu wa ni‘mal-wakil' }
+};
+{
+    const lang = getLang();
+    if (lang !== 'ky') for (const z of ZIKRS) z.reading = READING[z.id]?.[lang] ?? z.reading;
+}
 
 /** After-prayer tasbih: 33 + 33 + 34. */
 export const AFTER_PRAYER: Array<{ id: string; count: number }> = [

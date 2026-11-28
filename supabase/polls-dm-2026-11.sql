@@ -11,13 +11,11 @@
 --    the chat can vote; one vote per option per account, and in a
 --    one-choice poll a new vote replaces the old one. The author or the
 --    admin can close it.
--- 2. PRIVATE MESSAGES between two accounts, text only. Who may write to whom:
---      a member  → people of their own house, their captain, the admin;
---      a captain → their house's people, the other captains, CL, the admin;
---      CL        → the captains and the admin;
---      the admin → everyone.
---    Only the two people see a conversation (not the admin). A guest's
---    personal Google account has no private messages.
+-- 2. PRIVATE MESSAGES between two accounts, text only. Everyone in the
+--    jamaat who has an account (members tied to a person, captains, CL, the
+--    admin) can find and write to everyone else in it. Only the two people
+--    see a conversation (not the admin). A guest's personal Google account
+--    has no private messages.
 -- ============================================================================
 
 -- ---------------------------------------------------------------- polls
@@ -101,12 +99,8 @@ language sql stable security definer set search_path = public, auth as $$
   )
   select p.user_id, p.name, p.house_name, p.role
     from people p, me
-   where me.uid is not null and p.user_id <> me.uid and (
-         is_admin()
-      or (me.r = 'leader' and (p.role in ('admin', 'leader', 'inspector') or p.house_id = me.h))
-      or (me.r = 'inspector' and p.role in ('admin', 'leader'))
-      or (me.r = 'member' and me.h is not null and (p.role = 'admin' or (p.role in ('leader', 'member') and p.house_id = me.h)))
-   );
+   where me.uid is not null and p.user_id <> me.uid
+     and (is_admin() or me.r in ('leader', 'inspector') or (me.r = 'member' and me.h is not null));
 $$;
 revoke all on function dm_people() from public, anon;
 grant execute on function dm_people() to authenticated;

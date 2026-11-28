@@ -52,7 +52,11 @@ export const DmSection: React.FC = () => {
     }, [dms, me]);
     if (!people) return null;
     const find = (id: string) => people.find(p => p.userId === id);
-    const shown = people.filter(p => !q.trim() || `${p.name} ${p.houseName ?? ''}`.toLowerCase().includes(q.trim().toLowerCase()));
+    // The admin, CL and the captains first, then everyone by house; all matches while searching.
+    const ORDER: Record<DmPerson['role'], number> = { admin: 0, inspector: 1, leader: 2, member: 3 };
+    const sorted = [...people].sort((a, b) => ORDER[a.role] - ORDER[b.role] || (a.houseName ?? '').localeCompare(b.houseName ?? '') || a.name.localeCompare(b.name));
+    const needle = q.trim().toLowerCase();
+    const shown = needle ? sorted.filter(p => `${p.name} ${p.houseName ?? ''} ${p.role === 'leader' ? t('Капитан') : ''}`.toLowerCase().includes(needle)) : sorted.slice(0, 60);
     return (
         <section className="mt-10">
             <div className="flex items-center justify-between gap-3 pb-3" style={{ borderBottom: '1px solid var(--gold-dim)' }}>
@@ -80,7 +84,7 @@ export const DmSection: React.FC = () => {
                 </div>
             )}
             {threads.length === 0 && !picking && (
-                <p className="py-5 text-[0.92rem] italic" style={{ color: 'var(--text-muted)' }}>{people.length ? t('Азырынча жеке кат жок. Үйүңүздүн адамдарына, капитаныңызга же админге жаза аласыз.') : t('Жеке кат жазууга азырынча эч ким жок.')}</p>
+                <p className="py-5 text-[0.92rem] italic" style={{ color: 'var(--text-muted)' }}>{people.length ? t('Азырынча жеке кат жок. Жамааттагы каалаган адамга жаза аласыз: «Жаңы кат» басып, атын издеңиз.') : t('Жеке кат жазууга азырынча эч ким жок.')}</p>
             )}
             <ul>
                 {threads.map(th => {

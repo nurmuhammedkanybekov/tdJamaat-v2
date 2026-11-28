@@ -14,6 +14,9 @@
   - `ky/` — Kyrgyz, Shamsuddin Hakimov Abdulkhaliq, under the supervision of
     the Rowwad Translation Center (`kyrgyz_hakimov`, v1.0.2).
   - `en/` — English, Saheeh International (`english_saheeh`).
+- **Russian translation** (`ru/`), Elmir Kuliev, from the quran.com API
+  (`/api/v4/quran/translations/45?chapter_number=…`), stored exactly as
+  received, checked against the verse count of every surah (6236).
   QuranEnc asks that translations be shown unchanged and with their source.
 
 `index.json` — one entry per surah: number, Arabic name, name in Latin
@@ -22,4 +25,4 @@ opens with the basmala.
 `<n>.json` — the verses of surah n: `[text, page, juz, sajda]`.
 `juz.json` — where each of the 30 juz begins: `[surah, ayah]` (derived from
 the verse files).
-`ky/<n>.json`, `en/<n>.json` — `[translation, footnotes?]` per verse.
+`ky/<n>.json`, `en/<n>.json`, `ru/<n>.json` — `[translation, footnotes?]` per verse.
