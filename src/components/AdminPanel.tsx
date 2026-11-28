@@ -22,7 +22,7 @@ interface AdminPanelProps {
 
 type Tab = 'weeks' | 'season' | 'roster' | 'targets' | 'backup';
 const ROLES: Role[] = ['imam', 'zam', 'member'];
-const inputStyle: React.CSSProperties = { backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 6, color: 'var(--text-primary)' };
+const inputStyle: React.CSSProperties = { color: 'var(--text-primary)' };
 
 const Notice: React.FC<{ kind: 'error' | 'ok'; text: string }> = ({ kind, text }) => (
     <div role={kind === 'error' ? 'alert' : 'status'} className="flex items-start gap-2 text-[0.85rem] px-3 py-2.5 rounded-[8px] mb-4" style={{ backgroundColor: kind === 'error' ? 'color-mix(in oklab, var(--danger) 10%, transparent)' : 'color-mix(in oklab, var(--success) 10%, transparent)', color: kind === 'error' ? 'var(--danger)' : 'var(--success)' }}>
@@ -78,6 +78,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
 
     return (
         <Sheet title={t('Админ панели')} onClose={onClose} width="50rem">
+            <div className="admin-x">
             <div className="px-4 sm:px-6 pt-4">
                 <div className="chip-row mb-6 max-w-full overflow-x-auto scroll-row" role="tablist">
                     {tabs.map(([k, label]) => (
@@ -313,6 +314,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ data, onClose, onChanged
                     </div>
                 </div>
             )}
+            </div>
         </Sheet>
     );
 };

@@ -2168,3 +2168,28 @@ button.help-where:hover { border-bottom-color: var(--gold); }
 .q-bar > button:nth-child(3) { box-shadow: 0 6px 18px -8px color-mix(in oklab, var(--gold) 80%, transparent); }
 /* the list's tabs a little lighter */
 .jattoo-kinds > button { font-size: 1.15rem; }
+
+/* ================================================================ admin panel, as a ledger
+   No boxes: sections divided by hairlines, fields written on a line, icon
+   buttons without frames, switches as quiet text. */
+.admin-x .card { border: 0 !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; border-top: 1px solid var(--border) !important; }
+.admin-x .card.card-pad { padding: 1.15rem 0 1.25rem; }
+.admin-x ol.card, .admin-x ul.card { border-bottom: 1px solid var(--border) !important; }
+.admin-x ol.card > li, .admin-x ul.card > li { padding-left: 0 !important; padding-right: 0 !important; }
+.admin-x .font-bold { font-weight: 400; font-family: var(--font-display); font-size: 1.2rem; }
+.admin-x input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), .admin-x select, .admin-x textarea {
+    border: 0 !important; border-bottom: 1px solid var(--border-strong) !important; border-radius: 0 !important;
+    background: transparent !important; box-shadow: none !important; padding-left: .1rem !important; color: var(--text-primary);
+    transition: border-color .15s;
+}
+.admin-x input:focus, .admin-x select:focus, .admin-x textarea:focus { outline: none; border-bottom-color: var(--gold) !important; }
+.admin-x select { appearance: none; -webkit-appearance: none; padding-right: 1.4rem !important; cursor: pointer;
+    background-image: linear-gradient(45deg, transparent 50%, var(--gold) 50%), linear-gradient(135deg, var(--gold) 50%, transparent 50%) !important;
+    background-position: calc(100% - .62rem) 58%, calc(100% - .4rem) 58% !important; background-size: .22rem .22rem, .22rem .22rem !important; background-repeat: no-repeat !important; }
+.admin-x .btn-icon, .admin-x .btn.btn-ghost.btn-icon { border-color: transparent !important; background: transparent !important; color: var(--text-muted); border-radius: 999px; }
+.admin-x .btn-icon:hover:not(:disabled) { color: var(--gold); background: color-mix(in oklab, var(--gold) 10%, transparent) !important; }
+.admin-x .btn.btn-ghost:not(.btn-icon) { border-color: var(--gold-dim); }
+.admin-x .toggle-pill { border: 0 !important; background: transparent !important; box-shadow: none !important; color: var(--text-muted); padding-left: .4rem; padding-right: .4rem; }
+.admin-x .toggle-pill.is-on { color: var(--gold); }
+.admin-x .toggle-pill.is-on svg { filter: drop-shadow(0 0 6px color-mix(in oklab, var(--gold) 50%, transparent)); }
+.admin-x [role="tablist"] .chip { letter-spacing: .2em; }
