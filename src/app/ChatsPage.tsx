@@ -18,7 +18,6 @@ import { canEditAt, editMessage } from '../services/editMessage';
 
 import { DEFAULT_REACTION } from '../services/reactions';
 import { Avatar } from '../components/Avatar';
-import { HornBand } from '../components/motion';
 import { Mark } from '../components/Ornament';
 import type { Audience, ChatRoom, RoomMessage } from '../services/jamaatChatService';
 import { fetchRoomLast, fetchGroupPeople, groupsReady, leaveGroup, closePoll, countRoomUnread, createRoom, deleteRoom, deleteRoomMessage, fetchRoom, fetchRooms, markRoomSeen, myUserId, pollsReady, sendPoll, sendToRoom, reactRoom, updateRoom, votePoll, watchRoom } from '../services/jamaatChatService';
@@ -318,7 +317,6 @@ const RoomChat: React.FC<{ room: ChatRoom; theme: Theme; onToggleTheme: () => vo
                     <p className="text-[0.8rem] mt-1" style={{ color: 'var(--text-muted)' }}>{info.about || AUDIENCE[info.audience]()}</p>
                     {info.audience === 'custom' && <GroupLine room={info} me={me} />}
                     <div className="mt-2"><NotifyToggle /></div>
-                    <HornBand className="mt-3" />
                 </header>
 
                 {messages === undefined && <Waiting />}
@@ -342,19 +340,19 @@ const RoomChat: React.FC<{ room: ChatRoom; theme: Theme; onToggleTheme: () => vo
                             <div id={`m-${m.id}`} data-sel={sel === m.id || undefined} onClick={() => setSel(s => (s === m.id ? null : m.id))} className={`chat-row ${mine ? 'is-mine' : ''} ${sameRun ? 'is-run' : ''} ${who.seal === 'admin' ? 'is-admin' : ''}`}>
                                 {!mine && <div className="w-9 flex-shrink-0">{!sameRun && (who.seal ? <Seal kind={who.seal} /> : <Avatar name={who.name} role={m.authorRole === 'leader' ? 'imam' : 'member'} photoUrl={null} size="sm" />)}</div>}
                                 <div className="chat-body">
-                                    {!sameRun && (
-                                        <div className={`chat-name ${who.seal === 'admin' ? 'is-admin' : ''} ${mine ? 'justify-end' : ''}`}>{mine ? t('Сиз') : who.name}{!mine && who.tag && <span className="chat-tag">{who.tag}</span>}</div>
+                                    {!sameRun && !mine && (
+                                        <div className={`chat-name ${who.seal === 'admin' ? 'is-admin' : ''}`}>{who.name}{who.tag && <span className="chat-tag">{who.tag}</span>}</div>
                                     )}
                                     {m.poll
                                         ? <div className="chat-bubble is-poll"><PollCard question={m.body} poll={m.poll} me={me} canClose={mine || access.isAdmin} onVote={(o, on) => vote(m, o, on)} onClose={() => { closePoll(m.id).then(load).catch(e => setError((e as Error)?.message ?? '')); }} /></div>
                                         : <div className="chat-bubble" onDoubleClick={() => { if (me && !m.reactions.some(r => r.who === me && r.emoji === DEFAULT_REACTION)) react(m, DEFAULT_REACTION); }}>
                                             {m.replyTo && (() => { const q = messages.find(x => x.id === m.replyTo); return <Quote who={q ? whoName(q) : null} body={q?.body ?? null} onClick={q ? () => showMessage(q.id) : undefined} />; })()}
                                             <MessageText text={m.body} />
+                                        <span className="chat-stamp"><EditedMark at={m.editedAt} /><span className="tabular">{hm(at)}</span></span>
                                         </div>}
                                     <Reactions list={m.reactions} me={me} disabled={!me} onPick={e => react(m, e)} align={mine ? 'end' : 'start'} />
                                     <div className="chat-meta">
-                                        <span className="tabular">{hm(at)}</span>
-                                        <EditedMark at={m.editedAt} />
+                                        {m.poll && <span className="tabular">{hm(at)}</span>}
                                         <Acts text={m.body} onReply={() => startReply(m)} onEdit={mine && !m.poll && canEditAt(m.createdAt) ? () => startEdit(m) : undefined} onDelete={mine || access.isAdmin ? () => remove(m) : undefined} />
                                     </div>
                                 </div>
@@ -376,7 +374,7 @@ const RoomChat: React.FC<{ room: ChatRoom; theme: Theme; onToggleTheme: () => vo
                     {error && <p className="max-w-[42rem] mx-auto text-[0.82rem] mb-2" style={{ color: 'var(--danger)' }}>{error}</p>}
                     {!polling && <ComposerBar editing={editing} replying={replying} onCancel={stopEdit} />}
                     {polling ? <PollForm onSend={sendAPoll} onCancel={() => setPolling(false)} /> : (
-                    <form className="max-w-[42rem] mx-auto flex items-end gap-2" onSubmit={e => { e.preventDefault(); send(); }}>
+                    <form className="chat-compose max-w-[42rem] mx-auto flex items-end gap-2" onSubmit={e => { e.preventDefault(); send(); }}>
                         {pollsReady() && !editing && <button type="button" onClick={() => setPolling(true)} aria-label={t('Сурамжылоо')} title={t('Сурамжылоо')} className="w-11 h-12 inline-flex items-center justify-center flex-shrink-0 transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}><ChartNoAxesColumn className="w-5 h-5" /></button>}
                         <textarea
                             ref={input} rows={1} value={text} maxLength={2000}

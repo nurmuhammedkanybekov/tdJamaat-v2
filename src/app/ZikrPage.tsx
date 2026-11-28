@@ -238,6 +238,17 @@ const ZikrPlan: React.FC<{ store: ZikrStore; update: (fn: (s: ZikrStore) => Zikr
     const left = rows[0]?.daysLeft ?? 7 - ((new Date().getDay() + 3) % 7);
     const takeJamaat = () => jamaat && update(s => setPlan(setPlan(s, 'salawat', jamaat.salawat), 'istighfar', jamaat.zikr));
     const offerJamaat = jamaat && (jamaat.salawat > 0 || jamaat.zikr > 0) && ((store.weekPlan?.salawat ?? 0) !== jamaat.salawat || (store.weekPlan?.istighfar ?? 0) !== jamaat.zikr);
+    // No plan yet: one quiet line that offers to make one.
+    if (!rows.length && !editing) return (
+        <section className="zplan-empty">
+            <div className="min-w-0">
+                <div className="eyebrow" style={{ color: 'var(--gold)' }}>{t('Зикир планым')}</div>
+                <div className="text-[0.88rem] mt-0.5" style={{ color: 'var(--text-muted)' }}>{t('Апталык сан коюңуз, сайт аны күндөргө бөлүп берет.')}</div>
+                {offerJamaat && <button className="zplan-empty-j" onClick={takeJamaat}>{t('Жамааттагы планымды кошуу: салават {0}, истигфар {1}', jamaat!.salawat, jamaat!.zikr)}</button>}
+            </div>
+            <button className="zplan-empty-go" onClick={() => setEditing(true)}>{t('План түзүү')}<ChevronRight className="w-4 h-4" /></button>
+        </section>
+    );
     return (
         <section className="zplan">
             <div className="zplan-head">

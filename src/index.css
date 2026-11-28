@@ -2078,3 +2078,74 @@ button.help-where:hover { border-bottom-color: var(--gold); }
 @keyframes chat-flash { 0%, 40% { box-shadow: 0 0 0 3px var(--gold); } 100% { box-shadow: 0 0 0 0 transparent; } }
 .chat-flash .chat-bubble { animation: chat-flash 1.6s ease; }
 .room-when { float: right; margin-left: .6rem; font-size: .72rem; letter-spacing: 0; text-transform: none; color: var(--text-muted); }
+
+/* ================================================================ inner page title
+   The name of the page, not a monument: on a phone it takes a fifth of the
+   screen, so the page's own content begins on the first screen. */
+.page-title { position: relative; isolation: isolate; display: flex; flex-direction: column; align-items: center; text-align: center; padding: .1rem 0 .9rem; }
+.page-crown { display: none; }
+.page-kicker { font-size: .62rem; }
+.page-h1 { font-size: 2.05rem; line-height: 1.05; margin-top: .3rem; letter-spacing: -.005em; }
+.page-sub { margin-top: .35rem; font-size: .86rem; }
+.page-title > .page-medallion { top: 50%; opacity: .06; }
+@media (min-width: 640px) {
+    .page-title { padding: .4rem 0 1.6rem; }
+    .page-crown { display: block; width: min(8.5rem, 40%); height: auto; margin-bottom: .55rem; }
+    .page-kicker { font-size: .68rem; }
+    .page-h1 { font-size: 2.7rem; margin-top: .45rem; }
+    .page-sub { font-size: .92rem; }
+}
+
+/* ================================================================ chat, redesigned
+   Messages read like a conversation, not a form: soft bubbles with no hard
+   frame, the hour tucked inside the bubble, one's own on the gold side.
+   Reactions and actions appear when a message is touched (or under the mouse). */
+.chat-row { margin-top: .75rem; gap: .5rem; }
+.chat-row.is-run { margin-top: .2rem; }
+.chat-body { max-width: min(82%, 34rem); }
+.chat-name { font-size: .9rem; margin: 0 0 .2rem .15rem; }
+.chat-bubble { position: relative; padding: .5rem .8rem .4rem; font-size: 1rem; line-height: 1.45; border: 0; border-radius: 1.15rem 1.15rem 1.15rem .4rem; background: var(--surface); box-shadow: 0 0 0 1px color-mix(in oklab, var(--border) 70%, transparent), 0 1px 2px rgba(20, 16, 8, .05); }
+.chat-row.is-run:not(.is-mine) .chat-bubble { border-top-left-radius: .4rem; }
+.chat-row.is-mine .chat-bubble { border-radius: 1.15rem 1.15rem .4rem 1.15rem; border: 0; background: color-mix(in oklab, var(--gold) 15%, var(--surface)); box-shadow: 0 0 0 1px color-mix(in oklab, var(--gold) 28%, transparent); }
+.chat-row.is-mine.is-run .chat-bubble { border-top-right-radius: .4rem; }
+.dark .chat-row.is-mine .chat-bubble { background: color-mix(in oklab, var(--gold) 20%, var(--surface)); }
+.chat-row.is-admin .chat-bubble { border: 0; border-left-width: 0; background: color-mix(in oklab, var(--gold) 9%, var(--surface)); box-shadow: 0 0 0 1px color-mix(in oklab, var(--gold) 45%, transparent); }
+.chat-bubble.is-poll { padding: .9rem 1rem; }
+.chat-stamp { float: right; display: inline-flex; align-items: baseline; gap: .35rem; margin: .45rem -.15rem -.15rem .75rem; font-size: .66rem; line-height: 1; color: var(--text-muted); white-space: nowrap; user-select: none; }
+.chat-stamp .chat-edited { font-size: .64rem; }
+.chat-tick { letter-spacing: -.18em; color: var(--text-muted); }
+.chat-tick[data-read] { color: var(--gold); }
+.chat-meta { margin-top: 0; gap: .4rem; min-height: 0; }
+.chat-row[data-sel] .chat-meta, .chat-row:hover .chat-meta { margin-top: .15rem; }
+.reacts { margin-top: .25rem; }
+.reacts:not(:has(.react-chip)) { margin-top: 0; }
+.chat-row:not([data-sel]):not(:hover) .react-add:not([aria-expanded="true"]) { display: none; }
+@media (hover: none) { .chat-row:hover:not([data-sel]) .react-add:not([aria-expanded="true"]) { display: none; } }
+.chat-row[data-sel] .chat-bubble { box-shadow: 0 0 0 2px var(--gold); }
+.chat-day { margin: 1.2rem 0 .5rem; }
+.chat-day span { padding: .2rem .7rem; border-radius: 999px; background: var(--surface); box-shadow: 0 0 0 1px var(--border); letter-spacing: .16em; }
+.chat-day::before, .chat-day::after { opacity: .6; }
+.chat-quote { background: color-mix(in oklab, var(--gold) 7%, transparent); border-radius: .35rem; padding: .3rem .6rem .35rem; }
+/* the box below */
+.chat-compose textarea { border-radius: 1.45rem !important; border: 1px solid var(--border) !important; background: var(--surface) !important; padding: .72rem 1.1rem !important; font-size: 1rem !important; box-shadow: none !important; }
+.chat-compose textarea:focus { border-color: var(--gold) !important; box-shadow: 0 0 0 3px var(--gold-soft) !important; }
+.chat-compose button[type="submit"] { width: 2.9rem !important; height: 2.9rem !important; box-shadow: 0 4px 14px -6px color-mix(in oklab, var(--gold) 70%, transparent); }
+.chat-compose button[type="submit"]:disabled { box-shadow: none; }
+.zplan { padding-top: 1.6rem; border-bottom: 0; margin-bottom: 1.6rem; }
+.zplan::after { display: none; }
+.zplan-empty { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 1rem; padding: .9rem 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.zplan-empty-go { display: inline-flex; align-items: center; gap: .3rem; flex-shrink: 0; font-size: .7rem; letter-spacing: .18em; text-transform: uppercase; color: var(--gold); padding: .5rem 0; }
+.zplan-empty-go:hover { color: var(--text-primary); }
+.zplan-empty-j { display: block; margin-top: .35rem; text-align: left; font-size: .8rem; color: var(--gold); text-decoration: underline; text-decoration-color: var(--gold-dim); text-underline-offset: 3px; }
+/* chat header: compact, its ornament once */
+.chat-row.is-mine .chat-body { padding-top: .1rem; }
+/* calendar: today as a line above the month, not a second title */
+.cal-today { padding-top: 0; }
+.cal-today .greet-horn { display: none; }
+.cal-today-h { font-size: clamp(1.45rem, 5.2vw, 2rem); margin-top: .25rem; }
+.cal-today-note { margin-top: .35rem; font-size: .88rem; }
+.cal-main { margin-top: 1.4rem; }
+@media (min-width: 1024px) { .cal-main { margin-top: 2.2rem; } }
+.cal-head .font-display { font-size: 1.4rem !important; }
+.cal-day { height: 3.4rem; }
+.zplan-empty { border-bottom: 0; }

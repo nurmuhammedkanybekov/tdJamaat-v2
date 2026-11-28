@@ -102,13 +102,14 @@ export const AppFrame: React.FC<{
                     </div>
                     {back === undefined && hero}
                     {back === undefined && !hero && (
-                        <div className="monument is-compact relative flex flex-col items-center text-center pt-1 sm:pt-4 pb-6 sm:pb-8">
-                            {/* The same шырдак medallion as the sign-in page, turning slowly behind the page's name. */}
-                            <span className="page-medallion" aria-hidden="true"><Medallion size={420} className="spin-slow" /></span>
-                            <Crown className="draw-in h-auto w-[min(10rem,46%)] sm:w-[min(12rem,50%)]" style={{ color: 'var(--gold)' }} />
-                            {kicker && <div className="eyebrow mt-3" style={{ color: 'var(--gold)' }}>{kicker}</div>}
-                            <h1 className="font-display leading-none mt-3 text-[2.3rem] sm:text-[3rem]" style={{ color: 'var(--text-primary)' }}>{title}</h1>
-                            {sub && <div className="mt-3 text-[0.9rem]" style={{ color: 'var(--text-muted)' }}>{sub}</div>}
+                        // An inner page: its name, compact on a phone (the content
+                        // starts on the first screen); ceremonial but measured on a wide one.
+                        <div className="page-title">
+                            <span className="page-medallion hidden sm:block" aria-hidden="true"><Medallion size={360} className="spin-slow" /></span>
+                            <Crown className="page-crown draw-in" style={{ color: 'var(--gold)' }} />
+                            {kicker && <div className="eyebrow page-kicker" style={{ color: 'var(--gold)' }}>{kicker}</div>}
+                            <h1 className="font-display page-h1" style={{ color: 'var(--text-primary)' }}>{title}</h1>
+                            {sub && <div className="page-sub" style={{ color: 'var(--text-muted)' }}>{sub}</div>}
                         </div>
                     )}
                     {back === undefined && <HornBand className="mb-1" />}

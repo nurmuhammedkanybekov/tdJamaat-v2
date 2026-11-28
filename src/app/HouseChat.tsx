@@ -11,7 +11,6 @@ import type { Theme } from '../theme';
 import { t, dateLocale } from '../i18n';
 import { AppFrame, Waiting } from './AppFrame';
 import { Avatar } from '../components/Avatar';
-import { HornBand } from '../components/motion';
 import { Mark } from '../components/Ornament';
 import type { ChatMessage } from '../services/chatService';
 import { deleteMessage, fetchMessages, markSeen, reactHouse, sendMessage, watchHouse } from '../services/chatService';
@@ -159,7 +158,6 @@ export const HouseChat: React.FC<{ self: Self; canModerate: boolean; theme: Them
                     <h1 className="font-display text-[1.65rem] sm:text-[2rem] leading-tight mt-0.5" style={{ color: 'var(--text-primary)' }}>{self.houseName}</h1>
                     <p className="text-[0.8rem] mt-1" style={{ color: 'var(--text-muted)' }}>{asAdmin ? t('Бул жерде «Админ» болуп жазасыз. Билдирүүлөрдү өчүрө аласыз.') : t('Үйдүн адамдары, капитан жана админ гана көрөт.')}</p>
                     <div className="mt-2"><NotifyToggle /></div>
-                    <HornBand className="mt-3" />
                 </header>
                 <GoalBanner houseId={self.houseId} week={week} canEdit={canModerate} />
 
@@ -200,11 +198,10 @@ export const HouseChat: React.FC<{ self: Self; canModerate: boolean; theme: Them
                                     <div className="chat-bubble" onDoubleClick={() => { if (!asAdmin && !m.reactions.some(r => r.who === self.memberId && r.emoji === DEFAULT_REACTION)) react(m, DEFAULT_REACTION); }}>
                                         {m.replyTo && (() => { const q = messages.find(x => x.id === m.replyTo); return <Quote who={q ? whoName(q) : null} body={q?.body ?? null} onClick={q ? () => showMessage(q.id) : undefined} />; })()}
                                         <MessageText text={m.body} />
+                                        <span className="chat-stamp"><EditedMark at={m.editedAt} /><span className="tabular">{hm(at)}</span></span>
                                     </div>
                                     <Reactions list={m.reactions} me={asAdmin ? null : self.memberId} disabled={asAdmin} onPick={e => react(m, e)} align={mine ? 'end' : 'start'} />
                                     <div className="chat-meta">
-                                        <span className="tabular">{hm(at)}</span>
-                                        <EditedMark at={m.editedAt} />
                                         <Acts text={m.body} onReply={() => startReply(m)} onEdit={mine && canEditAt(m.createdAt) ? () => startEdit(m) : undefined} onDelete={mine || canModerate ? () => remove(m) : undefined} />
                                     </div>
                                 </div>
@@ -226,7 +223,7 @@ export const HouseChat: React.FC<{ self: Self; canModerate: boolean; theme: Them
                     )}
                     {error && <p className="max-w-[42rem] mx-auto text-[0.82rem] mb-2" style={{ color: 'var(--danger)' }}>{error}</p>}
                     <ComposerBar editing={editing} replying={replying} onCancel={stopEdit} />
-                    <form className="max-w-[42rem] mx-auto flex items-end gap-2" onSubmit={e => { e.preventDefault(); send(); }}>
+                    <form className="chat-compose max-w-[42rem] mx-auto flex items-end gap-2" onSubmit={e => { e.preventDefault(); send(); }}>
                         <textarea
                             ref={input} rows={1} value={text} maxLength={2000}
                             onChange={e => setText(e.target.value)}
