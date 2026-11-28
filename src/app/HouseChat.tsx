@@ -2,8 +2,8 @@
 // its captain and the admin can read it (supabase/house-chat-2026-11.sql).
 // Messages arrive at once; a message can be answered with "Аамин".
 import React, { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { ArrowDown, ArrowUp, Check, Loader2, Trash2 } from 'lucide-react';
-import { EditButton, EditedMark, EditingBar, type Editing } from '../components/ChatEdit';
+import { ArrowDown, ArrowUp, Check, Loader2 } from 'lucide-react';
+import { Acts, ComposerBar, EditedMark, MessageText, Quote, showMessage, type Editing, type Replying } from '../components/ChatEdit';
 import { canEditAt, editMessage } from '../services/editMessage';
 
 import type { Theme } from '../theme';
@@ -104,8 +104,12 @@ export const HouseChat: React.FC<{ self: Self; canModerate: boolean; theme: Them
     const toNewest = () => { setFresh(0); window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }); };
 
     const [editing, setEditing] = useState<Editing | null>(null);
-    const startEdit = (m: ChatMessage) => { setEditing({ id: m.id, body: m.body }); setText(m.body); window.setTimeout(() => input.current?.focus(), 0); };
-    const stopEdit = () => { setEditing(null); setText(''); };
+    const [replying, setReplying] = useState<Replying | null>(null);
+    const [sel, setSel] = useState<number | null>(null);
+    const startEdit = (m: ChatMessage) => { setReplying(null); setSel(null); setEditing({ id: m.id, body: m.body }); setText(m.body); window.setTimeout(() => input.current?.focus(), 0); };
+    const stopEdit = () => { if (editing) setText(''); setEditing(null); setReplying(null); };
+    const whoName = (m: ChatMessage) => (m.authorRole === 'admin' || !m.memberId ? t('Админ') : m.memberId === self.memberId && !asAdmin ? t('Сиз') : people.get(m.memberId)?.name ?? t('Мүчө'));
+    const startReply = (m: ChatMessage) => { setEditing(null); setSel(null); setReplying({ id: m.id, who: whoName(m), body: m.body }); window.setTimeout(() => input.current?.focus(), 0); };
     const send = async (body = text) => {
         const clean = body.trim();
         if (!clean || sending) return;
@@ -119,7 +123,7 @@ export const HouseChat: React.FC<{ self: Self; canModerate: boolean; theme: Them
             return;
         }
         setSending(true); setError('');
-        try { await sendMessage(self.houseId, asAdmin ? null : self.memberId, clean); setText(''); stick.current = true; load(); input.current?.focus(); }
+        try { await sendMessage(self.houseId, asAdmin ? null : self.memberId, clean, replying?.id ?? null); setText(''); setReplying(null); stick.current = true; load(); input.current?.focus(); }
         catch (e) { const msg = (e as Error)?.message ?? ''; setError(asAdmin && /row-level security|violates|null value/i.test(msg) ? t('«Админ» катары жазуу үчүн supabase/admin-chat-2026-11.sql файлын иштетүү керек.') : msg || t('Жөнөтүлгөн жок')); }
         finally { setSending(false); }
     };
@@ -148,10 +152,10 @@ export const HouseChat: React.FC<{ self: Self; canModerate: boolean; theme: Them
     return (
         <AppFrame page="house" title={self.memberId ? t('Үйдүн чаты') : self.houseName} back={back} theme={theme} onToggleTheme={onToggleTheme} ownBar>
             <div ref={list} className="max-w-[42rem] mx-auto pt-2 pb-6">
-                <header className="text-center pt-4 pb-2">
-                    <Mark size={44} className="mx-auto" style={{ color: 'var(--gold)' }} />
-                    <div className="eyebrow mt-3" style={{ color: 'var(--gold)' }}>{t('Үйдүн чаты')}</div>
-                    <h1 className="font-display text-[2rem] leading-tight mt-1" style={{ color: 'var(--text-primary)' }}>{self.houseName}</h1>
+                <header className="text-center pt-2 pb-1">
+                    <Mark size={30} className="mx-auto" style={{ color: 'var(--gold)' }} />
+                    <div className="eyebrow mt-2" style={{ color: 'var(--gold)' }}>{t('Үйдүн чаты')}</div>
+                    <h1 className="font-display text-[1.65rem] sm:text-[2rem] leading-tight mt-0.5" style={{ color: 'var(--text-primary)' }}>{self.houseName}</h1>
                     <p className="text-[0.8rem] mt-1" style={{ color: 'var(--text-muted)' }}>{asAdmin ? t('Бул жерде «Админ» болуп жазасыз. Билдирүүлөрдү өчүрө аласыз.') : t('Үйдүн адамдары, капитан жана админ гана көрөт.')}</p>
                     <div className="mt-2"><NotifyToggle /></div>
                     <HornBand className="mt-3" />
@@ -183,7 +187,7 @@ export const HouseChat: React.FC<{ self: Self; canModerate: boolean; theme: Them
                     return (
                         <React.Fragment key={m.id}>
                             {newDay && <div className="chat-day"><span>{dayLabel(at)}</span></div>}
-                            <div className={`chat-row ${mine ? 'is-mine' : ''} ${sameRun ? 'is-run' : ''} ${byAdmin ? 'is-admin' : ''}`}>
+                            <div id={`m-${m.id}`} data-sel={sel === m.id || undefined} onClick={() => setSel(s => (s === m.id ? null : m.id))} className={`chat-row ${mine ? 'is-mine' : ''} ${sameRun ? 'is-run' : ''} ${byAdmin ? 'is-admin' : ''}`}>
                                 {!mine && <div className="w-9 flex-shrink-0">{!sameRun && (byAdmin ? <AdminSeal /> : <Avatar name={who?.name ?? '?'} role={who?.role ?? 'member'} photoUrl={who?.photoUrl ?? null} size="sm" />)}</div>}
                                 <div className="chat-body">
                                     {!mine && !sameRun && (
@@ -192,13 +196,15 @@ export const HouseChat: React.FC<{ self: Self; canModerate: boolean; theme: Them
                                             : <div className="chat-name">{who?.name ?? t('Мүчө')}{m.authorRole === 'leader' && <span className="chat-tag">{t('капитан')}</span>}</div>
                                     )}
                                     {mine && byAdmin && !sameRun && <div className="chat-name is-admin justify-end">{t('Админ')}</div>}
-                                    <div className="chat-bubble" onDoubleClick={() => { if (!asAdmin && !m.reactions.some(r => r.who === self.memberId && r.emoji === DEFAULT_REACTION)) react(m, DEFAULT_REACTION); }}>{m.body}</div>
+                                    <div className="chat-bubble" onDoubleClick={() => { if (!asAdmin && !m.reactions.some(r => r.who === self.memberId && r.emoji === DEFAULT_REACTION)) react(m, DEFAULT_REACTION); }}>
+                                        {m.replyTo && (() => { const q = messages.find(x => x.id === m.replyTo); return <Quote who={q ? whoName(q) : null} body={q?.body ?? null} onClick={q ? () => showMessage(q.id) : undefined} />; })()}
+                                        <MessageText text={m.body} />
+                                    </div>
                                     <Reactions list={m.reactions} me={asAdmin ? null : self.memberId} disabled={asAdmin} onPick={e => react(m, e)} align={mine ? 'end' : 'start'} />
                                     <div className="chat-meta">
                                         <span className="tabular">{hm(at)}</span>
                                         <EditedMark at={m.editedAt} />
-                                        {mine && canEditAt(m.createdAt) && <EditButton onClick={() => startEdit(m)} />}
-                                        {(mine || canModerate) && <button onClick={() => remove(m)} aria-label={t('Өчүрүү')} className="chat-delete"><Trash2 className="w-3.5 h-3.5" /></button>}
+                                        <Acts text={m.body} onReply={() => startReply(m)} onEdit={mine && canEditAt(m.createdAt) ? () => startEdit(m) : undefined} onDelete={mine || canModerate ? () => remove(m) : undefined} />
                                     </div>
                                 </div>
                             </div>
@@ -218,12 +224,12 @@ export const HouseChat: React.FC<{ self: Self; canModerate: boolean; theme: Them
                         </button>
                     )}
                     {error && <p className="max-w-[42rem] mx-auto text-[0.82rem] mb-2" style={{ color: 'var(--danger)' }}>{error}</p>}
-                    {editing && <EditingBar editing={editing} onCancel={stopEdit} />}
+                    <ComposerBar editing={editing} replying={replying} onCancel={stopEdit} />
                     <form className="max-w-[42rem] mx-auto flex items-end gap-2" onSubmit={e => { e.preventDefault(); send(); }}>
                         <textarea
                             ref={input} rows={1} value={text} maxLength={2000}
                             onChange={e => setText(e.target.value)}
-                            onKeyDown={e => { if (e.key === 'Escape' && editing) stopEdit(); if (e.key === 'Enter' && !e.shiftKey && !('ontouchstart' in window)) { e.preventDefault(); send(); } }}
+                            onKeyDown={e => { if (e.key === 'Escape' && (editing || replying)) stopEdit(); if (e.key === 'Enter' && !e.shiftKey && !('ontouchstart' in window)) { e.preventDefault(); send(); } }}
                             placeholder={asAdmin ? t('Админ катары жазуу…') : t('{0} үйүнө жазуу…', self.houseName)} aria-label={t('Билдирүү')}
                             className="login-field flex-1 min-w-0 resize-none px-3.5 py-3 text-base leading-snug"
                             style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border-strong)', color: 'var(--text-primary)' }}

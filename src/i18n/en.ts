@@ -1678,4 +1678,7 @@ export const EN: Record<string, string> = {
     "Топту жабуу": "Close group",
     "Топту өзгөртүү": "Edit group",
     "Эч ким табылган жок": "No one found",
+    "Жооп берүү": "Reply",
+    "Бул билдирүү өчүрүлгөн": "This message was deleted",
+    "Жооп: {0}": "Replying to {0}",
 };

@@ -12,7 +12,7 @@ import { AppContext } from './context';
 import { useSelf } from './self';
 import { go } from './route';
 import { Reactions } from './Reactions';
-import { EditButton, EditedMark, EditingBar, type Editing } from '../components/ChatEdit';
+import { Acts, ComposerBar, EditedMark, MessageText, Quote, showMessage, type Editing, type Replying } from '../components/ChatEdit';
 import { canEditAt, editMessage } from '../services/editMessage';
 
 import { DEFAULT_REACTION } from '../services/reactions';
@@ -20,12 +20,12 @@ import { Avatar } from '../components/Avatar';
 import { HornBand } from '../components/motion';
 import { Mark } from '../components/Ornament';
 import type { Audience, ChatRoom, RoomMessage } from '../services/jamaatChatService';
-import { fetchGroupPeople, groupsReady, leaveGroup, closePoll, countRoomUnread, createRoom, deleteRoom, deleteRoomMessage, fetchRoom, fetchRooms, markRoomSeen, myUserId, pollsReady, sendPoll, sendToRoom, reactRoom, updateRoom, votePoll, watchRoom } from '../services/jamaatChatService';
+import { fetchRoomLast, fetchGroupPeople, groupsReady, leaveGroup, closePoll, countRoomUnread, createRoom, deleteRoom, deleteRoomMessage, fetchRoom, fetchRooms, markRoomSeen, myUserId, pollsReady, sendPoll, sendToRoom, reactRoom, updateRoom, votePoll, watchRoom } from '../services/jamaatChatService';
 import { PollCard, PollForm } from './PollCard';
 import { GroupEditor } from './GroupEditor';
 import { DmChat, DmSection } from './DirectMessages';
 import { NotifyToggle } from './Community';
-import { countUnread } from '../services/chatService';
+import { countUnread, fetchHouseLast } from '../services/chatService';
 import { signInWithGoogle } from '../services/memberService';
 
 const KY_MONTHS = ['январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'];
@@ -35,6 +35,12 @@ const dayLabel = (d: Date, now = new Date()) => {
     if (a === b) return t('Бүгүн');
     if (b - a === 86400000) return t('Кечээ');
     return dateLocale() ? d.toLocaleDateString(dateLocale()!, { day: 'numeric', month: 'long' }) : `${d.getDate()}-${KY_MONTHS[d.getMonth()]}`;
+};
+const whenShort = (iso: string) => {
+    const d = new Date(iso), now = new Date();
+    if (d.toDateString() === now.toDateString()) return hm(d);
+    if (now.getTime() - d.getTime() < 6 * 86400000) return dateLocale() ? d.toLocaleDateString(dateLocale()!, { weekday: 'short' }) : [t('Жш'), t('Дш'), t('Шш'), t('Шр'), t('Бш'), t('Жм'), t('Иш')][d.getDay()];
+    return `${d.getDate()}.${String(d.getMonth() + 1).padStart(2, '0')}`;
 };
 const hm = (d: Date) => `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 
@@ -94,6 +100,7 @@ const ChatList: React.FC<{ rooms: ChatRoom[]; onChanged: () => void }> = ({ room
     const ctx = useContext(AppContext);
     const houses = useMemo(() => { const w = ctx.data?.weeks[ctx.data.weeks.length - 1]; return (w?.teams ?? []).map(tm => ({ id: tm.id, name: tm.name })); }, [ctx.data]);
     const [unread, setUnread] = useState<Record<string, number>>({});
+    const [last, setLast] = useState<Record<string, { body: string; createdAt: string; who?: string }>>({});
     const [editing, setEditing] = useState<ChatRoom | 'new' | 'group' | null>(null);
     const [me, setMe] = useState<string | null>(null);
     useEffect(() => { myUserId().then(setMe).catch(() => undefined); }, []);
@@ -102,6 +109,8 @@ const ChatList: React.FC<{ rooms: ChatRoom[]; onChanged: () => void }> = ({ room
     useEffect(() => {
         rooms.forEach(r => countRoomUnread(r.id).then(n => setUnread(u => ({ ...u, [r.id]: n }))).catch(() => undefined));
         if (self) countUnread(self.houseId, self.memberId).then(n => setUnread(u => ({ ...u, 'house:': n }))).catch(() => undefined);
+        rooms.forEach(r => fetchRoomLast(r.id).then(l => { if (l) setLast(x => ({ ...x, [r.id]: l })); }).catch(() => undefined));
+        if (self) fetchHouseLast(self.houseId).then(l => { if (l) setLast(x => ({ ...x, 'house:': l })); }).catch(() => undefined);
     }, [rooms, self]);
     const rows: Array<{ key: string; to: string; title: string; sub: string; icon: React.ReactNode; tag: string; room?: ChatRoom }> = [
         ...rooms.map(r => ({ key: r.id, to: `#/chat/${r.id}`, title: r.name, sub: r.about || (r.audience === 'staff' ? t('Капитандар, CL жана админ') : r.audience === 'custom' ? t('Тандалган адамдар') : t('Бүт жамаат бир жерде')), icon: r.audience === 'staff' ? <Shield className="w-5 h-5" strokeWidth={1.5} /> : r.audience === 'custom' ? <MessagesSquare className="w-5 h-5" strokeWidth={1.5} /> : <Users className="w-5 h-5" strokeWidth={1.5} />, tag: r.audience === 'staff' ? t('Капитандарга') : r.audience === 'custom' ? t('Топ') : t('Баарына'), room: r })),
@@ -123,15 +132,16 @@ const ChatList: React.FC<{ rooms: ChatRoom[]; onChanged: () => void }> = ({ room
             <ul>
                 {rows.map(r => {
                     const n = unread[r.key] ?? 0;
+                    const l = last[r.key];
                     return (
                         <li key={r.key} style={{ borderBottom: '1px solid var(--border)' }}>
                             <div className="flex items-center gap-1">
                                 <button onClick={() => go(r.to)} className="room-row flex-1 min-w-0" data-new={n > 0 || undefined}>
                                     <span className="room-seal" aria-hidden="true"><span>{r.title.slice(0, 1)}</span></span>
                                     <span className="flex-1 min-w-0">
-                                        <span className="room-tag">{r.tag}</span>
+                                        <span className="room-tag">{r.tag}{l && <span className="room-when tabular">{whenShort(l.createdAt)}</span>}</span>
                                         <span className="block font-display text-[1.55rem] sm:text-[1.75rem] leading-tight truncate" style={{ color: 'var(--text-primary)' }}>{r.title}</span>
-                                        <span className="block text-[0.86rem] truncate" style={{ color: 'var(--text-muted)' }}>{r.sub}</span>
+                                        <span className="block text-[0.86rem] truncate" style={{ color: n > 0 ? 'var(--text-secondary)' : 'var(--text-muted)' }}>{l ? `${l.who ? `${l.who === 'Админ' ? t('Админ') : l.who}: ` : ''}${l.body}` : r.sub}</span>
                                     </span>
                                     {n > 0
                                         ? <span className="room-new" aria-label={t('{0} жаңы билдирүү', n)}><span className="font-display tabular">{n > 99 ? '99+' : n}</span>{t('жаңы')}</span>
@@ -243,8 +253,12 @@ const RoomChat: React.FC<{ room: ChatRoom; theme: Theme; onToggleTheme: () => vo
     }, [text]);
 
     const [editing, setEditing] = useState<Editing | null>(null);
-    const startEdit = (m: RoomMessage) => { setPolling(false); setEditing({ id: m.id, body: m.body }); setText(m.body); window.setTimeout(() => input.current?.focus(), 0); };
-    const stopEdit = () => { setEditing(null); setText(''); };
+    const [replying, setReplying] = useState<Replying | null>(null);
+    const [sel, setSel] = useState<number | null>(null);
+    const startEdit = (m: RoomMessage) => { setPolling(false); setReplying(null); setSel(null); setEditing({ id: m.id, body: m.body }); setText(m.body); window.setTimeout(() => input.current?.focus(), 0); };
+    const stopEdit = () => { if (editing) setText(''); setEditing(null); setReplying(null); };
+    const whoName = (m: RoomMessage) => (me && m.userId === me ? t('Сиз') : authorOf(m).name);
+    const startReply = (m: RoomMessage) => { setPolling(false); setEditing(null); setSel(null); setReplying({ id: m.id, who: whoName(m), body: m.body }); window.setTimeout(() => input.current?.focus(), 0); };
     const send = async () => {
         const clean = text.trim();
         if (!clean || sending) return;
@@ -259,7 +273,7 @@ const RoomChat: React.FC<{ room: ChatRoom; theme: Theme; onToggleTheme: () => vo
         }
         setSending(true); setError('');
         // A captain signs as the person of their house they chose ("Мен").
-        try { await sendToRoom(room, clean, access.role === 'leader' && self?.via === 'staff' ? self.memberId : null); setText(''); stick.current = true; load(); input.current?.focus(); }
+        try { await sendToRoom(room, clean, access.role === 'leader' && self?.via === 'staff' ? self.memberId : null, replying?.id ?? null); setText(''); setReplying(null); stick.current = true; load(); input.current?.focus(); }
         catch (e) { const msg = (e as Error)?.message ?? ''; setError(/relation|does not exist|schema cache|row-level security/i.test(msg) ? t('Бул чат азырынча ачыла элек. Админ supabase/jamaat-chat-2026-11.sql файлын иштетиши керек.') : msg || t('Жөнөтүлгөн жок')); }
         finally { setSending(false); }
     };
@@ -296,10 +310,10 @@ const RoomChat: React.FC<{ room: ChatRoom; theme: Theme; onToggleTheme: () => vo
     return (
         <AppFrame page="today" title={info.name} back="#/chat" theme={theme} onToggleTheme={onToggleTheme} ownBar>
             <div className="max-w-[42rem] mx-auto pt-2 pb-6">
-                <header className="text-center pt-4 pb-2">
-                    <Mark size={44} className="mx-auto" style={{ color: 'var(--gold)' }} />
-                    <div className="eyebrow mt-3" style={{ color: 'var(--gold)' }}>{info.audience === 'staff' ? t('Жабык чат') : info.audience === 'custom' ? t('Топ') : t('Жалпы чат')}</div>
-                    <h1 className="font-display text-[2rem] leading-tight mt-1" style={{ color: 'var(--text-primary)' }}>{info.name}</h1>
+                <header className="text-center pt-2 pb-1">
+                    <Mark size={30} className="mx-auto" style={{ color: 'var(--gold)' }} />
+                    <div className="eyebrow mt-2" style={{ color: 'var(--gold)' }}>{info.audience === 'staff' ? t('Жабык чат') : info.audience === 'custom' ? t('Топ') : t('Жалпы чат')}</div>
+                    <h1 className="font-display text-[1.65rem] sm:text-[2rem] leading-tight mt-0.5" style={{ color: 'var(--text-primary)' }}>{info.name}</h1>
                     <p className="text-[0.8rem] mt-1" style={{ color: 'var(--text-muted)' }}>{info.about || AUDIENCE[info.audience]()}</p>
                     {info.audience === 'custom' && <GroupLine room={info} me={me} />}
                     <div className="mt-2"><NotifyToggle /></div>
@@ -324,7 +338,7 @@ const RoomChat: React.FC<{ room: ChatRoom; theme: Theme; onToggleTheme: () => vo
                     return (
                         <React.Fragment key={m.id}>
                             {newDay && <div className="chat-day"><span>{dayLabel(at)}</span></div>}
-                            <div className={`chat-row ${mine ? 'is-mine' : ''} ${sameRun ? 'is-run' : ''} ${who.seal === 'admin' ? 'is-admin' : ''}`}>
+                            <div id={`m-${m.id}`} data-sel={sel === m.id || undefined} onClick={() => setSel(s => (s === m.id ? null : m.id))} className={`chat-row ${mine ? 'is-mine' : ''} ${sameRun ? 'is-run' : ''} ${who.seal === 'admin' ? 'is-admin' : ''}`}>
                                 {!mine && <div className="w-9 flex-shrink-0">{!sameRun && (who.seal ? <Seal kind={who.seal} /> : <Avatar name={who.name} role={m.authorRole === 'leader' ? 'imam' : 'member'} photoUrl={null} size="sm" />)}</div>}
                                 <div className="chat-body">
                                     {!sameRun && (
@@ -332,13 +346,15 @@ const RoomChat: React.FC<{ room: ChatRoom; theme: Theme; onToggleTheme: () => vo
                                     )}
                                     {m.poll
                                         ? <div className="chat-bubble is-poll"><PollCard question={m.body} poll={m.poll} me={me} canClose={mine || access.isAdmin} onVote={(o, on) => vote(m, o, on)} onClose={() => { closePoll(m.id).then(load).catch(e => setError((e as Error)?.message ?? '')); }} /></div>
-                                        : <div className="chat-bubble" onDoubleClick={() => { if (me && !m.reactions.some(r => r.who === me && r.emoji === DEFAULT_REACTION)) react(m, DEFAULT_REACTION); }}>{m.body}</div>}
+                                        : <div className="chat-bubble" onDoubleClick={() => { if (me && !m.reactions.some(r => r.who === me && r.emoji === DEFAULT_REACTION)) react(m, DEFAULT_REACTION); }}>
+                                            {m.replyTo && (() => { const q = messages.find(x => x.id === m.replyTo); return <Quote who={q ? whoName(q) : null} body={q?.body ?? null} onClick={q ? () => showMessage(q.id) : undefined} />; })()}
+                                            <MessageText text={m.body} />
+                                        </div>}
                                     <Reactions list={m.reactions} me={me} disabled={!me} onPick={e => react(m, e)} align={mine ? 'end' : 'start'} />
                                     <div className="chat-meta">
                                         <span className="tabular">{hm(at)}</span>
                                         <EditedMark at={m.editedAt} />
-                                        {mine && !m.poll && canEditAt(m.createdAt) && <EditButton onClick={() => startEdit(m)} />}
-                                        {(mine || access.isAdmin) && <button onClick={() => remove(m)} aria-label={t('Өчүрүү')} className="chat-delete"><Trash2 className="w-3.5 h-3.5" /></button>}
+                                        <Acts text={m.body} onReply={() => startReply(m)} onEdit={mine && !m.poll && canEditAt(m.createdAt) ? () => startEdit(m) : undefined} onDelete={mine || access.isAdmin ? () => remove(m) : undefined} />
                                     </div>
                                 </div>
                             </div>
@@ -357,14 +373,14 @@ const RoomChat: React.FC<{ room: ChatRoom; theme: Theme; onToggleTheme: () => vo
                         </button>
                     )}
                     {error && <p className="max-w-[42rem] mx-auto text-[0.82rem] mb-2" style={{ color: 'var(--danger)' }}>{error}</p>}
-                    {editing && !polling && <EditingBar editing={editing} onCancel={stopEdit} />}
+                    {!polling && <ComposerBar editing={editing} replying={replying} onCancel={stopEdit} />}
                     {polling ? <PollForm onSend={sendAPoll} onCancel={() => setPolling(false)} /> : (
                     <form className="max-w-[42rem] mx-auto flex items-end gap-2" onSubmit={e => { e.preventDefault(); send(); }}>
                         {pollsReady() && !editing && <button type="button" onClick={() => setPolling(true)} aria-label={t('Сурамжылоо')} title={t('Сурамжылоо')} className="w-11 h-12 inline-flex items-center justify-center flex-shrink-0 transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}><ChartNoAxesColumn className="w-5 h-5" /></button>}
                         <textarea
                             ref={input} rows={1} value={text} maxLength={2000}
                             onChange={e => setText(e.target.value)}
-                            onKeyDown={e => { if (e.key === 'Escape' && editing) stopEdit(); if (e.key === 'Enter' && !e.shiftKey && !('ontouchstart' in window)) { e.preventDefault(); send(); } }}
+                            onKeyDown={e => { if (e.key === 'Escape' && (editing || replying)) stopEdit(); if (e.key === 'Enter' && !e.shiftKey && !('ontouchstart' in window)) { e.preventDefault(); send(); } }}
                             placeholder={access.isAdmin ? t('Админ катары жазуу…') : t('{0}: жазуу…', info.name)} aria-label={t('Билдирүү')}
                             className="login-field flex-1 min-w-0 resize-none px-3.5 py-3 text-base leading-snug"
                             style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border-strong)', color: 'var(--text-primary)' }}

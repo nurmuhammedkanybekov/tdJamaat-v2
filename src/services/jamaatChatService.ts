@@ -77,6 +77,7 @@ export interface RoomMessage {
     body: string;
     createdAt: string;
     editedAt: string | null;
+    replyTo: number | null;
     /** Accounts that said "Аамин". */
     reactions: Reaction[];
     /** A poll: the text is its question (supabase/polls-dm-2026-11.sql). */
@@ -85,11 +86,11 @@ export interface RoomMessage {
 
 export interface Poll { options: string[]; multi: boolean; closed: boolean; votes: Array<{ who: string; option: number }> }
 
-type Row = { id: number; room: Room; user_id: string; author_role: string; member_id: string | null; author_name: string | null; house_name: string | null; body: string; created_at: string; edited_at?: string | null; poll?: { options?: unknown; multi?: boolean; closed?: boolean } | null; jamaat_message_amins?: Array<{ user_id: string; emoji?: string }> };
+type Row = { id: number; room: Room; user_id: string; author_role: string; member_id: string | null; author_name: string | null; house_name: string | null; body: string; created_at: string; edited_at?: string | null; reply_to?: number | null; poll?: { options?: unknown; multi?: boolean; closed?: boolean } | null; jamaat_message_amins?: Array<{ user_id: string; emoji?: string }> };
 const toPoll = (p: Row['poll']): Poll | null => (p && Array.isArray(p.options) ? { options: p.options.map(String), multi: !!p.multi, closed: !!p.closed, votes: [] } : null);
 const toMessage = (r: Row): RoomMessage => ({
     id: r.id, room: r.room, userId: r.user_id, authorRole: r.author_role, memberId: r.member_id, authorName: r.author_name, houseName: r.house_name,
-    body: r.body, createdAt: r.created_at, editedAt: r.edited_at ?? null, reactions: toReactions(r.jamaat_message_amins, 'user_id'), poll: toPoll(r.poll)
+    body: r.body, createdAt: r.created_at, editedAt: r.edited_at ?? null, replyTo: r.reply_to ?? null, reactions: toReactions(r.jamaat_message_amins, 'user_id'), poll: toPoll(r.poll)
 });
 
 // Polls exist once supabase/polls-dm-2026-11.sql has run.
@@ -98,7 +99,7 @@ let hasPolls: boolean | null = null;
 /** The latest messages, oldest first (null: not set up yet, or no access). */
 export const fetchRoom = async (room: Room, limit = 200): Promise<RoomMessage[] | null> => {
     const run = (polls: boolean) => selectWithEdits(edits => selectWithReactions(withEmoji => supabase.from('jamaat_messages')
-        .select(`id, room, user_id, author_role, member_id, author_name, house_name, body, created_at${edits ? ', edited_at' : ''}${polls ? ', poll' : ''}, jamaat_message_amins(user_id${withEmoji ? ', emoji' : ''})`)
+        .select(`id, room, user_id, author_role, member_id, author_name, house_name, body, created_at${edits ? ', edited_at, reply_to' : ''}${polls ? ', poll' : ''}, jamaat_message_amins(user_id${withEmoji ? ', emoji' : ''})`)
         .eq('room', room).order('created_at', { ascending: false }).limit(limit)));
     let res = await run(hasPolls !== false);
     if (res.error && hasPolls !== false && (res.error.code === '42703' || /poll/i.test(res.error.message ?? ''))) { hasPolls = false; res = await run(false); }
@@ -140,8 +141,8 @@ export const closePoll = async (messageId: number) => {
 };
 
 /** `memberId`: a captain may sign as the person of their house they chose. */
-export const sendToRoom = async (room: Room, body: string, memberId: string | null) => {
-    const { error } = await supabase.from('jamaat_messages').insert({ room, body, member_id: memberId });
+export const sendToRoom = async (room: Room, body: string, memberId: string | null, replyTo: number | null = null) => {
+    const { error } = await supabase.from('jamaat_messages').insert({ room, body, member_id: memberId, ...(replyTo ? { reply_to: replyTo } : {}) });
     if (error) throw error;
 };
 
@@ -186,4 +187,13 @@ export const countRoomUnread = async (room: Room): Promise<number> => {
     const { count, error } = await supabase.from('jamaat_messages').select('id', { count: 'exact', head: true })
         .eq('room', room).gt('created_at', since).neq('user_id', me);
     return error ? 0 : count ?? 0;
+};
+
+/** The last message of a conversation, for the list of chats (null: none yet). */
+export const fetchRoomLast = async (room: Room): Promise<{ body: string; createdAt: string; who: string } | null> => {
+    const { data, error } = await supabase.from('jamaat_messages').select('body, created_at, author_role, author_name, house_name').eq('room', room).order('created_at', { ascending: false }).limit(1);
+    const r = (data ?? [])[0] as { body: string; created_at: string; author_role: string; author_name: string | null; house_name: string | null } | undefined;
+    if (error || !r) return null;
+    const who = r.author_role === 'admin' ? 'Админ' : r.author_role === 'inspector' ? 'CL' : r.author_name ?? r.house_name ?? '';
+    return { body: r.body, createdAt: r.created_at, who };
 };

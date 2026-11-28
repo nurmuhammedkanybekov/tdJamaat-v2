@@ -1,5 +1,5 @@
 -- ============================================================================
--- tdJamaat — editing one's own chat messages (Nov 2026).
+-- tdJamaat — editing one's own chat messages, and replying to one (Nov 2026).
 --
 --   Supabase → SQL Editor → New query → paste this whole file → Run.
 --   Safe to run more than once. Needs house-chat, admin-chat, jamaat-chat
@@ -11,11 +11,17 @@
 -- wrote it, not when, not its reactions. A poll's question is not edited
 -- (people have already answered it). The admin, who can delete any message,
 -- edits only their own.
+--
+-- A reply: a message may name the message it answers (reply_to). It is shown
+-- quoted above the answer; nothing else about either message changes.
 -- ============================================================================
 
 alter table house_messages  add column if not exists edited_at timestamptz;
 alter table jamaat_messages add column if not exists edited_at timestamptz;
 alter table direct_messages add column if not exists edited_at timestamptz;
+alter table house_messages  add column if not exists reply_to bigint;
+alter table jamaat_messages add column if not exists reply_to bigint;
+alter table direct_messages add column if not exists reply_to bigint;
 
 -- kind: 'house' | 'room' | 'dm'. Returns the time of the edit.
 create or replace function edit_message(kind text, m bigint, body text) returns timestamptz
@@ -54,4 +60,4 @@ grant execute on function edit_message(text, bigint, text) to authenticated;
 
 -- Check.
 select table_name, column_name from information_schema.columns
- where column_name = 'edited_at' and table_name in ('house_messages', 'jamaat_messages', 'direct_messages');
+ where column_name in ('edited_at', 'reply_to') and table_name in ('house_messages', 'jamaat_messages', 'direct_messages');

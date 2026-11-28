@@ -6,12 +6,12 @@ import { isMissingSchema } from './dataService';
 import { selectWithEdits } from './editMessage';
 
 export interface DmPerson { userId: string; name: string; houseName: string | null; role: 'member' | 'leader' | 'inspector' | 'admin' }
-export interface Dm { id: number; sender: string; recipient: string; body: string; createdAt: string; readAt: string | null; editedAt: string | null }
+export interface Dm { id: number; sender: string; recipient: string; body: string; createdAt: string; readAt: string | null; editedAt: string | null; replyTo: number | null }
 
-type DmRow = { id: number; sender: string; recipient: string; body: string; created_at: string; read_at: string | null; edited_at?: string | null };
+type DmRow = { id: number; sender: string; recipient: string; body: string; created_at: string; read_at: string | null; edited_at?: string | null; reply_to?: number | null };
 const toDm = (r: DmRow): Dm =>
-    ({ id: r.id, sender: r.sender, recipient: r.recipient, body: r.body, createdAt: r.created_at, readAt: r.read_at, editedAt: r.edited_at ?? null });
-const DM_COLS = (edits: boolean) => `id, sender, recipient, body, created_at, read_at${edits ? ', edited_at' : ''}`;
+    ({ id: r.id, sender: r.sender, recipient: r.recipient, body: r.body, createdAt: r.created_at, readAt: r.read_at, editedAt: r.edited_at ?? null, replyTo: r.reply_to ?? null });
+const DM_COLS = (edits: boolean) => `id, sender, recipient, body, created_at, read_at${edits ? ', edited_at, reply_to' : ''}`;
 
 /** Whom this account may write to (null: not set up yet). */
 export const fetchDmPeople = async (): Promise<DmPerson[] | null> => {
@@ -39,8 +39,8 @@ export const fetchThread = async (me: string, peer: string, limit = 300): Promis
     return ((data ?? []) as unknown as DmRow[]).map(toDm).reverse();
 };
 
-export const sendDm = async (recipient: string, body: string) => {
-    const { error } = await supabase.from('direct_messages').insert({ recipient, body });
+export const sendDm = async (recipient: string, body: string, replyTo: number | null = null) => {
+    const { error } = await supabase.from('direct_messages').insert({ recipient, body, ...(replyTo ? { reply_to: replyTo } : {}) });
     if (error) throw error;
 };
 export const deleteDm = async (id: number) => {

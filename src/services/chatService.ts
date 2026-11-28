@@ -7,22 +7,22 @@ import { selectWithReactions, setReaction, toReactions, type Reaction } from './
 import { isMissingSchema } from './dataService';
 import { selectWithEdits } from './editMessage';
 
-export interface ChatMessage { id: number; houseId: string; /** Null for the admin, who is nobody's person. */ memberId: string | null; body: string; createdAt: string; editedAt: string | null; authorRole: string | null; reactions: Reaction[] }
+export interface ChatMessage { id: number; houseId: string; /** Null for the admin, who is nobody's person. */ memberId: string | null; body: string; createdAt: string; editedAt: string | null; replyTo: number | null; authorRole: string | null; reactions: Reaction[] }
 
-type Row = { id: number; house_id: string; member_id: string | null; body: string; created_at: string; edited_at?: string | null; author_role: string | null; house_message_amins?: Array<{ member_id: string; emoji?: string }> };
-const toMessage = (r: Row): ChatMessage => ({ id: r.id, houseId: r.house_id, memberId: r.member_id, body: r.body, createdAt: r.created_at, editedAt: r.edited_at ?? null, authorRole: r.author_role, reactions: toReactions(r.house_message_amins, 'member_id') });
+type Row = { id: number; house_id: string; member_id: string | null; body: string; created_at: string; edited_at?: string | null; reply_to?: number | null; author_role: string | null; house_message_amins?: Array<{ member_id: string; emoji?: string }> };
+const toMessage = (r: Row): ChatMessage => ({ id: r.id, houseId: r.house_id, memberId: r.member_id, body: r.body, createdAt: r.created_at, editedAt: r.edited_at ?? null, replyTo: r.reply_to ?? null, authorRole: r.author_role, reactions: toReactions(r.house_message_amins, 'member_id') });
 
 /** The latest `limit` messages, oldest first (null: the chat is not set up yet). */
 export const fetchMessages = async (houseId: string, limit = 150): Promise<ChatMessage[] | null> => {
     const { data, error } = await selectWithEdits(edits => selectWithReactions(withEmoji => supabase.from('house_messages')
-        .select(`id, house_id, member_id, body, created_at${edits ? ', edited_at' : ''}, author_role, house_message_amins(member_id${withEmoji ? ', emoji' : ''})`)
+        .select(`id, house_id, member_id, body, created_at${edits ? ', edited_at, reply_to' : ''}, author_role, house_message_amins(member_id${withEmoji ? ', emoji' : ''})`)
         .eq('house_id', houseId).order('created_at', { ascending: false }).limit(limit)));
     if (error) { if (!isMissingSchema(error)) console.warn('[tdJamaat] chat:', error.message); return null; }
     return ((data ?? []) as unknown as Row[]).map(toMessage).reverse();
 };
 
-export const sendMessage = async (houseId: string, memberId: string | null, body: string) => {
-    const { error } = await supabase.from('house_messages').insert({ house_id: houseId, member_id: memberId, body });
+export const sendMessage = async (houseId: string, memberId: string | null, body: string, replyTo: number | null = null) => {
+    const { error } = await supabase.from('house_messages').insert({ house_id: houseId, member_id: memberId, body, ...(replyTo ? { reply_to: replyTo } : {}) });
     if (error) throw error;
 };
 
@@ -65,4 +65,11 @@ export const countUnread = async (houseId: string, memberId: string): Promise<nu
     const { count, error } = await supabase.from('house_messages').select('id', { count: 'exact', head: true })
         .eq('house_id', houseId).gt('created_at', since).or(memberId ? `member_id.is.null,member_id.neq.${memberId},author_role.eq.admin` : 'author_role.neq.admin,author_role.is.null');
     return error ? 0 : count ?? 0;
+};
+
+/** The last message of a house's conversation, for the list of chats. */
+export const fetchHouseLast = async (houseId: string): Promise<{ body: string; createdAt: string } | null> => {
+    const { data, error } = await supabase.from('house_messages').select('body, created_at').eq('house_id', houseId).order('created_at', { ascending: false }).limit(1);
+    const r = (data ?? [])[0] as { body: string; created_at: string } | undefined;
+    return error || !r ? null : { body: r.body, createdAt: r.created_at };
 };
