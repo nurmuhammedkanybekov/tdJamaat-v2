@@ -98,7 +98,7 @@ export const AppFrame: React.FC<{
                             <ThemeIcon className="w-[1.1rem] h-[1.1rem]" strokeWidth={1.5} />
                         </button>
                         {/* The menu: three lines and the person's face. Every page, named plainly. */}
-                        {(signedIn || someone) && <AccountMark onClick={() => setAccount(true)} />}
+                        <AccountMark onClick={() => setAccount(true)} />
                     </div>
                     {back === undefined && hero}
                     {back === undefined && !hero && (

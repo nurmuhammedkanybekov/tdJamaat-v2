@@ -2019,3 +2019,26 @@ button.help-where:hover { border-bottom-color: var(--gold); }
 .city-pick-cities button[data-on] { color: var(--gold); }
 .city-pick-cities button[data-on]::after { content: ""; position: absolute; left: 50%; bottom: -1px; width: 5px; height: 5px; margin-left: -2.5px; transform: rotate(45deg); background: var(--gold); }
 .vol-row { padding: .9rem 0; border-bottom: 1px solid var(--border); }
+
+/* My Day: today's plans */
+.today-plans { text-align: left; }
+.today-fast { display: flex; align-items: center; gap: .7rem; width: 100%; padding: .55rem 0 .75rem; font-family: var(--font-display); font-size: 1.1rem; color: var(--text-primary); border-bottom: 1px solid var(--border); }
+.today-fast > i { width: 11px; height: 11px; flex-shrink: 0; transform: rotate(45deg); border: 1px solid var(--gold); }
+.today-fast > i[data-state="kept"] { background: var(--success); border-color: var(--success); }
+.today-fast > i[data-state="plan"] { background: var(--gold-soft); }
+.today-fast > i[data-state="missed"] { border-color: var(--danger); }
+.today-fast:hover { color: var(--gold); }
+.today-plans-more { display: flex; align-items: center; justify-content: space-between; gap: 1rem; width: 100%; padding: .8rem 0 .2rem; font-size: .78rem; letter-spacing: .14em; text-transform: uppercase; color: var(--gold); text-align: left; }
+.today-plans-more:hover { color: var(--text-primary); }
+@media (max-width: 639px) { .signin-pill { display: none; } }
+
+/* install guide */
+.install-guide { margin-top: 2rem; padding-top: 1.4rem; border-top: 1px solid var(--border); }
+.install-guide.is-first { margin-top: 2.4rem; border-top: 1px solid var(--gold); }
+.install-h { display: flex; align-items: center; gap: .7rem; color: var(--gold); }
+.install-h .font-display { font-size: 1.5rem; color: var(--text-primary); }
+.install-steps { margin-top: .9rem; }
+.install-steps li { display: flex; gap: 1rem; padding: .5rem 0; }
+.install-steps li > span { width: 1.6rem; flex-shrink: 0; font-size: 1.4rem; line-height: 1.2; color: var(--gold); text-align: center; }
+.install-steps li > p { font-size: 1rem; line-height: 1.55; color: var(--text-secondary); }
+.install-done { display: inline-flex; align-items: center; gap: .5rem; color: var(--success); font-size: .95rem; }

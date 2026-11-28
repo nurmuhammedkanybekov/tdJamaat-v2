@@ -13,6 +13,7 @@ import { PRAYER_NAMES, PRAYER_ORDER, clock, nextPrayer, prayerNow, prayerTimes }
 import { formatHijri, isRamadan } from '../utils/hijri';
 import { hijriOf, holyDaysOf, sunnahFast } from '../utils/islamicCalendar';
 import { loadCalendar } from './fasting';
+import { TodayPlans } from './TodayPlans';
 import { loadZikr, todayTotal } from '../utils/zikr';
 import { calculateHouseRating } from '../utils/scoring';
 import { weekComplete } from '../utils/insights';
@@ -295,6 +296,11 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
                             <span className="now3-s">{last ? t('{0}-аят · бүгүн {1} бет', last.ayah, pagesOn(practice)) : t('Окуп баштоо')}</span>
                         </button>
                     </div>
+                </Section>
+
+                {/* Today's fast and tasks, from the calendar. */}
+                <Section eyebrow={t('Бүгүнкү пландар')}>
+                    <TodayPlans now={now} />
                 </Section>
 
                 {/* Not signed in: the way in, as part of the page rather than a wall in front of it. */}

@@ -20,6 +20,7 @@ const JamaatPage = lazy(withReload(() => import('./JamaatPage').then(m => ({ def
 const HelpPage = lazy(withReload(() => import('./HelpPage').then(m => ({ default: m.HelpPage }))));
 const NamazPage = lazy(withReload(() => import('./NamazPage').then(m => ({ default: m.NamazPage }))));
 const QiblaPage = lazy(withReload(() => import('./QiblaPage').then(m => ({ default: m.QiblaPage }))));
+const InstallPage = lazy(withReload(() => import('./InstallPage').then(m => ({ default: m.InstallPage }))));
 const SignInCheck = lazy(withReload(() => import('./SignInCheck').then(m => ({ default: m.SignInCheck }))));
 const AccountPage = lazy(withReload(() => import('./AccountPage').then(m => ({ default: m.AccountPage }))));
 const CalendarPage = lazy(withReload(() => import('./CalendarPage').then(m => ({ default: m.CalendarPage }))));
@@ -62,7 +63,7 @@ const CaptainIsSelf: React.FC<{ houseId: string }> = ({ houseId }) => {
 };
 
 const TITLES: Record<AppRoute['page'], () => string> = {
-    today: () => t('Менин күнүм'), house: () => t('Үйүм'), news: () => t('Жамааттан кабар'), quran: () => t('Куран'), tasbihat: () => t('Тасбихат'), zikr: () => t('Зикир'), kiruu: () => t('Кирүүнү текшерүү'), qibla: () => t('Кыбла'), chat: () => t('Чаттар'), namaz: () => t('Намаз убактылары'), jamaat: () => t('Жамаат'), help: () => t('Жардам'), account: () => t('Менин барагым'), calendar: () => t('Календарь')
+    today: () => t('Менин күнүм'), house: () => t('Үйүм'), news: () => t('Жамааттан кабар'), quran: () => t('Куран'), tasbihat: () => t('Тасбихат'), zikr: () => t('Зикир'), kiruu: () => t('Кирүүнү текшерүү'), qibla: () => t('Кыбла'), chat: () => t('Чаттар'), namaz: () => t('Намаз убактылары'), jamaat: () => t('Жамаат'), help: () => t('Жардам'), account: () => t('Менин барагым'), calendar: () => t('Календарь'), install: () => t('Колдонмону орнотуу')
 };
 
 export const AppPages: React.FC<{ route: AppRoute; theme: Theme; onToggleTheme: () => void; ctx: AppCtx }> = ({ route, theme, onToggleTheme, ctx }) => {
@@ -88,6 +89,7 @@ export const AppPages: React.FC<{ route: AppRoute; theme: Theme; onToggleTheme: 
                                 : route.page === 'jamaat' ? <JamaatPage {...props} />
                                 : route.page === 'account' ? <AccountPage {...props} />
                                 : route.page === 'calendar' ? <CalendarPage {...props} />
+                                : route.page === 'install' ? <InstallPage {...props} />
                             : <TodayPage {...props} />}
             </Suspense>
         </AppContext.Provider>
