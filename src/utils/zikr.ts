@@ -87,8 +87,10 @@ export interface ZikrStore {
     favs?: string[];
     /** The person's own zikrs. */
     custom?: CustomZikr[];
-    /** How many zikrs a jamaat week (Thursday → Wednesday) should hold; 0 or none: no goal. */
+    /** How many zikrs a jamaat week (Thursday → Wednesday) should hold; 0 or none: no goal. (Older; the plan below replaces it.) */
     weekGoal?: number;
+    /** The weekly plan: zikr id → how many times in a jamaat week (Thursday → Wednesday). */
+    weekPlan?: Record<string, number>;
 }
 
 /** A zikr the person adds: how it is read (Kyrgyz letters) and its English
@@ -104,7 +106,7 @@ export const dayKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1
 export const loadZikr = (): ZikrStore => {
     try {
         const s = JSON.parse(localStorage.getItem(KEY) ?? 'null') as Partial<ZikrStore> | null;
-        return { days: s?.days ?? {}, current: s?.current ?? {}, targets: s?.targets ?? {}, favs: s?.favs ?? [], custom: s?.custom ?? [], weekGoal: s?.weekGoal ?? 0 };
+        return { days: s?.days ?? {}, current: s?.current ?? {}, targets: s?.targets ?? {}, favs: s?.favs ?? [], custom: s?.custom ?? [], weekGoal: s?.weekGoal ?? 0, weekPlan: s?.weekPlan ?? {} };
     } catch { return emptyStore(); }
 };
 export const saveZikr = (s: ZikrStore) => { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch { /* storage blocked: counts live for this visit only */ } localChanged(); };
@@ -182,4 +184,36 @@ export const weekTotal = (s: ZikrStore, now = new Date()) => {
     let n = 0;
     for (let i = 0; i <= back; i++) n += Object.values(s.days[dayKey(new Date(now.getFullYear(), now.getMonth(), now.getDate() - i))] ?? {}).reduce((a, b) => a + b, 0);
     return n;
+};
+
+// ---------------------------------------------------------------------------
+// The weekly plan, per zikr.
+// ---------------------------------------------------------------------------
+/** The days of this jamaat week so far: Thursday … today. */
+const weekDays = (now = new Date()) => {
+    const back = (now.getDay() + 3) % 7;
+    return Array.from({ length: back + 1 }, (_, i) => new Date(now.getFullYear(), now.getMonth(), now.getDate() - back + i));
+};
+
+/** How many of one zikr this jamaat week. */
+export const weekCount = (s: ZikrStore, id: string, now = new Date()) => weekDays(now).reduce((n, d) => n + (s.days[dayKey(d)]?.[id] ?? 0), 0);
+
+export interface PlanRow { id: string; target: number; done: number; today: number; /** to say today to stay on pace (0: on pace or done) */ todayPace: number; daysLeft: number }
+
+/** Each planned zikr: how far this week, and today's share of what is left. */
+export const planRows = (s: ZikrStore, now = new Date()): PlanRow[] => {
+    const daysLeft = 7 - ((now.getDay() + 3) % 7); // today included
+    return Object.entries(s.weekPlan ?? {}).filter(([, n]) => n > 0).map(([id, target]) => {
+        const done = weekCount(s, id, now), today = todayOf(s, id, now);
+        const beforeToday = done - today;
+        const share = Math.ceil(Math.max(0, target - beforeToday) / Math.max(1, daysLeft));
+        return { id, target, done, today, todayPace: Math.max(0, share - today), daysLeft };
+    });
+};
+
+export const setPlan = (s: ZikrStore, id: string, n: number): ZikrStore => {
+    const weekPlan = { ...(s.weekPlan ?? {}) };
+    const v = Math.max(0, Math.min(1000000, Math.round(n) || 0));
+    if (v) weekPlan[id] = v; else delete weekPlan[id];
+    return { ...s, weekPlan };
 };

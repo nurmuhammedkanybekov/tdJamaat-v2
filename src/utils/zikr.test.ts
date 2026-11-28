@@ -50,3 +50,20 @@ describe('zikr counter', () => {
         expect(ZIKRS.length).toBe(10);
     });
 });
+
+describe('weekly plan', () => {
+    it('counts the jamaat week and the pace for today', async () => {
+        const { planRows, setPlan, emptyStore, addCount } = await import('./zikr');
+        // Saturday 28 Nov 2026: the week began on Thursday 26th; 5 days left with today.
+        const sat = new Date(2026, 10, 28, 12);
+        let s = setPlan(emptyStore(), 'salawat', 700);
+        s = addCount(s, 'salawat', 200, new Date(2026, 10, 26, 12));
+        s = addCount(s, 'salawat', 50, sat);
+        const [row] = planRows(s, sat);
+        expect(row.done).toBe(250);
+        expect(row.daysLeft).toBe(5);
+        // 500 left before today over 5 days → 100 today, 50 already said
+        expect(row.todayPace).toBe(50);
+        expect(setPlan(s, 'salawat', 0).weekPlan).toEqual({});
+    });
+});

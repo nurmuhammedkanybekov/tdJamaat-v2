@@ -1834,3 +1834,44 @@ button.help-where:hover { border-bottom-color: var(--gold); }
 .plans-wait::before { content: ""; position: absolute; left: 50%; top: -5px; width: 9px; height: 9px; margin-left: -4.5px; transform: rotate(45deg); background: var(--page-plane); border: 1px solid var(--gold); }
 .nav-dot { display: inline-block; width: 7px; height: 7px; margin-left: .6rem; vertical-align: middle; transform: rotate(45deg); background: var(--gold); box-shadow: 0 0 0 3px var(--gold-soft); }
 .menu-dot { position: absolute; top: 4px; left: 6px; width: 8px; height: 8px; transform: rotate(45deg); background: var(--gold); box-shadow: 0 0 0 2px var(--page-plane); }
+
+/* ---------------------------------------------------------------- dhikr: the weekly plan */
+.zplan { position: relative; margin-top: 1.4rem; margin-bottom: 2.6rem; padding: 2rem 0 1.4rem; border-top: 1px solid var(--gold-dim); border-bottom: 1px solid var(--gold-dim); }
+.zplan::before, .zplan::after { content: ""; position: absolute; left: 50%; width: 9px; height: 9px; margin-left: -4.5px; transform: rotate(45deg); background: var(--page-plane); border: 1px solid var(--gold); }
+.zplan::before { top: -5px; } .zplan::after { bottom: -5px; }
+.zplan-head { text-align: center; }
+.zplan-head h2 { font-size: clamp(1.9rem, 6vw, 2.4rem); line-height: 1.1; margin-top: .3rem; color: var(--text-primary); }
+.zplan-sub { margin-top: .4rem; font-size: .9rem; font-style: italic; color: var(--text-muted); max-width: 30rem; margin-left: auto; margin-right: auto; }
+.zplan-total { display: block; text-align: center; margin-top: 1.2rem; }
+.zplan-total > span { font-size: 2.8rem; line-height: 1; color: var(--gold); }
+.zplan-total > small { font-size: 1.1rem; color: var(--text-muted); }
+.zplan-total > i { display: block; height: 2px; margin: .8rem auto 0; max-width: 16rem; background: var(--border); position: relative; }
+.zplan-total > i > b { position: absolute; left: 0; top: 0; bottom: 0; background: var(--gold); transition: width .4s; }
+.zplan-rows { margin-top: 1.2rem; }
+.zplan-rows li + li { border-top: 1px solid var(--border); }
+.zplan-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: .2rem 1rem; width: 100%; padding: .9rem 0 .8rem; text-align: left; }
+.zplan-name { font-size: 1.25rem; line-height: 1.2; color: var(--text-primary); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.zplan-row:hover .zplan-name { color: var(--gold); }
+.zplan-n { font-family: var(--font-display); font-size: 1.25rem; color: var(--gold); }
+.zplan-n small { font-size: .75em; color: var(--text-muted); }
+.zplan-line { grid-column: 1 / -1; position: relative; height: 2px; background: var(--border); margin-top: .35rem; }
+.zplan-line i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--gold); }
+.zplan-line i::after { content: ""; position: absolute; right: -4px; top: -3px; width: 8px; height: 8px; transform: rotate(45deg); background: var(--gold); }
+.zplan-today { grid-column: 1 / -1; font-size: .8rem; color: var(--text-muted); }
+.zplan-row[data-met] .zplan-today { color: var(--success); }
+.zplan-row[data-met] .zplan-line i { background: var(--success); }
+.zplan-row[data-met] .zplan-line i::after { background: var(--success); }
+.zplan-edit { margin-top: 1rem; }
+.zplan-edit li { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .6rem 0; border-bottom: 1px solid var(--border); }
+.zplan-edit .zplan-name { font-size: 1.1rem; }
+.zplan-step { display: inline-flex; align-items: center; gap: .6rem; flex-shrink: 0; }
+.zplan-step select { background: transparent; border: 0; border-bottom: 1px solid var(--border-strong); color: var(--text-secondary); font-size: .85rem; padding: .3rem 0; }
+.zplan-step input { width: 5rem; background: transparent; border: 0; border-bottom: 1px solid var(--border-strong); color: var(--gold); font-family: var(--font-display); font-size: 1.2rem; text-align: right; padding: .2rem 0; outline: none; }
+.zplan-step input:focus { border-bottom-color: var(--gold); }
+.zplan-acts { margin-top: 1rem; }
+/* a star beside each dhikr: favourite */
+.bead-list > li { position: relative; }
+.bead-fav { position: absolute; right: 0; top: .9rem; width: 2.4rem; height: 2.4rem; display: inline-flex; align-items: center; justify-content: center; color: var(--text-muted); transition: color .15s, transform .15s; }
+.bead-fav:hover { color: var(--gold); transform: scale(1.1); }
+.bead-fav[data-on] { color: var(--gold); }
+.bead-list .bead-row { padding-right: 2.6rem; }

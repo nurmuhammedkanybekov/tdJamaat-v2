@@ -2,11 +2,13 @@
 // button. Each zikr says why it is said (a hadith, with where to find it).
 // Counts stay on this device (src/utils/zikr.ts) and add up into the jamaat
 // week for the captain (MyWeek).
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { AppContext } from './context';
+import { useMemberData } from './memberData';
 import { Check, ChevronDown, ChevronRight, Minus, Plus, RotateCcw, Star, Trash2, X } from 'lucide-react';
 import type { Theme } from '../theme';
 import type { Zikr, ZikrStore } from '../utils/zikr';
-import { AFTER_PRAYER, ZIKRS, addCount, addCustom, allTime, allZikrs, dayKey, isFav, lastDays, loadZikr, removeCustom, resetCurrent, saveZikr, setTarget, streak, targetOf, todayOf, todayTotal, toggleFav, weekTotal } from '../utils/zikr';
+import { AFTER_PRAYER, ZIKRS, addCount, addCustom, allTime, allZikrs, dayKey, isFav, lastDays, loadZikr, planRows, removeCustom, resetCurrent, saveZikr, setPlan, setTarget, streak, targetOf, todayOf, todayTotal, toggleFav } from '../utils/zikr';
 import { t, isEnglish } from '../i18n';
 import { AppFrame, Section } from './AppFrame';
 import { go } from './route';
@@ -163,7 +165,7 @@ const Counter: React.FC<{ zikr: Zikr; store: ZikrStore; update: (fn: (s: ZikrSto
 };
 
 /** One zikr in the list: its bead fills as today's count nears its number. */
-const BeadRow: React.FC<{ z: Zikr; store: ZikrStore }> = ({ z, store }) => {
+const BeadRow: React.FC<{ z: Zikr; store: ZikrStore; onFav?: () => void }> = ({ z, store, onFav }) => {
     const today = todayOf(store, z.id), target = targetOf(store, z);
     const part = target > 0 ? Math.min(1, today / target) : today > 0 ? 1 : 0;
     return (
@@ -173,12 +175,18 @@ const BeadRow: React.FC<{ z: Zikr; store: ZikrStore }> = ({ z, store }) => {
                 <span className="flex-1 min-w-0">
                     {z.arabic && <span dir="rtl" lang="ar" className="block quran-text text-[1.75rem] sm:text-[2rem] leading-[1.7] truncate" style={{ color: 'var(--text-primary)' }}>{z.arabic}</span>}
                     <span className="flex items-baseline justify-between gap-3 mt-1">
-                        <span className="font-display text-[1.2rem] leading-tight min-w-0 truncate" style={{ color: 'var(--gold)' }}>{isFav(store, z.id) && <Star className="inline w-3 h-3 mr-1.5 -mt-1" fill="currentColor" aria-label={t('Тандалган')} />}{z.reading}</span>
+                        <span className="font-display text-[1.2rem] leading-tight min-w-0 truncate" style={{ color: 'var(--gold)' }}>{z.reading}</span>
                         <span className="tabular text-[0.85rem] flex-shrink-0" style={{ color: today > 0 ? 'var(--gold)' : 'var(--text-muted)' }} aria-label={t('Бүгүн: {0}', today)}>{today}<span style={{ color: 'var(--text-muted)' }}> / {target > 0 ? target : '∞'}</span></span>
                     </span>
                     {z.meaning && <span className="block text-[0.85rem] italic mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>{z.meaning}</span>}
                 </span>
             </button>
+            {onFav && (
+                <button type="button" onClick={onFav} className="bead-fav" aria-pressed={isFav(store, z.id)} data-on={isFav(store, z.id) || undefined}
+                    aria-label={isFav(store, z.id) ? t('Тандалгандардан алып салуу') : t('Тандалгандарга кошуу')} title={isFav(store, z.id) ? t('Тандалгандардан алып салуу') : t('Тандалгандарга кошуу')}>
+                    <Star className="w-4 h-4" fill={isFav(store, z.id) ? 'currentColor' : 'none'} strokeWidth={1.5} />
+                </button>
+            )}
         </li>
     );
 };
@@ -217,35 +225,77 @@ const NewZikr: React.FC<{ onAdd: (c: { reading: string; english: string; meaning
     );
 };
 
-const GOALS = [300, 700, 1000, 3000, 7000];
+const PRESETS = [100, 300, 700, 1000, 3000];
 
-/** The week's goal: how many zikrs from Thursday to Wednesday. */
-const WeekGoal: React.FC<{ store: ZikrStore; update: (fn: (s: ZikrStore) => ZikrStore) => ZikrStore }> = ({ store, update }) => {
-    const goal = store.weekGoal ?? 0;
-    const have = weekTotal(store);
-    const [edit, setEdit] = useState(false);
-    const part = goal > 0 ? Math.min(1, have / goal) : 0;
+/** The week's plan, per zikr: how far each has come since Thursday, and how
+ *  many to say today to stay on pace. Members can take their jamaat plan for
+ *  salawat and istighfar in one tap. */
+const ZikrPlan: React.FC<{ store: ZikrStore; update: (fn: (s: ZikrStore) => ZikrStore) => ZikrStore; every: Zikr[]; jamaat: { salawat: number; zikr: number } | null }> = ({ store, update, every, jamaat }) => {
+    const [editing, setEditing] = useState(false);
+    const rows = planRows(store);
+    const name = (id: string) => every.find(z => z.id === id)?.reading ?? id;
+    const total = rows.reduce((n, r) => n + r.target, 0), done = rows.reduce((n, r) => n + Math.min(r.done, r.target), 0);
+    const left = rows[0]?.daysLeft ?? 7 - ((new Date().getDay() + 3) % 7);
+    const takeJamaat = () => jamaat && update(s => setPlan(setPlan(s, 'salawat', jamaat.salawat), 'istighfar', jamaat.zikr));
+    const offerJamaat = jamaat && (jamaat.salawat > 0 || jamaat.zikr > 0) && ((store.weekPlan?.salawat ?? 0) !== jamaat.salawat || (store.weekPlan?.istighfar ?? 0) !== jamaat.zikr);
     return (
-        <Section eyebrow={t('Апталык максат')}>
-            {goal > 0 && !edit ? (
-                <div className="pt-4">
-                    <div className="flex items-baseline justify-between gap-3">
-                        <span className="font-display text-[2rem] tabular leading-none" style={{ color: part >= 1 ? 'var(--success)' : 'var(--text-primary)' }}>{have}<span className="text-[1rem]" style={{ color: 'var(--text-muted)' }}> / {goal}</span></span>
-                        <button onClick={() => setEdit(true)} className="z-fav">{t('Өзгөртүү')}</button>
+        <section className="zplan">
+            <div className="zplan-head">
+                <div className="eyebrow" style={{ color: 'var(--gold)' }}>{t('Бул аптанын планы')}</div>
+                <h2 className="font-display">{t('Зикир планым')}</h2>
+                <div className="zplan-sub">{rows.length ? t('Бейшембиден шаршембиге чейин · {0} күн калды', left) : t('Ар бир зикир үчүн апталык сан коюңуз. Сайт аны күндөргө бөлүп, бүгүн канча айтуу керектигин көрсөтөт.')}</div>
+            </div>
+
+            {rows.length > 0 && !editing && (
+                <>
+                    <div className="zplan-total">
+                        <span className="font-display tabular">{done}</span><small> / {total}</small>
+                        <i aria-hidden="true"><b style={{ width: `${Math.min(100, (done / Math.max(1, total)) * 100)}%` }} /></i>
                     </div>
-                    <div className="z-goal mt-3"><i style={{ width: `${part * 100}%` }} /></div>
-                    <p className="mt-2 text-[0.85rem]" style={{ color: 'var(--text-muted)' }}>{part >= 1 ? t('Бул аптанын максаты аткарылды. Аллах кабыл кылсын.') : t('Шаршембиге чейин дагы {0}.', goal - have)}</p>
-                </div>
-            ) : (
-                <div className="pt-4">
-                    <p className="text-[0.88rem]" style={{ color: 'var(--text-muted)' }}>{t('Бейшембиден шаршембиге чейин канча зикир айтасыз?')}</p>
-                    <div className="cal-kinds mt-3">
-                        {GOALS.map(g => <button key={g} data-on={goal === g || undefined} onClick={() => { update(s => ({ ...s, weekGoal: g })); setEdit(false); }} className="tabular">{g}</button>)}
-                        {goal > 0 && <button onClick={() => { update(s => ({ ...s, weekGoal: 0 })); setEdit(false); }}>{t('Максатсыз')}</button>}
-                    </div>
-                </div>
+                    <ul className="zplan-rows">
+                        {rows.map(r => {
+                            const met = r.done >= r.target;
+                            return (
+                                <li key={r.id}>
+                                    <button onClick={() => go(`#/zikr/${r.id}`)} className="zplan-row" data-met={met || undefined}>
+                                        <span className="zplan-name font-display">{name(r.id)}</span>
+                                        <span className="zplan-n tabular">{r.done}<small> / {r.target}</small></span>
+                                        <span className="zplan-line" aria-hidden="true"><i style={{ width: `${Math.min(100, (r.done / r.target) * 100)}%` }} /></span>
+                                        <span className="zplan-today">{met ? t('Аптанын планы аткарылды') : r.todayPace > 0 ? t('Бүгүн дагы {0}', r.todayPace) : t('Бүгүнкү үлүшү аткарылды')}</span>
+                                    </button>
+                                </li>
+                            );
+                        })}
+                    </ul>
+                </>
             )}
-        </Section>
+
+            {editing && (
+                <ul className="zplan-edit">
+                    {every.map(z => {
+                        const v = store.weekPlan?.[z.id] ?? 0;
+                        return (
+                            <li key={z.id}>
+                                <span className="zplan-name font-display">{z.reading}</span>
+                                <span className="zplan-step">
+                                    <select value={PRESETS.includes(v) || v === 0 ? v : 'x'} onChange={e => { if (e.target.value !== 'x') update(s => setPlan(s, z.id, Number(e.target.value))); }} aria-label={t('{0}: апталык сан', z.reading)}>
+                                        <option value={0}>{t('планда жок')}</option>
+                                        {PRESETS.map(n => <option key={n} value={n}>{n}</option>)}
+                                        {v && !PRESETS.includes(v) ? <option value="x">{v}</option> : null}
+                                    </select>
+                                    <input type="number" inputMode="numeric" min={0} value={v || ''} placeholder="0" onChange={e => update(s => setPlan(s, z.id, Number(e.target.value)))} aria-label={t('{0}: апталык сан', z.reading)} className="tabular" />
+                                </span>
+                            </li>
+                        );
+                    })}
+                </ul>
+            )}
+
+            <div className="cal-kinds zplan-acts">
+                <button onClick={() => setEditing(v => !v)} data-on={editing || undefined}>{editing ? t('Даяр') : rows.length ? t('Планды өзгөртүү') : t('План түзүү')}</button>
+                {offerJamaat && <button onClick={takeJamaat}>{t('Жамааттагы планымды кошуу: салават {0}, истигфар {1}', jamaat!.salawat, jamaat!.zikr)}</button>}
+            </div>
+        </section>
     );
 };
 
@@ -269,6 +319,18 @@ export const ZikrPage: React.FC<{ arg: string | null; theme: Theme; onToggleThem
     const favs = every.filter(z => isFav(store, z.id));
     const rest = ZIKRS.filter(z => !isFav(store, z.id));
     const own = every.filter(z => z.id.startsWith('c-') && !isFav(store, z.id));
+    // A member's jamaat plan for salawat (СВТ) and istighfar/zikr (ИСТГ), from the latest week.
+    const ctx = useContext(AppContext);
+    const { data: memberData } = useMemberData(!!self && !ctx.data);
+    const jamaatPlan = useMemo(() => {
+        const d = ctx.data ?? memberData;
+        if (!self || !d) return null;
+        for (const w of [...d.weeks].reverse()) {
+            const m = w.teams.flatMap(tm => tm.members).find(x => x.id === self.memberId);
+            if (m) return { salawat: m.target['СВТ'] ?? 0, zikr: m.target['ИСТГ'] ?? 0 };
+        }
+        return null;
+    }, [ctx.data, memberData, self]);
 
     // The after-prayer set: three counters in a row.
     const [step, setStep] = useState(0);
@@ -313,6 +375,7 @@ export const ZikrPage: React.FC<{ arg: string | null; theme: Theme; onToggleThem
         <AppFrame page="zikr" title={t('Зикир')} kicker={t('Аллахты эскерүү')} sub={streak(store) > 1 ? t('Катары менен {0} күн', streak(store)) : t('Бүгүн: {0}', todayTotal(store))} theme={theme} onToggleTheme={onToggleTheme}>
             <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-14 lg:items-start max-w-[64rem] mx-auto">
                 <div>
+                    <ZikrPlan store={store} update={update} every={every} jamaat={jamaatPlan} />
                     {/* After every prayer: the three phrases and their counts, side by side. */}
                     <button onClick={() => go('#/zikr/namaz')} className="z-after">
                         <span className="eyebrow" style={{ color: 'var(--gold)' }}>{t('Ар бир намаздан кийин')}</span>
@@ -332,15 +395,15 @@ export const ZikrPage: React.FC<{ arg: string | null; theme: Theme; onToggleThem
                     </button>
                     {favs.length > 0 && (
                         <Section eyebrow={t('Тандалгандар')}>
-                            <ul className="bead-list">{favs.map(z => <BeadRow key={z.id} z={z} store={store} />)}</ul>
+                            <ul className="bead-list">{favs.map(z => <BeadRow key={z.id} z={z} store={store} onFav={() => update(s => toggleFav(s, z.id))} />)}</ul>
                         </Section>
                     )}
                     <Section eyebrow={t('Зикирлер')}>
                         {/* The zikrs as beads on a thread: a bead fills as today's count nears its number. */}
-                        <ul className="bead-list">{rest.map(z => <BeadRow key={z.id} z={z} store={store} />)}</ul>
+                        <ul className="bead-list">{rest.map(z => <BeadRow key={z.id} z={z} store={store} onFav={() => update(s => toggleFav(s, z.id))} />)}</ul>
                     </Section>
                     <Section eyebrow={t('Өз зикирлерим')}>
-                        {own.length > 0 && <ul className="bead-list">{own.map(z => <BeadRow key={z.id} z={z} store={store} />)}</ul>}
+                        {own.length > 0 && <ul className="bead-list">{own.map(z => <BeadRow key={z.id} z={z} store={store} onFav={() => update(s => toggleFav(s, z.id))} />)}</ul>}
                         <NewZikr onAdd={c => update(s => addCustom(s, c))} />
                     </Section>
                 </div>
@@ -362,7 +425,6 @@ export const ZikrPage: React.FC<{ arg: string | null; theme: Theme; onToggleThem
                             ))}
                         </div>
                     </Section>
-                    <WeekGoal store={store} update={update} />
                     <Section eyebrow={t('Менин аптам')}>
                         <MyWeek totals={totals} synced={synced} />
                     </Section>

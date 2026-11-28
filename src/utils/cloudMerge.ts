@@ -44,7 +44,7 @@ export const mergeZikr = (local: unknown, saved: unknown) => {
     const custom = new Map<string, Obj>();
     for (const src of [s.custom, l.custom]) if (Array.isArray(src)) for (const c of src) if (isObj(c) && typeof c.id === 'string') custom.set(c.id, c);
     const favs = Array.isArray(l.favs) && (l.favs.length || !Array.isArray(s.favs)) ? l.favs : Array.isArray(s.favs) ? s.favs : [];
-    return { ...s, ...l, days: maxCounts(l.days, s.days), current, targets: { ...obj(s.targets), ...obj(l.targets) }, custom: [...custom.values()], favs, weekGoal: num(l.weekGoal) || num(s.weekGoal) };
+    return { ...s, ...l, days: maxCounts(l.days, s.days), current, targets: { ...obj(s.targets), ...obj(l.targets) }, custom: [...custom.values()], favs, weekGoal: num(l.weekGoal) || num(s.weekGoal), weekPlan: { ...obj(s.weekPlan), ...obj(l.weekPlan) } };
 };
 
 export const mergePractice = (local: unknown, saved: unknown) => {

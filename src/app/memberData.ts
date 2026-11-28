@@ -10,14 +10,15 @@ export const loadMemberData = (fresh = false) => {
     return cache;
 };
 
-export const useMemberData = () => {
+export const useMemberData = (on = true) => {
     const [data, setData] = useState<DataFile | null>(null);
     const [failed, setFailed] = useState(false);
     const [tick, setTick] = useState(0);
     useEffect(() => {
+        if (!on) return;
         let alive = true;
         loadMemberData(tick > 0).then(d => { if (alive) setData(d); }).catch(() => { if (alive) setFailed(true); });
         return () => { alive = false; };
-    }, [tick]);
+    }, [tick, on]);
     return { data, failed, reload: () => setTick(n => n + 1) };
 };
