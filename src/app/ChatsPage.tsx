@@ -12,7 +12,8 @@ import { AppContext } from './context';
 import { useSelf } from './self';
 import { go } from './route';
 import { Reactions } from './Reactions';
-import { Acts, ComposerBar, EditedMark, MessageText, Quote, showMessage, type Editing, type Replying } from '../components/ChatEdit';
+import { Acts, ComposerBar, EditedMark, MessageText, Quote, type Editing, type Replying } from '../components/ChatEdit';
+import { showMessage } from '../components/chatScroll';
 import { canEditAt, editMessage } from '../services/editMessage';
 
 import { DEFAULT_REACTION } from '../services/reactions';

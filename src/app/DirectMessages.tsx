@@ -3,7 +3,8 @@
 // it (supabase/polls-dm-2026-11.sql).
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ArrowUp, Check, ChevronRight, Loader2, PenLine, Search, X } from 'lucide-react';
-import { Acts, ComposerBar, EditedMark, MessageText, Quote, showMessage, type Editing, type Replying } from '../components/ChatEdit';
+import { Acts, ComposerBar, EditedMark, MessageText, Quote, type Editing, type Replying } from '../components/ChatEdit';
+import { showMessage } from '../components/chatScroll';
 import { canEditAt, editMessage } from '../services/editMessage';
 
 import type { Theme } from '../theme';

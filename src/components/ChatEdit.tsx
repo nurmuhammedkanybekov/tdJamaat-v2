@@ -25,14 +25,6 @@ export const Quote: React.FC<{ who: string | null; body: string | null; onClick?
     </button>
 );
 
-/** Goes to a message in the list and marks it for a moment. */
-export const showMessage = (id: number) => {
-    const el = document.getElementById(`m-${id}`);
-    if (!el) return;
-    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    el.classList.remove('chat-flash'); void el.offsetWidth; el.classList.add('chat-flash');
-};
-
 /** Answer, copy, change, remove: shown when the message is touched or under the mouse. */
 export const Acts: React.FC<{ text: string; onReply?: () => void; onEdit?: () => void; onDelete?: () => void }> = ({ text, onReply, onEdit, onDelete }) => {
     const [copied, setCopied] = useState(false);
