@@ -62,7 +62,7 @@ export const SignInCheck: React.FC<{ theme: Theme; onToggleTheme: () => void }> 
             : <CircleDashed className="w-5 h-5" style={{ color: 'var(--text-muted)' }} />;
 
     return (
-        <AppFrame page="today" title={t('Кирүүнү текшерүү')} kicker={t('Google менен кирүү')} theme={theme} onToggleTheme={onToggleTheme}>
+        <AppFrame page="kiruu" title={t('Кирүүнү текшерүү')} kicker={t('Google менен кирүү')} theme={theme} onToggleTheme={onToggleTheme}>
             <div className="max-w-[40rem] mx-auto">
                 <p className="text-[0.95rem] leading-relaxed text-center" style={{ color: 'var(--text-secondary)' }}>{t('Бул бет Google менен кирүүнү кадам-кадамы менен текшерет. Кызыл белги кайсы жерде токтогонун көрсөтөт. Скриншотун админге жиберсеңиз болот.')}</p>
                 {!steps ? <div className="flex justify-center py-12"><Loader2 className="w-5 h-5 animate-spin" style={{ color: 'var(--gold)' }} /></div> : (

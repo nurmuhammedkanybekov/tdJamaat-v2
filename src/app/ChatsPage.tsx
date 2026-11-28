@@ -82,7 +82,7 @@ export const ChatsPage: React.FC<{ arg?: string | null; sub?: string | null; the
     if (arg === 'dm' && sub && access.all) return <DmChat key={sub} peer={sub} theme={theme} onToggleTheme={onToggleTheme} />;
     if (room) return <RoomChat key={room.id} room={room} theme={theme} onToggleTheme={onToggleTheme} />;
     return (
-        <AppFrame page="today" title={t('Чаттар')} kicker={t('Чат')} theme={theme} onToggleTheme={onToggleTheme}>
+        <AppFrame page="chat" title={t('Чаттар')} kicker={t('Чат')} theme={theme} onToggleTheme={onToggleTheme}>
             {!access.all ? (
                 <div className="max-w-[36rem] mx-auto text-center pt-8">
                     <p className="text-[1rem] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{t('Жамааттын чатына кирүү үчүн Google аккаунтуңуз менен кириңиз. Капитаныңыз Gmail дарегиңизди жазып койгон болушу керек.')}</p>
@@ -309,7 +309,7 @@ const RoomChat: React.FC<{ room: ChatRoom; theme: Theme; onToggleTheme: () => vo
     };
 
     return (
-        <AppFrame page="today" title={info.name} back="#/chat" theme={theme} onToggleTheme={onToggleTheme} ownBar>
+        <AppFrame page="chat" title={info.name} back="#/chat" theme={theme} onToggleTheme={onToggleTheme} ownBar>
             <div className="max-w-[42rem] mx-auto pt-2 pb-6">
                 <header className="text-center pt-2 pb-1">
                     <Mark size={30} className="mx-auto" style={{ color: 'var(--gold)' }} />

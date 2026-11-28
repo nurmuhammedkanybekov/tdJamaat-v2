@@ -65,7 +65,7 @@ export const QiblaPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
     const facing = heading !== null && Math.abs(((bearing - heading + 540) % 360) - 180) < 4;
 
     return (
-        <AppFrame page="today" title={t('Кыбла')} kicker={place.label} theme={theme} onToggleTheme={onToggleTheme}>
+        <AppFrame page="qibla" title={t('Кыбла')} kicker={place.label} theme={theme} onToggleTheme={onToggleTheme}>
             <div className="max-w-[30rem] mx-auto text-center">
                 <div className={`qibla ${facing ? 'is-facing' : ''}`} aria-label={t('Кыбла: түндүктөн {0}°', Math.round(bearing))}>
                     <svg viewBox="-120 -120 240 240" className="qibla-dial" style={{ transform: `rotate(${dial}deg)` }} aria-hidden="true">

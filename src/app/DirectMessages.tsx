@@ -163,7 +163,7 @@ export const DmChat: React.FC<{ peer: string; theme: Theme; onToggleTheme: () =>
         finally { setSending(false); }
     };
     return (
-        <AppFrame page="today" title={name} back="#/chat" theme={theme} onToggleTheme={onToggleTheme} ownBar>
+        <AppFrame page="chat" title={name} back="#/chat" theme={theme} onToggleTheme={onToggleTheme} ownBar>
             <div className="max-w-[42rem] mx-auto pt-2 pb-6">
                 <header className="text-center pt-5 pb-3">
                     <div className="inline-flex justify-center"><Face p={person ?? undefined} name={name} /></div>

@@ -99,7 +99,7 @@ export const NewsPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = (
     useEffect(() => { if (list) markNewsSeen(); }, [list]);
     const someone = signedIn || member?.status === 'linked';
     return (
-        <AppFrame page="today" title={t('Жамааттан кабар')} kicker={t('Кабарлар')} theme={theme} onToggleTheme={onToggleTheme}>
+        <AppFrame page="news" title={t('Жамааттан кабар')} kicker={t('Кабарлар')} theme={theme} onToggleTheme={onToggleTheme}>
             <div className="max-w-[42rem] mx-auto">
                 <div className="text-center mt-4"><NotifyToggle /></div>
                 {isAdmin && <Composer onPosted={load} />}

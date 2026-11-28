@@ -52,7 +52,7 @@ export const HelpPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = (
     const [who, setWho] = useState<Who>(mine);
     const list = steps(who);
     return (
-        <AppFrame page="today" title={t('Кантип колдонуу керек')} kicker={t('Жардам')} theme={theme} onToggleTheme={onToggleTheme}>
+        <AppFrame page="help" title={t('Кантип колдонуу керек')} kicker={t('Жардам')} theme={theme} onToggleTheme={onToggleTheme}>
             <div className="max-w-[44rem] mx-auto pt-8">
                 <div className="help-who" role="tablist" aria-label={t('Ким үчүн')}>
                     {WHO.map(w => (

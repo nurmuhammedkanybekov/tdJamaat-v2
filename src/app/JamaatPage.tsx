@@ -34,7 +34,7 @@ export const JamaatPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> =
     }, [source]);
 
     return (
-        <AppFrame page="today" title={t('Жамаат')} kicker={t('Бирге')} theme={theme} onToggleTheme={onToggleTheme}>
+        <AppFrame page="jamaat" title={t('Жамаат')} kicker={t('Бирге')} theme={theme} onToggleTheme={onToggleTheme}>
             {!staff && !member ? (
                 <div className="max-w-[36rem] mx-auto text-center pt-8">
                     <p className="text-[1rem] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{t('Жамааттын жыйынтыгын көрүү үчүн Google аккаунтуңуз менен кириңиз.')}</p>

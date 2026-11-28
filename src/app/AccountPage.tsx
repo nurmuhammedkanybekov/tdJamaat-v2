@@ -102,7 +102,7 @@ export const AccountPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> 
     useEffect(() => { if (personal) googleSession().then(setWho).catch(() => undefined); }, [personal]);
 
     return (
-        <AppFrame page="today" title={t('Менин барагым')} kicker={t('Жеке аккаунт')} theme={theme} onToggleTheme={onToggleTheme}>
+        <AppFrame page="account" title={t('Менин барагым')} kicker={t('Жеке аккаунт')} theme={theme} onToggleTheme={onToggleTheme}>
             <div className="max-w-[40rem] mx-auto pt-8">
                 {!personal ? (
                     <section className="acct-out text-center">
