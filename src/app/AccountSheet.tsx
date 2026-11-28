@@ -69,7 +69,7 @@ export const AccountSheet: React.FC<{ onClose: () => void }> = ({ onClose }) => 
     const guest = ctx.member?.status === 'unlinked' && !ctx.signedIn ? ctx.member : null;
     const role = ctx.signedIn ? ctx.role ?? 'member' : linked ? 'member' : guest ? 'guest' : null;
     const photo = own ?? guest?.photo ?? null;
-    const accountItem: Item = { key: 'account', icon: UserRound, label: t('Менин аккаунтум'), sub: t('Эмне сакталат; чыгуу же өчүрүү'), to: '#/account' };
+    const accountItem: Item = { key: 'account', icon: UserRound, label: t('Менин барагым'), sub: t('Эмне сакталат; чыгуу же өчүрүү'), to: '#/account' };
     const person = self ?? (linked ? { ...linked, via: 'google' as const } : null);
     const here = window.location.hash.split('?')[0];
     const open = (hash: string) => { onClose(); go(hash); };
@@ -79,10 +79,9 @@ export const AccountSheet: React.FC<{ onClose: () => void }> = ({ onClose }) => 
     const groups: Array<{ title: string; items: Item[] }> = [
         ...(person ? [{
             title: t('Мен'), items: [
-                { key: 'me', icon: ChartNoAxesColumn, label: t('Менин жыйынтыгым'), sub: t('Апта, сезон, сыйлыктар'), to: '#/house/me' },
+                { key: 'me', icon: ChartNoAxesColumn, label: t('Менин барагым'), sub: linked ? t('Жыйынтыгым, сүрөтүм, аккаунтум') : t('Апта, сезон, сыйлыктар'), to: '#/house/me' },
                 { key: 'jattoo', icon: BookOpenCheck, label: t('Жаттоо'), sub: t('Жаттаганым жана пландарым'), to: '#/house/me?jattoo' },
                 { key: 'house', icon: Home, label: person.houseName, sub: t('Үйүмдүн адамдары жана чаты'), to: '#/house' },
-                ...(linked ? [accountItem] : [])
             ]
         }] : guest ? [{ title: t('Мен'), items: [accountItem] }] : []),
         ...(ctx.signedIn || linked ? [{

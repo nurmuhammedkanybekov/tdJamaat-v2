@@ -1,10 +1,11 @@
-// #/house/me — "Менин жыйынтыгым": a member's own results, after signing in.
+// #/house/me — "Менин барагым": a member's own page after signing in: their
+// photo, their results, their plans and (for a Google account) the account.
 // The week (any week of the season, not only the latest), the number against
 // the plan, every metric with how far it went, the season's path, and the
 // person's own awards with the next ones in reach. Computed from the member's
 // own house only (the database gives them nothing else).
-import React, { Suspense, lazy, useEffect, useMemo, useState } from 'react';
-import { ChevronDown, ChevronLeft, ChevronRight, Share2 } from 'lucide-react';
+import React, { Suspense, lazy, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { Camera, ChevronDown, ChevronLeft, ChevronRight, Loader2, Share2 } from 'lucide-react';
 import type { Theme } from '../theme';
 import { Medallion } from '../components/Ornament';
 import { t } from '../i18n';
@@ -24,6 +25,10 @@ import { defaultSeasonId, seasonView } from '../utils/seasons';
 import { formatWeekRange } from '../utils/weekDates';
 import { roman } from '../utils/roman';
 import { go } from './route';
+import { AppContext } from './context';
+import { AccountSection } from './AccountPage';
+import { uploadMemberPhoto } from '../services/dataService';
+import { googleSession } from '../services/memberService';
 
 const ShareSheet = lazy(() => import('../components/ShareSheet').then(m => ({ default: m.ShareSheet })));
 
@@ -46,15 +51,39 @@ export const MyResults: React.FC<{ link: Self; theme: Theme; onToggleTheme: () =
     const [share, setShare] = useState<'week' | 'season' | null>(null);
     // #/house/me?jattoo opens at Жаттоо.
     const ready = !!view;
-    useEffect(() => { if (ready && window.location.hash.includes('jattoo')) window.setTimeout(() => document.getElementById('jattoo')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300); }, [ready]);
+    useEffect(() => {
+        if (!ready) return;
+        const at = ['jattoo', 'account'].find(k => window.location.hash.includes(k));
+        if (at) window.setTimeout(() => document.getElementById(at)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
+    }, [ready]);
+    const { member } = useContext(AppContext);
+    const [email, setEmail] = useState<string | null>(null);
+    useEffect(() => { if (member?.status === 'linked') googleSession().then(g => setEmail(g?.email ?? null)).catch(() => undefined); }, [member?.status]);
+    const account = link.via === 'google' ? <AccountSection linked email={email} /> : null;
 
     const frame = (body: React.ReactNode) => (
-        <AppFrame page="house" title={t('Менин жыйынтыгым')} kicker={link.houseName} back="#/house" theme={theme} onToggleTheme={onToggleTheme}>{body}</AppFrame>
+        <AppFrame page="house" title={t('Менин барагым')} kicker={link.houseName} back="#/house" theme={theme} onToggleTheme={onToggleTheme}>{body}</AppFrame>
     );
     if (failed) return frame(<p className="text-center py-10" style={{ color: 'var(--text-muted)' }}>{t('Жыйынтыктар жүктөлгөн жок.')}</p>);
     if (!view) return frame(<Waiting />);
     const { series } = view;
-    if (!series || series.weeks.length === 0) return frame(<div className="max-w-[46rem] mx-auto"><p className="text-center py-10 max-w-[30rem] mx-auto" style={{ color: 'var(--text-muted)' }}>{t('Азырынча сиздин жыйынтыгыңыз жок. Капитан аптанын маалыматын киргизгенде бул жерде көрүнөт.')}</p><MyJattoo data={view.d} memberId={link.memberId} onChanged={reload} /></div>);
+    if (!series || series.weeks.length === 0) {
+        const photo = view.d.weeks[view.d.weeks.length - 1]?.teams.find(tm => tm.id === link.houseId)?.members.find(m => m.id === link.memberId)?.photoUrl ?? null;
+        return frame(
+            <div className="max-w-[46rem] mx-auto">
+                <section className="mine-hero">
+                    <div className="flex flex-col items-center text-center">
+                        <Face link={link} name={link.name} role="member" photoUrl={photo} onChanged={reload} />
+                        <h1 className="font-display text-[2.3rem] sm:text-[2.7rem] leading-tight mt-3" style={{ color: 'var(--text-primary)' }}>{link.name}</h1>
+                        <div className="eyebrow mt-1">{link.houseName}</div>
+                    </div>
+                    <p className="text-center py-10 max-w-[30rem] mx-auto" style={{ color: 'var(--text-muted)' }}>{t('Азырынча сиздин жыйынтыгыңыз жок. Капитан аптанын маалыматын киргизгенде бул жерде көрүнөт.')}</p>
+                </section>
+                <MyJattoo data={view.d} memberId={link.memberId} onChanged={reload} />
+                {account}
+            </div>
+        );
+    }
 
     const weeks = series.weeks;
     const pos = picked === null ? weeks.length - 1 : Math.max(0, Math.min(weeks.length - 1, weeks.findIndex(w => w.weekIndex === picked)));
@@ -63,7 +92,7 @@ export const MyResults: React.FC<{ link: Self; theme: Theme; onToggleTheme: () =
 
     return frame(
         <div className="max-w-[46rem] mx-auto">
-            <Hero series={series} cur={cur} pos={pos} weeks={weeks} data={view.d} ins={view.ins} onPick={i => pick(weeks[i])} />
+            <Hero link={link} onChanged={reload} series={series} cur={cur} pos={pos} weeks={weeks} data={view.d} ins={view.ins} onPick={i => pick(weeks[i])} />
             {/* A picture of my week or my season, ready for WhatsApp / Telegram. */}
             <nav className="almanac mine-share" aria-label={t('Бөлүшүү')}>
                 <button disabled={!cur.submitted} onClick={() => setShare('week')}><Share2 className="w-[1.05rem] h-[1.05rem]" strokeWidth={1.4} /><span>{t('Аптамды бөлүшүү')}</span></button>
@@ -74,6 +103,7 @@ export const MyResults: React.FC<{ link: Self; theme: Theme; onToggleTheme: () =
             <SeasonNumbers series={series} ins={view.ins} total={view.d.weeks.length} name={view.seasonName} onPick={pick} />
             <Awards memberId={link.memberId} awards={view.awards} weeks={weeks} />
             <MyJattoo data={view.d} memberId={link.memberId} onChanged={reload} />
+            {account}
             <div className="text-center mt-10"><button className="btn btn-ghost" onClick={() => go('#/house')}>{t('Үйгө кайтуу')}</button></div>
             {share && (
                 <Suspense fallback={null}>
@@ -88,7 +118,41 @@ export const MyResults: React.FC<{ link: Self; theme: Theme; onToggleTheme: () =
 
 /* ── The week: who, which week, the number against the plan ─────────────── */
 
-const Hero: React.FC<{ series: MemberSeries; cur: MemberWeek; pos: number; weeks: MemberWeek[]; data: { weeks: Array<{ startDate?: string | null; endDate?: string | null }> }; ins: ReturnType<typeof buildInsights>; onPick: (i: number) => void }> = ({ series, cur, pos, weeks, data, ins, onPick }) => {
+/** My face in the шырдак medallion; a tap on it changes the photo. */
+const Face: React.FC<{ link: Self; name: string; role: Parameters<typeof Avatar>[0]['role']; photoUrl: string | null; onChanged: () => void }> = ({ link, name, role, photoUrl, onChanged }) => {
+    const input = useRef<HTMLInputElement>(null);
+    const [busy, setBusy] = useState(false);
+    const [url, setUrl] = useState(photoUrl);
+    const [error, setError] = useState('');
+    useEffect(() => setUrl(photoUrl), [photoUrl]);
+    const pick = async (file: File | undefined) => {
+        if (!file) return;
+        setBusy(true); setError('');
+        try {
+            setUrl(await uploadMemberPhoto(link.houseId, link.memberId, file)); onChanged();
+            try { sessionStorage.removeItem('tdjamaat-photo-v1'); } catch { /* not critical */ }
+            window.dispatchEvent(new Event('tdjamaat-photo'));
+        } catch (e) {
+            setError(/row-level|policy|not allowed|403/i.test(String((e as Error)?.message)) ? t('Сүрөт коюу азырынча ачыла элек. Админ supabase/member-photos-2026-11.sql файлын иштетиши керек.') : (e as Error)?.message ?? '');
+        } finally { setBusy(false); if (input.current) input.current.value = ''; }
+    };
+    return (
+        <>
+            <span className="mine-face">
+                <span className="mine-face-medallion" aria-hidden="true"><Medallion size={230} className="spin-slow" /></span>
+                <Avatar name={name} role={role} photoUrl={url} size="2xl" />
+                <button type="button" className="mine-face-pick" onClick={() => input.current?.click()} disabled={busy} aria-label={t('Сүрөтүмдү алмаштыруу')}>
+                    <span className="mine-face-badge">{busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" strokeWidth={1.6} />}</span>
+                </button>
+                <input ref={input} type="file" accept="image/*" className="hidden" onChange={e => pick(e.target.files?.[0])} />
+            </span>
+            <button type="button" className="mine-face-link" onClick={() => input.current?.click()} disabled={busy}>{url ? t('Сүрөттү алмаштыруу') : t('Сүрөт коюу')}</button>
+            {error && <p className="text-[0.82rem] mt-1 max-w-[26rem]" style={{ color: 'var(--danger)' }}>{error}</p>}
+        </>
+    );
+};
+
+const Hero: React.FC<{ link: Self; onChanged: () => void; series: MemberSeries; cur: MemberWeek; pos: number; weeks: MemberWeek[]; data: { weeks: Array<{ startDate?: string | null; endDate?: string | null }> }; ins: ReturnType<typeof buildInsights>; onPick: (i: number) => void }> = ({ link, onChanged, series, cur, pos, weeks, data, ins, onPick }) => {
     const wk = data.weeks[cur.weekIndex];
     const range = wk ? formatWeekRange(wk.startDate ?? null, wk.endDate ?? null) : '';
     const prev = [...weeks.slice(0, pos)].reverse().find(w => w.submitted);
@@ -102,11 +166,8 @@ const Hero: React.FC<{ series: MemberSeries; cur: MemberWeek; pos: number; weeks
         <section className="mine-hero">
             <div className="flex flex-col items-center text-center">
                 {/* The face inside the шырдак medallion, as the mark sits on the sign-in page. */}
-                <span className="mine-face">
-                    <span className="mine-face-medallion" aria-hidden="true"><Medallion size={230} className="spin-slow" /></span>
-                    <Avatar name={series.name} role={roleAt(series, cur.weekIndex)} photoUrl={series.photoUrl} size="2xl" />
-                </span>
-                <h1 className="font-display text-[2.3rem] sm:text-[2.7rem] leading-tight mt-3" style={{ color: 'var(--text-primary)' }}>{series.name}</h1>
+                <Face link={link} name={series.name} role={roleAt(series, cur.weekIndex)} photoUrl={series.photoUrl} onChanged={onChanged} />
+                <h1 className="font-display text-[2.3rem] sm:text-[2.7rem] leading-tight mt-1" style={{ color: 'var(--text-primary)' }}>{series.name}</h1>
                 <div className="eyebrow mt-1">{ROLE_LABEL[roleAt(series, cur.weekIndex)]} · {cur.houseName}</div>
             </div>
 

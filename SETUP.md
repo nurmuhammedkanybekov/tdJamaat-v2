@@ -135,8 +135,9 @@ In the Supabase dashboard, open **SQL Editor** and run, in order:
     on the roster sees no house, person, result or chat (those tables already
     require a captain, the admin or a member tied by address). Only Google
     accounts can use it, so a sign-up with an email address and password gets
-    nothing. People can delete their own account from Меню → Менин
-    аккаунтум; captain, CL and admin logins can't. Needs 4b and the members
+    nothing. A guest (not tied to a person of a house) can delete their own
+    account from Меню → Менин барагым; a member's account is removed by the
+    admin only, and captain, CL and admin logins can't be deleted here. Needs 4b and the members
     file. Safe to re-run.
 27. `supabase/polls-dm-2026-11.sql` — polls and private messages. In any
     jamaat chat the chart button makes a poll (2–8 answers, one or several

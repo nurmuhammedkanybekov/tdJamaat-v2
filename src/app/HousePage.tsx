@@ -279,7 +279,7 @@ export const HousePage: React.FC<{ arg?: string | null; sub?: string | null; the
                             {/* My own results have their own page: the week, every metric, the season, my awards. */}
                             <button onClick={() => go('#/house/me')} className="row-link w-full mt-5 flex items-center gap-4 py-4 text-left" style={{ borderTop: '1px solid var(--gold-dim)', borderBottom: '1px solid var(--border)' }}>
                                 <span className="flex-1 min-w-0">
-                                    <span className="font-display block text-[1.2rem] leading-tight" style={{ color: 'var(--text-primary)' }}>{t('Менин жыйынтыгым')}</span>
+                                    <span className="font-display block text-[1.2rem] leading-tight" style={{ color: 'var(--text-primary)' }}>{t('Менин барагым')}</span>
                                     <span className="block text-[0.82rem] mt-0.5" style={{ color: 'var(--text-muted)' }}>{t('Жаттоо, сыйлыктар, бөлүшүү')}</span>
                                 </span>
                                 {me && !me.excused && team?.submitted && <span className="font-display tabular text-[2rem] leading-none" style={{ color: 'var(--gold)' }}>{fmt(calculateMemberScore(me))}</span>}

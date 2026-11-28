@@ -1088,7 +1088,7 @@ li[data-ayah].is-reciting { background-color: color-mix(in oklab, var(--gold) 8%
 .goto-juz-cell:hover:not(:disabled) { color: var(--gold); border-color: var(--gold); background: var(--gold-soft); }
 .goto-juz-cell:disabled { opacity: .4; }
 
-/* ── Менин жыйынтыгым (#/house/me) ───────────────────────────────────── */
+/* ── Менин барагым (#/house/me) ───────────────────────────────────── */
 .mine-hero { position: relative; padding: 2rem 0 2.2rem; border-bottom: 1px solid var(--gold-dim); }
 .mine-hero::before { content: ""; position: absolute; inset: 0 -1rem; z-index: -1; pointer-events: none;
     background: radial-gradient(60% 55% at 50% 58%, color-mix(in oklab, var(--gold) 13%, transparent), transparent 72%); }
@@ -1421,6 +1421,11 @@ button.help-where:hover { border-bottom-color: var(--gold); }
 .mine-facts { border-top: 1px solid var(--gold-dim); }
 .mine-face > img, .mine-face > div { position: relative; z-index: 1; }
 .mine-face > div { background-color: var(--page-plane) !important; }
+.mine-face-pick { position: absolute; z-index: 2; left: 50%; top: 50%; width: 6.5rem; height: 6.5rem; transform: translate(-50%, -50%); border-radius: 9999px; cursor: pointer; }
+.mine-face-badge { position: absolute; right: -6px; bottom: -2px; width: 2.1rem; height: 2.1rem; display: inline-flex; align-items: center; justify-content: center; border-radius: 9999px; background: var(--page-plane); border: 1px solid var(--gold); color: var(--gold); transition: background-color .2s, color .2s; }
+.mine-face-pick:hover .mine-face-badge, .mine-face-pick:focus-visible .mine-face-badge { background: var(--gold); color: var(--page-plane); }
+.mine-face-link { margin-top: .2rem; font-size: .68rem; letter-spacing: .16em; text-transform: uppercase; color: var(--text-muted); transition: color .2s; }
+.mine-face-link:hover { color: var(--gold); }
 
 /* ---------------------------------------------------------------- results: open, with the house's marks */
 .monument > .page-medallion { top: 48%; opacity: .065; }
@@ -1875,3 +1880,4 @@ button.help-where:hover { border-bottom-color: var(--gold); }
 .bead-fav:hover { color: var(--gold); transform: scale(1.1); }
 .bead-fav[data-on] { color: var(--gold); }
 .bead-list .bead-row { padding-right: 2.6rem; }
+.acct-section { margin-top: 3rem; }

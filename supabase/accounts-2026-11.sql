@@ -67,6 +67,10 @@ begin
   if not is_personal_google() then
     raise exception 'only a personal Google account can be deleted here';
   end if;
+  -- A member's account (tied to a person of a house) is removed by the admin only.
+  if current_member_id() is not null then
+    raise exception 'a member''s account is removed by the admin';
+  end if;
   delete from auth.users where id = auth.uid();
 end;
 $$;

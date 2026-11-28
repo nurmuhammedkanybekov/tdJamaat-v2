@@ -347,7 +347,7 @@ export const TodayPage: React.FC<{ theme: Theme; onToggleTheme: () => void }> = 
                 {(linked || signedIn) && <OrnamentDivider className="mt-12" />}
                 {(linked || signedIn) && (
                     <nav className="almanac day-end" aria-label={t('Бөлүмдөр')}>
-                        {linked && <button onClick={() => go('#/house/me')}><span>{t('Менин жыйынтыгым')}</span></button>}
+                        {linked && <button onClick={() => go('#/house/me')}><span>{t('Менин барагым')}</span></button>}
                         <button onClick={() => go('#/jamaat')}><span>{t('Жамаат')}</span></button>
                         <button onClick={() => go('#/chat')}><span>{t('Чаттар')}</span></button>
                     </nav>
