@@ -1881,3 +1881,114 @@ button.help-where:hover { border-bottom-color: var(--gold); }
 .bead-fav[data-on] { color: var(--gold); }
 .bead-list .bead-row { padding-right: 2.6rem; }
 .acct-section { margin-top: 3rem; }
+
+/* ---------------------------------------------------------------- calendar, v2
+   The month and the chosen day side by side on a wide screen; on a phone the
+   day follows the month. The day is an almanac leaf: fast, tasks, note, each
+   under a small-capital heading on a hairline. */
+.cal-main { display: grid; gap: 2.4rem; margin-top: 2.4rem; }
+@media (min-width: 1024px) { .cal-main { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 3.5rem; align-items: start; } .cal-leaf { position: sticky; top: 5.5rem; } }
+.cal-month { max-width: 34rem; width: 100%; margin: 0 auto; touch-action: pan-y; }
+.cal-leaf { position: relative; scroll-margin-top: 5rem; padding: 1.8rem 0 1.2rem; text-align: center; border-top: 1px solid var(--gold-dim); border-bottom: 1px solid var(--gold-dim); }
+.cal-leaf::before, .cal-leaf::after { content: ""; position: absolute; left: 50%; width: 9px; height: 9px; margin-left: -4.5px; transform: rotate(45deg); background: var(--page-plane); border: 1px solid var(--gold); }
+.cal-leaf::before { top: -5px; } .cal-leaf::after { bottom: -5px; }
+.cal-back { display: inline-flex; align-items: center; gap: .45rem; font-size: .7rem; letter-spacing: .18em; text-transform: uppercase; color: var(--gold); padding: .5rem .2rem; }
+.cal-back:hover { color: var(--text-primary); }
+
+.cal-block { margin-top: 1.9rem; text-align: left; }
+.cal-block-h { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; padding-bottom: .5rem; margin-bottom: .7rem; border-bottom: 1px solid var(--border); font-size: .68rem; letter-spacing: .2em; text-transform: uppercase; color: var(--gold); }
+.cal-block-sub { font-size: .8rem; letter-spacing: 0; text-transform: none; font-style: italic; color: var(--text-muted); text-align: right; }
+.cal-block .cal-kinds { justify-content: flex-start; }
+.cal-block .cal-kinds > button:first-child { padding-left: 0; }
+.cal-block .cal-kinds > button:first-child[data-on]::after { left: calc(50% - .5rem); }
+.cal-about { font-size: .88rem; font-style: italic; color: var(--text-muted); margin-top: .1rem; }
+
+/* fast states: three words with a diamond each; the chosen diamond filled */
+.cal-states { display: flex; flex-wrap: wrap; gap: .4rem 1.6rem; margin-top: 1rem; }
+.cal-states > button { display: inline-flex; align-items: center; gap: .6rem; padding: .45rem 0; font-family: var(--font-display); font-size: 1.15rem; color: var(--text-secondary); transition: color .15s; }
+.cal-states > button > i { width: 12px; height: 12px; transform: rotate(45deg); border: 1px solid var(--gold); transition: background .15s, border-color .15s, box-shadow .15s; }
+.cal-states > button:hover { color: var(--text-primary); }
+.cal-states > button[data-on] { color: var(--text-primary); }
+.cal-states > button[data-on] > i { background: var(--gold); box-shadow: 0 0 0 3px var(--gold-soft); }
+.cal-states > button[data-state="kept"][data-on] > i { background: var(--success); border-color: var(--success); box-shadow: 0 0 0 3px color-mix(in oklab, var(--success) 22%, transparent); }
+.cal-states > button[data-state="missed"] > i { border-color: var(--border-strong); }
+.cal-states > button[data-state="missed"][data-on] > i { background: var(--danger); border-color: var(--danger); box-shadow: none; }
+.cal-fast-line { margin-top: .6rem; font-size: .86rem; color: var(--text-muted); }
+.cal-fast-line[data-state="kept"] { color: var(--success); }
+
+/* tasks */
+.cal-tasks { margin-bottom: .2rem; }
+.cal-task-row { display: flex; align-items: flex-start; gap: .8rem; padding: .55rem 0; border-bottom: 1px solid var(--border); }
+.cal-check { flex-shrink: 0; width: 2rem; height: 2rem; margin: -.2rem 0 0 -.3rem; display: inline-flex; align-items: center; justify-content: center; }
+.cal-check > i { width: 16px; height: 16px; display: inline-flex; align-items: center; justify-content: center; transform: rotate(45deg); border: 1px solid var(--gold); color: var(--page-plane); transition: background .15s, transform .2s; }
+.cal-check > i > svg { transform: rotate(-45deg); }
+.cal-check:hover > i { background: var(--gold-soft); }
+.cal-task-row[data-done] .cal-check > i { background: var(--gold); }
+.cal-task-text { display: block; width: 100%; text-align: left; font-size: 1.02rem; line-height: 1.35; color: var(--text-primary); word-break: break-word; }
+.cal-task-row[data-done] .cal-task-text { color: var(--text-muted); text-decoration: line-through; text-decoration-color: var(--gold-dim); }
+.cal-task-edit { width: 100%; background: transparent; border: 0; border-bottom: 1px solid var(--gold); font-size: 1.02rem; color: var(--text-primary); outline: none; padding: 0 0 .1rem; }
+.cal-task-meta { display: inline-flex; align-items: center; gap: .3rem; margin-top: .15rem; font-size: .76rem; font-style: italic; color: var(--gold); }
+.cal-task-x { flex-shrink: 0; width: 2rem; height: 2rem; display: inline-flex; align-items: center; justify-content: center; color: var(--text-muted); opacity: .45; transition: opacity .15s, color .15s; }
+.cal-task-row:hover .cal-task-x, .cal-task-x:focus-visible { opacity: 1; }
+.cal-task-x:hover { color: var(--danger); }
+@media (hover: none) { .cal-task-x { opacity: .7; } }
+.cal-add { display: flex; align-items: center; gap: .6rem; padding: .5rem 0; border-bottom: 1px solid var(--border-strong); }
+.cal-add:focus-within { border-bottom-color: var(--gold); }
+.cal-add-mark { color: var(--gold); flex-shrink: 0; width: 1.4rem; display: inline-flex; justify-content: center; }
+.cal-add input { flex: 1; min-width: 0; background: transparent; border: 0; outline: none; font-size: 1rem; color: var(--text-primary); padding: .25rem 0; }
+.cal-add input::placeholder { font-style: italic; color: var(--text-muted); }
+.cal-add-go { color: var(--gold); width: 2rem; height: 2rem; display: inline-flex; align-items: center; justify-content: center; }
+.cal-add-opts { display: flex; flex-wrap: wrap; gap: .4rem 1.4rem; margin-top: .55rem; padding-left: 2rem; }
+.cal-add-opts select, .cal-add-opts input { background: transparent; border: 0; border-bottom: 1px dotted var(--gold-dim); color: var(--gold); font-size: .85rem; font-style: italic; padding: .2rem 0; outline: none; cursor: pointer; }
+.cal-add-opts select option { color: var(--text-primary); background: var(--page-plane); font-style: normal; }
+.cal-block .cal-plan { max-width: none; margin: 0; text-align: left; font-size: 1.05rem; resize: none; border-bottom: 1px solid var(--border-strong); }
+
+/* the month: fasts by state, days with tasks */
+.cal-day[data-fast="plan"] .cal-fast { background: transparent; border: 1px solid var(--gold); }
+.cal-day[data-fast="missed"] .cal-fast { background: transparent; border: 1px solid var(--danger); }
+.cal-day[data-past] .cal-g { opacity: .72; }
+.cal-day[data-sel] .cal-g, .cal-day[data-today] .cal-g { opacity: 1; }
+.cal-task { position: absolute; top: 6px; right: 16%; width: 5px; height: 5px; border-radius: 50%; background: var(--text-muted); }
+.cal-task[data-all] { background: var(--gold); }
+.cal-day[data-sel] .cal-task { background: var(--page-plane); }
+.lg-plan { width: 6px; height: 6px; transform: rotate(45deg); border: 1px solid var(--gold); }
+.lg-task { width: 5px; height: 5px; border-radius: 50%; background: var(--text-muted); }
+
+/* what waits from earlier days */
+.cal-wait { max-width: 40rem; margin: 2rem auto 0; border-top: 1px solid var(--gold-dim); }
+.cal-wait-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .85rem 0; border-bottom: 1px solid var(--border); }
+.cal-wait-what { min-width: 0; font-size: .95rem; color: var(--text-secondary); }
+.cal-wait-what b { font-family: var(--font-display); font-weight: 400; font-size: 1.1rem; color: var(--text-primary); }
+.cal-wait-act { display: inline-flex; flex-shrink: 0; }
+.cal-wait-act > button { padding: .5rem .8rem; font-size: .68rem; letter-spacing: .18em; text-transform: uppercase; color: var(--gold); }
+.cal-wait-act > button + button { border-left: 1px solid var(--border); }
+.cal-wait-act > button:hover { color: var(--text-primary); }
+@media (max-width: 520px) { .cal-wait-row { flex-direction: column; align-items: flex-start; gap: .3rem; } .cal-wait-act { margin-left: -.8rem; } }
+
+/* tabs below */
+.cal-tabs { margin-bottom: .5rem; }
+
+/* seven days ahead */
+.cal-agenda > li { border-bottom: 1px solid var(--border); }
+.cal-agenda-day { width: 100%; display: flex; align-items: flex-start; gap: 1rem; padding: 1rem 0; }
+.cal-agenda-task { display: block; font-size: .95rem; color: var(--text-secondary); margin-top: .2rem; }
+.cal-agenda-task small { font-style: italic; color: var(--gold); margin-right: .45rem; font-size: .78rem; }
+.cal-agenda-task[data-done] { color: var(--text-muted); text-decoration: line-through; text-decoration-color: var(--gold-dim); }
+
+/* Ramadan by state */
+.cal-ram > button[data-state="kept"] > i { background: var(--gold); border-color: var(--gold); }
+.cal-ram > button[data-state="kept"] { color: var(--gold); }
+.cal-ram > button[data-state="missed"] > i { border-color: var(--danger); }
+.cal-ram > button[data-state="missed"] { color: var(--danger); }
+.cal-ram > button[data-state="plan"] > i { border-color: var(--gold); box-shadow: inset 0 0 0 2px var(--page-plane), inset 0 0 0 6px var(--gold-soft); }
+
+/* make-up fasts */
+.cal-qaza-sum { display: flex; justify-content: center; gap: 3rem; margin-top: .6rem; }
+.cal-qaza-sum > div { display: flex; flex-direction: column; align-items: center; gap: .3rem; }
+.cal-qaza-sum b { font-weight: 400; font-size: clamp(2.6rem, 9vw, 3.4rem); line-height: 1; color: var(--gold); }
+.cal-qaza-sum span { font-size: .62rem; letter-spacing: .18em; text-transform: uppercase; color: var(--text-muted); }
+.cal-qaza-bar { width: 100%; max-width: 24rem; height: 2px; margin-top: 1.1rem; background: var(--border); }
+.cal-qaza-bar > i { display: block; height: 100%; background: var(--gold); transition: width .4s; }
+.cal-qaza-earlier { display: flex; align-items: center; justify-content: space-between; gap: 1.2rem; width: 100%; max-width: 32rem; margin-top: 1.6rem; padding-top: 1.2rem; border-top: 1px solid var(--border); }
+.cal-step > input { width: 3.6rem; text-align: center; font-size: 2.2rem; line-height: 1; color: var(--text-primary); background: transparent; border: 0; border-bottom: 1px solid transparent; outline: none; }
+.cal-step > input:focus { border-bottom-color: var(--gold); }

@@ -7,6 +7,8 @@
 export type CloudKey = 'zikr' | 'practice' | 'quran' | 'tasbihat' | 'city' | 'calendar';
 export const CLOUD_KEYS: CloudKey[] = ['zikr', 'practice', 'quran', 'tasbihat', 'city', 'calendar'];
 
+import { mergeCalendarStores } from '../app/fasting';
+
 type Obj = Record<string, unknown>;
 const isObj = (v: unknown): v is Obj => !!v && typeof v === 'object' && !Array.isArray(v);
 const obj = (v: unknown): Obj => (isObj(v) ? v : {});
@@ -70,11 +72,8 @@ export const mergeQuran = (local: unknown, saved: unknown) => {
     return out;
 };
 
-/** Fasts and day plans: both kept, this device's word on the same day. */
-export const mergeCalendar = (local: unknown, saved: unknown) => {
-    const l = obj(local), s = obj(saved);
-    return { ...s, ...l, fasts: { ...obj(s.fasts), ...obj(l.fasts) }, notes: { ...obj(s.notes), ...obj(l.notes) } };
-};
+/** Fasts, tasks and notes: the later change of each (src/app/fasting.ts). */
+export const mergeCalendar = (local: unknown, saved: unknown) => mergeCalendarStores(local, saved);
 
 /** Settings: this device's choice, else the saved one. */
 export const mergeSettings = (local: unknown, saved: unknown) => ({ ...obj(saved), ...obj(local) });
