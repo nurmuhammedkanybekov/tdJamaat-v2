@@ -2149,3 +2149,22 @@ button.help-where:hover { border-bottom-color: var(--gold); }
 .cal-head .font-display { font-size: 1.4rem !important; }
 .cal-day { height: 3.4rem; }
 .zplan-empty { border-bottom: 0; }
+
+/* ================================================================ Quran, refined */
+.q-star { position: relative; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-display); color: var(--gold); line-height: 1; }
+.q-star > svg { position: absolute; inset: 0; width: 100%; height: 100%; fill: color-mix(in oklab, var(--gold) 5%, transparent); stroke: currentColor; stroke-width: 1; opacity: .75; }
+.q-star > span { position: relative; }
+.row-link:hover .q-star > svg { fill: color-mix(in oklab, var(--gold) 14%, transparent); opacity: 1; }
+/* the surah's head: its name between two gold rules, no box */
+.surah-head-frame { position: relative; padding: .3rem 0 1.15rem; border: 0; outline: 0; background: none; }
+.surah-head-frame::before, .surah-head-frame::after { content: ""; position: absolute; top: auto; bottom: .35rem; width: calc(50% - 1rem); height: 1px; transform: none; font-size: 0; }
+.surah-head-frame::before { left: 0; background: linear-gradient(to right, transparent, var(--gold)); }
+.surah-head-frame::after { right: 0; background: linear-gradient(to left, transparent, var(--gold)); }
+.surah-head { position: relative; }
+.surah-head::after { content: ""; position: absolute; left: 50%; bottom: .1rem; width: 9px; height: 9px; margin-left: -4.5px; transform: rotate(45deg); border: 1px solid var(--gold); background: var(--page-plane); }
+/* the bar below the reader: quiet signs, the gold play in the middle */
+.q-bar .btn.btn-icon { border-color: transparent !important; background: transparent !important; box-shadow: none !important; color: var(--text-secondary); }
+.q-bar .btn.btn-icon:hover:not(:disabled) { color: var(--gold); background: color-mix(in oklab, var(--gold) 9%, transparent) !important; border-radius: 999px; }
+.q-bar > button:nth-child(3) { box-shadow: 0 6px 18px -8px color-mix(in oklab, var(--gold) 80%, transparent); }
+/* the list's tabs a little lighter */
+.jattoo-kinds > button { font-size: 1.15rem; }

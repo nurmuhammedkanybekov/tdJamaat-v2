@@ -30,10 +30,11 @@ const useIndex = () => {
 
 const placeName = (s: Surah) => (s.place === 'makkah' ? t('Мекке') : t('Мадина'));
 
-/** The surah's number in a small diamond, as on the results' badges. */
+/** A number in the eight-pointed star of the mushaf (۞, two squares). */
 const Diamond: React.FC<{ n: number | string; size?: number }> = ({ n, size = 36 }) => (
-    <span className="flex-shrink-0 inline-flex items-center justify-center font-display tabular rotate-45" style={{ width: size, height: size, margin: size * 0.15, border: '1px solid var(--gold-dim)', color: 'var(--gold)', fontSize: size > 30 ? '0.95rem' : '0.8rem' }}>
-        <span className="-rotate-45">{n}</span>
+    <span className="q-star tabular" style={{ width: size, height: size, fontSize: size > 30 ? '0.84rem' : '0.72rem' }}>
+        <svg viewBox="0 0 40 40" aria-hidden="true"><rect x="8.5" y="8.5" width="23" height="23" /><rect x="8.5" y="8.5" width="23" height="23" transform="rotate(45 20 20)" /></svg>
+        <span>{n}</span>
     </span>
 );
 
@@ -70,7 +71,7 @@ const Contents: React.FC<{ theme: Theme; onToggleTheme: () => void }> = ({ theme
                         <span className="eyebrow" style={{ color: 'var(--gold)' }}>{last ? t('Улантуу') : t('Баштоо')}</span>
                         {index && <span dir="rtl" lang="ar" className="quran-text q-mark-ar">{index[(last?.surah ?? 1) - 1]?.ar}</span>}
                         <span className="font-display q-mark-name">{last?.name ?? index?.[0]?.name ?? ''}</span>
-                        <span className="text-[0.85rem]" style={{ color: 'var(--text-muted)' }}>{last ? t('{0}-сүрө, {1}-аят', last.surah, last.ayah) : t('{0} сүрө · 30 пара · {1} бет', total, 604)}</span>
+                        <span className="text-[0.85rem]" style={{ color: 'var(--text-muted)' }}>{last ? t('{0}-сүрө, {1}-аят', last.surah, last.ayah) : index ? `${placeName(index[0])} · ${t('{0} аят', index[0].ayahs)}` : ''}</span>
                     </button>
                     {last?.page && (
                         <div className="q-progress" aria-label={t('{0}-бет, 604 беттен', last.page)}>
@@ -259,7 +260,7 @@ const ReaderBar: React.FC<{ prev?: () => void; next?: () => void; prevLabel: str
         <>
             {settings && <Settings size={size} onResize={onResize} onClose={() => setSettings(false)} />}
             <div className="fixed left-0 right-0 bottom-0 z-30 page-gutter" style={{ paddingBottom: 'max(0.6rem, env(safe-area-inset-bottom))', paddingTop: '0.6rem', backgroundColor: 'color-mix(in oklab, var(--page-plane) 94%, transparent)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderTop: '1px solid var(--border)' }}>
-                <div className="mx-auto max-w-[46rem] flex items-center justify-between gap-2">
+                <div className="q-bar mx-auto max-w-[46rem] flex items-center justify-between gap-2">
                     {/* In a mushaf the next page is to the left. */}
                     <button className="btn btn-ghost btn-icon disabled:opacity-25" disabled={!next} onClick={next} aria-label={nextLabel}><ChevronLeft className="w-4 h-4" /></button>
                     <button className="btn btn-ghost btn-icon" onClick={() => setSettings(v => !v)} aria-label={t('Окуу жөндөөлөрү')} aria-expanded={settings}><span className="font-display text-[1.05rem] normal-case tracking-normal">Aa</span></button>
