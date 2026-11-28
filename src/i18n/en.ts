@@ -1690,4 +1690,5 @@ export const EN: Record<string, string> = {
     "Телефонго, планшетке же компьютерге колдонмо катары орнотсоңуз, бир басуу менен ачылат жана интернетсиз да иштейт.": "Install it as an app on your phone, tablet or computer: it opens with one tap and works offline too.",
     "Меню → Колдонмону орнотуу": "Menu → Install the app",
     "Апталык сан коюңуз, сайт аны күндөргө бөлүп берет.": "Set a number for the week; the site spreads it over the days.",
+    "жөнөтүлдү": "sent",
 };
