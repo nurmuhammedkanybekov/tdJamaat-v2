@@ -2193,3 +2193,20 @@ button.help-where:hover { border-bottom-color: var(--gold); }
 .admin-x .toggle-pill.is-on { color: var(--gold); }
 .admin-x .toggle-pill.is-on svg { filter: drop-shadow(0 0 6px color-mix(in oklab, var(--gold) 50%, transparent)); }
 .admin-x [role="tablist"] .chip { letter-spacing: .2em; }
+
+/* chats list: a messenger's list, in the house's type */
+.chat-tools { display: flex; align-items: center; justify-content: space-between; gap: .8rem 1.2rem; flex-wrap: wrap; padding-bottom: .7rem; border-bottom: 1px solid var(--gold-dim); }
+.chat-tools > span { gap: 1.1rem !important; }
+.chat-tool { display: inline-flex; align-items: center; gap: .45rem; padding: .45rem 0; font-size: .68rem; letter-spacing: .18em; text-transform: uppercase; color: var(--gold); white-space: nowrap; }
+.chat-tool:hover { color: var(--text-primary); }
+.room-row { gap: .95rem; padding: .85rem .1rem; }
+.room-seal { width: 2.55rem; height: 2.55rem; transform: rotate(45deg) scale(.82); }
+.room-seal > span { font-size: 1.1rem; }
+.room-title { display: block; font-size: 1.28rem; line-height: 1.2; color: var(--text-primary); }
+.room-tag { font-size: .56rem; letter-spacing: .24em; margin-bottom: .05rem; }
+.room-new { flex-direction: row; gap: .3rem; align-items: baseline; }
+.room-new > span { font-size: 1.15rem; min-width: 1.6rem; height: 1.6rem; display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; background: var(--gold); color: var(--page-plane); padding: 0 .45rem; font-family: var(--font-serif); }
+/* icon buttons everywhere: a sign, not a box */
+.btn.btn-ghost.btn-icon { border-color: transparent; background: transparent; border-radius: 999px; color: var(--text-secondary); }
+.btn.btn-ghost.btn-icon:hover:not(:disabled) { color: var(--gold); background: color-mix(in oklab, var(--gold) 10%, transparent); border-color: transparent; }
+.room-new { font-size: 0; letter-spacing: 0; }

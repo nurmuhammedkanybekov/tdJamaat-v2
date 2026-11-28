@@ -120,11 +120,11 @@ const ChatList: React.FC<{ rooms: ChatRoom[]; onChanged: () => void }> = ({ room
     ];
     return (
         <div className="max-w-[40rem] mx-auto mt-6">
-            <div className="flex items-center justify-between gap-3 pb-3" style={{ borderBottom: '1px solid var(--gold-dim)' }}>
+            <div className="chat-tools">
                 <NotifyToggle />
                 <span className="flex flex-wrap gap-2 justify-end">
-                    {canGroup && <button className="btn btn-ghost" style={{ minHeight: '2.4rem' }} onClick={() => setEditing(editing === 'group' ? null : 'group')}><MessagesSquare className="w-4 h-4" />{t('Жаңы топ')}</button>}
-                    {access.isAdmin && <button className="btn btn-ghost" style={{ minHeight: '2.4rem' }} onClick={() => setEditing(editing === 'new' ? null : 'new')}><Plus className="w-4 h-4" />{t('Жаңы чат')}</button>}
+                    {canGroup && <button className="chat-tool" onClick={() => setEditing(editing === 'group' ? null : 'group')}><MessagesSquare className="w-4 h-4" />{t('Жаңы топ')}</button>}
+                    {access.isAdmin && <button className="chat-tool" onClick={() => setEditing(editing === 'new' ? null : 'new')}><Plus className="w-4 h-4" />{t('Жаңы чат')}</button>}
                 </span>
             </div>
             {editing === 'new' && <RoomEditor onDone={() => { setEditing(null); onChanged(); }} />}
@@ -140,7 +140,7 @@ const ChatList: React.FC<{ rooms: ChatRoom[]; onChanged: () => void }> = ({ room
                                     <span className="room-seal" aria-hidden="true"><span>{r.title.slice(0, 1)}</span></span>
                                     <span className="flex-1 min-w-0">
                                         <span className="room-tag">{r.tag}{l && <span className="room-when tabular">{whenShort(l.createdAt)}</span>}</span>
-                                        <span className="block font-display text-[1.55rem] sm:text-[1.75rem] leading-tight truncate" style={{ color: 'var(--text-primary)' }}>{r.title}</span>
+                                        <span className="room-title font-display truncate">{r.title}</span>
                                         <span className="block text-[0.86rem] truncate" style={{ color: n > 0 ? 'var(--text-secondary)' : 'var(--text-muted)' }}>{l ? `${l.who ? `${l.who === 'Админ' ? t('Админ') : l.who}: ` : ''}${l.body}` : r.sub}</span>
                                     </span>
                                     {n > 0
