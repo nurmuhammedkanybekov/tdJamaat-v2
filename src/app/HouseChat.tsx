@@ -2,7 +2,10 @@
 // its captain and the admin can read it (supabase/house-chat-2026-11.sql).
 // Messages arrive at once; a message can be answered with "Аамин".
 import React, { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { ArrowDown, ArrowUp, Loader2, Trash2 } from 'lucide-react';
+import { ArrowDown, ArrowUp, Check, Loader2, Trash2 } from 'lucide-react';
+import { EditButton, EditedMark, EditingBar, type Editing } from '../components/ChatEdit';
+import { canEditAt, editMessage } from '../services/editMessage';
+
 import type { Theme } from '../theme';
 import { t, dateLocale } from '../i18n';
 import { AppFrame, Waiting } from './AppFrame';
@@ -100,9 +103,21 @@ export const HouseChat: React.FC<{ self: Self; canModerate: boolean; theme: Them
     }, [messages]);
     const toNewest = () => { setFresh(0); window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }); };
 
+    const [editing, setEditing] = useState<Editing | null>(null);
+    const startEdit = (m: ChatMessage) => { setEditing({ id: m.id, body: m.body }); setText(m.body); window.setTimeout(() => input.current?.focus(), 0); };
+    const stopEdit = () => { setEditing(null); setText(''); };
     const send = async (body = text) => {
         const clean = body.trim();
         if (!clean || sending) return;
+        if (editing) {
+            if (clean === editing.body) { stopEdit(); return; }
+            setSending(true); setError('');
+            const id = editing.id;
+            setMessages(cur => cur?.map(x => (x.id === id ? { ...x, body: clean, editedAt: new Date().toISOString() } : x)));
+            try { await editMessage('house', id, clean); stopEdit(); } catch (e) { setError((e as Error)?.message ?? ''); load(); }
+            finally { setSending(false); }
+            return;
+        }
         setSending(true); setError('');
         try { await sendMessage(self.houseId, asAdmin ? null : self.memberId, clean); setText(''); stick.current = true; load(); input.current?.focus(); }
         catch (e) { const msg = (e as Error)?.message ?? ''; setError(asAdmin && /row-level security|violates|null value/i.test(msg) ? t('«Админ» катары жазуу үчүн supabase/admin-chat-2026-11.sql файлын иштетүү керек.') : msg || t('Жөнөтүлгөн жок')); }
@@ -181,6 +196,8 @@ export const HouseChat: React.FC<{ self: Self; canModerate: boolean; theme: Them
                                     <Reactions list={m.reactions} me={asAdmin ? null : self.memberId} disabled={asAdmin} onPick={e => react(m, e)} align={mine ? 'end' : 'start'} />
                                     <div className="chat-meta">
                                         <span className="tabular">{hm(at)}</span>
+                                        <EditedMark at={m.editedAt} />
+                                        {mine && canEditAt(m.createdAt) && <EditButton onClick={() => startEdit(m)} />}
                                         {(mine || canModerate) && <button onClick={() => remove(m)} aria-label={t('Өчүрүү')} className="chat-delete"><Trash2 className="w-3.5 h-3.5" /></button>}
                                     </div>
                                 </div>
@@ -201,17 +218,18 @@ export const HouseChat: React.FC<{ self: Self; canModerate: boolean; theme: Them
                         </button>
                     )}
                     {error && <p className="max-w-[42rem] mx-auto text-[0.82rem] mb-2" style={{ color: 'var(--danger)' }}>{error}</p>}
+                    {editing && <EditingBar editing={editing} onCancel={stopEdit} />}
                     <form className="max-w-[42rem] mx-auto flex items-end gap-2" onSubmit={e => { e.preventDefault(); send(); }}>
                         <textarea
                             ref={input} rows={1} value={text} maxLength={2000}
                             onChange={e => setText(e.target.value)}
-                            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && !('ontouchstart' in window)) { e.preventDefault(); send(); } }}
+                            onKeyDown={e => { if (e.key === 'Escape' && editing) stopEdit(); if (e.key === 'Enter' && !e.shiftKey && !('ontouchstart' in window)) { e.preventDefault(); send(); } }}
                             placeholder={asAdmin ? t('Админ катары жазуу…') : t('{0} үйүнө жазуу…', self.houseName)} aria-label={t('Билдирүү')}
                             className="login-field flex-1 min-w-0 resize-none px-3.5 py-3 text-base leading-snug"
                             style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border-strong)', color: 'var(--text-primary)' }}
                         />
-                        <button type="submit" disabled={!text.trim() || sending} aria-label={t('Жөнөтүү')} className="w-12 h-12 rounded-full inline-flex items-center justify-center flex-shrink-0 transition-opacity disabled:opacity-35" style={{ backgroundColor: 'var(--gold)', color: 'var(--page-plane)' }}>
-                            {sending ? <Loader2 className="w-5 h-5 animate-spin" /> : <ArrowUp className="w-5 h-5" />}
+                        <button type="submit" disabled={!text.trim() || sending} aria-label={editing ? t('Сактоо') : t('Жөнөтүү')} className="w-12 h-12 rounded-full inline-flex items-center justify-center flex-shrink-0 transition-opacity disabled:opacity-35" style={{ backgroundColor: 'var(--gold)', color: 'var(--page-plane)' }}>
+                            {sending ? <Loader2 className="w-5 h-5 animate-spin" /> : editing ? <Check className="w-5 h-5" /> : <ArrowUp className="w-5 h-5" />}
                         </button>
                     </form>
                 </div>

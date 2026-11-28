@@ -7,7 +7,7 @@
 --
 -- Whoever wrote a message can change its text for 48 hours: in the house
 -- chat, the jamaat's chats and private messages. The message is marked
--- "өзгөртүлдү" (edited) with the time. Nothing else of it changes: not who
+-- "өзгөртүлгөн" (edited) with the time. Nothing else of it changes: not who
 -- wrote it, not when, not its reactions. A poll's question is not edited
 -- (people have already answered it). The admin, who can delete any message,
 -- edits only their own.

@@ -3,6 +3,7 @@
 // and the admin; and any the admin opens, for one of those two audiences. The database fills in who wrote a message; the names travel
 // with it, since a member can read only their own house's people.
 import { supabase } from '../lib/supabase';
+import { selectWithEdits } from './editMessage';
 import { isMissingSchema } from './dataService';
 import { selectWithReactions, setReaction, toReactions, type Reaction } from './reactions';
 
@@ -47,6 +48,7 @@ export interface RoomMessage {
     houseName: string | null;
     body: string;
     createdAt: string;
+    editedAt: string | null;
     /** Accounts that said "Аамин". */
     reactions: Reaction[];
     /** A poll: the text is its question (supabase/polls-dm-2026-11.sql). */
@@ -55,11 +57,11 @@ export interface RoomMessage {
 
 export interface Poll { options: string[]; multi: boolean; closed: boolean; votes: Array<{ who: string; option: number }> }
 
-type Row = { id: number; room: Room; user_id: string; author_role: string; member_id: string | null; author_name: string | null; house_name: string | null; body: string; created_at: string; poll?: { options?: unknown; multi?: boolean; closed?: boolean } | null; jamaat_message_amins?: Array<{ user_id: string; emoji?: string }> };
+type Row = { id: number; room: Room; user_id: string; author_role: string; member_id: string | null; author_name: string | null; house_name: string | null; body: string; created_at: string; edited_at?: string | null; poll?: { options?: unknown; multi?: boolean; closed?: boolean } | null; jamaat_message_amins?: Array<{ user_id: string; emoji?: string }> };
 const toPoll = (p: Row['poll']): Poll | null => (p && Array.isArray(p.options) ? { options: p.options.map(String), multi: !!p.multi, closed: !!p.closed, votes: [] } : null);
 const toMessage = (r: Row): RoomMessage => ({
     id: r.id, room: r.room, userId: r.user_id, authorRole: r.author_role, memberId: r.member_id, authorName: r.author_name, houseName: r.house_name,
-    body: r.body, createdAt: r.created_at, reactions: toReactions(r.jamaat_message_amins, 'user_id'), poll: toPoll(r.poll)
+    body: r.body, createdAt: r.created_at, editedAt: r.edited_at ?? null, reactions: toReactions(r.jamaat_message_amins, 'user_id'), poll: toPoll(r.poll)
 });
 
 // Polls exist once supabase/polls-dm-2026-11.sql has run.
@@ -67,9 +69,9 @@ let hasPolls: boolean | null = null;
 
 /** The latest messages, oldest first (null: not set up yet, or no access). */
 export const fetchRoom = async (room: Room, limit = 200): Promise<RoomMessage[] | null> => {
-    const run = (polls: boolean) => selectWithReactions(withEmoji => supabase.from('jamaat_messages')
-        .select(`id, room, user_id, author_role, member_id, author_name, house_name, body, created_at${polls ? ', poll' : ''}, jamaat_message_amins(user_id${withEmoji ? ', emoji' : ''})`)
-        .eq('room', room).order('created_at', { ascending: false }).limit(limit));
+    const run = (polls: boolean) => selectWithEdits(edits => selectWithReactions(withEmoji => supabase.from('jamaat_messages')
+        .select(`id, room, user_id, author_role, member_id, author_name, house_name, body, created_at${edits ? ', edited_at' : ''}${polls ? ', poll' : ''}, jamaat_message_amins(user_id${withEmoji ? ', emoji' : ''})`)
+        .eq('room', room).order('created_at', { ascending: false }).limit(limit)));
     let res = await run(hasPolls !== false);
     if (res.error && hasPolls !== false && (res.error.code === '42703' || /poll/i.test(res.error.message ?? ''))) { hasPolls = false; res = await run(false); }
     else if (!res.error && hasPolls === null) hasPolls = true;

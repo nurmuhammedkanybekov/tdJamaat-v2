@@ -3,12 +3,15 @@
 // two people read a conversation.
 import { supabase } from '../lib/supabase';
 import { isMissingSchema } from './dataService';
+import { selectWithEdits } from './editMessage';
 
 export interface DmPerson { userId: string; name: string; houseName: string | null; role: 'member' | 'leader' | 'inspector' | 'admin' }
-export interface Dm { id: number; sender: string; recipient: string; body: string; createdAt: string; readAt: string | null }
+export interface Dm { id: number; sender: string; recipient: string; body: string; createdAt: string; readAt: string | null; editedAt: string | null }
 
-const toDm = (r: { id: number; sender: string; recipient: string; body: string; created_at: string; read_at: string | null }): Dm =>
-    ({ id: r.id, sender: r.sender, recipient: r.recipient, body: r.body, createdAt: r.created_at, readAt: r.read_at });
+type DmRow = { id: number; sender: string; recipient: string; body: string; created_at: string; read_at: string | null; edited_at?: string | null };
+const toDm = (r: DmRow): Dm =>
+    ({ id: r.id, sender: r.sender, recipient: r.recipient, body: r.body, createdAt: r.created_at, readAt: r.read_at, editedAt: r.edited_at ?? null });
+const DM_COLS = (edits: boolean) => `id, sender, recipient, body, created_at, read_at${edits ? ', edited_at' : ''}`;
 
 /** Whom this account may write to (null: not set up yet). */
 export const fetchDmPeople = async (): Promise<DmPerson[] | null> => {
@@ -22,18 +25,18 @@ export const fetchDmPeople = async (): Promise<DmPerson[] | null> => {
 
 /** The latest messages of every conversation of this account, newest first. */
 export const fetchDms = async (limit = 400): Promise<Dm[] | null> => {
-    const { data, error } = await supabase.from('direct_messages').select('id, sender, recipient, body, created_at, read_at').order('created_at', { ascending: false }).limit(limit);
+    const { data, error } = await selectWithEdits(e => supabase.from('direct_messages').select(DM_COLS(e)).order('created_at', { ascending: false }).limit(limit));
     if (error) return null;
-    return (data ?? []).map(toDm);
+    return ((data ?? []) as unknown as DmRow[]).map(toDm);
 };
 
 /** One conversation, oldest first. */
 export const fetchThread = async (me: string, peer: string, limit = 300): Promise<Dm[] | null> => {
-    const { data, error } = await supabase.from('direct_messages').select('id, sender, recipient, body, created_at, read_at')
+    const { data, error } = await selectWithEdits(e => supabase.from('direct_messages').select(DM_COLS(e))
         .or(`and(sender.eq.${me},recipient.eq.${peer}),and(sender.eq.${peer},recipient.eq.${me})`)
-        .order('created_at', { ascending: false }).limit(limit);
+        .order('created_at', { ascending: false }).limit(limit));
     if (error) return null;
-    return (data ?? []).map(toDm).reverse();
+    return ((data ?? []) as unknown as DmRow[]).map(toDm).reverse();
 };
 
 export const sendDm = async (recipient: string, body: string) => {

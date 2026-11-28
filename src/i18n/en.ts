@@ -1588,4 +1588,6 @@ export const EN: Record<string, string> = {
     "ниет": "intended",
     "өтөлдү": "made up",
     "Хижрий күн, майрамдар жана сүннөт орозо күндөрү. Орозоңузду (ниет, кармадым, кармай албадым), каза эсебин, ар бир күндүн иштерин жана эскертмесин ушул жерде жүргүзөсүз.": "The hijri date, holy days and sunnah fasting days. Keep your fasts here (intended, fasted, missed), your make-up count, and each day's tasks and notes.",
+    "Билдирүүнү өзгөртүү": "Edit message",
+    "өзгөртүлгөн": "edited",
 };

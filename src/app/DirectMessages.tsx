@@ -2,7 +2,10 @@
 // conversation at #/chat/dm/<account>. Text only; only the two people see
 // it (supabase/polls-dm-2026-11.sql).
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { ArrowUp, ChevronRight, Loader2, PenLine, Search, Trash2, X } from 'lucide-react';
+import { ArrowUp, Check, ChevronRight, Loader2, PenLine, Search, Trash2, X } from 'lucide-react';
+import { EditButton, EditedMark, EditingBar, type Editing } from '../components/ChatEdit';
+import { canEditAt, editMessage } from '../services/editMessage';
+
 import type { Theme } from '../theme';
 import { t, dateLocale } from '../i18n';
 import { AppFrame, Waiting } from './AppFrame';
@@ -135,9 +138,21 @@ export const DmChat: React.FC<{ peer: string; theme: Theme; onToggleTheme: () =>
     useLayoutEffect(() => { const el = input.current; if (el) { el.style.height = 'auto'; el.style.height = `${Math.min(el.scrollHeight, 160)}px`; } }, [text]);
 
     const name = person ? (person.role === 'member' ? person.name : personLine(person, labels())) : t('Жеке кат');
+    const [editing, setEditing] = useState<Editing | null>(null);
+    const startEdit = (m: Dm) => { setEditing({ id: m.id, body: m.body }); setText(m.body); window.setTimeout(() => input.current?.focus(), 0); };
+    const stopEdit = () => { setEditing(null); setText(''); };
     const send = async () => {
         const clean = text.trim();
         if (!clean || sending) return;
+        if (editing) {
+            if (clean === editing.body) { stopEdit(); return; }
+            setSending(true); setError('');
+            const id = editing.id;
+            setList(cur => cur?.map(x => (x.id === id ? { ...x, body: clean, editedAt: new Date().toISOString() } : x)));
+            try { await editMessage('dm', id, clean); stopEdit(); } catch (e) { setError((e as Error)?.message ?? ''); load(); }
+            finally { setSending(false); }
+            return;
+        }
         setSending(true); setError('');
         try { await sendDm(peer, clean); setText(''); load(); input.current?.focus(); }
         catch (e) { const msg = (e as Error)?.message ?? ''; setError(/row-level security/i.test(msg) ? t('Бул адамга жеке кат жазууга болбойт.') : msg || t('Жөнөтүлгөн жок')); }
@@ -165,6 +180,8 @@ export const DmChat: React.FC<{ peer: string; theme: Theme; onToggleTheme: () =>
                                 <div className="chat-meta">
                                     <span className="tabular">{when(m.createdAt)}</span>
                                     {mine && <span>{m.readAt ? t('окулду') : ''}</span>}
+                                    <EditedMark at={m.editedAt} />
+                                    {mine && canEditAt(m.createdAt) && <EditButton onClick={() => startEdit(m)} />}
                                     {mine && <button onClick={() => { if (window.confirm(t('Бул катты өчүрөсүзбү?'))) deleteDm(m.id).then(load).catch(e => setError((e as Error)?.message ?? '')); }} aria-label={t('Өчүрүү')} className="chat-delete"><Trash2 className="w-3.5 h-3.5" /></button>}
                                 </div>
                             </div>
@@ -175,13 +192,14 @@ export const DmChat: React.FC<{ peer: string; theme: Theme; onToggleTheme: () =>
             {list !== null && person !== null && (
                 <div className="fixed left-0 right-0 bottom-0 z-30 page-gutter" style={{ paddingBottom: 'max(0.6rem, env(safe-area-inset-bottom))', paddingTop: '0.6rem', backgroundColor: 'color-mix(in oklab, var(--page-plane) 94%, transparent)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderTop: '1px solid var(--border)' }}>
                     {error && <p className="max-w-[42rem] mx-auto text-[0.82rem] mb-2" style={{ color: 'var(--danger)' }}>{error}</p>}
+                    {editing && <EditingBar editing={editing} onCancel={stopEdit} />}
                     <form className="max-w-[42rem] mx-auto flex items-end gap-2" onSubmit={e => { e.preventDefault(); send(); }}>
                         <textarea ref={input} rows={1} value={text} maxLength={2000} onChange={e => setText(e.target.value)}
-                            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && !('ontouchstart' in window)) { e.preventDefault(); send(); } }}
+                            onKeyDown={e => { if (e.key === 'Escape' && editing) stopEdit(); if (e.key === 'Enter' && !e.shiftKey && !('ontouchstart' in window)) { e.preventDefault(); send(); } }}
                             placeholder={t('{0}: жазуу…', name)} aria-label={t('Билдирүү')} className="login-field flex-1 min-w-0 resize-none px-3.5 py-3 text-base leading-snug"
                             style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border-strong)', color: 'var(--text-primary)' }} />
-                        <button type="submit" disabled={!text.trim() || sending} aria-label={t('Жөнөтүү')} className="w-12 h-12 rounded-full inline-flex items-center justify-center flex-shrink-0 transition-opacity disabled:opacity-35" style={{ backgroundColor: 'var(--gold)', color: 'var(--page-plane)' }}>
-                            {sending ? <Loader2 className="w-5 h-5 animate-spin" /> : <ArrowUp className="w-5 h-5" />}
+                        <button type="submit" disabled={!text.trim() || sending} aria-label={editing ? t('Сактоо') : t('Жөнөтүү')} className="w-12 h-12 rounded-full inline-flex items-center justify-center flex-shrink-0 transition-opacity disabled:opacity-35" style={{ backgroundColor: 'var(--gold)', color: 'var(--page-plane)' }}>
+                            {sending ? <Loader2 className="w-5 h-5 animate-spin" /> : editing ? <Check className="w-5 h-5" /> : <ArrowUp className="w-5 h-5" />}
                         </button>
                     </form>
                 </div>

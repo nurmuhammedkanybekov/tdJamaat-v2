@@ -1993,3 +1993,10 @@ button.help-where:hover { border-bottom-color: var(--gold); }
 .cal-qaza-earlier { display: flex; align-items: center; justify-content: space-between; gap: 1.2rem; width: 100%; max-width: 32rem; margin-top: 1.6rem; padding-top: 1.2rem; border-top: 1px solid var(--border); }
 .cal-step > input { width: 3.6rem; text-align: center; font-size: 2.2rem; line-height: 1; color: var(--text-primary); background: transparent; border: 0; border-bottom: 1px solid transparent; outline: none; }
 .cal-step > input:focus { border-bottom-color: var(--gold); }
+
+/* chat: editing one's own message */
+.chat-edit:hover { color: var(--gold); }
+.chat-edited { font-style: italic; color: var(--text-muted); }
+.chat-editing { display: flex; align-items: center; gap: .75rem; margin-bottom: .5rem; padding: .35rem 0 .45rem .8rem; border-left: 2px solid var(--gold); }
+.chat-editing-h { font-size: .66rem; letter-spacing: .18em; text-transform: uppercase; color: var(--gold); }
+.chat-editing-was { font-size: .88rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

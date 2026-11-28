@@ -145,6 +145,11 @@ In the Supabase dashboard, open **SQL Editor** and run, in order:
     only and seen by the two people alone (not the admin). Everyone in the
     jamaat with an account can find and write to everyone else in it.
     Guests have none. Needs the jamaat-chat file. Safe to re-run.
+28. `supabase/edit-messages-2026-11.sql` — editing one's own messages. In
+    the house chat, the jamaat's chats and private messages, whoever wrote
+    a message can change its text for 48 hours (the pencil by the time);
+    it then reads "өзгөртүлгөн". Poll questions can't be edited. Needs 27
+    and the chat files first. Safe to re-run.
 
 Notifications: in Үйдүн чаты or Жамааттан кабар, "Билдирмелерди
 күйгүзүү". They arrive while the app is open or in the background (not

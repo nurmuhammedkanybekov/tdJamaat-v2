@@ -4,7 +4,7 @@
 // and each house's own conversation (Үйдүн сөзү, under Үйүм).
 // The database says who wrote what (supabase/jamaat-chat-2026-11.sql).
 import React, { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { ArrowDown, ArrowUp, ChartNoAxesColumn, ChevronRight, Loader2, MessageCircle, Pencil, Plus, Shield, Trash2, Users } from 'lucide-react';
+import { ArrowDown, ArrowUp, Check, ChartNoAxesColumn, ChevronRight, Loader2, MessageCircle, Pencil, Plus, Shield, Trash2, Users } from 'lucide-react';
 import type { Theme } from '../theme';
 import { t, dateLocale } from '../i18n';
 import { AppFrame, Waiting } from './AppFrame';
@@ -12,6 +12,9 @@ import { AppContext } from './context';
 import { useSelf } from './self';
 import { go } from './route';
 import { Reactions } from './Reactions';
+import { EditButton, EditedMark, EditingBar, type Editing } from '../components/ChatEdit';
+import { canEditAt, editMessage } from '../services/editMessage';
+
 import { DEFAULT_REACTION } from '../services/reactions';
 import { Avatar } from '../components/Avatar';
 import { HornBand } from '../components/motion';
@@ -227,9 +230,21 @@ const RoomChat: React.FC<{ room: ChatRoom; theme: Theme; onToggleTheme: () => vo
         el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
     }, [text]);
 
+    const [editing, setEditing] = useState<Editing | null>(null);
+    const startEdit = (m: RoomMessage) => { setPolling(false); setEditing({ id: m.id, body: m.body }); setText(m.body); window.setTimeout(() => input.current?.focus(), 0); };
+    const stopEdit = () => { setEditing(null); setText(''); };
     const send = async () => {
         const clean = text.trim();
         if (!clean || sending) return;
+        if (editing) {
+            if (clean === editing.body) { stopEdit(); return; }
+            setSending(true); setError('');
+            const id = editing.id;
+            setMessages(cur => cur?.map(x => (x.id === id ? { ...x, body: clean, editedAt: new Date().toISOString() } : x)));
+            try { await editMessage('room', id, clean); stopEdit(); } catch (e) { setError((e as Error)?.message ?? ''); load(); }
+            finally { setSending(false); }
+            return;
+        }
         setSending(true); setError('');
         // A captain signs as the person of their house they chose ("Мен").
         try { await sendToRoom(room, clean, access.role === 'leader' && self?.via === 'staff' ? self.memberId : null); setText(''); stick.current = true; load(); input.current?.focus(); }
@@ -308,6 +323,8 @@ const RoomChat: React.FC<{ room: ChatRoom; theme: Theme; onToggleTheme: () => vo
                                     <Reactions list={m.reactions} me={me} disabled={!me} onPick={e => react(m, e)} align={mine ? 'end' : 'start'} />
                                     <div className="chat-meta">
                                         <span className="tabular">{hm(at)}</span>
+                                        <EditedMark at={m.editedAt} />
+                                        {mine && !m.poll && canEditAt(m.createdAt) && <EditButton onClick={() => startEdit(m)} />}
                                         {(mine || access.isAdmin) && <button onClick={() => remove(m)} aria-label={t('Өчүрүү')} className="chat-delete"><Trash2 className="w-3.5 h-3.5" /></button>}
                                     </div>
                                 </div>
@@ -327,19 +344,20 @@ const RoomChat: React.FC<{ room: ChatRoom; theme: Theme; onToggleTheme: () => vo
                         </button>
                     )}
                     {error && <p className="max-w-[42rem] mx-auto text-[0.82rem] mb-2" style={{ color: 'var(--danger)' }}>{error}</p>}
+                    {editing && !polling && <EditingBar editing={editing} onCancel={stopEdit} />}
                     {polling ? <PollForm onSend={sendAPoll} onCancel={() => setPolling(false)} /> : (
                     <form className="max-w-[42rem] mx-auto flex items-end gap-2" onSubmit={e => { e.preventDefault(); send(); }}>
-                        {pollsReady() && <button type="button" onClick={() => setPolling(true)} aria-label={t('Сурамжылоо')} title={t('Сурамжылоо')} className="w-11 h-12 inline-flex items-center justify-center flex-shrink-0 transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}><ChartNoAxesColumn className="w-5 h-5" /></button>}
+                        {pollsReady() && !editing && <button type="button" onClick={() => setPolling(true)} aria-label={t('Сурамжылоо')} title={t('Сурамжылоо')} className="w-11 h-12 inline-flex items-center justify-center flex-shrink-0 transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}><ChartNoAxesColumn className="w-5 h-5" /></button>}
                         <textarea
                             ref={input} rows={1} value={text} maxLength={2000}
                             onChange={e => setText(e.target.value)}
-                            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && !('ontouchstart' in window)) { e.preventDefault(); send(); } }}
+                            onKeyDown={e => { if (e.key === 'Escape' && editing) stopEdit(); if (e.key === 'Enter' && !e.shiftKey && !('ontouchstart' in window)) { e.preventDefault(); send(); } }}
                             placeholder={access.isAdmin ? t('Админ катары жазуу…') : t('{0}: жазуу…', info.name)} aria-label={t('Билдирүү')}
                             className="login-field flex-1 min-w-0 resize-none px-3.5 py-3 text-base leading-snug"
                             style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border-strong)', color: 'var(--text-primary)' }}
                         />
-                        <button type="submit" disabled={!text.trim() || sending} aria-label={t('Жөнөтүү')} className="w-12 h-12 rounded-full inline-flex items-center justify-center flex-shrink-0 transition-opacity disabled:opacity-35" style={{ backgroundColor: 'var(--gold)', color: 'var(--page-plane)' }}>
-                            {sending ? <Loader2 className="w-5 h-5 animate-spin" /> : <ArrowUp className="w-5 h-5" />}
+                        <button type="submit" disabled={!text.trim() || sending} aria-label={editing ? t('Сактоо') : t('Жөнөтүү')} className="w-12 h-12 rounded-full inline-flex items-center justify-center flex-shrink-0 transition-opacity disabled:opacity-35" style={{ backgroundColor: 'var(--gold)', color: 'var(--page-plane)' }}>
+                            {sending ? <Loader2 className="w-5 h-5 animate-spin" /> : editing ? <Check className="w-5 h-5" /> : <ArrowUp className="w-5 h-5" />}
                         </button>
                     </form>
                     )}
