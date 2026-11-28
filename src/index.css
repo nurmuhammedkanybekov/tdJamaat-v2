@@ -2042,3 +2042,22 @@ button.help-where:hover { border-bottom-color: var(--gold); }
 .install-steps li > span { width: 1.6rem; flex-shrink: 0; font-size: 1.4rem; line-height: 1.2; color: var(--gold); text-align: center; }
 .install-steps li > p { font-size: 1rem; line-height: 1.55; color: var(--text-secondary); }
 .install-done { display: inline-flex; align-items: center; gap: .5rem; color: var(--success); font-size: .95rem; }
+
+/* group chats: choosing people */
+.group-h { display: flex; align-items: baseline; justify-content: space-between; margin-top: 1.2rem; padding-bottom: .4rem; border-bottom: 1px solid var(--border); }
+.group-chosen { display: flex; flex-wrap: wrap; gap: .35rem .9rem; margin-top: .6rem; }
+.group-chosen button { display: inline-flex; align-items: center; gap: .35rem; font-size: .92rem; color: var(--gold); padding: .15rem 0; border-bottom: 1px solid var(--gold-dim); }
+.group-chosen button:hover { color: var(--danger); border-color: var(--danger); }
+.group-search { display: flex; align-items: center; gap: .55rem; margin-top: .8rem; padding: .45rem 0; border-bottom: 1px solid var(--border-strong); }
+.group-search:focus-within { border-bottom-color: var(--gold); }
+.group-search input { flex: 1; min-width: 0; background: transparent; border: 0; outline: none; font-size: .98rem; color: var(--text-primary); }
+.group-people { max-height: 18rem; overflow-y: auto; overscroll-behavior: contain; margin-top: .2rem; }
+.group-person { display: flex; align-items: center; gap: .85rem; width: 100%; padding: .55rem 0; text-align: left; border-bottom: 1px solid var(--border); font-size: 1rem; }
+.group-person > i { width: 15px; height: 15px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; transform: rotate(45deg); border: 1px solid var(--gold); color: var(--page-plane); transition: background .15s; }
+.group-person > i > svg { transform: rotate(-45deg); }
+.group-person[data-on] > i { background: var(--gold); }
+.group-person:hover > i { background: var(--gold-soft); }
+.group-person[data-on]:hover > i { background: var(--gold); }
+.group-line { display: inline-flex; align-items: center; gap: 1rem; margin-top: .4rem; font-size: .76rem; color: var(--text-muted); }
+.group-line button { display: inline-flex; align-items: center; gap: .35rem; letter-spacing: .14em; text-transform: uppercase; font-size: .66rem; color: var(--text-muted); }
+.group-line button:hover { color: var(--danger); }

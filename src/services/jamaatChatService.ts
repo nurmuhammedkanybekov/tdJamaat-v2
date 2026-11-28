@@ -9,8 +9,9 @@ import { selectWithReactions, setReaction, toReactions, type Reaction } from './
 
 /** A conversation's id: 'all', 'staff', or one the admin opened. */
 export type Room = string;
-export type Audience = 'all' | 'staff';
-export interface ChatRoom { id: string; name: string; about: string | null; audience: Audience; sort: number }
+export type Audience = 'all' | 'staff' | 'custom';
+/** custom: a group of chosen people (supabase/group-chats-2026-11.sql), made by the admin or a captain. */
+export interface ChatRoom { id: string; name: string; about: string | null; audience: Audience; sort: number; createdBy?: string | null }
 
 /** The first two, as they are before the admin changes anything. */
 export const DEFAULT_ROOMS: ChatRoom[] = [
@@ -20,10 +21,37 @@ export const DEFAULT_ROOMS: ChatRoom[] = [
 
 /** The conversations this account may see (the database decides), in order.
  *  Without chat_rooms (an older database) the first two, by role. */
+let hasGroups: boolean | null = null;
+/** Whether groups can be made (supabase/group-chats-2026-11.sql has run). */
+export const groupsReady = () => hasGroups === true;
+
 export const fetchRooms = async (staff: boolean): Promise<ChatRoom[]> => {
-    const { data, error } = await supabase.from('chat_rooms').select('id, name, about, audience, sort').order('sort').order('created_at');
-    if (error) return DEFAULT_ROOMS.filter(r => staff || r.audience === 'all');
-    return (data ?? []) as ChatRoom[];
+    const run = (groups: boolean) => supabase.from('chat_rooms').select(`id, name, about, audience, sort${groups ? ', created_by' : ''}`).order('sort').order('created_at');
+    let res = await run(hasGroups !== false);
+    if (res.error && hasGroups !== false && (res.error.code === '42703' || /created_by/i.test(res.error.message ?? ''))) { hasGroups = false; res = await run(false); }
+    else if (!res.error) hasGroups = hasGroups ?? true;
+    if (res.error) return DEFAULT_ROOMS.filter(r => staff || r.audience === 'all');
+    return ((res.data ?? []) as unknown as Array<ChatRoom & { created_by?: string | null }>).map(r => ({ id: r.id, name: r.name, about: r.about, audience: r.audience, sort: r.sort, createdBy: r.created_by ?? null }));
+};
+
+/** A group of chosen people: made, its people set, left. */
+export const createGroup = async (name: string, about: string | null, people: string[]): Promise<string> => {
+    const { data, error } = await supabase.rpc('create_group', { name: name.trim(), about: about?.trim() || null, people });
+    if (error) throw error;
+    return String(data);
+};
+export const setGroupPeople = async (room: string, people: string[]) => {
+    const { error } = await supabase.rpc('set_group_people', { r: room, people });
+    if (error) throw error;
+};
+export const leaveGroup = async (room: string) => {
+    const { error } = await supabase.rpc('leave_group', { r: room });
+    if (error) throw error;
+};
+export const fetchGroupPeople = async (room: string): Promise<string[]> => {
+    const { data, error } = await supabase.from('chat_room_members').select('user_id').eq('room', room);
+    if (error) return [];
+    return ((data ?? []) as Array<{ user_id: string }>).map(r => r.user_id);
 };
 export const createRoom = async (room: { name: string; about: string | null; audience: Audience }) => {
     const { error } = await supabase.from('chat_rooms').insert({ ...room, sort: 100 });

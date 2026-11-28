@@ -4,7 +4,7 @@
 // and each house's own conversation (Үйдүн сөзү, under Үйүм).
 // The database says who wrote what (supabase/jamaat-chat-2026-11.sql).
 import React, { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { ArrowDown, ArrowUp, Check, ChartNoAxesColumn, ChevronRight, Loader2, MessageCircle, Pencil, Plus, Shield, Trash2, Users } from 'lucide-react';
+import { ArrowDown, ArrowUp, Check, ChartNoAxesColumn, ChevronRight, Loader2, LogOut, MessageCircle, MessagesSquare, Pencil, Plus, Shield, Trash2, Users } from 'lucide-react';
 import type { Theme } from '../theme';
 import { t, dateLocale } from '../i18n';
 import { AppFrame, Waiting } from './AppFrame';
@@ -20,8 +20,9 @@ import { Avatar } from '../components/Avatar';
 import { HornBand } from '../components/motion';
 import { Mark } from '../components/Ornament';
 import type { Audience, ChatRoom, RoomMessage } from '../services/jamaatChatService';
-import { closePoll, countRoomUnread, createRoom, deleteRoom, deleteRoomMessage, fetchRoom, fetchRooms, markRoomSeen, myUserId, pollsReady, sendPoll, sendToRoom, reactRoom, updateRoom, votePoll, watchRoom } from '../services/jamaatChatService';
+import { fetchGroupPeople, groupsReady, leaveGroup, closePoll, countRoomUnread, createRoom, deleteRoom, deleteRoomMessage, fetchRoom, fetchRooms, markRoomSeen, myUserId, pollsReady, sendPoll, sendToRoom, reactRoom, updateRoom, votePoll, watchRoom } from '../services/jamaatChatService';
 import { PollCard, PollForm } from './PollCard';
+import { GroupEditor } from './GroupEditor';
 import { DmChat, DmSection } from './DirectMessages';
 import { NotifyToggle } from './Community';
 import { countUnread } from '../services/chatService';
@@ -39,7 +40,8 @@ const hm = (d: Date) => `${String(d.getHours()).padStart(2, '0')}:${String(d.get
 
 const AUDIENCE: Record<Audience, () => string> = {
     all: () => t('Бүт жамаат: мүчөлөр, капитандар, CL жана админ.'),
-    staff: () => t('Капитандар, CL жана админ гана көрөт. Мүчөлөр көрбөйт.')
+    staff: () => t('Капитандар, CL жана админ гана көрөт. Мүчөлөр көрбөйт.'),
+    custom: () => t('Тандалган адамдар гана көрөт.')
 };
 
 /** Who may be here: everyone signed in and linked may read 'all'; the staff also 'staff'. */
@@ -92,13 +94,17 @@ const ChatList: React.FC<{ rooms: ChatRoom[]; onChanged: () => void }> = ({ room
     const ctx = useContext(AppContext);
     const houses = useMemo(() => { const w = ctx.data?.weeks[ctx.data.weeks.length - 1]; return (w?.teams ?? []).map(tm => ({ id: tm.id, name: tm.name })); }, [ctx.data]);
     const [unread, setUnread] = useState<Record<string, number>>({});
-    const [editing, setEditing] = useState<ChatRoom | 'new' | null>(null);
+    const [editing, setEditing] = useState<ChatRoom | 'new' | 'group' | null>(null);
+    const [me, setMe] = useState<string | null>(null);
+    useEffect(() => { myUserId().then(setMe).catch(() => undefined); }, []);
+    const canGroup = (access.isAdmin || access.role === 'leader') && groupsReady();
+    const mayEdit = (r: ChatRoom) => (r.audience === 'custom' ? access.isAdmin || (!!me && r.createdBy === me) : access.isAdmin);
     useEffect(() => {
         rooms.forEach(r => countRoomUnread(r.id).then(n => setUnread(u => ({ ...u, [r.id]: n }))).catch(() => undefined));
         if (self) countUnread(self.houseId, self.memberId).then(n => setUnread(u => ({ ...u, 'house:': n }))).catch(() => undefined);
     }, [rooms, self]);
     const rows: Array<{ key: string; to: string; title: string; sub: string; icon: React.ReactNode; tag: string; room?: ChatRoom }> = [
-        ...rooms.map(r => ({ key: r.id, to: `#/chat/${r.id}`, title: r.name, sub: r.about || (r.audience === 'staff' ? t('Капитандар, CL жана админ') : t('Бүт жамаат бир жерде')), icon: r.audience === 'staff' ? <Shield className="w-5 h-5" strokeWidth={1.5} /> : <Users className="w-5 h-5" strokeWidth={1.5} />, tag: r.audience === 'staff' ? t('Капитандарга') : t('Баарына'), room: r })),
+        ...rooms.map(r => ({ key: r.id, to: `#/chat/${r.id}`, title: r.name, sub: r.about || (r.audience === 'staff' ? t('Капитандар, CL жана админ') : r.audience === 'custom' ? t('Тандалган адамдар') : t('Бүт жамаат бир жерде')), icon: r.audience === 'staff' ? <Shield className="w-5 h-5" strokeWidth={1.5} /> : r.audience === 'custom' ? <MessagesSquare className="w-5 h-5" strokeWidth={1.5} /> : <Users className="w-5 h-5" strokeWidth={1.5} />, tag: r.audience === 'staff' ? t('Капитандарга') : r.audience === 'custom' ? t('Топ') : t('Баарына'), room: r })),
         ...(self ? [{ key: 'house:', to: '#/house/chat', title: t('Үйдүн чаты'), sub: self.houseName, icon: <MessageCircle className="w-5 h-5" strokeWidth={1.5} />, tag: t('Үйгө') }] : []),
         // The admin: every house's chat right here, one tap each (written as «Админ»).
         ...(access.isAdmin ? houses.map(h => ({ key: `house:${h.id}`, to: `#/house/chat/${h.id}`, title: h.name, sub: t('Үйдүн чаты'), icon: <MessageCircle className="w-5 h-5" strokeWidth={1.5} />, tag: t('Үй') })) : [])
@@ -107,9 +113,13 @@ const ChatList: React.FC<{ rooms: ChatRoom[]; onChanged: () => void }> = ({ room
         <div className="max-w-[40rem] mx-auto mt-6">
             <div className="flex items-center justify-between gap-3 pb-3" style={{ borderBottom: '1px solid var(--gold-dim)' }}>
                 <NotifyToggle />
-                {access.isAdmin && <button className="btn btn-ghost" style={{ minHeight: '2.4rem' }} onClick={() => setEditing('new')}><Plus className="w-4 h-4" />{t('Жаңы чат')}</button>}
+                <span className="flex flex-wrap gap-2 justify-end">
+                    {canGroup && <button className="btn btn-ghost" style={{ minHeight: '2.4rem' }} onClick={() => setEditing(editing === 'group' ? null : 'group')}><MessagesSquare className="w-4 h-4" />{t('Жаңы топ')}</button>}
+                    {access.isAdmin && <button className="btn btn-ghost" style={{ minHeight: '2.4rem' }} onClick={() => setEditing(editing === 'new' ? null : 'new')}><Plus className="w-4 h-4" />{t('Жаңы чат')}</button>}
+                </span>
             </div>
             {editing === 'new' && <RoomEditor onDone={() => { setEditing(null); onChanged(); }} />}
+            {editing === 'group' && <GroupEditor me={me} onDone={id => { setEditing(null); onChanged(); if (id) go(`#/chat/${id}`); }} />}
             <ul>
                 {rows.map(r => {
                     const n = unread[r.key] ?? 0;
@@ -127,11 +137,13 @@ const ChatList: React.FC<{ rooms: ChatRoom[]; onChanged: () => void }> = ({ room
                                         ? <span className="room-new" aria-label={t('{0} жаңы билдирүү', n)}><span className="font-display tabular">{n > 99 ? '99+' : n}</span>{t('жаңы')}</span>
                                         : <ChevronRight className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--gold)' }} />}
                                 </button>
-                                {access.isAdmin && r.room && (
-                                    <button onClick={() => setEditing(editing && editing !== 'new' && editing.id === r.room!.id ? null : r.room!)} aria-label={t('Өзгөртүү: {0}', r.title)} className="w-10 h-10 inline-flex items-center justify-center flex-shrink-0 transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}><Pencil className="w-4 h-4" /></button>
+                                {r.room && mayEdit(r.room) && (
+                                    <button onClick={() => setEditing(editing && typeof editing === 'object' && editing.id === r.room!.id ? null : r.room!)} aria-label={t('Өзгөртүү: {0}', r.title)} className="w-10 h-10 inline-flex items-center justify-center flex-shrink-0 transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--text-muted)' }}><Pencil className="w-4 h-4" /></button>
                                 )}
                             </div>
-                            {editing && editing !== 'new' && r.room && editing.id === r.room.id && <RoomEditor room={r.room} onDone={() => { setEditing(null); onChanged(); }} />}
+                            {editing && typeof editing === 'object' && r.room && editing.id === r.room.id && (r.room.audience === 'custom'
+                                ? <GroupEditor room={r.room} me={me} onDone={() => { setEditing(null); onChanged(); }} />
+                                : <RoomEditor room={r.room} onDone={() => { setEditing(null); onChanged(); }} />)}
                         </li>
                     );
                 })}
@@ -145,7 +157,7 @@ const ChatList: React.FC<{ rooms: ChatRoom[]; onChanged: () => void }> = ({ room
 const RoomEditor: React.FC<{ room?: ChatRoom; onDone: () => void }> = ({ room, onDone }) => {
     const [name, setName] = useState(room?.name ?? '');
     const [about, setAbout] = useState(room?.about ?? '');
-    const [audience, setAudience] = useState<Audience>(room?.audience ?? 'all');
+    const [audience, setAudience] = useState<Audience>(room?.audience === 'staff' ? 'staff' : 'all');
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState('');
     const fixed = room?.id === 'all' || room?.id === 'staff';
@@ -286,9 +298,10 @@ const RoomChat: React.FC<{ room: ChatRoom; theme: Theme; onToggleTheme: () => vo
             <div className="max-w-[42rem] mx-auto pt-2 pb-6">
                 <header className="text-center pt-4 pb-2">
                     <Mark size={44} className="mx-auto" style={{ color: 'var(--gold)' }} />
-                    <div className="eyebrow mt-3" style={{ color: 'var(--gold)' }}>{info.audience === 'staff' ? t('Жабык чат') : t('Жалпы чат')}</div>
+                    <div className="eyebrow mt-3" style={{ color: 'var(--gold)' }}>{info.audience === 'staff' ? t('Жабык чат') : info.audience === 'custom' ? t('Топ') : t('Жалпы чат')}</div>
                     <h1 className="font-display text-[2rem] leading-tight mt-1" style={{ color: 'var(--text-primary)' }}>{info.name}</h1>
                     <p className="text-[0.8rem] mt-1" style={{ color: 'var(--text-muted)' }}>{info.about || AUDIENCE[info.audience]()}</p>
+                    {info.audience === 'custom' && <GroupLine room={info} me={me} />}
                     <div className="mt-2"><NotifyToggle /></div>
                     <HornBand className="mt-3" />
                 </header>
@@ -364,5 +377,21 @@ const RoomChat: React.FC<{ room: ChatRoom; theme: Theme; onToggleTheme: () => vo
                 </div>
             )}
         </AppFrame>
+    );
+};
+
+/** In a group: how many are in it, and the way out for those who did not make it. */
+const GroupLine: React.FC<{ room: ChatRoom; me: string | null }> = ({ room, me }) => {
+    const [n, setN] = useState<number | null>(null);
+    useEffect(() => { fetchGroupPeople(room.id).then(l => setN(l.length)).catch(() => undefined); }, [room.id]);
+    const leave = async () => {
+        if (!window.confirm(t('«{0}» тобунан чыгасызбы? Кайра кошулуу үчүн аны ачкан адам кошушу керек.', room.name))) return;
+        try { await leaveGroup(room.id); go('#/chat'); window.location.reload(); } catch { /* stays */ }
+    };
+    return (
+        <div className="group-line">
+            {n !== null && <span className="tabular">{t('{0} адам', n)}</span>}
+            {me && room.createdBy !== me && <button onClick={leave}><LogOut className="w-3.5 h-3.5" />{t('Топтон чыгуу')}</button>}
+        </div>
     );
 };

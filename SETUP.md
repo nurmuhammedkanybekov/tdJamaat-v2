@@ -150,6 +150,11 @@ In the Supabase dashboard, open **SQL Editor** and run, in order:
     a message can change its text for 48 hours (the pencil by the time);
     it then reads "өзгөртүлгөн". Poll questions can't be edited. Needs 27
     and the chat files first. Safe to re-run.
+29. `supabase/group-chats-2026-11.sql` — groups with chosen people. The
+    admin and the captains open a group in Чаттар («Жаңы топ»), name it and
+    pick its people from everyone in the jamaat with an account. Only those
+    people see it. Its maker (or the admin) renames it, changes who is in it
+    or closes it; anyone in it can leave. Needs 27 first. Safe to re-run.
 
 Notifications: in Үйдүн чаты or Жамааттан кабар, "Билдирмелерди
 күйгүзүү". They arrive while the app is open or in the background (not
