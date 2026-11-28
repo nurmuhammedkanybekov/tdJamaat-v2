@@ -1948,7 +1948,7 @@ button.help-where:hover { border-bottom-color: var(--gold); }
 .cal-day[data-fast="missed"] .cal-fast { background: transparent; border: 1px solid var(--danger); }
 .cal-day[data-past] .cal-g { opacity: .72; }
 .cal-day[data-sel] .cal-g, .cal-day[data-today] .cal-g { opacity: 1; }
-.cal-task { position: absolute; top: 6px; right: 16%; width: 5px; height: 5px; border-radius: 50%; background: var(--text-muted); }
+.cal-task { position: absolute; top: 9px; left: calc(50% + .85rem); width: 5px; height: 5px; border-radius: 50%; background: var(--text-muted); }
 .cal-task[data-all] { background: var(--gold); }
 .cal-day[data-sel] .cal-task { background: var(--page-plane); }
 .lg-plan { width: 6px; height: 6px; transform: rotate(45deg); border: 1px solid var(--gold); }
@@ -1967,6 +1967,7 @@ button.help-where:hover { border-bottom-color: var(--gold); }
 
 /* tabs below */
 .cal-tabs { margin-bottom: .5rem; }
+@media (max-width: 480px) { .cal-tabs { flex-wrap: nowrap; } .cal-tabs > button { padding-left: .55rem; padding-right: .55rem; letter-spacing: .08em; font-size: .62rem; white-space: nowrap; } }
 
 /* seven days ahead */
 .cal-agenda > li { border-bottom: 1px solid var(--border); }

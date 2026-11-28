@@ -7,7 +7,7 @@
 export type CloudKey = 'zikr' | 'practice' | 'quran' | 'tasbihat' | 'city' | 'calendar';
 export const CLOUD_KEYS: CloudKey[] = ['zikr', 'practice', 'quran', 'tasbihat', 'city', 'calendar'];
 
-import { mergeCalendarStores } from '../app/fasting';
+import { mergeCalendarStores } from './calendarStore';
 
 type Obj = Record<string, unknown>;
 const isObj = (v: unknown): v is Obj => !!v && typeof v === 'object' && !Array.isArray(v);

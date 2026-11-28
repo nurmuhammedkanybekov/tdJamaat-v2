@@ -25,7 +25,8 @@ const KY_WD = () => [t('жекшемби'), t('дүйшөмбү'), t('шейше
 const monthName = (d: Date) => (dateLocale() ? d.toLocaleDateString(dateLocale()!, { month: 'long', year: 'numeric' }) : `${d.getFullYear()}-жыл, ${KY_MONTHS[d.getMonth()]}`);
 const dayLabel = (d: Date) => (dateLocale() ? d.toLocaleDateString(dateLocale()!, { weekday: 'long', day: 'numeric', month: 'long' }) : `${d.getDate()}-${KY_MONTHS[d.getMonth()]}, ${KY_WD()[d.getDay()]}`);
 const shortDay = (d: Date) => (dateLocale() ? d.toLocaleDateString(dateLocale()!, { day: 'numeric', month: 'short' }).replace('.', '') : `${d.getDate()}-${KY_MONTHS[d.getMonth()].slice(0, 3)}`);
-const weekdayName = (d: Date) => (dateLocale() ? d.toLocaleDateString(dateLocale()!, { weekday: 'long' }) : KY_WD()[d.getDay()]);
+const cap = (x: string) => x.charAt(0).toUpperCase() + x.slice(1);
+const weekdayName = (d: Date) => cap(dateLocale() ? d.toLocaleDateString(dateLocale()!, { weekday: 'long' }) : KY_WD()[d.getDay()]);
 const monthShort = (d: Date) => (dateLocale() ? d.toLocaleDateString(dateLocale()!, { month: 'short' }).replace('.', '') : KY_MONTHS[d.getMonth()].slice(0, 3));
 const WEEK = () => [t('Дш'), t('Шш'), t('Шр'), t('Бш'), t('Жм'), t('Иш'), t('Жш')];
 const noon = (d: Date) => { const x = new Date(d); x.setHours(12, 0, 0, 0); return x; };
@@ -145,7 +146,7 @@ export const CalendarPage: React.FC<{ theme: Theme; onToggleTheme: () => void }>
                     </section>
                 </div>
 
-                <OrnamentDivider className="mt-14" />
+                <OrnamentDivider className="mt-20" />
 
                 {/* Below: the week ahead, the fasts, the year */}
                 <div className="max-w-[46rem] mx-auto mt-8">
