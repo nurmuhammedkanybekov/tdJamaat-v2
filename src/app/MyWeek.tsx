@@ -3,7 +3,7 @@
 // copy it into a message to the captain.
 import React, { useState } from 'react';
 import { Check, Copy } from 'lucide-react';
-import { t } from '../i18n';
+import { t, getLang } from '../i18n';
 import { formatWeekRange } from '../utils/weekDates';
 import type { WeekTotals } from './practice';
 import { weekText } from './useWeekTotals';
@@ -24,7 +24,7 @@ export const MyWeek: React.FC<{ totals: WeekTotals; synced?: boolean }> = ({ tot
             <ul>
                 {rows.map(([code, name, value]) => (
                     <li key={code} className="flex items-baseline gap-3 py-2.5" style={{ borderBottom: '1px solid var(--border)' }}>
-                        <span className="w-12 text-[0.78rem] font-semibold tracking-[0.08em]" style={{ color: 'var(--text-muted)' }}>{code}</span>
+                        {getLang() === 'ky' && <span className="w-12 text-[0.78rem] font-semibold tracking-[0.08em]" style={{ color: 'var(--text-muted)' }}>{code}</span>}
                         <span className="text-[0.95rem]" style={{ color: 'var(--text-secondary)' }}>{name}</span>
                         <span className="leader" />
                         <span className="font-display text-[1.45rem] tabular leading-none" style={{ color: value > 0 ? 'var(--text-primary)' : 'var(--text-muted)' }}>{value}</span>

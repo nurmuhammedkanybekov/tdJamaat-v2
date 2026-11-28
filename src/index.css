@@ -1182,8 +1182,8 @@ li[data-ayah].is-reciting { background-color: color-mix(in oklab, var(--gold) 8%
 /* A bigger place to tap, without changing how the control looks: the small
    text links (a city, "Чыгуу", "Өтүү", "Аамин"…) get an invisible margin a
    thumb can hit (about 44px tall in all). */
-.hit, .chat-amin, .chat-delete { position: relative; }
-.hit::after, .chat-amin::after, .chat-delete::after { content: ''; position: absolute; inset: -12px -6px; }
+.hit, .chat-amin, .chat-delete, .hijri-link, .dm-new, .ayah-src, .mine-face-link, .acct-sync, .help-where { position: relative; }
+.hit::after, .chat-amin::after, .chat-delete::after, .hijri-link::after, .dm-new::after, .ayah-src::after, .mine-face-link::after, .acct-sync::after, .help-where::after { content: ''; position: absolute; inset: -12px -6px; }
 .taz-cell { position: relative; }
 .taz-cell::after { content: ''; position: absolute; inset: -7px 0; }
 .day-path-name { line-height: 1.15; min-height: 1.15em; }
