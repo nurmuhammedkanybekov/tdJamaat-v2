@@ -17,17 +17,24 @@ The interface is in Kyrgyz, with Russian and English versions.
 What the everyday part does:
 
 - **My Day**: the prayer whose time it is, the day's prayer path, today's
-  tasbihat, zikr and Quran, the ayah of the day.
-- **Quran**: the Madinah mushaf, the Kyrgyz meaning, audio, bookmarks;
-  pages count only when the reader marks them, by page range, juz or surah.
+  tasbihat, zikr and Quran, today's plans, the ayah of the day.
+- **Prayer times** for any of 25 cities or the phone's own place (worked out
+  on the device), with the times of Tahajjud, Ishraq and Duha.
+- **Quran**: the Madinah mushaf, the meaning in Kyrgyz, Russian (Kuliev) or
+  English, audio, bookmarks; pages count only when the reader marks them.
 - **Tasbihat** after each prayer, with today's five at a glance.
-- **Zikr**: a counter, favourites, one's own zikrs, a weekly goal.
-- **Calendar**: hijri months, holy days, sunnah fasting days, fasts kept
-  (Ramadan, sunnah, nafl, make-up) and a line of plan for any day.
+- **Zikr**: a counter, favourites, one's own zikrs, a weekly plan per zikr.
+- **Calendar**: hijri months, holy days, sunnah fasting days; each fast with
+  its kind (Ramadan, sunnah, nafl, make-up) and state (intended, kept,
+  missed); the make-up fasts owed; tasks for any day, once or repeating,
+  after a prayer or at a time, carried over when left undone; a note.
+- **My page**: one's results, plans, photo and account in one place.
 - **Plans**: memorization, Quran reading and books, with due dates and
   history; captains and the admin see who needs attention.
-- **Chats**: the house, the captains, the whole jamaat; polls; private
-  messages between people who belong together.
+- **Chats**: the house, the captains, the whole jamaat, groups of chosen
+  people (made by the admin or a captain); replies, editing, reactions,
+  polls; private messages with anyone in the jamaat.
+- **Installable** on a phone, tablet or computer, and works offline.
 
 <p align="center">
   <img src="docs/desktop-night.jpg" alt="The week in the night theme: the leading house and its rating" width="100%">
